@@ -1,0 +1,14 @@
+Package: SECprofiler
+Title: Complex feature detection using SEC protein chromatograms.
+Version: 0.1
+Author: Robin Hafen <robin.hafen@gmail.com>
+Maintainer: Robin hafen <robin.hafen@gmail.com>
+Description: Complex feature detection using SEC protein chromatograms.
+License: MIT
+LazyData: true
+Depends: data.table,
+    ggplot2,
+    foreach,
+    proxy,
+    doMC,
+    reshape
