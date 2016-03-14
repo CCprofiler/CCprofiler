@@ -8,7 +8,5 @@ License: MIT
 LazyData: true
 Depends: data.table,
     ggplot2,
-    foreach,
     proxy,
-    doMC,
     reshape
