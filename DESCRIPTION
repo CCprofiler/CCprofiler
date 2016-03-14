@@ -6,7 +6,9 @@ Maintainer: Robin hafen <robin.hafen@gmail.com>
 Description: Complex feature detection using SEC protein chromatograms.
 License: MIT
 LazyData: true
-Depends: data.table,
+Depends:
+    data.table,
     ggplot2,
     proxy,
     reshape
+RoxygenNote: 5.0.1
