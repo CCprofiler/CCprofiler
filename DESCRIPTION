@@ -10,5 +10,8 @@ Depends:
     data.table,
     ggplot2,
     proxy,
-    reshape
+    reshape,
+    doSNOW,
+    foreach,
+    parallel
 RoxygenNote: 5.0.1
