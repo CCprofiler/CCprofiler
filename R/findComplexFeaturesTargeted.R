@@ -76,6 +76,8 @@ findComplexFeaturesTargeted <- function(protein.traces,
         }
     }
 
+    names(sw.results) <- input.complexes
+
     res <- list(sw.results=sw.results,
                 input.complexes=input.complexes,
                 corr.cutoff=corr.cutoff,
