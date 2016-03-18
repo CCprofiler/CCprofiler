@@ -66,8 +66,8 @@ findComplexFeaturesTargeted <- function(protein.traces,
     if (parallelized) {
         cl <- snow::makeCluster(n.cores)
         doSNOW::registerDoSNOW(cl)
-
-        sw.results <- foreach(i=seq_along(input.complexes)) %dopar% {
+        sw.results <- foreach(i=seq_along(input.complexes),
+                              .export='data.table') %dopar% {
             runSlidingWindow(i);
         }
     } else {
