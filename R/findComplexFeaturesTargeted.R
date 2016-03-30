@@ -88,6 +88,7 @@ findComplexFeaturesTargeted <- function(protein.traces,
             query.complex.id <- input.complexes[i]
             runSlidingWindow(query.complex.id)
         }
+	parallel::stopCluster(cl)
     } else {
         sw.results <- foreach(i=seq_along(input.complexes)) %do% {
             query.complex.id <- input.complexes[i]
