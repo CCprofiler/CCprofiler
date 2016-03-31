@@ -5,9 +5,16 @@
 #'        individual proteins are given by the rows.
 #' @param corr.cutoff The correlation value for chromatograms above which
 #'        proteins are considered to be coeluting.
-#' @return A vector of the same length as the number of proteins. Each element
-#'         corresponds to a integer-based cluster label.
+#' @param protein.names A vector with protein identifiers. This vector has to
+#'        have the same length as the number of rows in `tracemat`.
+#' @return A list containing lists that describe the found subclusters.
+#'         An individual list has the structure:
+#'         \itemize{
+#'          \item \code{subunits}: character vector
+#'          \item \code{mean.corr}: intra cluster correlation
+#'         }
 findComplexFeaturesWithinWindow <- function(tracemat, corr.cutoff,
+                                            protein.names,
                                             with.plot=F, sec=NULL) {
     # In case there are only two proteins in the matrix no clustering
     # is performed.
@@ -35,10 +42,24 @@ findComplexFeaturesWithinWindow <- function(tracemat, corr.cutoff,
     # 0.7 then the height where the tree is cut is at 1-0.7=0.3.
     # This process will result in a vector of group labels.
     group.assignments <- cutree(cl, h=1 - corr.cutoff)
-    group.found <-
-        length(unique(group.assignments)) < length(group.assignments)
-    group.assignments
+
+    # Extract all subclusters and only keep those that have at least 2
+    # members. For each subcluster recompute the correlation (without
+    # score penalty from imputed noise).
+    n.proteins <- nrow(tracemat)
+    subclusters.all <- split(1:n.proteins, group.assignments)
+    subclusters <- Filter(function(clu) length(clu) >= 2, subclusters.all)
+    lapply(subclusters, function(clu) {
+        tracemat.clu <- tracemat[clu, ]
+        corr.clu <- cor(t(tracemat.clu))
+        corr.clu <- corr.clu[upper.tri(corr.clu)]
+        corr.clu.mean <- mean(corr.clu)
+        list(subunits=protein.names[clu],
+             mean.corr=corr.clu.mean
+        )
+    })
 }
+
 
 #' Detect subgroups of proteins within a matrix of protein intensity traces by
 #' sliding a window across the SEC dimension. Within each window proteins
@@ -55,11 +76,30 @@ findComplexFeaturesWithinWindow <- function(tracemat, corr.cutoff,
 #'        Intensity values that are zero are imputed with random noise
 #'        according to the noise estimation.
 #' @param min.sec The lowest SEC number in the sample.
-#' @return An instance of class `complexFeaturesSW`.
+#' @return An instance of class `complexFeaturesSW`. This is a list with the
+#'         following entries:
+#'         \itemize{
+#'          \item \code{subgroups.dt} A datatable where rows are
+#'              observations of proteins in subgroups.
+#'          \item \code{subgroup.feats} A datatable of features. Each feature
+#'              can span several SEC fractions.
+#'          \item \code{subgroups.wide} A matrix indicating for each subgroup i
+#'              whether it was present at SEC fraction j.
+#'          \item \code{window.size} The window.size used when running this
+#'              function.
+#'          \item \code{corr.cutoff} The corr.cutoff used when running this
+#'              function
+#'         }
+#' @examples
+#' # NOT RUN:
+#' # protein.ids <- corum.complex.protein.assoc[complex_id == 181, protein_id]
+#' # traces <- subset(protein.traces[protein_id %in% protein.ids],
+#' #                  select=-protein_id)
+#' # sw.res <- findComplexFeatures(traces, protein.ids)
 #' @export
 findComplexFeatures <- function(trace.mat,
                                 protein.names,
-                                corr.cutoff=0.75,
+                                corr.cutoff=0.95,
                                 window.size=15,
                                 with.plot=F,
                                 noise.quantile=0.2,
@@ -81,67 +121,47 @@ findComplexFeatures <- function(trace.mat,
     end.idx <- ncol(trace.mat) - window.size
 
     # Analyze each window for groups of protein chromatograms that correlate
-    # well. This will produce a matrix with nrows == number of proteins and 
-    # ncols == number SEC positions. Each column j is a vector indicating the 
-    # clustering of proteins. For example, if column j equaled c(1, 2, 2),
-    # the second and third protein would form a cluster and the first protein
-    # would be in its own cluster.
-    groups.by.window <- sapply(seq(1, ncol(trace.mat)), function(i) {
+    # well.
+    groups.by.window <- lapply(seq(1, ncol(trace.mat)), function(i) {
         start.window.idx <- min(end.idx, i)
         end.window.idx <- start.window.idx + window.size
         window.trace.mat <- trace.mat[, start.window.idx:end.window.idx]
         groups.within.window <-
             findComplexFeaturesWithinWindow(window.trace.mat,
                                             corr.cutoff=corr.cutoff,
+                                            protein.names=protein.names,
                                             with.plot=with.plot,
                                             sec=start.window.idx)
 
         groups.within.window
     })
 
-    # Check for each SEC position if there is at least one subgroup above the
-    # cutoff, i.e. there exists a grouping vector that has at least two 
-    # numbers that are equal.
-    any.subgroups.in.window <-
-        apply(groups.by.window, 2, function(col) any(col != 1:length(col)))
-
-    # For each SEC position produce a list of present clusters. Clusters are
-    # represented by a vector of protein identifiers. This is therefore a list
-    # of lists containing character vectors.
-    groups.by.window <- apply(groups.by.window, 2, function(col) {
-        lapply(unique(col), function(g) {
-            protein.names[g == col]
-        })
-    })
-
     groups.dt.list <- lapply(1:length(groups.by.window), function(i) {
-        # A list of string vectors, each vector represents a cluster.
+        # A list of clusters that were found at position `i`.
         subgroups <- groups.by.window[[i]]
-        subgroup.sizes <- sapply(subgroups, function(grp) length(grp))
         # Produce a list of data.tables, each DT describes a subgroup in long list
         # format.
         subgroups.dt.list <- lapply(subgroups, function(grp) {
-            if (length(grp) > 1) {
-                rt.dt <- data.table(sec=i, protein_id=grp,
-                                    n_subunits=length(grp),
-                                    subgroup=paste(grp, collapse=';'))
-                # We want to report a feature RT for each position _within_ the
-                # window, where the correlation was high enough. So for example
-                # if the window at RT == 20 found some subgroup, then the
-                # subgroup should be reported for the interval
-                # [20, 20 + window.size].
-                # To achieve this, we replicate the data.table and each time
-                # change the RT value.
-                do.call(rbind, lapply(seq(i, min(i + window.size, ncol(trace.mat))),
-                   function(t) {
-                       new.rt.dt <- rt.dt
-                       new.rt.dt$sec <- t + (min.sec - 1)
-                       new.rt.dt
-                   }))
-            } else {
-                data.table(sec=integer(length=0), protein_id=character(0),
-                           n_subunits=integer(length=0), subgroup=character(0))
-            }
+            subunits <- grp$subunits
+            mean.corr <- grp$mean.corr
+            rt.dt <- data.table(sec=i, protein_id=subunits,
+                                n_subunits=length(grp),
+                                subgroup=paste(subunits, collapse=';'),
+                                groupscore=mean.corr)
+            # We want to report a feature RT for each position _within_ the
+            # window, where the correlation was high enough. So for example
+            # if the window at RT == 20 found some subgroup, then the
+            # subgroup should be reported for the interval
+            # [20, 20 + window.size].
+            # To achieve this, we replicate the data.table and each time
+            # change the RT value.
+            do.call(rbind, lapply(seq(i, min(i + window.size, ncol(trace.mat))),
+               function(t) {
+                   new.rt.dt <- rt.dt
+                   new.rt.dt$sec <- t + (min.sec - 1)
+                   new.rt.dt
+               })
+            )
         })
         do.call(rbind, subgroups.dt.list)
     })
@@ -155,7 +175,9 @@ findComplexFeatures <- function(trace.mat,
         groups.only.wide <-
             cast(groups.only, subgroup ~ sec, value='is_present', fill=F)
         groups.mat <- as.matrix(subset(groups.only.wide, select=-subgroup))
-        groups.feats <- findFeatureBoundaries(groups.mat, groups.only.wide$subgroup)
+        groups.feats <- findFeatureBoundaries(groups.mat,
+                                              groups.only.wide$subgroup,
+                                              groups.dt)
     } else {
         groups.only.wide <- data.frame()
         groups.feats <- data.frame()
@@ -170,11 +192,13 @@ findComplexFeatures <- function(trace.mat,
     result
 }
 
-# trsubs <- subset(protein.traces, select=-protein_id)[1:10]
-# trsubs.names <- protein.traces$protein_id[1:10]
-# res = findComplexFeatures(trsubs, trsubs.names, corr.cutoff=0.99)
 
-findFeatureBoundaries <- function(m, subgroup.names) {
+# TODO: Implement function to detected feature boundaries using RCPP
+
+#' Helper function to find boundaries of complex features.
+#' @param m Logical matrix where an entry m[i, j] indicates if subgroup i was
+#' detected at SEC fraction j.
+findFeatureBoundaries <- function(m, subgroup.names, groups.dt) {
     boundaries <- lapply(1:nrow(m), function(i) {
         borders <- integer(length=0)
         in.feature <- FALSE
@@ -197,9 +221,23 @@ findFeatureBoundaries <- function(m, subgroup.names) {
             boundaries.m <- matrix(borders, nrow=2)
             left.boundaries <- boundaries.m[1, ]
             right.boundaries <- boundaries.m[2, ]
-            data.frame(subgroup=subgroup.names[i],
-                       left_sec=left.boundaries,
-                       right_sec=right.boundaries)
+            subgroup.name <- subgroup.names[i]
+
+            # Extract the groupscore for each feature found
+            # for this subgroup.
+            n.features.found <- length(left.boundaries)
+            do.call(rbind, lapply(1:n.features.found, function(k) {
+                right.boundary <- right.boundaries[k]
+                left.boundary <- left.boundaries[k]
+                groupscore <- groups.dt[subgroup == subgroup.name &
+                                            left.boundary <= sec &
+                                            sec <= right.boundary,
+                                        groupscore][1]
+                data.frame(subgroup=subgroup.name,
+                           left_sec=left.boundaries[k],
+                           right_sec=right.boundaries[k],
+                           score=groupscore)
+            }))
         } else {
             data.frame()
         }
