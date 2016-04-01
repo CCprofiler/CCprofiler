@@ -10,17 +10,18 @@
 #'         contained functions.
 #'         
 #' @export
-#' 
 importFromOpenSWATH <- function(file.name = "OpenSwathData.tsv", 
-                                        annotation.table = "annotation.txt",
-                                        remove_requantified = TRUE) {
+                                annotation.table = "annotation.txt",
+                                remove_requantified = TRUE) {
   # read data & annotation table
   ##################################################
   data  <- data.table::fread(file.name, sep="\t", header=TRUE)
-  message("reading results file ...")
+  message('reading results file ...')
   annotation <- data.table::fread(annotation.table)
-  
-  data.s <- subset(data, select = c("transition_group_id", "ProteinName","FullPeptideName","filename", "Sequence", "decoy", "aggr_prec_Peak_Area", "d_score", "m_score", "Intensity"))
+  column.names <- c('transition_group_id', 'ProteinName','FullPeptideName',
+                    'filename', 'Sequence', 'decoy', 'aggr_prec_Peak_Area',
+                    'd_score', 'm_score', 'Intensity')
+  data.s <- subset(data, select = column.names)
   if (remove_requantified == TRUE){
     data.s <- data.s[m_score <= 1,]
   }
