@@ -90,7 +90,7 @@ importFromMaxQuant <- function(file.name = "peptides.txt", quanttype = "^Intensi
   
   #Replace column headers by fraction number and order ascending
   nruns <- length(names(data.s.traces))
-  column_headers_experiment <- gsub("Intensity ", "", names(data.s.traces))
+  column_headers_experiment <- gsub(quanttype, "", names(data.s.traces))
   column_headers_fraction <- sapply(column_headers_experiment, function(x){annotation[Experiment %in% x, "Fraction", with = FALSE]})
   column_headers_fraction <- sapply(column_headers_fraction, function(x){x[[1]]})
   names(data.s.traces) <- sprintf("%02d", column_headers_fraction)
