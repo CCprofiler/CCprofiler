@@ -12,3 +12,6 @@
 #'  \item \code{protein_id} The Uniprot identifier of the protein.
 #' }
 'corum.complex.protein.assoc'
+
+#' An example object of class \code{FragmentTraces}.
+'protein.traces.obj'
