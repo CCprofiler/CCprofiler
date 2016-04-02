@@ -1,3 +1,6 @@
+# Due to: http://stackoverflow.com/questions/24501245/data-table-throws-object-not-found-error
+.datatable.aware=TRUE
+
 #' Import peptide profiles from an OpenSWATH experiment.
 #' @import data.table
 #' @param file.name Quantitative MS data result file.
