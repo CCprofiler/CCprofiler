@@ -6,7 +6,7 @@ hasAnalyteMap <- function(trace.obj) {
 #' Convert a data.table containing traces from wide format to long format. 
 #' @param traces.dt A data.table with an id column \code{fragment_id} and
 #'        columns of continuously numbered fractions.
-#' @returns A data.table with columns
+#' @return A data.table with columns
 #'          \itemize{
 #'           \item \code{fragment_id}
 #'           \item \code{fraction}
@@ -28,7 +28,7 @@ toLongFormat <- function(traces.dt) {
 #'           \item \code{fraction}
 #'           \item \code{intensity}
 #'          }
-#' @returns The same data.table casted to wide format.
+#' @return The same data.table casted to wide format.
 toWideFormat <- function(traces.dt) {
     dcast(traces.dt, fragment_id ~ fraction, value.var='intensity')
 }
