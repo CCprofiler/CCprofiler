@@ -9,7 +9,7 @@
 #'        to a SEC elution fraction.
 #' @param remove_requantified Whether requantified (noise) peak group quantities should be removed, defaults to TRUE.
 #'        
-#' @return An object of class Traces (peptide level) containing \itemize{table.wide, table.long and id} that can be processed with the herein
+#' @return An object of class Traces (peptide level) containing a "traces.wide", and "ids" table that can be processed with the herein
 #'         contained functions.
 #'         
 #' @export
@@ -18,13 +18,19 @@ importFromOpenSWATH <- function(file.name = "OpenSwathData.tsv",
                                 remove_requantified = TRUE) {
   # read data & annotation table
   ##################################################
-  data  <- data.table::fread(file.name, sep="\t", header=TRUE)
   message('reading results file ...')
+  data  <- data.table::fread(file.name, sep="\t", header=TRUE)
+  data <- data[grep("^1/", data$ProteinName)] #remove non-proteotypic
+  data$ProteinName <- gsub("^1/","", data$ProteinName) #remove 2/ etc. tags
   annotation <- data.table::fread(annotation.table)
+  
+  # subset data to some important columns to save RAM
   column.names <- c('transition_group_id', 'ProteinName','FullPeptideName',
                     'filename', 'Sequence', 'decoy', 'aggr_prec_Peak_Area',
                     'd_score', 'm_score', 'Intensity')
   data.s <- subset(data, select = column.names)
+  rm(data)
+  gc()
   if (remove_requantified == TRUE){
     data.s <- data.s[m_score <= 1,]
   }
@@ -49,12 +55,13 @@ importFromOpenSWATH <- function(file.name = "OpenSwathData.tsv",
   # Assemble and output result "Traces" object
   #################################################
   traces.wide <- data.table(dcast(data.s, ProteinName + FullPeptideName ~ fraction_number, value.var = "Intensity", fun.aggregate = sum))
-  names(traces.wide)[1:2] <- c("protein_id", "peptide_id")
-  traces.long <- melt(traces.wide,
-                      id.vars = c("protein_id","peptide_id"),
-                    value.name = "Intensity", 
-                    variable.name = "fraction_number")
-  result <- list(table.wide = traces.wide, table.long = traces.long, ids = traces.wide[,1:2, with = FALSE])
+  setnames(traces.wide, "ProteinName", "protein_id")
+  setnames(traces.wide, "FullPeptideName", "peptide_id")
+  # traces.long <- melt(traces.wide,
+  #                     id.vars = c("protein_id","peptide_id"),
+  #                   value.name = "Intensity", 
+  #                   variable.name = "fraction_number")
+  result <- list(traces.wide = traces.wide, ids = traces.wide[,1:2, with = FALSE])
   class(result) <- "Traces"
   return(result)
 }
