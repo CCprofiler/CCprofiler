@@ -8,7 +8,7 @@
 #'        Fraction should contain the fraction_number.
 #' @param quanttype Type of quant to extract, defaults to "Intensity " and can be replaced by other prefixes as given in the MaxQuant result table header.
 #'        E.g. "^Intensity H " or "^Intensity L " can be used to differentiate channels of SILAC-label data.
-#' @return An object of class Traces (peptide level) containing \itemize{table.wide, table.long and id} that can be processed with the herein
+#' @return An object of class Traces (peptide level) containing a "traces.wide", and "ids" table that can be processed with the herein
 #'         contained functions.
 #'         
 #' @export
@@ -30,6 +30,7 @@ importFromMaxQuant <- function(file.name = "peptides.txt", quanttype = "^Intensi
   
   data.s.traces <- data.s[`Unique (Proteins)` == "yes", Quantcolumns, with = FALSE]
   data.s.labels <- data.s[`Unique (Proteins)` == "yes", Labelcolumns, with = FALSE]
+  # Extract Uniprot id (protein_id) and Uniprot entry name (protein_name) from fasta_id
   data.s.labels[, protein_id:=sapply(as.character(data.s.labels$Proteins), function(x){strsplit(x, split = "\\|")[[1]][2]})]
   data.s.labels[, protein_name:=sapply(as.character(data.s.labels$Proteins), function(x){strsplit(x, split = "\\|")[[1]][3]})]
   
@@ -45,15 +46,18 @@ importFromMaxQuant <- function(file.name = "peptides.txt", quanttype = "^Intensi
   #################################################
   traces.wide <- data.table(protein_id = data.s.labels$protein_id, peptide_id = data.s.labels$Sequence, data.s.traces)
   setorder(traces.wide, protein_id)
-  traces.long <- melt(traces.wide,
-                      id.vars = c("protein_id","peptide_id"),
-                      value.name = "Intensity", 
-                      variable.name = "fraction_number")
+  # traces.long <- melt(traces.wide,
+  #                     id.vars = c("protein_id","peptide_id"),
+  #                     value.name = "Intensity", 
+  #                     variable.name = "fraction_number")
   labels <- data.s.labels[,c(2, 4, 3, 1), with = FALSE]
-  names(labels)[4] <- "peptide_id"
-  names(labels)[1] <- "fasta_id"
+  setnames(labels, "Sequence", "peptide_id")
+  setnames(labels, "Proteins", "fasta_id")
   setorder(labels, protein_id)
-  result <- list(table.wide = traces.wide, table.long = traces.long, ids = labels)
+  result <- list(traces.wide = traces.wide, ids = labels)
   class(result) <- "Traces"
   return(result)
 }
+
+
+
