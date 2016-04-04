@@ -6,7 +6,7 @@
 #' @param file.name Quantitative MS data result file. Defaults to "OpenMS_LFQ_peptides.csv"
 #' @param annotation.table Annotation table containing columns "Name" (-> raw file name), and "Fraction".
 #'        Fraction should contain the fraction_number.
-#' @return An object of class Traces (peptide level) containing \itemize{table.wide, table.long and id} that can be processed with the herein
+#' @return An object of class Traces (peptide level) containing a "traces.wide", and "ids" table that can be processed with the herein
 #'         contained functions.
 #'         
 #' @export
@@ -44,19 +44,20 @@ importFromOpenMSLFQ <- function(file.name = "OpenMS_LFQ_peptides.csv", annotatio
   traces.wide <- traces.wide[grep("DECOY", traces.wide$protein_id, invert = TRUE)]
   #Revert to clean Uniprot ids, save fasta and name entry information separately
   fasta_id <- traces.wide$protein_id
+  # Extract Uniprot id (protein_id) and Uniprot entry name (protein_name) from fasta_id
   protein_id <- sapply(as.character(traces.wide$protein_id), function(x){strsplit(x, split = "\\|")[[1]][2]})
   protein_name <- sapply(as.character(traces.wide$protein_id), function(x){strsplit(x, split = "\\|")[[1]][3]})
   traces.wide$protein_id <- protein_id
   setorder(traces.wide, protein_id)
-  
-  traces.long <- melt(traces.wide,
-                      id.vars = c("protein_id","peptide_id"),
-                      value.name = "Intensity", 
-                      variable.name = "fraction_number")
+   
+  # traces.long <- melt(traces.wide,
+  #                     id.vars = c("protein_id","peptide_id"),
+  #                     value.name = "Intensity", 
+  #                     variable.name = "fraction_number")
   labels <- data.table(fasta_id = fasta_id, protein_id = protein_id, protein_name = protein_name, peptide_id = traces.wide$peptide_id)
   setorder(labels, protein_id)
   
-  result <- list(table.wide = traces.wide, table.long = traces.long, ids = labels)
+  result <- list(traces.wide = traces.wide, ids = labels)
   class(result) <- "Traces"
   return(result)
 }
