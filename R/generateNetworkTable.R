@@ -1,0 +1,24 @@
+#' From protein level Traces, generate a Network table with pairwise profile correlation score
+#' 
+#' @param Traces A Traces object containing wide format elution profiles.
+#' @param correlation_cutoff Minimum pearson correlation value to report an edge between two proteins.
+#' @param write_file Logical (TRUE/FALSE) whether an output file named [systime]_NetworkTable.csv shall be written to the working folder.
+#' @return A data.table containing columns UniProt_A UniProt_B and pearson_correlation, readable e.g. by Cytoscape.
+
+generateNetworkTable <- function(Traces, correlation_cutoff = 0.9, write_csv = TRUE) {
+	data <- Traces$protein.traces
+	# calculate protein level correlation matrix
+	data.traces <- data[,2:ncol(data)]
+	rownames(data.traces) <- data$protein_id
+	corrmtrx<-cor(t(data.traces))
+	corrlist<-corrmtrx
+	corrlist[lower.tri(corrlist,diag=TRUE)]=NA
+	corrlist=as.data.frame(as.table(corrlist))
+	corrlist=na.omit(corrlist)
+	corrlist=corrlist[order(-abs(corrlist$Freq)),]
+	names(corrlist)<-c("Uniprot_A", "Uniprot_B", "pearson_correlation")
+	if (write_csv) {
+		write.csv(corrlist, file=paste0((Sys.time(), "_NetworkTable.csv", quote = FALSE, row.names = FALSE)
+	}
+	return(corrlist)
+}
