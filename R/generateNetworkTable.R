@@ -4,6 +4,7 @@
 #' @param correlation_cutoff Minimum pearson correlation value to report an edge between two proteins.
 #' @param write_file Logical (TRUE/FALSE) whether an output file named [systime]_NetworkTable.csv shall be written to the working folder.
 #' @return A data.table containing columns UniProt_A UniProt_B and pearson_correlation, readable e.g. by Cytoscape.
+#' @export
 
 generateNetworkTable <- function(Traces, correlation_cutoff = 0.9, write_csv = TRUE) {
 	data <- Traces$protein.traces
