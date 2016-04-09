@@ -18,8 +18,8 @@ generateNetworkTable <- function(Traces, correlation_cutoff = 0.9, write_csv = T
 	corrlist=na.omit(corrlist)
 	corrlist=corrlist[order(-abs(corrlist$Freq)),]
 	names(corrlist)<-c("Uniprot_A", "Uniprot_B", "pearson_correlation")
-	if (write_csv) {
-		write.csv(corrlist, file=paste0((Sys.time(), "_NetworkTable.csv", quote = FALSE, row.names = FALSE)
+	if (write_csv == TRUE) {
+		write.csv(corrlist, file=paste0(deparse(substitute(Traces)), "_NetworkTable.csv", quote = FALSE, row.names = FALSE))
 	}
 	return(corrlist)
 }
