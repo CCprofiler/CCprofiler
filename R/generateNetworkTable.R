@@ -9,7 +9,7 @@
 generateNetworkTable <- function(Traces, correlation_cutoff = 0.9, write_csv = TRUE) {
 	data <- Traces$protein.traces
 	# calculate protein level correlation matrix
-	data.traces <- data[,2:ncol(data)]
+	data.traces <-as.matrix(data[,2:ncol(data)])
 	rownames(data.traces) <- data$protein_id
 	corrmtrx<-cor(t(data.traces))
 	corrlist<-corrmtrx
