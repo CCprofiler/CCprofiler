@@ -79,12 +79,8 @@ findComplexFeaturesWithinWindow <- function(tracemat, corr.cutoff,
 #' @return An instance of class `complexFeaturesSW`. This is a list with the
 #'         following entries:
 #'         \itemize{
-#'          \item \code{subgroups.dt} A datatable where rows are
-#'              observations of proteins in subgroups.
-#'          \item \code{subgroup.feats} A datatable of features. Each feature
+#'          \item \code{features} A datatable of features. Each feature
 #'              can span several SEC fractions.
-#'          \item \code{subgroups.wide} A matrix indicating for each subgroup i
-#'              whether it was present at SEC fraction j.
 #'          \item \code{window.size} The window.size used when running this
 #'              function.
 #'          \item \code{corr.cutoff} The corr.cutoff used when running this
@@ -178,14 +174,12 @@ findComplexFeatures <- function(trace.mat,
         groups.feats <- findFeatureBoundaries(groups.mat,
                                               groups.only.wide$subgroup,
                                               groups.dt)
+        groups.feats <- extendComplexFeatures(groups.feats)
     } else {
-        groups.only.wide <- data.frame()
         groups.feats <- data.frame()
     }
 
-    result <- list(subgroups.dt=groups.dt,
-                   subgroup.feats=groups.feats,
-                   subgroups.wide=groups.only.wide,
+    result <- list(features=groups.feats,
                    window.size=window.size,
                    corr.cutoff=corr.cutoff)
     class(result) <- 'complexFeaturesSW'
@@ -233,14 +227,48 @@ findFeatureBoundaries <- function(m, subgroup.names, groups.dt) {
                                             left.boundary <= sec &
                                             sec <= right.boundary,
                                         groupscore][1]
-                data.frame(subgroup=subgroup.name,
+                data.table(subgroup=subgroup.name,
                            left_sec=left.boundaries[k],
                            right_sec=right.boundaries[k],
                            score=groupscore)
             }))
         } else {
-            data.frame()
+            data.table()
         }
     })
     do.call(rbind, boundaries)
+}
+
+
+#' A helper function to extend a list of complex features with additional
+#' information.
+#'
+#' @param features A data.table of complex feature candidates with the
+#'        following format:
+#'        \itemize{
+#'         \item \code{subgroup} A semicolon-separated list of protein
+#'                               identifiers.
+#'         \item \code{left_sec} The left boundary of the feature.
+#'         \item \code{right_sec} The right boundary of the feature.
+#'         \item \code{score} The intra-feature correlation.
+#'        }
+#' @return The same data.table as the input argument extended with the
+#'         following columns:
+#'         \itemize{
+#'          \item \code{n_subunits} The number of subunits in the feature.
+#'          \item \code{stoichiometry} The intensity-based stoichiometry.
+#'          \item \code{mw_estimated} The estimated molecular weight.
+#'          \item \code{mw_apparent} The apparent mw.
+#'          \item \code{mw_delta} The delta mw.
+#'         }
+extendComplexFeatures <- function(features) {
+    features[, n_subunits := length(strsplit(as.character(subgroup), ';')[[1]]),
+             by=subgroup]
+    features[, mw_apparent := convertSECToMW(right_sec - left_sec) / 2,
+             by=subgroup]
+    # TODO
+    features[, mw_estimated := 0, by=subgroup]
+    features[, mw_delta := 0, by=subgroup]
+    features[, stoichiometry := '1A:2B', by=subgroup]
+    features
 }
