@@ -1,3 +1,6 @@
+.datatable.aware=TRUE
+
+
 #' Detect subgroups within a window. This is a helper function and should 
 #' be called by `findComplexFeatures`.
 #'

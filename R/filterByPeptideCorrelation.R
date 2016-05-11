@@ -1,5 +1,5 @@
 # Due to: http://stackoverflow.com/questions/24501245/data-table-throws-object-not-found-error
-# .datatable.aware=TRUE
+.datatable.aware=TRUE
 
 #' Import peptide profiles from an OpenSWATH experiment.
 #' @name filterByPeptideCorrelation
