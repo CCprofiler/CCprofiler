@@ -64,6 +64,8 @@ findComplexFeaturesWithinWindow <- function(tracemat, corr.cutoff,
 }
 
 
+# TODO: Rename to findComplexFeaturesSW
+# TODO: Rename targeted version to something like findComplexFeaturesSWBulk
 #' Detect subgroups of proteins within a matrix of protein intensity traces by
 #' sliding a window across the SEC dimension. Within each window proteins
 #' with traces that correlate well are clustered together.
@@ -177,11 +179,14 @@ findComplexFeatures <- function(trace.mat,
         groups.feats <- findFeatureBoundaries(groups.mat,
                                               groups.only.wide$subgroup,
                                               groups.dt)
-        groups.feats <- extendComplexFeatures(groups.feats)
+        groups.feats <- extendComplexFeatures(groups.feats, trace.mat,
+                                              protein.names)
     } else {
         groups.feats <- data.frame()
     }
 
+    # TODO: Include traces object as character string
+    # and then get object form environment when plotting.
     result <- list(features=groups.feats,
                    window.size=window.size,
                    corr.cutoff=corr.cutoff)
@@ -227,8 +232,8 @@ findFeatureBoundaries <- function(m, subgroup.names, groups.dt) {
                 right.boundary <- right.boundaries[k]
                 left.boundary <- left.boundaries[k]
                 groupscore <- groups.dt[subgroup == subgroup.name &
-                                            left.boundary <= sec &
-                                            sec <= right.boundary,
+                                        left.boundary <= sec &
+                                        sec <= right.boundary,
                                         groupscore][1]
                 data.table(subgroup=subgroup.name,
                            left_sec=left.boundaries[k],
@@ -255,6 +260,10 @@ findFeatureBoundaries <- function(m, subgroup.names, groups.dt) {
 #'         \item \code{right_sec} The right boundary of the feature.
 #'         \item \code{score} The intra-feature correlation.
 #'        }
+#' @param trace.mat A matrix where rows correspond to protein traces.
+#'        This is the matrix that was used to find complex features.
+#' @param protein.names A character vector specifying the protein identifiers
+#'        belonging to the rows in \code{trace.mat}.
 #' @return The same data.table as the input argument extended with the
 #'         following columns:
 #'         \itemize{
@@ -264,7 +273,7 @@ findFeatureBoundaries <- function(m, subgroup.names, groups.dt) {
 #'          \item \code{mw_apparent} The apparent mw.
 #'          \item \code{mw_delta} The delta mw.
 #'         }
-extendComplexFeatures <- function(features) {
+extendComplexFeatures <- function(features, trace.mat, protein.names) {
     features[, n_subunits := length(strsplit(as.character(subgroup), ';')[[1]]),
              by=subgroup]
     features[, mw_apparent := convertSECToMW(right_sec - left_sec) / 2,
@@ -273,5 +282,37 @@ extendComplexFeatures <- function(features) {
     features[, mw_estimated := 0, by=subgroup]
     features[, mw_delta := 0, by=subgroup]
     features[, stoichiometry := '1A:2B', by=subgroup]
+
+    protein.total.intensity <- rowSums(trace.mat)
+    # setkey(features, subgroup)
+
+    traces.dt <- data.table(trace.mat)
+    traces.dt[, protein_id := protein.names]
+    traces.long <- melt(traces.dt, id.vars='protein_id', value.name='intensity',
+                        variable.name='fraction')
+    traces.long[, fraction := as.numeric(fraction)]
+    protein.info <- traces.long[, list(total_intensity=sum(intensity)), by=protein_id]
+    setkey(traces.long, protein_id)
+    setkey(protein.info, protein_id)
+
+
+#     computeMW <- function(subgroup.string, subgroup.features) {
+#         subunits <- strsplit(subgroup.string, ';')[[1]]
+#         left.fraction <- subgroup.features$left_sec
+#         right.fraction <- subgroup.features$right_sec
+#         subunit.intensities.within.feature <-
+#             sapply(subunits, function(subunit) {
+#                 traces.long[protein_id == subunit &
+#                             left.fraction <= fraction &
+#                             fraction <= right.fraction, sum(intensity)]
+#         })
+#         relative.intensities <-
+#             subunit.intensities.within.feature / min(subunit.intensities.within.feature)
+#         browser()
+#         subgroup.features
+#     }
+
+#     bla <- features[, computeMW(.BY$subgroup, .SD), by=subgroup]
+
     features
 }
