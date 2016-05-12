@@ -3,6 +3,13 @@
 #' @param protein.traces A wide format data.table where the first column
 #'        is named \code{protein_id} and all other columns correspond to
 #'        intensity values measured in SEC fractions. 
+#' @param protein.mw.conc A data.table that stores the molecular weight and
+#'        estimate of the absolute abundance for each subunit.
+#'        \itemize{
+#'         \item \code{protein_id}
+#'         \item \code{protein_mw}
+#'         \item \code{protein_concentration}
+#'        }
 #' @param complex.protein.assoc A data.table that encodes the input complexes
 #'        and their subunit compositions. The data.table should have the
 #'        format:
@@ -40,9 +47,11 @@
 #' #     sample(unique(corum.complex.protein.assoc$complex_id), 10)
 #' # complex.protein.assoc <-
 #' #     corum.complex.protein.assoc[complex_id %in% sample.complexes]
-#' # findComplexFeaturesTargeted(protein.traces, complex.protein.assoc)
+#' # findComplexFeaturesSWBulk(protein.traces, protein.mw.conc,
+#' #                           complex.protein.assoc)
 #' @export
 findComplexFeaturesTargeted <- function(protein.traces,
+                                        protein.mw.conc,
                                         complex.protein.assoc,
                                         corr.cutoff=0.99,
                                         window.size=15,

@@ -1,71 +1,5 @@
 .datatable.aware=TRUE
 
-
-#' Detect subgroups within a window. This is a helper function and should 
-#' be called by `findComplexFeatures`.
-#'
-#' @param tracemat A matrix of intensity values where chromatograms of
-#'        individual proteins are given by the rows.
-#' @param corr.cutoff The correlation value for chromatograms above which
-#'        proteins are considered to be coeluting.
-#' @param protein.names A vector with protein identifiers. This vector has to
-#'        have the same length as the number of rows in `tracemat`.
-#' @return A list containing lists that describe the found subclusters.
-#'         An individual list has the structure:
-#'         \itemize{
-#'          \item \code{subunits}: character vector
-#'          \item \code{mean.corr}: intra cluster correlation
-#'         }
-findComplexFeaturesWithinWindow <- function(tracemat, corr.cutoff,
-                                            protein.names,
-                                            with.plot=F, sec=NULL) {
-    # In case there are only two proteins in the matrix no clustering
-    # is performed.
-    if (nrow(tracemat) == 2) {
-        corr <- proxy::simil(tracemat, method='correlation')[1]
-        if (corr > corr.cutoff) {
-            group.assignment <- c(1, 1)
-        } else {
-            group.assignment <- c(1, 2)
-        }
-        return(group.assignment)
-    }
-    # Compute distance between chromatograms as measured by the pearson
-    # correlation.
-    distance <- proxy::dist(tracemat, method='correlation')
-    # Cluster correlation vectors hierarchically s.t. proteins that correlate
-    # well with a similar group of other proteins cluster together.
-    cl <- hclust(distance)
-    if (with.plot) {
-        plot(cl)
-        abline(h=1 - corr.cutoff, col='red')
-    }
-    # Cut the dendrogram at specified distance.
-    # For example, if the requested correlation cutoff `corr.cutoff` is
-    # 0.7 then the height where the tree is cut is at 1-0.7=0.3.
-    # This process will result in a vector of group labels.
-    group.assignments <- cutree(cl, h=1 - corr.cutoff)
-
-    # Extract all subclusters and only keep those that have at least 2
-    # members. For each subcluster recompute the correlation (without
-    # score penalty from imputed noise).
-    n.proteins <- nrow(tracemat)
-    subclusters.all <- split(1:n.proteins, group.assignments)
-    subclusters <- Filter(function(clu) length(clu) >= 2, subclusters.all)
-    lapply(subclusters, function(clu) {
-        tracemat.clu <- tracemat[clu, ]
-        corr.clu <- cor(t(tracemat.clu))
-        corr.clu <- corr.clu[upper.tri(corr.clu)]
-        corr.clu.mean <- mean(corr.clu)
-        list(subunits=protein.names[clu],
-             mean.corr=corr.clu.mean
-        )
-    })
-}
-
-
-# TODO: Rename to findComplexFeaturesSW
-# TODO: Rename targeted version to something like findComplexFeaturesSWBulk
 #' Detect subgroups of proteins within a matrix of protein intensity traces by
 #' sliding a window across the SEC dimension. Within each window proteins
 #' with traces that correlate well are clustered together.
@@ -74,6 +8,13 @@ findComplexFeaturesWithinWindow <- function(tracemat, corr.cutoff,
 #'        traces.
 #' @param protein.names A vector with protein identifiers. This vector has to
 #'        have the same length as the number of rows in `trace.mat`.
+#' @param protein.mw.conc A data.table that stores the molecular weight and
+#'        estimate of the absolute abundance for each subunit.
+#'        \itemize{
+#'         \item \code{protein_id}
+#'         \item \code{protein_mw}
+#'         \item \code{protein_concentration}
+#'        }
 #' @param corr.cutoff The correlation value for chromatograms above which
 #'        proteins are considered to be coeluting.
 #' @param window.size Size of the window. Numeric.
@@ -90,21 +31,24 @@ findComplexFeaturesWithinWindow <- function(tracemat, corr.cutoff,
 #'              function.
 #'          \item \code{corr.cutoff} The corr.cutoff used when running this
 #'              function
+#'          \item \code{traces.var.name} The variable name of the matrix
+#'              holding the traces.
 #'         }
 #' @examples
 #' # NOT RUN:
 #' # protein.ids <- corum.complex.protein.assoc[complex_id == 181, protein_id]
 #' # traces <- subset(protein.traces[protein_id %in% protein.ids],
 #' #                  select=-protein_id)
-#' # sw.res <- findComplexFeatures(traces, protein.ids)
+#' # sw.res <- findComplexFeaturesSW(traces, protein.ids, protein.mw.conc)
 #' @export
-findComplexFeatures <- function(trace.mat,
-                                protein.names,
-                                corr.cutoff=0.95,
-                                window.size=15,
-                                with.plot=F,
-                                noise.quantile=0.2,
-                                min.sec=1) {
+findComplexFeaturesSW <- function(trace.mat,
+                                  protein.names,
+                                  protein.mw.conc,
+                                  corr.cutoff=0.95,
+                                  window.size=15,
+                                  with.plot=F,
+                                  noise.quantile=0.2,
+                                  min.sec=1) {
     if (!any(class(trace.mat) == 'matrix')) {
         trace.mat <- as.matrix(trace.mat)
     }
@@ -180,7 +124,8 @@ findComplexFeatures <- function(trace.mat,
                                               groups.only.wide$subgroup,
                                               groups.dt)
         groups.feats <- extendComplexFeatures(groups.feats, trace.mat,
-                                              protein.names)
+                                              protein.names,
+                                              protein.mw.conc)
     } else {
         groups.feats <- data.frame()
     }
@@ -189,10 +134,75 @@ findComplexFeatures <- function(trace.mat,
     # and then get object form environment when plotting.
     result <- list(features=groups.feats,
                    window.size=window.size,
-                   corr.cutoff=corr.cutoff)
+                   corr.cutoff=corr.cutoff,
+                   traces.var.name=deparse(substitute(trace.mat)))
     class(result) <- 'complexFeaturesSW'
     result
 }
+
+
+#' Detect subgroups within a window. This is a helper function and should 
+#' be called by `findComplexFeaturesSW`.
+#'
+#' @param tracemat A matrix of intensity values where chromatograms of
+#'        individual proteins are given by the rows.
+#' @param corr.cutoff The correlation value for chromatograms above which
+#'        proteins are considered to be coeluting.
+#' @param protein.names A vector with protein identifiers. This vector has to
+#'        have the same length as the number of rows in `tracemat`.
+#' @return A list containing lists that describe the found subclusters.
+#'         An individual list has the structure:
+#'         \itemize{
+#'          \item \code{subunits}: character vector
+#'          \item \code{mean.corr}: intra cluster correlation
+#'         }
+findComplexFeaturesWithinWindow <- function(tracemat, corr.cutoff,
+                                            protein.names,
+                                            with.plot=F, sec=NULL) {
+    # In case there are only two proteins in the matrix no clustering
+    # is performed.
+    if (nrow(tracemat) == 2) {
+        corr <- proxy::simil(tracemat, method='correlation')[1]
+        if (corr > corr.cutoff) {
+            group.assignment <- c(1, 1)
+        } else {
+            group.assignment <- c(1, 2)
+        }
+        return(group.assignment)
+    }
+    # Compute distance between chromatograms as measured by the pearson
+    # correlation.
+    distance <- proxy::dist(tracemat, method='correlation')
+    # Cluster correlation vectors hierarchically s.t. proteins that correlate
+    # well with a similar group of other proteins cluster together.
+    cl <- hclust(distance)
+    if (with.plot) {
+        plot(cl)
+        abline(h=1 - corr.cutoff, col='red')
+    }
+    # Cut the dendrogram at specified distance.
+    # For example, if the requested correlation cutoff `corr.cutoff` is
+    # 0.7 then the height where the tree is cut is at 1-0.7=0.3.
+    # This process will result in a vector of group labels.
+    group.assignments <- cutree(cl, h=1 - corr.cutoff)
+
+    # Extract all subclusters and only keep those that have at least 2
+    # members. For each subcluster recompute the correlation (without
+    # score penalty from imputed noise).
+    n.proteins <- nrow(tracemat)
+    subclusters.all <- split(1:n.proteins, group.assignments)
+    subclusters <- Filter(function(clu) length(clu) >= 2, subclusters.all)
+    lapply(subclusters, function(clu) {
+        tracemat.clu <- tracemat[clu, ]
+        corr.clu <- cor(t(tracemat.clu))
+        corr.clu <- corr.clu[upper.tri(corr.clu)]
+        corr.clu.mean <- mean(corr.clu)
+        list(subunits=protein.names[clu],
+             mean.corr=corr.clu.mean
+        )
+    })
+}
+
 
 
 # TODO: Implement function to detected feature boundaries using RCPP
@@ -264,6 +274,15 @@ findFeatureBoundaries <- function(m, subgroup.names, groups.dt) {
 #'        This is the matrix that was used to find complex features.
 #' @param protein.names A character vector specifying the protein identifiers
 #'        belonging to the rows in \code{trace.mat}.
+#' @param protein.mw.conc A data.table that stores the molecular weight and
+#'        estimate of the absolute abundance for each subunit.
+#'        \itemize{
+#'         \item \code{protein_id}
+#'         \item \code{protein_mw}
+#'         \item \code{protein_concentration}
+#'        }
+#' @param protein.abundances A numeric vector holding estimates of the absolute
+#'        abundance of each subunit.
 #' @return The same data.table as the input argument extended with the
 #'         following columns:
 #'         \itemize{
@@ -273,46 +292,118 @@ findFeatureBoundaries <- function(m, subgroup.names, groups.dt) {
 #'          \item \code{mw_apparent} The apparent mw.
 #'          \item \code{mw_delta} The delta mw.
 #'         }
-extendComplexFeatures <- function(features, trace.mat, protein.names) {
+extendComplexFeatures <- function(features, trace.mat,
+                                  protein.names,
+                                  protein.mw.conc) {
+    # Compute the number of subunits in each complex feature
     features[, n_subunits := length(strsplit(as.character(subgroup), ';')[[1]]),
              by=subgroup]
+    # Estimate the molecular weight of the complex by using information
+    # gathered by calibrating the column with molecules of known molecular
+    # weight. This is known as the 'apparent' molecular weight.
     features[, mw_apparent := convertSECToMW(right_sec - left_sec) / 2,
              by=subgroup]
-    # TODO
-    features[, mw_estimated := 0, by=subgroup]
-    features[, mw_delta := 0, by=subgroup]
-    features[, stoichiometry := '1A:2B', by=subgroup]
 
-    protein.total.intensity <- rowSums(trace.mat)
-    # setkey(features, subgroup)
-
+    # Produce a long list version of the trace matrix since its more convenient
+    # for downstream processing.
     traces.dt <- data.table(trace.mat)
     traces.dt[, protein_id := protein.names]
     traces.long <- melt(traces.dt, id.vars='protein_id', value.name='intensity',
-                        variable.name='fraction')
+                        variable.name='fraction', variable.factor=FALSE)
     traces.long[, fraction := as.numeric(fraction)]
-    protein.info <- traces.long[, list(total_intensity=sum(intensity)), by=protein_id]
     setkey(traces.long, protein_id)
+
+    # Next, create a data.table that holds information on subunits.
+    protein.info <- traces.long[, list(total_intensity=sum(intensity)), by=protein_id]
+    # Merge the data.table holding the molecular weight and abs. abundance
+    # estimates and the data.table with the total intensity of each protein.
+    setkey(protein.mw.conc, protein_id)
     setkey(protein.info, protein_id)
+    protein.info <- protein.info[protein.mw.conc]
 
+    # Loop over each feature and try to estimate the stoichiometry of its
+    # complex as well as its molecular mass.
+    for (i in 1:nrow(features)) {
+        feature <- features[i]
+        subunits <- strsplit(feature$subgroup, ';')[[1]]
+        # Extract only the traces for the subunits that make up this feature.
+        subunit.traces <- traces.long[subunits]
+        # Extract the relevant information from the protein.info DT.
+        subunit.mws <- protein.info[subunits, protein_mw]
+        subunit.abundances <- protein.info[subunits, protein_concentration]
+        subunit.total.intensities <- protein.info[subunits, total_intensity]
+        # Call the helper function to estimate the molecular mass of the
+        # complex and its stoichiometry.
+        res <- estimateComplexMass(subunit.traces,
+                                   feature$left_sec,
+                                   feature$right_sec,
+                                   subunit.total.intensities,
+                                   subunit.mws,
+                                   subunit.abundances)
+        # Add the resulting information to the initial feature DT.
+        features[i, mw_estimated := res$mw_estimated]
+        features[i, stoichiometry := res$stoichiometry]
+    }
 
-#     computeMW <- function(subgroup.string, subgroup.features) {
-#         subunits <- strsplit(subgroup.string, ';')[[1]]
-#         left.fraction <- subgroup.features$left_sec
-#         right.fraction <- subgroup.features$right_sec
-#         subunit.intensities.within.feature <-
-#             sapply(subunits, function(subunit) {
-#                 traces.long[protein_id == subunit &
-#                             left.fraction <= fraction &
-#                             fraction <= right.fraction, sum(intensity)]
-#         })
-#         relative.intensities <-
-#             subunit.intensities.within.feature / min(subunit.intensities.within.feature)
-#         browser()
-#         subgroup.features
-#     }
-
-#     bla <- features[, computeMW(.BY$subgroup, .SD), by=subgroup]
+    # Produce a score that measures how well both estimates agree.
+    features[, mw_delta := abs(mw_estimated - mw_apparent)]
 
     features
+}
+
+
+#' A helper function to compute an estimate of the mass of a complex and
+#' its stoichiometry.
+#' @param traces A long list style data.table holding the intensity
+#'     observations of each subunit. This data.table should have the format:
+#'     \itemize{
+#'      \item \code{protein_id} The subunit identifier
+#'      \item \code{fraction} Where the observation was made
+#'      \item \code{intensity} The observed intensity
+#'     }
+#' @param left.boundary The left feature boundary
+#' @param right.boundary The right feature boundary
+#' @param subunit.total.intensities A numeric vector with the total trace
+#'     intensities across all fractions.
+#' @param subunit.mws A numeric vector with molecular weights of the subunits.
+#' @param subunit.abundances A numeric vector with total abundances of the
+#'     subunits.
+#' @returns A list with the following to entries 'stoichiometry' and
+#'     'mw_estimated'.
+estimateComplexMass <- function(traces,
+                                left.boundary,
+                                right.boundary,
+                                subunit.total.intensities,
+                                subunit.mws,
+                                subunit.abundances) {
+    subunits <- unique(traces$protein_id)
+    n.subunits <- length(subunits)
+    stopifnot(length(subunit.mws) == n.subunits &&
+              length(subunit.abundances) == n.subunits)
+    # For each subunit sum up the intensity of its trace within the
+    # feature boundaries.
+    # This will produce a named vector of intensities.
+    subunit.intensities.within.feature <-
+        sapply(subunits, function(subunit) {
+            traces.long[protein_id == subunit &
+                        left.boundary <= fraction &
+                        fraction <= right.boundary, sum(intensity)]
+    })
+
+    # Compute for each subunit how much of its total abundance lies within
+    # the boundaries of this feature. This information can then be used
+    # to guess the stoichiometry of the complex.
+    # Together with the molecular weight of each individual subunit an
+    # estimate of the complex mass can be made.
+    subunit.relative.intensities <-
+        subunit.intensities.within.feature / subunit.total.intensities
+    subunit.abundances.in.feature <-
+        subunit.relative.intensities * subunit.abundances
+    subunit.abundances.in.feature.norm <-
+        subunit.abundances.in.feature / min(subunit.abundances.in.feature)
+    stoichiometry <- round(subunit.abundances.in.feature.norm)
+    est.complex.mass <- sum(stoichiometry * subunit.mws)
+
+    data.table(mw_estimated=est.complex.mass,
+               stoichiometry=paste(stoichiometry, collapse=';'))
 }

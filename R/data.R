@@ -15,3 +15,14 @@
 
 #' An example object of class \code{FragmentTraces}.
 'protein.traces.obj'
+
+#' A data.table that holds stores for each protein its molecular weight as
+#' annotated in UniProt as well as an estimate on its absolute abundance within
+#' the sample.
+#' Its structure is as follows:
+#' \itemize{
+#'  \item \code{protein_id} The Uniprot identifier of the protein.
+#'  \item \code{protein_mw} The molecular weight.
+#'  \item \code{protein_concentration} The absolute concentration.
+#' }
+'protein.mw.conc'
