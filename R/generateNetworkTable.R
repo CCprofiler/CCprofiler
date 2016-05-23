@@ -1,4 +1,5 @@
-#' From protein level Traces, generate a Network table with pairwise profile correlation score
+#' From protein level Traces, generate a Network table with pairwise profile
+#' correlation score
 #' 
 #' @param Traces A Traces object containing wide format elution profiles (protein.traces).
 #' @param correlation_cutoff Minimum pearson correlation value to report an edge between two proteins.
@@ -24,5 +25,3 @@ generateNetworkTable <- function(Traces, correlation_cutoff = 0.9, write_csv = T
 	}
 	return(corrlist.s)
 }
-
-?cor
