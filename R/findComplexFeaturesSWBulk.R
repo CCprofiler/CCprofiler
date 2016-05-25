@@ -1,8 +1,16 @@
 #' Run the sliding window algorithm for a number of protein complexes.
 #' 
-#' @param protein.traces A wide format data.table where the first column
-#'        is named \code{protein_id} and all other columns correspond to
-#'        intensity values measured in SEC fractions. 
+#' @param trace.mat A numeric matrix where rows correspond to the different
+#'        traces.
+#' @param protein.names A vector with protein identifiers. This vector has to
+#'        have the same length as the number of rows in `trace.mat`.
+#' @param protein.mw.conc A data.table that stores the molecular weight and
+#'        estimate of the absolute abundance for each subunit.
+#'        \itemize{
+#'         \item \code{protein_id}
+#'         \item \code{protein_mw}
+#'         \item \code{protein_concentration}
+#'        }
 #' @param protein.mw.conc A data.table that stores the molecular weight and
 #'        estimate of the absolute abundance for each subunit.
 #'        \itemize{
@@ -20,10 +28,9 @@
 #'               a protein and links it to a trace contained in
 #'               \code{protein.traces}.
 #'        }
-#' @param corr.cutoff The correlation cutoff to use in the sliding window
-#'        algorithm. Optional.
-#' @param window.size The window size to use in the sliding window algorithm.
-#'        Optional.
+#' @param corr.cutoff The correlation value for chromatograms above which
+#'        proteins are considered to be coeluting.
+#' @param window.size Size of the window. Numeric.
 #' @param parallelized If the computation should be done in parallel.
 #'        Optional.
 #' @param n.cores The number of cores to use for parallel processing. Optional.
@@ -43,20 +50,32 @@
 #'         }
 #' @examples
 #' # NOT RUN:
-#' # sample.complexes <-
-#' #     sample(unique(corum.complex.protein.assoc$complex_id), 10)
+#' # protein.ids <- corum.complex.protein.assoc[complex_id == 181, protein_id]
+#' # traces <- subset(protein.traces[protein_id %in% protein.ids],
+#' #                  select=-protein_id)
+#' # sample.complexes <- c(181, 191)
 #' # complex.protein.assoc <-
 #' #     corum.complex.protein.assoc[complex_id %in% sample.complexes]
-#' # findComplexFeaturesSWBulk(protein.traces, protein.mw.conc,
+#' # findComplexFeaturesSWBulk(traces,
+#' #                           protein.ids,
+#' #                           protein.mw.conc[protein_id %in% protein.ids],
 #' #                           complex.protein.assoc)
 #' @export
-findComplexFeaturesTargeted <- function(protein.traces,
-                                        protein.mw.conc,
-                                        complex.protein.assoc,
-                                        corr.cutoff=0.99,
-                                        window.size=15,
-                                        parallelized=FALSE,
-                                        n.cores=parallel::detectCores()) {
+findComplexFeaturesSWBulk <- function(trace.mat,
+                                      protein.names,
+                                      protein.mw.conc,
+                                      complex.protein.assoc,
+                                      corr.cutoff=0.95,
+                                      window.size=15,
+                                      parallelized=FALSE,
+                                      n.cores=parallel::detectCores()) {
+    if (nrow(trace.mat) < 2) {
+        stop('Trace matrix needs at least 2 proteins')
+    }
+
+    protein.traces <- as.data.table(trace.mat)
+    protein.traces[, protein_id := protein.names]
+
     setkey(protein.traces, protein_id)
     setkey(complex.protein.assoc, complex_id)
 
@@ -72,15 +91,17 @@ findComplexFeaturesTargeted <- function(protein.traces,
         complex.subunits <- complex.protein.assoc[complex_id == complex.id,
                                                   protein_id]
         traces.subs <- protein.traces[protein_id %in% complex.subunits]
-        protein.names <- traces.subs$protein_id
+        subunit.names <- traces.subs$protein_id
         # Convert traces to a matrix
         traces.mat <- as.matrix(subset(traces.subs, select=-protein_id))
         # Run the algorithm
         try({
             if (nrow(traces.mat) >= 2) {
-                findComplexFeatures(traces.mat, protein.names,
-                                    corr.cutoff=corr.cutoff,
-                                    window.size=window.size)
+                findComplexFeaturesSW(traces.mat,
+                                      subunit.names,
+                                      protein.mw.conc,
+                                      corr.cutoff=corr.cutoff,
+                                      window.size=window.size)
             } else {
                 list()
             }
@@ -97,7 +118,7 @@ findComplexFeaturesTargeted <- function(protein.traces,
             query.complex.id <- input.complexes[i]
             runSlidingWindow(query.complex.id)
         }
-	parallel::stopCluster(cl)
+        parallel::stopCluster(cl)
     } else {
         sw.results <- foreach(i=seq_along(input.complexes)) %do% {
             query.complex.id <- input.complexes[i]
@@ -115,22 +136,24 @@ findComplexFeaturesTargeted <- function(protein.traces,
     for (i in seq_along(input.complexes)) {
         complex.id <- input.complexes[i]
         res <- sw.results[[i]]
-        if (!is.null(res$subgroups.dt) && nrow(res$subgroups.dt) > 0) {
-            max.detected.subunits <- max(res$subgroups.dt$n_subunits)
+        if (nrow(res$features) > 0) {
+            max.detected.subunits <- max(res$features$n_subunits)
             complex.stats[complex_id == as.character(complex.id),
                           n_subunits_detected := max.detected.subunits]
         }
     }
-    complex.stats[, completeness := n_subunits_detected / n_subunits_annotated]
+    complex.stats[, completeness := n_subunits_detected / 
+                    n_subunits_annotated]
 
-    res <- list(sw.results=sw.results,
+    res <- list(trace.mat=trace.mat,
+                sw.results=sw.results,
                 complex.stats=complex.stats,
                 input.complexes=input.complexes,
                 corr.cutoff=corr.cutoff,
                 window.size=window.size,
                 complex.protein.assoc=complex.protein.assoc)
 
-    class(res) <- 'targetedComplexFeaturesSW'
+    class(res) <- 'complexFeaturesSWBulk'
 
     res
 }
