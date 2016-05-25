@@ -31,8 +31,6 @@
 #'              function.
 #'          \item \code{corr.cutoff} The corr.cutoff used when running this
 #'              function
-#'          \item \code{traces.var.name} The variable name of the matrix
-#'              holding the traces.
 #'         }
 #' @examples
 #' # NOT RUN:
@@ -134,8 +132,7 @@ findComplexFeaturesSW <- function(trace.mat,
     # and then get object form environment when plotting.
     result <- list(features=groups.feats,
                    window.size=window.size,
-                   corr.cutoff=corr.cutoff,
-                   traces.var.name=deparse(substitute(trace.mat)))
+                   corr.cutoff=corr.cutoff)
     class(result) <- 'complexFeaturesSW'
     result
 }
@@ -368,7 +365,7 @@ extendComplexFeatures <- function(features, trace.mat,
 #' @param subunit.mws A numeric vector with molecular weights of the subunits.
 #' @param subunit.abundances A numeric vector with total abundances of the
 #'     subunits.
-#' @returns A list with the following to entries 'stoichiometry' and
+#' @return A list with the following to entries 'stoichiometry' and
 #'     'mw_estimated'.
 estimateComplexMass <- function(traces,
                                 left.boundary,
@@ -385,9 +382,9 @@ estimateComplexMass <- function(traces,
     # This will produce a named vector of intensities.
     subunit.intensities.within.feature <-
         sapply(subunits, function(subunit) {
-            traces.long[protein_id == subunit &
-                        left.boundary <= fraction &
-                        fraction <= right.boundary, sum(intensity)]
+            traces[protein_id == subunit &
+                   left.boundary <= fraction &
+                   fraction <= right.boundary, sum(intensity)]
     })
 
     # Compute for each subunit how much of its total abundance lies within
