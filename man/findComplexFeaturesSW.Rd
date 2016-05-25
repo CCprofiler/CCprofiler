@@ -46,8 +46,6 @@ An instance of class `complexFeaturesSW`. This is a list with the
              function.
          \item \code{corr.cutoff} The corr.cutoff used when running this
              function
-         \item \code{traces.var.name} The variable name of the matrix
-             holding the traces.
         }
 }
 \description{

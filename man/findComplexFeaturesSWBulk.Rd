@@ -5,8 +5,8 @@
 \title{Run the sliding window algorithm for a number of protein complexes.}
 \usage{
 findComplexFeaturesSWBulk(trace.mat, protein.names, protein.mw.conc,
-  corr.cutoff, window.size, complex.protein.assoc, parallelized = FALSE,
-  n.cores = parallel::detectCores())
+  complex.protein.assoc, corr.cutoff = 0.95, window.size = 15,
+  parallelized = FALSE, n.cores = parallel::detectCores())
 }
 \arguments{
 \item{trace.mat}{A numeric matrix where rows correspond to the different
@@ -23,11 +23,6 @@ estimate of the absolute abundance for each subunit.
  \item \code{protein_concentration}
 }}
 
-\item{corr.cutoff}{The correlation value for chromatograms above which
-proteins are considered to be coeluting.}
-
-\item{window.size}{Size of the window. Numeric.}
-
 \item{complex.protein.assoc}{A data.table that encodes the input complexes
 and their subunit compositions. The data.table should have the
 format:
@@ -38,6 +33,11 @@ format:
        a protein and links it to a trace contained in
        \code{protein.traces}.
 }}
+
+\item{corr.cutoff}{The correlation value for chromatograms above which
+proteins are considered to be coeluting.}
+
+\item{window.size}{Size of the window. Numeric.}
 
 \item{parallelized}{If the computation should be done in parallel.
 Optional.}
