@@ -29,6 +29,10 @@ intensities across all fractions.}
 \item{subunit.abundances}{A numeric vector with total abundances of the
 subunits.}
 }
+\value{
+A list with the following to entries 'stoichiometry' and
+    'mw_estimated'.
+}
 \description{
 A helper function to compute an estimate of the mass of a complex and
 its stoichiometry.

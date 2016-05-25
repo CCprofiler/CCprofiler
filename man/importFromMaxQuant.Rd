@@ -2,25 +2,30 @@
 % Please edit documentation in R/importFromMaxQuant.R
 \name{importFromMaxQuant}
 \alias{importFromMaxQuant}
-\title{Import peptide profiles from an MaxQuant DDA data analysis search result table.}
+\title{Import peptide profiles from an MaxQuant DDA data analysis search result
+table.}
 \usage{
 importFromMaxQuant(file.name = "peptides.txt", quanttype = "^Intensity ",
   annotation.table = "experimentalDesignTemplate.txt")
 }
 \arguments{
-\item{file.name}{Quantitative MS data result file. Defaults to "peptides.txt"}
+\item{file.name}{Quantitative MS data result file. Defaults to 'peptides.txt'}
 
-\item{quanttype}{Type of quant to extract, defaults to "Intensity " and can be replaced by other prefixes as given in the MaxQuant result table header.
-E.g. "^Intensity H " or "^Intensity L " can be used to differentiate channels of SILAC-label data.}
+\item{quanttype}{Type of quant to extract, defaults to 'Intensity ' and can
+be replaced by other prefixes as given in the MaxQuant result table
+header. E.g. '^Intensity H ' or '^Intensity L ' can be used to
+differentiate channels of SILAC-label data.}
 
-\item{annotation.table}{experimentalDesignTemplate table from MaxQuant, containing columns "Name", "Experiment" and "Fraction".
+\item{annotation.table}{experimentalDesignTemplate table from MaxQuant,
+containing columns 'Name', 'Experiment' and 'Fraction'.
 Fraction should contain the fraction_number.}
 }
 \value{
-An object of class Traces (peptide level) containing a "traces.wide", and "ids" table that can be processed with the herein
-        contained functions.
+An object of class Traces (peptide level) containing a 'traces.wide',
+    and 'ids' table that can be processed with the herein contained functions.
 }
 \description{
-Import peptide profiles from an MaxQuant DDA data analysis search result table.
+Import peptide profiles from an MaxQuant DDA data analysis search result
+table.
 }
 

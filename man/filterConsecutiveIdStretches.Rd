@@ -2,24 +2,28 @@
 % Please edit documentation in R/filterConsecutiveIdStretches.R
 \name{filterConsecutiveIdStretches}
 \alias{filterConsecutiveIdStretches}
-\title{filterConsecutiveIdStretches filters protein profiling traces based on minimal length of consecutive ID stretches.}
+\title{filterConsecutiveIdStretches filters protein profiling traces based on
+minimal length of consecutive ID stretches.}
 \usage{
-filterConsecutiveIdStretches(Traces, min_stretch_length = 3,
+filterConsecutiveIdStretches(traces, min_stretch_length = 3,
   remove_empty = TRUE)
 }
 \arguments{
-\item{Traces}{object of class Traces containing the elution profiles that are to be filtered.}
+\item{traces}{object of class traces containing the elution profiles that
+are to be filtered.}
 
-\item{remove_empty}{Logical whether the entries with rowSum == 0 after filtering are removed, defaults to TRUE.}
+\item{remove_empty}{Logical whether the entries with rowSum == 0 after
+filtering are removed, defaults to TRUE.}
 
-\item{min_stretch_len}{The minimal length a stretch of contiguous identifications
-has to have in order not to be removed.}
+\item{min_stretch_len}{The minimal length a stretch of contiguous
+identifications has to have in order not to be removed.}
 }
 \value{
-An object of class Traces containing the filtered
-        chromatograms.
+An object of class traces containing the filtered
+    chromatograms.
 }
 \description{
-filterConsecutiveIdStretches filters protein profiling traces based on minimal length of consecutive ID stretches.
+filterConsecutiveIdStretches filters protein profiling traces based on
+minimal length of consecutive ID stretches.
 }
 

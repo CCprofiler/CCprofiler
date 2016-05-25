@@ -11,14 +11,16 @@ importFromOpenSWATH(file.name = "OpenSwathData.tsv",
 \item{file.name}{Quantitative MS data result file.}
 
 \item{annotation.table}{A data frame with two columns `run_id` and
-`fraction_number` that map the run identifier as contained in `file.name`
-to a SEC elution fraction.}
+`fraction_number` that map the run identifier as contained in
+`file.name` to a SEC elution fraction.}
 
-\item{remove_requantified}{Whether requantified (noise) peak group quantities should be removed, defaults to TRUE.}
+\item{remove_requantified}{Whether requantified (noise) peak group quantities
+should be removed, defaults to TRUE.}
 }
 \value{
-An object of class Traces (peptide level) containing a "traces.wide", and "ids" table that can be processed with the herein
-        contained functions.
+An object of class Traces (peptide level) containing a
+    "traces.wide", and "ids" table that can be processed with the herein
+    contained functions.
 }
 \description{
 Import peptide profiles from an OpenSWATH experiment.

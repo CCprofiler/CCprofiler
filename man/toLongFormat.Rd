@@ -22,6 +22,13 @@ A data.table with columns
           \item \code{fraction}
           \item \code{intensity}
          }
+
+A data.table with columns
+         \itemize{
+          \item \code{fragment_id}
+          \item \code{fraction}
+          \item \code{intensity}
+         }
 }
 \description{
 Convert a data.table containing traces from wide format to long format.

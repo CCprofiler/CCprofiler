@@ -4,18 +4,28 @@
 \alias{filterByPeptideCorrelation}
 \title{Import peptide profiles from an OpenSWATH experiment.}
 \usage{
-filterByPeptideCorrelation(Traces, min_pairwise_corr = 0.8,
-  average_corr_cutoff = ">= median")
+filterByPeptideCorrelation(traces, min.pairwise.corr = 0.8,
+  average.corr.cutoff = ">= median")
 }
 \arguments{
-\item{Traces}{Object of class Traces containing the quantitative MS data table.}
+\item{traces}{Object of class traces containing the quantitative MS data
+table.}
 
-\item{min_pairwise_corr}{Minimum pairwise pearson correlation necessary to retain the data for a protein with 2 peptides.}
+\item{min.pairwise.corr}{Minimum pairwise pearson correlation necessary
+to retain the data for a protein with 2 peptides.}
 
-\item{average_corr_cutoff}{For proteins with >= 3 peptides, retain all in the data whose average correlation with all siblings is
-how good, defaults to ">= median" but can be replaces with a numeric cutoff (e.g. 0.6).}
+\item{average.corr.cutoff}{For proteins with >= 3 peptides, retain all
+in the data whose average correlation with all siblings is how good,
+defaults to '>= median' but can be replaces with a numeric cutoff
+(e.g. 0.6).}
+}
+\value{
+An object of class traces (peptide level) containing table.wide,
+    table.long and id that can be processed with the herein contained
+    functions.
 }
 \description{
-filters peptide elution profiles based on sibling peptide correlation.
+filters peptide elution profiles based on sibling peptide
+    correlation.
 }
 

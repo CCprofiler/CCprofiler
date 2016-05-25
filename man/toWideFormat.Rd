@@ -25,6 +25,8 @@ toWideFormat(traces.dt)
 }
 \value{
 The same data.table casted to wide format.
+
+The same data.table casted to wide format.
 }
 \description{
 Convert a data.table containing traces from long format to wide format.
