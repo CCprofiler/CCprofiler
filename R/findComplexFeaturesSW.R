@@ -121,6 +121,7 @@ findComplexFeaturesSW <- function(trace.mat,
         groups.feats <- findFeatureBoundaries(groups.mat,
                                               groups.only.wide$subgroup,
                                               groups.dt)
+        protein.mw.conc <- as.data.table(protein.mw.conc)
         groups.feats <- extendComplexFeatures(groups.feats, trace.mat,
                                               protein.names,
                                               protein.mw.conc)
@@ -317,6 +318,7 @@ extendComplexFeatures <- function(features, trace.mat,
     setkey(protein.mw.conc, protein_id)
     setkey(protein.info, protein_id)
     protein.info <- protein.info[protein.mw.conc]
+    setkey(protein.info, protein_id)
 
     # Loop over each feature and try to estimate the stoichiometry of its
     # complex as well as its molecular mass.
