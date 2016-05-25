@@ -43,6 +43,6 @@ plot.complexFeaturesSW <- function(sw.result,
                    data=found.features) +
         geom_vline(aes(xintercept=right_sec, color=subgroup),
                    data=found.features) +
-        theme(legend.position='bottom')
+        theme(legend.position='none')
 }
 
