@@ -58,13 +58,23 @@ importFromOpenSWATH <- function(file.name="OpenSwathData.tsv",
       data.table(dcast(data.s, ProteinName + FullPeptideName ~ fraction_number,
                        value.var="Intensity",
                        fun.aggregate=sum))
-  setnames(traces.wide, "ProteinName", "protein_id")
-  setnames(traces.wide, "FullPeptideName", "peptide_id")
-  # traces.long <- melt(traces.wide,
-  #                     id.vars=c("protein_id","peptide_id"),
-  #                   value.name="Intensity", 
-  #                   variable.name="fraction_number")
-  result <- list(traces.wide=traces.wide, ids=traces.wide[, 1:2, with=FALSE])
+  
+  traces_annotation <- data.table(traces.wide[,c("FullPeptideName", "ProteinName"), with = FALSE])
+  traces_annotation[, id:=FullPeptideName]
+  
+  traces <- subset(traces.wide, select = -ProteinName)
+  setnames(traces, "FullPeptideName", "id")
+  
+  traces_type = "peptide"
+  
+  nfractions <- length(names(traces))-1
+  fractions <- as.numeric(names(traces)[2:nfractions])
+  fraction_annotation <- data.table(fractions)
+  
+  result <- list(traces,
+                 traces_type,
+                 traces_annotation
+                 fraction_annotation)
   class(result) <- "Traces"
 
   return(result)
