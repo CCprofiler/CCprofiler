@@ -14,7 +14,7 @@
 'corum.complex.protein.assoc'
 
 #' An example object of class \code{FragmentTraces}.
-'protein.traces.obj'
+'traces.obj'
 
 #' A data.table that holds stores for each protein its molecular weight as
 #' annotated in UniProt as well as an estimate on its absolute abundance within
