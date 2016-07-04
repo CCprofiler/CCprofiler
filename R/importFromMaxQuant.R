@@ -75,10 +75,10 @@ importFromMaxQuant <- function(file.name='peptides.txt', quanttype='^Intensity '
   fractions <- as.numeric(names(traces)[2:nfractions])
   fraction_annotation <- data.table(fractions)
   
-  result <- list(traces,
-                 traces_type,
-                 traces_annotation
-                 fraction_annotation)
+  result <- list(traces = traces,
+                 traces_type = traces_type,
+                 traces_annotation = traces_annotation,
+                 fraction_annotation = fraction_annotation)
   class(result) <- "Traces"
   
   return(result)
