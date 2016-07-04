@@ -1,9 +1,10 @@
 #' Convert a fraction number to an estimated molecular weight.
 #'
-#' @param sec The fraction number.
-#' @return A molecular weight estimate.
+#' @param SECfraction The fraction number.
+#' @return Apparent MW at this SEC fraction in kDa.
 #' @export
-convertSECToMW <- function(sec) {
-    logMW <- -0.0453 * sec + 4.205
+convertSECToMW <- function(SECfraction) {
+    logMW <- -0.1043329 * sec + 9.682387
     exp(logMW)
 }
+
