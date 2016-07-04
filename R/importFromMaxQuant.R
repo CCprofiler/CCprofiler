@@ -63,19 +63,24 @@ importFromMaxQuant <- function(file.name='peptides.txt', quanttype='^Intensity '
   
   # Assemble and output result 'Traces' object
   #################################################
-  traces.wide <- data.table(protein_id=data.s.labels$protein_id,
-                            peptide_id=data.s.labels$Sequence, data.s.traces)
-  setorder(traces.wide, protein_id)
-  # traces.long <- melt(traces.wide,
-  #                     id.vars=c('protein_id','peptide_id'),
-  #                     value.name='Intensity', 
-  #                     variable.name='fraction_number')
-  labels <- data.s.labels[,c(2, 4, 3, 1), with=FALSE]
-  setnames(labels, 'Sequence', 'peptide_id')
-  setnames(labels, 'Proteins', 'fasta_id')
-  setorder(labels, protein_id)
-  result <- list(traces.wide=traces.wide, ids=labels)
-  class(result) <- 'Traces'
-
+  traces <- data.table(id=data.s.labels$Sequence, data.s.traces)
+  setnames(traces, "Sequence", "id")
+  
+  traces_annotation <- data.table(data.s.labels)
+  traces_annotation[, id:=Sequence]
+    
+  traces_type = "peptide"
+  
+  nfractions <- length(names(traces))-1
+  fractions <- as.numeric(names(traces)[2:nfractions])
+  fraction_annotation <- data.table(fractions)
+  
+  result <- list(traces,
+                 traces_type,
+                 traces_annotation
+                 fraction_annotation)
+  class(result) <- "Traces"
+  
   return(result)
+
 }
