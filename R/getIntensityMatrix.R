@@ -3,9 +3,9 @@
 #' @return A matrix of intensity values.
 #' @export
 getIntensityMatrix <- function(trace.obj) {
-    fragment.ids <- trace.obj$traces$fragment_id
+    ids <- trace.obj$traces$id
     intensity.mat <- as.matrix(subset(trace.obj$traces,
-                                      select=-fragment_id))
-    rownames(intensity.mat) <- fragment.ids
+                                      select=-id))
+    rownames(intensity.mat) <- ids
     intensity.mat
 }
