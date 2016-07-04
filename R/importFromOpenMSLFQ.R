@@ -61,19 +61,26 @@ importFromOpenMSLFQ <- function(file.name='OpenMS_LFQ_peptides.csv',
   protein_name <- sapply(as.character(traces.wide$protein_id),
                          function(x) { strsplit(x, split='\\|')[[1]][3] })
   traces.wide$protein_id <- protein_id
-  setorder(traces.wide, protein_id)
    
-  # traces.long <- melt(traces.wide,
-  #                     id.vars=c('protein_id','peptide_id'),
-  #                     value.name='Intensity', 
-  #                     variable.name='fraction_number')
   labels <- data.table(fasta_id=fasta_id, protein_id=protein_id,
                        protein_name=protein_name,
                        peptide_id=traces.wide$peptide_id)
-  setorder(labels, protein_id)
+  traces_annotation = labels[, id:=peptide_id]
   
-  result <- list(traces.wide=traces.wide, ids=labels)
-  class(result) <- 'Traces'
-
+  traces <- subset(traces.wide, select=-protein_id)
+  setnames(traces, "peptide_id", "id")
+  
+  traces_type = "peptide"
+  
+  nfractions <- length(names(traces))-1
+  fractions <- as.numeric(names(traces)[2:nfractions])
+  fraction_annotation <- data.table(fractions)
+  
+  result <- list(traces,
+                 traces_type,
+                 traces_annotation
+                 fraction_annotation)
+  class(result) <- "Traces"
+  
   return(result)
 }
