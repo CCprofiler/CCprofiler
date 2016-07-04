@@ -21,6 +21,7 @@ More information on how to use/develop this package can be found under:  [](http
     Trace container: List with:
     Class: "Traces"
     $traces (data.table Column1: id Column 2:end numeric quant matrix)
-    $annotation (data.table, contains id column as key for merging and associated annotations in separate columns)
+    $trace_annotation (data.table, contains trace id column as key for merging and associated annotations in separate columns)
     $trace_type (character, "peptide" or "protein")
+    $fraction_annotation ((data.table, contains fraction column as key for merging and associated annotations in separate columns)
 
