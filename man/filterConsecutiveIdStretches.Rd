@@ -5,15 +5,15 @@
 \title{filterConsecutiveIdStretches filters protein profiling traces based on
 minimal length of consecutive ID stretches.}
 \usage{
-filterConsecutiveIdStretches(traces, min_stretch_length = 3,
+filterConsecutiveIdStretches(Traces, min_stretch_length = 3,
   remove_empty = TRUE)
 }
 \arguments{
-\item{traces}{object of class traces containing the elution profiles that
-are to be filtered.}
-
 \item{remove_empty}{Logical whether the entries with rowSum == 0 after
 filtering are removed, defaults to TRUE.}
+
+\item{traces}{object of class traces containing the elution profiles that
+are to be filtered.}
 
 \item{min_stretch_len}{The minimal length a stretch of contiguous
 identifications has to have in order not to be removed.}

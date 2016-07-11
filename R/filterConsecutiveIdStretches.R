@@ -14,14 +14,14 @@
 #' @return An object of class traces containing the filtered
 #'     chromatograms. 
 #' @export
-filterConsecutiveIdStretches<-function(traces,
+filterConsecutiveIdStretches<-function(Traces,
                                        min_stretch_length=3,
                                        remove_empty=TRUE) {
   # Get traces from container
-  peptide.traces <- as.data.frame(traces$peptide.traces)
+  peptide.traces <- getIntensityMatrix(Traces)
   # Define n as the number of columns
-  labels <- peptide.traces[, 1:2]
-  data <- peptide.traces[, 3:ncol(peptide.traces)]
+  labels <- rownames(peptide.traces)
+  data <- peptide.traces
   # Add 0-column
   data <- cbind(data, dummy=rep(0, nrow(data)))
   # Filter

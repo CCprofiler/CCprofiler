@@ -71,11 +71,12 @@ importFromOpenSWATH <- function(file.name="OpenSwathData.tsv",
   fractions <- as.numeric(names(traces)[2:nfractions])
   fraction_annotation <- data.table(fractions)
   
-  result <- list(traces = traces,
-                 traces_type = traces_type,
-                 traces_annotation = traces_annotation,
-                 fraction_annotation = fraction_annotation)
+  result <- list("traces" = traces,
+                 "traces_type" = traces_type,
+                 "traces_annotation" = traces_annotation,
+                 "fraction_annotation" = fraction_annotation)
   class(result) <- "Traces"
+  names(result) <- c("traces", "traces_type", "traces_annotation", "fraction_annotation")
 
   return(result)
 }

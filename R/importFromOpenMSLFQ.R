@@ -80,6 +80,7 @@ importFromOpenMSLFQ <- function(file.name='OpenMS_LFQ_peptides.csv',
                  traces_type = traces_type,
                  traces_annotation = traces_annotation,
                  fraction_annotation = fraction_annotation)
+  names(result) <- c("traces", "traces_type", "traces_annotation", "fraction_annotation")
   class(result) <- "Traces"
   
   return(result)

@@ -4,10 +4,10 @@
 \alias{getIntensityMatrix}
 \title{Get a matrix of fragment intensity values.}
 \usage{
-getIntensityMatrix(trace.obj)
+getIntensityMatrix(traces.obj)
 }
 \arguments{
-\item{trace.obj}{An object of type \code{FragmentTraces}.}
+\item{traces.obj}{An object of type \code{FragmentTraces}.}
 }
 \value{
 A matrix of intensity values.

@@ -64,8 +64,7 @@ importFromMaxQuant <- function(file.name='peptides.txt', quanttype='^Intensity '
   # Assemble and output result 'Traces' object
   #################################################
   traces <- data.table(id=data.s.labels$Sequence, data.s.traces)
-  setnames(traces, "Sequence", "id")
-  
+    
   traces_annotation <- data.table(data.s.labels)
   traces_annotation[, id:=Sequence]
     
@@ -79,6 +78,7 @@ importFromMaxQuant <- function(file.name='peptides.txt', quanttype='^Intensity '
                  traces_type = traces_type,
                  traces_annotation = traces_annotation,
                  fraction_annotation = fraction_annotation)
+  names(result) <- c("traces", "traces_type", "traces_annotation", "fraction_annotation")
   class(result) <- "Traces"
   
   return(result)

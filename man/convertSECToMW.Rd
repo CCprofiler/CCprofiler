@@ -4,13 +4,13 @@
 \alias{convertSECToMW}
 \title{Convert a fraction number to an estimated molecular weight.}
 \usage{
-convertSECToMW(sec)
+convertSECToMW(SECfraction)
 }
 \arguments{
-\item{sec}{The fraction number.}
+\item{SECfraction}{The fraction number.}
 }
 \value{
-A molecular weight estimate.
+Apparent MW at this SEC fraction in kDa.
 }
 \description{
 Convert a fraction number to an estimated molecular weight.
