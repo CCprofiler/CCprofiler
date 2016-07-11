@@ -4,7 +4,7 @@
 #' @return Apparent MW at this SEC fraction in kDa.
 #' @export
 convertSECToMW <- function(SECfraction) {
-    logMW <- -0.1043329 * sec + 9.682387
+    logMW <- -0.1043329 * SECfraction + 9.682387
     exp(logMW)
 }
 
