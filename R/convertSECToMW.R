@@ -7,4 +7,3 @@ convertSECToMW <- function(SECfraction) {
     logMW <- -0.1043329 * SECfraction + 9.682387
     exp(logMW)
 }
-

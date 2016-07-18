@@ -1,5 +1,5 @@
 #' Run the sliding window algorithm for a number of protein complexes.
-#' 
+#'
 #' @param trace.mat A numeric matrix where rows correspond to the different
 #'        traces.
 #' @param protein.names A vector with protein identifiers. This vector has to
@@ -74,15 +74,15 @@ findComplexFeaturesSWBulk <- function(trace.mat,
     }
 
     protein.traces <- as.data.table(trace.mat)
-    protein.traces[, protein_id := protein.names]
+    protein.traces[, protein_id := protein.names] # add column called protein_id containing protein.names
 
-    setkey(protein.traces, protein_id)
-    setkey(complex.protein.assoc, complex_id)
+    setkey(protein.traces, protein_id) # sort protein.traces data.table by protien_id (A to Z)
+    setkey(complex.protein.assoc, complex_id) # sort complex.protein.assoc by complex_id ("1","10", ... to "999")
 
     ## All complexes used for input
     input.complexes <- unique(complex.protein.assoc$complex_id)
 
-    ## A helper function to execute the sliding window algorithm for a 
+    ## A helper function to execute the sliding window algorithm for a
     ## specific query complex.
     runSlidingWindow <- function(complex.id) {
         complex.id <- input.complexes[i]
@@ -127,6 +127,13 @@ findComplexFeaturesSWBulk <- function(trace.mat,
     }
     names(sw.results) <- input.complexes
 
+    # @NEW remove results for complexes with ERROR message
+    sel_errors <- which(sapply(sw.results, typeof) == "character")
+    for (error_idx in sel_errors){
+      sw.results[[error_idx]] <- list()
+    }
+
+
     ## Calculate complex detection statistics such as how many subunits
     ## were detected in a subgroup.
     complex.stats <- complex.protein.assoc[, list(n_subunits_annotated=.N),
@@ -136,13 +143,15 @@ findComplexFeaturesSWBulk <- function(trace.mat,
     for (i in seq_along(input.complexes)) {
         complex.id <- input.complexes[i]
         res <- sw.results[[i]]
-        if (nrow(res$features) > 0) {
-            max.detected.subunits <- max(res$features$n_subunits)
-            complex.stats[complex_id == as.character(complex.id),
-                          n_subunits_detected := max.detected.subunits]
+        if (length(res) > 0) {
+            if (length(res$features) > 0) {
+              max.detected.subunits <- max(res$features$n_subunits)
+              complex.stats[complex_id == as.character(complex.id),
+                            n_subunits_detected := max.detected.subunits]
+            }
         }
     }
-    complex.stats[, completeness := n_subunits_detected / 
+    complex.stats[, completeness := n_subunits_detected /
                     n_subunits_annotated]
 
     res <- list(trace.mat=trace.mat,

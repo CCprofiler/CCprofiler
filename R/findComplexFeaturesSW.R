@@ -1,4 +1,4 @@
-.datatable.aware=TRUE
+#.datatable.aware=TRUE
 
 #' Detect subgroups of proteins within a matrix of protein intensity traces by
 #' sliding a window across the SEC dimension. Within each window proteins
@@ -55,11 +55,15 @@ findComplexFeaturesSW <- function(trace.mat,
     }
     # Impute noise for missing intensity measurements
     measure.vals <- trace.mat[trace.mat != 0]
-    n.zero.entries <- sum(trace.mat == 0)
-    noise.mean <- quantile(measure.vals, noise.quantile)
-    noise.sd <- sd(measure.vals[measure.vals < noise.mean])
+    #@NEW because of noise imputation error
+    if (length(measure.vals) < 10) {
+      stop('Trace matrix too sparse for noise imputation')
+    }
+    n.zero.entries <- sum(trace.mat == 0) # number of ZERO values in matrix
+    noise.mean <- quantile(measure.vals, noise.quantile) # mean intensity of noise.quantile (e.g. noise.quantile = lowest 20% of intensities)
+    noise.sd <- sd(measure.vals[measure.vals < noise.mean]) # SD of the intensities in the noise.quantile
     trace.mat[trace.mat == 0] <- abs(rnorm(n.zero.entries, mean=noise.mean,
-                                     sd=noise.sd))
+                                     sd=noise.sd)) # replace ZEROs in trace.mat by imputed noise bas don normal distribution
     # Where to stop the sliding window
     end.idx <- ncol(trace.mat) - window.size
 
@@ -110,14 +114,29 @@ findComplexFeaturesSW <- function(trace.mat,
     })
     groups.dt <- do.call(rbind, groups.dt.list)
 
-    if (nrow(groups.dt) > 0) {
+    if (!is.null(groups.dt)) {
         groups.only <- subset(groups.dt, select=-protein_id)
-        setkey(groups.only)
+        setkey(groups.only) # sorts all columns in ascending order
         groups.only <- unique(groups.only)
+
         groups.only$is_present <- T
-        groups.only.wide <-
-            cast(groups.only, subgroup ~ sec, value='is_present', fill=F)
-        groups.mat <- as.matrix(subset(groups.only.wide, select=-subgroup))
+        groups.only.wide <- cast(groups.only, subgroup ~ sec, length, value='is_present', fill=F)
+
+        sec.range=ncol(trace.mat)
+        subgroup.range=length(unique(groups.only$subgroup))
+        groups.only.wide.tf = matrix(FALSE,ncol=sec.range,nrow=subgroup.range)
+        groups.only.wide.m = as.matrix(subset(groups.only.wide, select=-subgroup))
+        for(n in seq(1,nrow(groups.only.wide.m),1)){
+          for(m in seq(1,ncol(groups.only.wide.m),1)){
+            if (groups.only.wide.m[n,m] > 0) {  #### @TODO add parameter to function standard 0??
+              col=as.numeric(names(subset(groups.only.wide, select=-subgroup))[m])
+              groups.only.wide.tf[n,col] = TRUE
+            }
+          }
+        }
+
+        groups.mat <- groups.only.wide.tf
+        #groups.mat <- as.matrix(subset(groups.only.wide, select=-subgroup))
         groups.feats <- findFeatureBoundaries(groups.mat,
                                               groups.only.wide$subgroup,
                                               groups.dt)
@@ -139,7 +158,7 @@ findComplexFeaturesSW <- function(trace.mat,
 }
 
 
-#' Detect subgroups within a window. This is a helper function and should 
+#' Detect subgroups within a window. This is a helper function and should
 #' be called by `findComplexFeaturesSW`.
 #'
 #' @param tracemat A matrix of intensity values where chromatograms of
@@ -162,12 +181,12 @@ findComplexFeaturesWithinWindow <- function(tracemat, corr.cutoff,
     if (nrow(tracemat) == 2) {
         corr <- proxy::simil(tracemat, method='correlation')[1]
         if (corr > corr.cutoff) {
-            group.assignment <- c(1, 1)
+            group.assignments <- c(1, 1)
         } else {
-            group.assignment <- c(1, 2)
+            group.assignments <- c(1, 2)
         }
-        return(group.assignment)
-    }
+#        return(group.assignment) #@CORRECTED has to be returned as list!
+    } else {
     # Compute distance between chromatograms as measured by the pearson
     # correlation.
     distance <- proxy::dist(tracemat, method='correlation')
@@ -183,7 +202,7 @@ findComplexFeaturesWithinWindow <- function(tracemat, corr.cutoff,
     # 0.7 then the height where the tree is cut is at 1-0.7=0.3.
     # This process will result in a vector of group labels.
     group.assignments <- cutree(cl, h=1 - corr.cutoff)
-
+  }
     # Extract all subclusters and only keep those that have at least 2
     # members. For each subcluster recompute the correlation (without
     # score penalty from imputed noise).
@@ -299,8 +318,8 @@ extendComplexFeatures <- function(features, trace.mat,
     # Estimate the molecular weight of the complex by using information
     # gathered by calibrating the column with molecules of known molecular
     # weight. This is known as the 'apparent' molecular weight.
-    features[, mw_apparent := convertSECToMW(right_sec - left_sec) / 2,
-             by=subgroup]
+    features[, mw_apparent := convertSECToMW(left_sec+((right_sec - left_sec)/2)),
+             by=subgroup] # @CORRECTED for central sec fraction
 
     # Produce a long list version of the trace matrix since its more convenient
     # for downstream processing.
@@ -322,33 +341,62 @@ extendComplexFeatures <- function(features, trace.mat,
 
     # Loop over each feature and try to estimate the stoichiometry of its
     # complex as well as its molecular mass.
-    for (i in 1:nrow(features)) {
-        feature <- features[i]
-        subunits <- strsplit(feature$subgroup, ';')[[1]]
-        # Extract only the traces for the subunits that make up this feature.
-        subunit.traces <- traces.long[subunits]
-        # Extract the relevant information from the protein.info DT.
-        subunit.mws <- protein.info[subunits, protein_mw]
-        subunit.abundances <- protein.info[subunits, protein_concentration]
-        subunit.total.intensities <- protein.info[subunits, total_intensity]
-        # Call the helper function to estimate the molecular mass of the
-        # complex and its stoichiometry.
-        res <- estimateComplexMass(subunit.traces,
-                                   feature$left_sec,
-                                   feature$right_sec,
-                                   subunit.total.intensities,
-                                   subunit.mws,
-                                   subunit.abundances)
-        # Add the resulting information to the initial feature DT.
-        features[i, mw_estimated := res$mw_estimated]
-        features[i, stoichiometry := res$stoichiometry]
-    }
+#    for (i in 1:nrow(features)) {
+#        feature <- features[i]
+#        subunits <- strsplit(feature$subgroup, ';')[[1]]
+#        # Extract only the traces for the subunits that make up this feature.
+#        subunit.traces <- traces.long[subunits]
+#        # Extract the relevant information from the protein.info DT.
+#        subunit.mws <- protein.info[subunits, protein_mw]
+#        subunit.abundances <- protein.info[subunits, protein_concentration]
+#        subunit.total.intensities <- protein.info[subunits, total_intensity]
+#        # complex and its stoichiometry.
+#        res <- estimateComplexMass(subunit.traces,
+#                                   feature$left_sec,
+#                                   feature$right_sec,
+#                                   subunit.total.intensities,
+#                                   subunit.mws,
+#                                   subunit.abundances)
+#        # Add the resulting information to the initial feature DT.
+#        features[i, mw_estimated := res$mw_estimated]
+#        features[i, stoichiometry := res$stoichiometry]
+#    }
+#@CORRECTED looping did result in empty data.table
+
+    # Estimate the stoichiometry of each complex feature
+    # as well as its molecular mass.
+    res <- lapply(seq(1:nrow(features)), function(i){
+       feature=features[i]
+       subunits <- strsplit(feature$subgroup, ';')[[1]]
+       # Extract only the traces for the subunits that make up this feature.
+       subunit.traces <- traces.long[subunits]
+       # Extract the relevant information from the protein.info DT.
+       subunit.mws <- protein.info[subunits, protein_mw]
+       subunit.abundances <- protein.info[subunits, protein_concentration]
+       subunit.total.intensities <- protein.info[subunits, total_intensity]
+       # Call the helper function to estimate the molecular mass of the
+       # complex and its stoichiometry.
+       res <- estimateComplexMass(subunit.traces,
+         feature$left_sec,
+         feature$right_sec,
+         subunit.total.intensities,
+         subunit.mws,
+         subunit.abundances)
+    })
+
+    features[, mw_estimated := unlist(lapply(res, function(x) x$mw_estimated))]
+    features[, stoichiometry := unlist(lapply(res, function(x) x$stoichiometry))]
 
     # Produce a score that measures how well both estimates agree.
     features[, mw_delta := abs(mw_estimated - mw_apparent)]
 
-    features
+    print(features)  ##### @ERROR THIS IS A BUG IN R I GUESS!!!!!
+    return(features)
 }
+
+
+
+
 
 
 #' A helper function to compute an estimate of the mass of a complex and

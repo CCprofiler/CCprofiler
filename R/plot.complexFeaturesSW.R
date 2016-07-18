@@ -12,6 +12,8 @@ plot.complexFeaturesSW <- function(sw.result,
                                    n.largest=NULL,
                                    log=FALSE) {
 
+    #@TODO change input structure!!!
+
     found.features <- sw.result$features
 
     # Produce a long list version of the trace matrix since its more convenient
@@ -22,6 +24,7 @@ plot.complexFeaturesSW <- function(sw.result,
                         variable.name='fraction', variable.factor=FALSE)
     traces.long[, fraction := as.numeric(fraction)]
     setkey(traces.long, protein_id)
+
 
     p <- ggplot(traces.long) +
                 geom_line(aes_string(x='fraction', y='intensity', color='protein_id')) +
@@ -39,10 +42,16 @@ plot.complexFeaturesSW <- function(sw.result,
         found.features <- found.features[n_subunits %in% largest.n]
     }
 
-    p + geom_vline(aes(xintercept=left_sec, color=subgroup),
-                   data=found.features) +
-        geom_vline(aes(xintercept=right_sec, color=subgroup),
-                   data=found.features) +
-        theme(legend.position='none')
-}
 
+
+#    p + geom_vline(aes(xintercept=left_sec, color=subgroup),
+#                   data=found.features) +
+#        geom_vline(aes(xintercept=right_sec, color=subgroup),
+#                   data=found.features) +
+#        theme(legend.position='none')
+
+    p <- p + geom_rect(data=found.features,aes(xmin = left_sec, xmax = right_sec, ymin = -Inf, ymax = Inf,fill = subgroup),alpha = 0.25)
+    p <- p + geom_vline(data=found.features,aes(xintercept=(log(mw_apparent) - 9.682387)/(-0.1043329), linetype = subgroup))
+    #p <- p + geom_vline(data=found.features,aes(xintercept=(log(mw_estimated) - 9.682387)/(-0.1043329), linetype = subgroup))
+
+}
