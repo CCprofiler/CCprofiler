@@ -44,6 +44,7 @@ findFeaturePeaks <- function(features, trace.mat,protein.names,protein.mw.conc) 
     # create complex trace by summing up intensities
     library('pracma')  # @TODO put into dependencies
     features.new <- lapply(seq(1:nrow(features)), function(i){
+      #print(i)
        feature=features[i]
        subunits <- strsplit(feature$subgroup, ';')[[1]]
        # Extract only the traces for the subunits that make up this feature.
@@ -56,8 +57,17 @@ findFeaturePeaks <- function(features, trace.mat,protein.names,protein.mw.conc) 
        complex.trace.SG <-savgol(complex.trace.mat, fl=11, forder = 4, dorder = 0)
       # peak picking
        #complex.peaks <- data.table(findpeaks(complex.trace.mat[1,],minpeakdistance=5,nups=3,ndowns=3))
-       complex.peaks <- data.table(findpeaks(complex.trace.SG,minpeakdistance=5,nups=3,ndowns=3))
-       setnames(complex.peaks,c("intensity","apex","left","right"))
+       complex.peaks <- findpeaks(complex.trace.SG,minpeakdistance=5,nups=3,ndowns=3)
+       if (is.null(dim(complex.peaks))){
+         complex.peaks <- data.table(intensity=complex.peaks[1],
+           apex=complex.peaks[2],
+           left=complex.peaks[3],
+           right=complex.peaks[4])
+       } else {
+         complex.peaks <- data.table(complex.peaks)
+         setnames(complex.peaks,c("intensity","apex","left","right"))
+       }
+
        # select peaks within boundaries of correlation based window
        sel_peaks <- which((complex.peaks$left>=feature$left_sec) & (complex.peaks$right<=feature$right_sec))
        if (length(sel_peaks > 0)) {

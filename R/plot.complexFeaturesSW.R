@@ -19,6 +19,7 @@ plot.complexFeaturesSW <- function(sw.result,
     # Produce a long list version of the trace matrix since its more convenient
     # for plotting.
     traces.dt <- data.table(trace.mat)
+    setnames(traces.dt,as.character(seq(1,ncol(traces.dt),1)))
     traces.dt[, protein_id := protein.names]
     traces.long <- melt(traces.dt, id.vars='protein_id', value.name='intensity',
                         variable.name='fraction', variable.factor=FALSE)
@@ -54,5 +55,7 @@ plot.complexFeaturesSW <- function(sw.result,
     #p <- p + geom_vline(data=found.features,aes(xintercept=(log(mw_apparent) - 9.682387)/(-0.1043329), linetype = subgroup))
     p <- p + geom_rect(data=found.features,aes(xmin = left, xmax = right, ymin = -Inf, ymax = Inf,fill = subgroup),alpha = 0.25)
     p <- p + geom_vline(data=found.features,aes(xintercept=apex, linetype = subgroup))
+    p <- p + geom_vline(data=found.features,aes(xintercept=left_sec, linetype = subgroup))
+    p <- p + geom_vline(data=found.features,aes(xintercept=right_sec, linetype = subgroup))
 
 }
