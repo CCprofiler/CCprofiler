@@ -141,9 +141,11 @@ findComplexFeaturesSW <- function(trace.mat,
                                               groups.only.wide$subgroup,
                                               groups.dt)
         protein.mw.conc <- as.data.table(protein.mw.conc)
-        groups.feats <- extendComplexFeatures(groups.feats, trace.mat,
-                                              protein.names,
-                                              protein.mw.conc)
+        #groups.feats <- extendComplexFeatures(groups.feats, trace.mat,
+        #                                      protein.names,
+        #                                      protein.mw.conc)
+        groups.feats <- findFeaturePeaks(groups.feats, trace.mat,
+                                              protein.names,protein.mw.conc)
     } else {
         groups.feats <- data.frame()
     }

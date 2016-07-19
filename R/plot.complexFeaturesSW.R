@@ -50,8 +50,9 @@ plot.complexFeaturesSW <- function(sw.result,
 #                   data=found.features) +
 #        theme(legend.position='none')
 
-    p <- p + geom_rect(data=found.features,aes(xmin = left_sec, xmax = right_sec, ymin = -Inf, ymax = Inf,fill = subgroup),alpha = 0.25)
-    p <- p + geom_vline(data=found.features,aes(xintercept=(log(mw_apparent) - 9.682387)/(-0.1043329), linetype = subgroup))
-    #p <- p + geom_vline(data=found.features,aes(xintercept=(log(mw_estimated) - 9.682387)/(-0.1043329), linetype = subgroup))
+    #p <- p + geom_rect(data=found.features,aes(xmin = left_sec, xmax = right_sec, ymin = -Inf, ymax = Inf,fill = subgroup),alpha = 0.25)
+    #p <- p + geom_vline(data=found.features,aes(xintercept=(log(mw_apparent) - 9.682387)/(-0.1043329), linetype = subgroup))
+    p <- p + geom_rect(data=found.features,aes(xmin = left, xmax = right, ymin = -Inf, ymax = Inf,fill = subgroup),alpha = 0.25)
+    p <- p + geom_vline(data=found.features,aes(xintercept=apex, linetype = subgroup))
 
 }
