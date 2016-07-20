@@ -37,10 +37,12 @@ plot.complexFeaturesSW <- function(sw.result,
     }
 
     if (!is.null(n.largest)) {
-        n.subunits <- unique(found.features$n_subunits)
-        n.subunits.ord <- n.subunits[order(n.subunits, decreasing=TRUE)]
-        largest.n <- head(n.subunits.ord, n.largest)
-        found.features <- found.features[n_subunits %in% largest.n]
+        #n.subunits <- unique(found.features$n_subunits)
+        #n.subunits.ord <- n.subunits[order(n.subunits, decreasing=TRUE)]
+        #largest.n <- head(n.subunits.ord, n.largest)
+        #found.features <- found.features[n_subunits %in% largest.n]
+        found.features <- found.features[order(-n_subunits, -intensity, -score)]
+        found.features <- found.features[seq(1,n.largest,1)]
     }
 
 
