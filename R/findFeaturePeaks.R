@@ -70,7 +70,10 @@ findFeaturePeaks <- function(features, trace.mat,protein.names,protein.mw.conc) 
 
        # select peaks within boundaries of correlation based window
        # sel_peaks <- which((complex.peaks$left>=feature$left_sec) & (complex.peaks$right<=feature$right_sec)) # peak boundaries within SW window = problem becaus eof trunkated peaks
-       sel_peaks <- which((complex.peaks$apex>=feature$left_sec) & (complex.peaks$apex<=feature$right_sec)) # only apex within SW boundaries
+       # sel_peaks <- which((complex.peaks$apex>=feature$left_sec) & (complex.peaks$apex<=feature$right_sec)) # only apex within SW boundaries
+       sel_peaks <- which(((complex.peaks$apex>=feature$left_sec) & (complex.peaks$apex<=feature$right_sec)) |
+       ((complex.peaks$left>=feature$left_sec) & (complex.peaks$left<=feature$right_sec)) |
+       ((complex.peaks$right>=feature$left_sec) & (complex.peaks$right<=feature$right_sec))) # only apex within SW boundaries
        if (length(sel_peaks > 0)) {
          complex.peaks <- complex.peaks[sel_peaks]
          # only peak with highest intensity
