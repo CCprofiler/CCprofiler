@@ -146,10 +146,17 @@ findComplexFeaturesSW <- function(trace.mat,
         #                                      protein.mw.conc)
         groups.feats <- findFeaturePeaks(groups.feats, trace.mat,
                                               protein.names,protein.mw.conc)
+        sel_na <- which(is.na(groups.feats$intensity))
+        if (length(sel_na) > 0) {
+          if (length(sel_na) < nrow(groups.feats)) {
+            groups.feats <- groups.feats[-sel_na,]
+          } else {
+            groups.feats <- data.frame()
+          }
+        }
     } else {
         groups.feats <- data.frame()
     }
-
     # TODO: Include traces object as character string
     # and then get object form environment when plotting.
     result <- list(features=groups.feats,
