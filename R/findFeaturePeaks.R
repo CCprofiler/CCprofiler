@@ -54,7 +54,7 @@ findFeaturePeaks <- function(features, trace.mat,protein.names,protein.mw.conc) 
        complex.trace <- subunit.traces[, lapply(.SD, sum, na.rm=FALSE)]
        complex.trace.mat <- as.matrix(complex.trace)
        #smoothing
-       complex.trace.SG <-savgol(complex.trace.mat, fl=11, forder = 4, dorder = 0)
+       complex.trace.SG <-savgol(complex.trace.mat, fl=11, forder = 2, dorder = 0)
       # peak picking
        #complex.peaks <- data.table(findpeaks(complex.trace.mat[1,],minpeakdistance=5,nups=3,ndowns=3))
        complex.peaks <- findpeaks(complex.trace.SG,minpeakdistance=5,nups=3,ndowns=3)
