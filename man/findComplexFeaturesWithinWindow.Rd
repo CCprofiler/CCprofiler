@@ -2,7 +2,7 @@
 % Please edit documentation in R/findComplexFeaturesSW.R
 \name{findComplexFeaturesWithinWindow}
 \alias{findComplexFeaturesWithinWindow}
-\title{Detect subgroups within a window. This is a helper function and should 
+\title{Detect subgroups within a window. This is a helper function and should
 be called by `findComplexFeaturesSW`.}
 \usage{
 findComplexFeaturesWithinWindow(tracemat, corr.cutoff, protein.names,
@@ -27,7 +27,7 @@ A list containing lists that describe the found subclusters.
         }
 }
 \description{
-Detect subgroups within a window. This is a helper function and should 
+Detect subgroups within a window. This is a helper function and should
 be called by `findComplexFeaturesSW`.
 }
 

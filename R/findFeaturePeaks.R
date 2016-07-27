@@ -22,8 +22,6 @@
 #'         \item \code{protein_mw}
 #'         \item \code{protein_concentration}
 #'        }
-#' @param protein.abundances A numeric vector holding estimates of the absolute
-#'        abundance of each subunit.
 #' @return The same data.table as the input argument extended with the
 #'         following columns:
 #'         \itemize{
@@ -37,14 +35,13 @@ findFeaturePeaks <- function(features, trace.mat,protein.names,protein.mw.conc) 
     # Compute the number of subunits in each complex feature
     features[, n_subunits := length(strsplit(as.character(subgroup), ';')[[1]]),by=subgroup]
 
+    # convert trace.mat into data.table and append the protein names to the the according traces
     traces.dt <- data.table(trace.mat)
     setnames(traces.dt,as.character(seq(1,ncol(traces.dt),1)))
     traces.dt[, protein_id := protein.names]
 
     # create complex trace by summing up intensities
-    library('pracma')  # @TODO put into dependencies
     features.new <- lapply(seq(1:nrow(features)), function(i){
-      #print(i)
        feature=features[i]
        subunits <- strsplit(feature$subgroup, ';')[[1]]
        # Extract only the traces for the subunits that make up this feature.
@@ -53,11 +50,11 @@ findFeaturePeaks <- function(features, trace.mat,protein.names,protein.mw.conc) 
        # create complex.trace by summing traces for all subunits
        complex.trace <- subunit.traces[, lapply(.SD, sum, na.rm=FALSE)]
        complex.trace.mat <- as.matrix(complex.trace)
-       #smoothing
+       # Savitzky-Golay Smoothing (from pracma package)
        complex.trace.SG <-savgol(complex.trace.mat, fl=11, forder = 2, dorder = 0)
-      # peak picking
-       #complex.peaks <- data.table(findpeaks(complex.trace.mat[1,],minpeakdistance=5,nups=3,ndowns=3))
+       # peak picking (from pracma package)
        complex.peaks <- findpeaks(complex.trace.SG,minpeakdistance=5,nups=3,ndowns=3)
+       # convert complex.peaks to data.table
        if (is.null(dim(complex.peaks))){
          complex.peaks <- data.table(intensity=complex.peaks[1],
            apex=complex.peaks[2],
@@ -69,17 +66,17 @@ findFeaturePeaks <- function(features, trace.mat,protein.names,protein.mw.conc) 
        }
 
        # select peaks within boundaries of correlation based window
-       # sel_peaks <- which((complex.peaks$left>=feature$left_sec) & (complex.peaks$right<=feature$right_sec)) # peak boundaries within SW window = problem becaus eof trunkated peaks
-       # sel_peaks <- which((complex.peaks$apex>=feature$left_sec) & (complex.peaks$apex<=feature$right_sec)) # only apex within SW boundaries
+       ## sel_peaks <- which((complex.peaks$left>=feature$left_sec) & (complex.peaks$right<=feature$right_sec)) # peak boundaries within SW window = problem becaus eof trunkated peaks
+       ## sel_peaks <- which((complex.peaks$apex>=feature$left_sec) & (complex.peaks$apex<=feature$right_sec)) # only apex within SW boundaries
        sel_peaks <- which(((complex.peaks$apex>=feature$left_sec) & (complex.peaks$apex<=feature$right_sec)) |
        ((complex.peaks$left>=feature$left_sec) & (complex.peaks$left<feature$right_sec)) |
-       ((complex.peaks$right>feature$left_sec) & (complex.peaks$right<=feature$right_sec))) # only apex within SW boundaries
-       if (length(sel_peaks > 0)) {
+       ((complex.peaks$right>feature$left_sec) & (complex.peaks$right<=feature$right_sec))) # apex or any peak boundary within SW
+       if (length(sel_peaks > 0)) { # peak was detected within SW
          complex.peaks <- complex.peaks[sel_peaks]
          # only peak with highest intensity
          complex.peak <- complex.peaks[which(complex.peaks$intensity==max(complex.peaks$intensity)),]
          complex.peak$area <- sum(complex.trace.mat[1,complex.peak$left:complex.peak$right])
-       } else {
+       } else { #no peak was detected within SW
          #apex=feature$left_sec+((feature$right_sec - feature$left_sec)/2)
          #apex=unique(c(floor(apex),ceiling(apex)))
          #intensity=mean(complex.trace.mat[apex])
