@@ -31,9 +31,6 @@ estimate of the absolute abundance for each subunit.
  \item \code{protein_mw}
  \item \code{protein_concentration}
 }}
-
-\item{protein.abundances}{A numeric vector holding estimates of the absolute
-abundance of each subunit.}
 }
 \value{
 The same data.table as the input argument extended with the
