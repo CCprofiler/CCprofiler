@@ -5,18 +5,18 @@
 \title{Detect subgroups within a window. This is a helper function and should
 be called by `findComplexFeaturesSW`.}
 \usage{
-findComplexFeaturesWithinWindow(tracemat, corr.cutoff, protein.names,
+findComplexFeaturesWithinWindow(window.trace.mat, protein.names, corr.cutoff,
   with.plot = F, sec = NULL)
 }
 \arguments{
-\item{tracemat}{A matrix of intensity values where chromatograms of
+\item{window.trace.mat}{A matrix of intensity values where chromatograms of
 individual proteins are given by the rows.}
+
+\item{protein.names}{A vector with protein identifiers. This vector has to
+have the same length as the number of rows in `window.trace.mat`.}
 
 \item{corr.cutoff}{The correlation value for chromatograms above which
 proteins are considered to be coeluting.}
-
-\item{protein.names}{A vector with protein identifiers. This vector has to
-have the same length as the number of rows in `tracemat`.}
 }
 \value{
 A list containing lists that describe the found subclusters.

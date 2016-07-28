@@ -7,8 +7,8 @@
 #'        \itemize{
 #'         \item \code{subgroup} A semicolon-separated list of protein
 #'                               identifiers.
-#'         \item \code{left_sec} The left boundary of the feature.
-#'         \item \code{right_sec} The right boundary of the feature.
+#'         \item \code{left_sw} The left boundary of the feature.
+#'         \item \code{right_sw} The right boundary of the feature.
 #'         \item \code{score} The intra-feature correlation.
 #'        }
 #' @param trace.mat A matrix where rows correspond to protein traces.
@@ -66,21 +66,21 @@ findFeaturePeaks <- function(features, trace.mat,protein.names,protein.mw.conc) 
        }
 
        # select peaks within boundaries of correlation based window
-       ## sel_peaks <- which((complex.peaks$left>=feature$left_sec) & (complex.peaks$right<=feature$right_sec)) # peak boundaries within SW window = problem becaus eof trunkated peaks
-       ## sel_peaks <- which((complex.peaks$apex>=feature$left_sec) & (complex.peaks$apex<=feature$right_sec)) # only apex within SW boundaries
-       sel_peaks <- which(((complex.peaks$apex>=feature$left_sec) & (complex.peaks$apex<=feature$right_sec)) |
-       ((complex.peaks$left>=feature$left_sec) & (complex.peaks$left<feature$right_sec)) |
-       ((complex.peaks$right>feature$left_sec) & (complex.peaks$right<=feature$right_sec))) # apex or any peak boundary within SW
+       ## sel_peaks <- which((complex.peaks$left>=feature$left_sw) & (complex.peaks$right<=feature$right_sw)) # peak boundaries within SW window = problem becaus eof trunkated peaks
+       ## sel_peaks <- which((complex.peaks$apex>=feature$left_sw) & (complex.peaks$apex<=feature$right_sw)) # only apex within SW boundaries
+       sel_peaks <- which(((complex.peaks$apex>=feature$left_sw) & (complex.peaks$apex<=feature$right_sw)) |
+       ((complex.peaks$left>=feature$left_sw) & (complex.peaks$left<feature$right_sw)) |
+       ((complex.peaks$right>feature$left_sw) & (complex.peaks$right<=feature$right_sw))) # apex or any peak boundary within SW
        if (length(sel_peaks > 0)) { # peak was detected within SW
          complex.peaks <- complex.peaks[sel_peaks]
          # only peak with highest intensity
          complex.peak <- complex.peaks[which(complex.peaks$intensity==max(complex.peaks$intensity)),]
          complex.peak$area <- sum(complex.trace.mat[1,complex.peak$left:complex.peak$right])
        } else { #no peak was detected within SW
-         #apex=feature$left_sec+((feature$right_sec - feature$left_sec)/2)
+         #apex=feature$left_sw+((feature$right_sw - feature$left_sw)/2)
          #apex=unique(c(floor(apex),ceiling(apex)))
          #intensity=mean(complex.trace.mat[apex])
-         #complex.peak <- data.table(intensity=intensity,apex=mean(apex),left=feature$left_sec,right=feature$right_sec)
+         #complex.peak <- data.table(intensity=intensity,apex=mean(apex),left=feature$left_sw,right=feature$right_sw)
          #complex.peak$area <- sum(complex.trace.mat[1,complex.peak$left:complex.peak$right])
          complex.peak <- data.table(intensity=NA,apex=NA,left=NA,right=NA,area=NA)
        }

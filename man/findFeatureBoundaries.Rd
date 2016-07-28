@@ -9,6 +9,19 @@ findFeatureBoundaries(m, subgroup.names, groups.dt)
 \arguments{
 \item{m}{Logical matrix where an entry m[i, j] indicates if subgroup i was
 detected at SEC fraction j.}
+
+\item{subgroup.names}{A vector with subgroup identifiers (protein
+identifies separated gy ";"). This vector has to
+have the same length as the number of rows in `m`.}
+
+\item{groups.dt}{A data.table with following entries:
+\itemize{
+ \item \code{sec}
+ \item \code{protein_id}
+ \item \code{n_subunits}
+ \item \code{subgoup}
+ \item \code{groupscore}
+}}
 }
 \description{
 Helper function to find boundaries of complex features.

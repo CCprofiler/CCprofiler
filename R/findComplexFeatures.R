@@ -66,9 +66,14 @@ findComplexFeatures <- function(traces.obj,
         # Run the algorithm
         try({
             if (nrow(traces.subs$traces) >= 2) {
-                findComplexFeaturesSW(traces.subs,
-                                      corr.cutoff=corr.cutoff,
-                                      window.size=window.size)
+              complexFeaturesSW <- findComplexFeaturesSW(traces.obj=traces.subs,
+                                                          corr.cutoff=corr.cutoff,
+                                                          window.size=window.size)
+              complexFeaturesPP <- findComplexFeaturesPP(traces.obj=traces.subs,
+                                                          complexFeaturesSW=complexFeaturesSW)
+              complexFeatureStoichiometries <- estimateComplexFeatureStoichiometry(traces.obj=traces.obj,
+                                                          complexFeaturesPP=complexFeaturesPP)
+              complexFeatureStoichiometries
             } else {
                 list()
             }
@@ -121,15 +126,14 @@ findComplexFeatures <- function(traces.obj,
     complex.stats[, completeness := n_subunits_detected /
                     n_subunits_annotated]
 
-    res <- list(trace.mat=trace.mat,
+    res <- list(trace.mat=traces.obj,
                 sw.results=sw.results,
                 complex.stats=complex.stats,
                 input.complexes=input.complexes,
                 corr.cutoff=corr.cutoff,
-                window.size=window.size,
-                complex.protein.assoc=complex.protein.assoc)
+                window.size=window.size)
 
-    class(res) <- 'complexFeaturesSWBulk'
+    class(res) <- 'complexFeatures'
 
     res
 }

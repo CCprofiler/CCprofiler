@@ -6,11 +6,21 @@
 sliding a window across the SEC dimension. Within each window proteins
 with traces that correlate well are clustered together.}
 \usage{
-findComplexFeaturesSW(trace.mat, protein.names, protein.mw.conc,
-  corr.cutoff = 0.95, window.size = 15, with.plot = F,
-  noise.quantile = 0.2, min.sec = 1)
+findComplexFeaturesSW(traces.obj, corr.cutoff = 0.95, window.size = 15,
+  with.plot = F, noise.quantile = 0.2, min.sec = 1)
 }
 \arguments{
+\item{corr.cutoff}{The correlation value for chromatograms above which
+proteins are considered to be coeluting.}
+
+\item{window.size}{Size of the window. Numeric.}
+
+\item{noise.quantile}{The quantile to use in estimating the noise level.
+Intensity values that are zero are imputed with random noise
+according to the noise estimation.}
+
+\item{min.sec}{The lowest SEC number in the sample.}
+
 \item{trace.mat}{A numeric matrix where rows correspond to the different
 traces.}
 
@@ -24,17 +34,6 @@ estimate of the absolute abundance for each subunit.
  \item \code{protein_mw}
  \item \code{protein_concentration}
 }}
-
-\item{corr.cutoff}{The correlation value for chromatograms above which
-proteins are considered to be coeluting.}
-
-\item{window.size}{Size of the window. Numeric.}
-
-\item{noise.quantile}{The quantile to use in estimating the noise level.
-Intensity values that are zero are imputed with random noise
-according to the noise estimation.}
-
-\item{min.sec}{The lowest SEC number in the sample.}
 }
 \value{
 An instance of class `complexFeaturesSW`. This is a list with the
