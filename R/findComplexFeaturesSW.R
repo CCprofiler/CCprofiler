@@ -39,14 +39,15 @@
 #' #                  select=-protein_id)
 #' # sw.res <- findComplexFeaturesSW(traces, protein.ids, protein.mw.conc)
 #' @export
-findComplexFeaturesSW <- function(trace.mat,
-                                  protein.names,
-                                  protein.mw.conc,
+findComplexFeaturesSW <- function(traces.obj,
                                   corr.cutoff=0.95,
                                   window.size=15,
                                   with.plot=F,
                                   noise.quantile=0.2,
-                                  min.sec=1) {
+                                  min.sec=1){
+    trace.mat = getIntensityMatrix(traces.obj)
+    protein.names = traces.obj$traces$id
+    protein.mw.conc <- protein.mw.conc
     if (!any(class(trace.mat) == 'matrix')) {
         trace.mat <- as.matrix(trace.mat)
     }

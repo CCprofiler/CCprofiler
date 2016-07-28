@@ -2,19 +2,25 @@
 % Please edit documentation in R/formatConversion.R, R/helper.R
 \name{toWideFormat}
 \alias{toWideFormat}
-\title{Convert a data.table containing traces from long format to wide format.}
+\title{Convert a data.table containing traces from wide format to long format.}
 \usage{
 toWideFormat(traces.dt)
 
 toWideFormat(traces.dt)
 }
 \arguments{
+\item{traces.dt}{A data.table with an id column \code{fragment_id} and
+columns of continuously numbered fractions.}
+
 \item{traces.dt}{A data.table with columns
 \itemize{
  \item \code{fragment_id}
  \item \code{fraction}
  \item \code{intensity}
 }}
+
+\item{traces.dt}{A data.table with an id column \code{fragment_id} and
+columns of continuously numbered fractions.}
 
 \item{traces.dt}{A data.table with columns
 \itemize{
@@ -24,13 +30,29 @@ toWideFormat(traces.dt)
 }}
 }
 \value{
+A data.table with columns
+         \itemize{
+          \item \code{fragment_id}
+          \item \code{fraction}
+          \item \code{intensity}
+         }
+Convert a data.table containing traces from long format to wide format.
+
 The same data.table casted to wide format.
+
+A data.table with columns
+         \itemize{
+          \item \code{fragment_id}
+          \item \code{fraction}
+          \item \code{intensity}
+         }
+Convert a data.table containing traces from long format to wide format.
 
 The same data.table casted to wide format.
 }
 \description{
-Convert a data.table containing traces from long format to wide format.
+Convert a data.table containing traces from wide format to long format.
 
-Convert a data.table containing traces from long format to wide format.
+Convert a data.table containing traces from wide format to long format.
 }
 
