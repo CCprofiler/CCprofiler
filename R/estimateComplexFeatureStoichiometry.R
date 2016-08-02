@@ -64,9 +64,9 @@ estimateComplexFeatureStoichiometry <- function(traces.obj,complexFeaturesPP) {
       features <- cbind(features,stoichiometry)
       features[,subgroup:=NULL]
 
-      print(features)
+      data.table(features)
 
-      res <- list(features=features)
+      res <- list(traces=traces.obj,features=features)
       class(res) = 'complexFeatureStoichiometry'
 
       res

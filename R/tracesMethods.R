@@ -42,13 +42,13 @@ getIntensityMatrix.traces <- function(traces.obj) {
 #'           \item \code{intensity}
 #'          }
 toLongFormat <- function(traces.dt) {
-    traces.dt.long <-
-        melt(traces.dt, id.var='id', variable.name='fraction',
-             value.name='intensity', variable.factor=FALSE)
-    traces.dt.long[, fraction := as.numeric(fraction)]
-    setkey(traces.dt.long,id)
-    print(traces.dt.long) #@TODO fix bug
-    traces.dt.long
+  traces.dt.long <-
+    melt(traces.dt, id.var='id', variable.name='fraction',
+         value.name='intensity', variable.factor=FALSE)
+  traces.dt.long[, fraction := as.numeric(fraction)]
+  setkey(traces.dt.long,id)
+  data.table(traces.dt.long)
+  traces.dt.long
 }
 
 #' Plot.

@@ -71,7 +71,7 @@ findComplexFeatures <- function(traces.obj,
                                                           window.size=window.size)
               complexFeaturesPP <- findComplexFeaturesPP(traces.obj=traces.subs,
                                                           complexFeaturesSW=complexFeaturesSW)
-              complexFeatureStoichiometries <- estimateComplexFeatureStoichiometry(traces.obj=traces.obj,
+              complexFeatureStoichiometries <- estimateComplexFeatureStoichiometry(traces.obj=traces.subs,
                                                           complexFeaturesPP=complexFeaturesPP)
               complexFeatureStoichiometries
             } else {
@@ -81,7 +81,7 @@ findComplexFeatures <- function(traces.obj,
     }
 
     ## Execute the sliding window algorithm for each query complex.
-    ## This computation can optionally be parallelized.
+    ## This computation can optionally be parstr(swf_ allelized.
     if (parallelized) {
         cl <- snow::makeCluster(n.cores)
         doSNOW::registerDoSNOW(cl)
@@ -126,8 +126,7 @@ findComplexFeatures <- function(traces.obj,
     complex.stats[, completeness := n_subunits_detected /
                     n_subunits_annotated]
 
-    res <- list(trace.mat=traces.obj,
-                sw.results=sw.results,
+    res <- list(sw.results=sw.results,
                 complex.stats=complex.stats,
                 input.complexes=input.complexes,
                 corr.cutoff=corr.cutoff,

@@ -86,7 +86,7 @@ findComplexFeaturesPP <- function(traces.obj,complexFeaturesSW) {
      features[, left_pp := unlist(lapply(features.new, function(x) x$left_pp))]
      features[, right_pp := unlist(lapply(features.new, function(x) x$right_pp))]
      features[, area := unlist(lapply(features.new, function(x) x$area))]
-     print(features)
+     data.table(features)
 
      res <- list(features=features)
      class(res) = 'complexFeaturesPP'
