@@ -66,7 +66,7 @@ estimateComplexFeatureStoichiometry <- function(traces.obj,complexFeaturesPP) {
 
       data.table(features)
 
-      res <- list(traces=traces.obj,features=features)
+      res <- list(features=features)
       class(res) = 'complexFeatureStoichiometry'
 
       res

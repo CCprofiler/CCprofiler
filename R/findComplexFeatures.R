@@ -63,17 +63,22 @@ findComplexFeatures <- function(traces.obj,
         complex.subunits <- complex.protein.assoc[complex_id == complex.id,
                                                   protein_id]
         traces.subs <- subset(traces.obj=traces.obj,trace_ids=complex.subunits)
+        complex.annotation <- subset(complex.protein.assoc,complex_id == complex.id)
         # Run the algorithm
         try({
             if (nrow(traces.subs$traces) >= 2) {
               complexFeaturesSW <- findComplexFeaturesSW(traces.obj=traces.subs,
                                                           corr.cutoff=corr.cutoff,
                                                           window.size=window.size)
+              if((dim(complexFeaturesSW$features)[1] == 0) & (dim(complexFeaturesSW$features)[2] == 0)){
+                return(list())
+              }
               complexFeaturesPP <- findComplexFeaturesPP(traces.obj=traces.subs,
                                                           complexFeaturesSW=complexFeaturesSW)
               complexFeatureStoichiometries <- estimateComplexFeatureStoichiometry(traces.obj=traces.subs,
                                                           complexFeaturesPP=complexFeaturesPP)
-              complexFeatureStoichiometries
+              complexFeatureAnnotated <- annotateComplexFeatures(traces.obj,complexFeatureStoichiometries,complex.annotation)
+              complexFeatureAnnotated
             } else {
                 list()
             }
@@ -97,7 +102,7 @@ findComplexFeatures <- function(traces.obj,
             runSlidingWindow(query.complex.id)
         }
     }
-    names(sw.results) <- input.complexes
+    #names(sw.results) <- input.complexes
 
     # @NEW remove results for complexes with ERROR message
     sel_errors <- which(sapply(sw.results, typeof) == "character")
@@ -105,29 +110,7 @@ findComplexFeatures <- function(traces.obj,
       sw.results[[error_idx]] <- list()
     }
 
-
-    ## Calculate complex detection statistics such as how many subunits
-    ## were detected in a subgroup.
-    complex.stats <- complex.protein.assoc[, list(n_subunits_annotated=.N),
-                                           by=complex_id]
-    complex.stats[, n_subunits_detected := 0]
-    setkey(complex.stats, complex_id)
-    for (i in seq_along(input.complexes)) {
-        complex.id <- input.complexes[i]
-        res <- sw.results[[i]]
-        if (length(res) > 0) {
-            if (length(res$features) > 0) {
-              max.detected.subunits <- max(res$features$n_subunits)
-              complex.stats[complex_id == as.character(complex.id),
-                            n_subunits_detected := max.detected.subunits]
-            }
-        }
-    }
-    complex.stats[, completeness := n_subunits_detected /
-                    n_subunits_annotated]
-
     res <- list(sw.results=sw.results,
-                complex.stats=complex.stats,
                 input.complexes=input.complexes,
                 corr.cutoff=corr.cutoff,
                 window.size=window.size)
