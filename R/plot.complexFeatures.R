@@ -9,6 +9,7 @@
 plot.complexFeatures <- function(res,
                                  traces.obj,
                                  complexID,
+                                 monomerMW=FALSE,
                                  log=FALSE) {
 
 
@@ -22,13 +23,20 @@ plot.complexFeatures <- function(res,
     traces.long$inComplex <- "FALSE"
     traces.long$inComplex[sel_inComplex] <- "TRUE"
     traces.long$inComplex = factor(traces.long$inComplex,levels=c("TRUE","FALSE"))
-    setkey(traces.long, protein_id)
+    # add monomer MW
+    subunitMW = as.numeric(strsplit(features$monomer_sec, ';')[[1]])
+    subunitMW.dt = data.table(id=detectedSubunits,mw=subunitMW)
+    
+    traces.long = merge(traces.long,subunitMW.dt,by="id",all.x = TRUE)
+    
+    setkey(traces.long, inComplex, id)
     
     complexName = unique(features$complex_name)[1]
     n_annotatedSubunits = features$n_subunits_annotated[1]
     n_signalSubunits = features$n_subunits_with_signal[1]
     n_detectedSubunits = features$n_subunits_detected[1]
-    complexCompleteness = features$completeness[1]
+    complexCompleteness = round(features$completeness[1],digits=2)
+    
     
     p <- ggplot(traces.long) +
       geom_line(aes_string(x='fraction', y='intensity', color='id',linetype='inComplex')) +
@@ -51,10 +59,13 @@ plot.complexFeatures <- function(res,
 #        theme(legend.position='none')
 
 
-    p <- p + geom_rect(data=features,aes(xmin = left_pp, xmax = right_pp, ymin = -Inf, ymax = Inf),alpha = 0.25)
-    p <- p + geom_vline(data=features,aes(xintercept=left_sw))
-    p <- p + geom_vline(data=features,aes(xintercept=right_sw))
-    p <- p + geom_vline(data=features,aes(xintercept=apex), colour="red")
-
+    p <- p + geom_rect(data=features,aes(xmin = left_pp, xmax = right_pp, ymin = -Inf, ymax = Inf, fill=subunits_detected),alpha = 0.25)
+    p <- p + geom_vline(data=features,aes(xintercept=left_sw), colour="grey",linetype="longdash")
+    p <- p + geom_vline(data=features,aes(xintercept=right_sw), colour="grey",linetype="longdash")
+    p <- p + geom_vline(data=features,aes(xintercept=apex), colour="black",linetype="solid")
+    p <- p + geom_vline(data=features,aes(xintercept=complex_sec_estimated), colour="black",linetype="longdash")
+    if (monomerMW==TRUE){
+      p <- p + geom_vline(data=subset(traces.long,!is.na(mw)),aes(xintercept=mw,colour=id),linetype="solid")
+    }
     print(p)
 }
