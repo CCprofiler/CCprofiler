@@ -46,6 +46,12 @@ annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,com
   
   mw <- lapply(seq(1:nrow(features)), function(i){
     feature=features[i]
+    
+    subunits_annotated <- strsplit(feature$subunits_annotated, ';')[[1]]
+    subunits_with_signal <- traces.obj$trace_annotation$id[i=which(traces.obj$trace_annotation$id %in% subunits_annotated)]
+    subunits_with_signal <- sort(subunits_with_signal)
+    n_subunits_with_signal <- length(subunits_with_signal)
+    
     subunits <- strsplit(feature$id, ';')[[1]]
     
     subunit_MW <-  protein.mw$protein_mw[protein.mw$id %in% subunits]
@@ -65,7 +71,9 @@ annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,com
                monomer_sec=paste(subunit_SEC, collapse=';'),
                complex_mw_estimated=complex_mw,
                complex_sec_estimated=complex_SEC,
-               sec_diff=SEC_diff)
+               sec_diff=SEC_diff,
+               subunits_with_signal = paste(subunits_with_signal, collapse=';'),
+               n_subunits_with_signal = n_subunits_with_signal)
   }
   )
   
@@ -73,18 +81,22 @@ annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,com
   features <- cbind(features,mw)
   
   setcolorder(features, c("complex_id", "complex_name", "subunits_annotated",
-                   "n_subunits_annotated","id","n_subunits",
+                   "n_subunits_annotated","subunits_with_signal","n_subunits_with_signal",
+                   "id","n_subunits",
                    "completeness","left_sw","right_sw","score",
                    "left_pp","right_pp","apex","area",
                    "total_intensity","intensity_ratio","stoichiometry",
-                   "monomer_mw","monomer_sec","complex_mw_estimated","complex_sec_estimated","sec_diff"))
+                   "monomer_mw","monomer_sec","complex_mw_estimated",
+                   "complex_sec_estimated","sec_diff"))
   
   setnames(features,c("complex_id", "complex_name", "subunits_annotated",
-                      "n_subunits_annotated","subunits_detected","n_subunits_detected",
+                      "n_subunits_annotated","subunits_with_signal","n_subunits_with_signal",
+                      "subunits_detected","n_subunits_detected",
                       "completeness","left_sw","right_sw","sw_score",
                       "left_pp","right_pp","apex","area",
                       "total_intensity","intensity_ratio","stoichiometry_estimated",
-                      "monomer_mw","monomer_sec","complex_mw_estimated","complex_sec_estimated","sec_diff"))
+                      "monomer_mw","monomer_sec","complex_mw_estimated",
+                      "complex_sec_estimated","sec_diff"))
   
   features <- features[order(-n_subunits_detected, -area, -sw_score)]
   

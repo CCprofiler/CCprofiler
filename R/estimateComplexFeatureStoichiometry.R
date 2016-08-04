@@ -54,9 +54,9 @@ estimateComplexFeatureStoichiometry <- function(traces.obj,complexFeaturesPP) {
         protein.info[,intensity_ratio:=total_intensity/min(protein.info$total_intensity)]
         protein.info[,stoichiometry:=round(intensity_ratio)]
         data.table(id=paste(protein.info$id, collapse=';'),
-        total_intensity=paste(protein.info$total_intensity, collapse=';'),
-        intensity_ratio=paste(protein.info$intensity_ratio, collapse=';'),
-        stoichiometry=paste(protein.info$stoichiometry, collapse=';'))
+                    total_intensity=paste(protein.info$total_intensity, collapse=';'),
+                    intensity_ratio=paste(protein.info$intensity_ratio, collapse=';'),
+                    stoichiometry=paste(protein.info$stoichiometry, collapse=';'))
       }
       )
 
