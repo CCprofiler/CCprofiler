@@ -7,13 +7,13 @@
 toLongFormat(traces.dt)
 }
 \arguments{
-\item{traces.dt}{A data.table with an id column \code{fragment_id} and
+\item{traces.dt}{A data.table with an id column \code{id} and
 columns of continuously numbered fractions.}
 }
 \value{
 A data.table with columns
          \itemize{
-          \item \code{fragment_id}
+          \item \code{id}
           \item \code{fraction}
           \item \code{intensity}
          }

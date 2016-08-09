@@ -9,7 +9,7 @@ findComplexFeatures(traces.obj, complex.protein.assoc, corr.cutoff = 0.95,
   n.cores = parallel::detectCores())
 }
 \arguments{
-\item{traces.obj}{traces.obj An object of type \code{traces.obj}.}
+\item{traces.obj}{An object of type \code{traces.obj}.}
 
 \item{complex.protein.assoc}{A data.table that encodes the input complexes
 and their subunit compositions. The data.table should have the
@@ -17,9 +17,11 @@ format:
 \itemize{
  \item \code{complex_id} A character vector that uniquely identifies
        a complex.
+ \item \code{complex_name} A character vector that contains
+       the complex name.
  \item \code{protein_id} A character vector that uniquely identifies
        a protein and links it to a trace contained in
-       \code{protein.traces}.
+       \code{traces.obj}.
 }}
 
 \item{corr.cutoff}{The correlation value for chromatograms above which
@@ -37,15 +39,10 @@ A list containing various results.
         \itemize{
          \item \code{sw.results} A list of results of the function
                \code{findComplexFeatures}. One for each query complex.
-         \item \code{complex.stats} A data.table specifying for each query
-               complex how many of its subunits were detected.
-         \item \code{input.complexes} All query complexes.
          \item \code{input.complexes} A character vector of all query
                 complexes.
          \item \code{corr.cutoff} The correlation cutoff used.
          \item \code{window.size} The window size used.
-         \item \code{complex.protein.assoc} The protein-complex associations
-               used as the original input argument.
         }
 }
 \description{

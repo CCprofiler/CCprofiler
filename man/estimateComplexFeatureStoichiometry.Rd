@@ -3,48 +3,53 @@
 \name{estimateComplexFeatureStoichiometry}
 \alias{estimateComplexFeatureStoichiometry}
 \title{A helper function to extend a list of complex features with additional
-information.}
+stoichiometry estimation.}
 \usage{
 estimateComplexFeatureStoichiometry(traces.obj, complexFeaturesPP)
 }
 \arguments{
-\item{features}{A data.table of complex feature candidates with the
-following format:
+\item{traces.obj}{An object of type \code{traces.obj}.}
+
+\item{complexFeaturesPP}{An object of type \code{complexFeaturesPP} that is a list
+containing the following: 
 \itemize{
- \item \code{subgroup} A semicolon-separated list of protein
-                       identifiers.
- \item \code{left_sw} The left boundary of the feature.
- \item \code{right_sw} The right boundary of the feature.
- \item \code{score} The intra-feature correlation.
-}}
-
-\item{trace.mat}{A matrix where rows correspond to protein traces.
-This is the matrix that was used to find complex features.}
-
-\item{protein.names}{A character vector specifying the protein identifiers
-belonging to the rows in \code{trace.mat}.}
-
-\item{protein.mw.conc}{A data.table that stores the molecular weight and
-estimate of the absolute abundance for each subunit.
-\itemize{
- \item \code{protein_id}
- \item \code{protein_mw}
- \item \code{protein_concentration}
+  \item \code{feature} data.table containing complex feature candidates in the following format:
+   \itemize{
+   \item \code{subgroup} The protein_ids of the feature separated by semi-colons.
+   \item \code{left_sw} The left boundary of the sliding-window feature.
+   \item \code{right_sw} The right boundary of the sliding-window feature.
+   \item \code{score} The intra-sliding-window-feature correlation.
+   \item \code{n_subunits} The number of protein_ids in the sliding-window feature.
+   \item \code{apax} The apex of the selected peak by the peak-picker.
+   \item \code{left_pp} The left boundary of the selected peak by the peak-picker.
+   \item \code{right_pp} The right boundary of the selected peak by the peak-picker.
+   \item \code{area} The area (entire complex) of the selected peak by the peak-picker.
+   }
 }}
 }
 \value{
-The same data.table as the input argument extended with the
-        following columns:
-        \itemize{
-         \item \code{n_subunits} The number of subunits in the feature.
-         \item \code{stoichiometry} The intensity-based stoichiometry.
-         \item \code{mw_estimated} The estimated molecular weight.
-         \item \code{mw_apparent} The apparent mw.
-         \item \code{mw_delta} The delta mw.
-        }
+An object of type \code{complexFeatureStoichiometries} that is a list
+       containing the following: 
+       \itemize{
+         \item \code{feature} data.table containing complex feature candidates in the following format:
+          \itemize{
+          \item \code{left_sw} The left boundary of the sliding-window feature.
+          \item \code{right_sw} The right boundary of the sliding-window feature.
+          \item \code{score} The intra-sliding-window-feature correlation.
+          \item \code{n_subunits} The number of protein_ids in the sliding-window feature.
+          \item \code{apax} The apex of the selected peak by the peak-picker.
+          \item \code{left_pp} The left boundary of the selected peak by the peak-picker.
+          \item \code{right_pp} The right boundary of the selected peak by the peak-picker.
+          \item \code{area} The area (entire complex) of the selected peak by the peak-picker.
+          \item \code{id} The protein_ids of the feature separated by semi-colons.
+          \item \code{total_intensity} The intensity of all protein_ids of the feature separated by semi-colons.
+          \item \code{intensity_ratio} The intensity ratio of all protein_ids of the feature separated by semi-colons.
+          \item \code{stoichiometry} The rounded \code{intensity_ratio} of all protein_ids of the feature separated by semi-colons.
+          }
+       }
 }
 \description{
 A helper function to extend a list of complex features with additional
-information.
+stoichiometry estimation.
 }
 

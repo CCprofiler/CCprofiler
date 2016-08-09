@@ -4,34 +4,30 @@
 #' sliding a window across the SEC dimension. Within each window proteins
 #' with traces that correlate well are clustered together.
 #'
-#' @param trace.mat A numeric matrix where rows correspond to the different
-#'        traces.
-#' @param protein.names A vector with protein identifiers. This vector has to
-#'        have the same length as the number of rows in `trace.mat`.
-#' @param protein.mw.conc A data.table that stores the molecular weight and
-#'        estimate of the absolute abundance for each subunit.
-#'        \itemize{
-#'         \item \code{protein_id}
-#'         \item \code{protein_mw}
-#'         \item \code{protein_concentration}
-#'        }
+#' @param traces.obj An object of type \code{traces.obj}.
 #' @param corr.cutoff The correlation value for chromatograms above which
 #'        proteins are considered to be coeluting.
 #' @param window.size Size of the window. Numeric.
+#' @param with.plot T (TRUE) or F (FALSE) whether to plot the correlation tree.
 #' @param noise.quantile The quantile to use in estimating the noise level.
 #'        Intensity values that are zero are imputed with random noise
 #'        according to the noise estimation.
 #' @param min.sec The lowest SEC number in the sample.
-#' @return An instance of class `complexFeaturesSW`. This is a list with the
-#'         following entries:
-#'         \itemize{
-#'          \item \code{features} A datatable of features. Each feature
-#'              can span several SEC fractions.
+#' @return An object of type \code{complexFeaturesSW} that is a list
+#'        containing the following: 
+#'        \itemize{
+#'          \item \code{feature} data.table containing complex feature candidates in the following format:
+#'           \itemize{
+#'           \item \code{subgroup} The protein_ids of the feature separated by semi-colons.
+#'           \item \code{left_sw} The left boundary of the sliding-window feature.
+#'           \item \code{right_sw} The right boundary of the sliding-window feature.
+#'           \item \code{score} The intra-sliding-window-feature correlation.
+#'           }
 #'          \item \code{window.size} The window.size used when running this
 #'              function.
 #'          \item \code{corr.cutoff} The corr.cutoff used when running this
-#'              function
-#'         }
+#'              function.
+#'        }
 #' @examples
 #' # NOT RUN:
 #' # protein.ids <- corum.complex.protein.assoc[complex_id == 181, protein_id]

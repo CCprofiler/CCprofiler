@@ -10,42 +10,37 @@ findComplexFeaturesSW(traces.obj, corr.cutoff = 0.95, window.size = 15,
   with.plot = F, noise.quantile = 0.2, min.sec = 1)
 }
 \arguments{
+\item{traces.obj}{An object of type \code{traces.obj}.}
+
 \item{corr.cutoff}{The correlation value for chromatograms above which
 proteins are considered to be coeluting.}
 
 \item{window.size}{Size of the window. Numeric.}
+
+\item{with.plot}{T (TRUE) or F (FALSE) whether to plot the correlation tree.}
 
 \item{noise.quantile}{The quantile to use in estimating the noise level.
 Intensity values that are zero are imputed with random noise
 according to the noise estimation.}
 
 \item{min.sec}{The lowest SEC number in the sample.}
-
-\item{trace.mat}{A numeric matrix where rows correspond to the different
-traces.}
-
-\item{protein.names}{A vector with protein identifiers. This vector has to
-have the same length as the number of rows in `trace.mat`.}
-
-\item{protein.mw.conc}{A data.table that stores the molecular weight and
-estimate of the absolute abundance for each subunit.
-\itemize{
- \item \code{protein_id}
- \item \code{protein_mw}
- \item \code{protein_concentration}
-}}
 }
 \value{
-An instance of class `complexFeaturesSW`. This is a list with the
-        following entries:
-        \itemize{
-         \item \code{features} A datatable of features. Each feature
-             can span several SEC fractions.
+An object of type \code{complexFeaturesSW} that is a list
+       containing the following: 
+       \itemize{
+         \item \code{feature} data.table containing complex feature candidates in the following format:
+          \itemize{
+          \item \code{subgroup} The protein_ids of the feature separated by semi-colons.
+          \item \code{left_sw} The left boundary of the sliding-window feature.
+          \item \code{right_sw} The right boundary of the sliding-window feature.
+          \item \code{score} The intra-sliding-window-feature correlation.
+          }
          \item \code{window.size} The window.size used when running this
              function.
          \item \code{corr.cutoff} The corr.cutoff used when running this
-             function
-        }
+             function.
+       }
 }
 \description{
 Detect subgroups of proteins within a matrix of protein intensity traces by

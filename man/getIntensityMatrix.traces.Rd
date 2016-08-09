@@ -2,7 +2,7 @@
 % Please edit documentation in R/tracesMethods.R
 \name{getIntensityMatrix.traces}
 \alias{getIntensityMatrix.traces}
-\title{Get a matrix of fragment intensity values.}
+\title{Get a matrix of intensity values for a traces object.}
 \usage{
 getIntensityMatrix.traces(traces.obj)
 }
@@ -13,6 +13,6 @@ getIntensityMatrix.traces(traces.obj)
 A matrix of intensity values.
 }
 \description{
-Get a matrix of fragment intensity values.
+Get a matrix of intensity values for a traces object.
 }
 

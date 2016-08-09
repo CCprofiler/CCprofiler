@@ -16,7 +16,7 @@ for subsetting \code{trace_ids}.}
 for subsetting \code{fragment_ids}.}
 }
 \value{
-traces.obj An object of type \code{FragmentTraces}.
+traces.obj An object of type \code{traces.obj}.
 }
 \description{
 Subset a traces.obj by trace_ids or fraction_ids.

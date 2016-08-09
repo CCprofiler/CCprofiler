@@ -1,11 +1,10 @@
-
 #' Subset a traces.obj by trace_ids or fraction_ids.
 #' @param traces.obj An object of type \code{traces.obj}.
 #' @param trace_ids A character vector specifying the trace identifiers
 #'        for subsetting \code{trace_ids}.
 #' @param fraction_ids A numeric vector specifying the fraction identifiers
 #'        for subsetting \code{fragment_ids}.
-#' @return traces.obj An object of type \code{FragmentTraces}.
+#' @return traces.obj An object of type \code{traces.obj}.
 #' @export
 subset.traces <- function(traces.obj,trace_ids=NULL,fraction_ids=NULL){
     if (!is.null(trace_ids)) {
@@ -19,7 +18,7 @@ subset.traces <- function(traces.obj,trace_ids=NULL,fraction_ids=NULL){
     traces.obj
 }
 
-#' Get a matrix of fragment intensity values.
+#' Get a matrix of intensity values for a traces object.
 #' @param traces.obj An object of type \code{traces.obj}.
 #' @return A matrix of intensity values.
 #' @export
@@ -33,11 +32,11 @@ getIntensityMatrix.traces <- function(traces.obj) {
 
 
 #' Convert a data.table containing traces from wide format to long format.
-#' @param traces.dt A data.table with an id column \code{fragment_id} and
+#' @param traces.dt A data.table with an id column \code{id} and
 #'        columns of continuously numbered fractions.
 #' @return A data.table with columns
 #'          \itemize{
-#'           \item \code{fragment_id}
+#'           \item \code{id}
 #'           \item \code{fraction}
 #'           \item \code{intensity}
 #'          }

@@ -1,39 +1,70 @@
 #' A helper function to extend a list of complex features with additional
 #' information.
 #'
-#' @param features A data.table of complex feature candidates with the
-#'        following format:
+
+#' @param traces.obj An object of type \code{traces.obj}.
+#' @param complexFeatureStoichiometries An object of type \code{complexFeatureStoichiometries} that is a list
+#'        containing the following: 
 #'        \itemize{
-#'         \item \code{subgroup} A semicolon-separated list of protein
-#'                               identifiers.
-#'         \item \code{left_sw} The left boundary of the feature.
-#'         \item \code{right_sw} The right boundary of the feature.
-#'         \item \code{score} The intra-feature correlation.
+#'          \item \code{feature} data.table containing complex feature candidates in the following format:
+#'           \itemize{
+#'           \item \code{left_sw} The left boundary of the sliding-window feature.
+#'           \item \code{right_sw} The right boundary of the sliding-window feature.
+#'           \item \code{score} The intra-sliding-window-feature correlation.
+#'           \item \code{n_subunits} The number of protein_ids in the sliding-window feature.
+#'           \item \code{apax} The apex of the selected peak by the peak-picker.
+#'           \item \code{left_pp} The left boundary of the selected peak by the peak-picker.
+#'           \item \code{right_pp} The right boundary of the selected peak by the peak-picker.
+#'           \item \code{area} The area (entire complex) of the selected peak by the peak-picker.
+#'           \item \code{id} The protein_ids of the feature separated by semi-colons.
+#'           \item \code{total_intensity} The intensity of all protein_ids of the feature separated by semi-colons.
+#'           \item \code{intensity_ratio} The intensity ratio of all protein_ids of the feature separated by semi-colons.
+#'           \item \code{stoichiometry} The rounded \code{intensity_ratio} of all protein_ids of the feature separated by semi-colons.
+#'           }
 #'        }
-#' @param trace.mat A matrix where rows correspond to protein traces.
-#'        This is the matrix that was used to find complex features.
-#' @param protein.names A character vector specifying the protein identifiers
-#'        belonging to the rows in \code{trace.mat}.
-#' @param protein.mw.conc A data.table that stores the molecular weight and
-#'        estimate of the absolute abundance for each subunit.
+#' @param complex.annotation A data.table that stores the complex name and protein subunits for each complex_id.
 #'        \itemize{
+#'         \item \code{complex_id}
+#'         \item \code{complex_name}
 #'         \item \code{protein_id}
-#'         \item \code{protein_mw}
-#'         \item \code{protein_concentration}
 #'        }
-#' @return The same data.table as the input argument extended with the
-#'         following columns:
-#'         \itemize{
-#'          \item \code{n_subunits} The number of subunits in the feature.
-#'          \item \code{stoichiometry} The intensity-based stoichiometry.
-#'          \item \code{mw_estimated} The estimated molecular weight.
-#'          \item \code{mw_apparent} The apparent mw.
-#'          \item \code{mw_delta} The delta mw.
-#'         }
+#' @return An object of type \code{complexFeaturesAnnotated} that is a list
+#'        containing the following: 
+#'        \itemize{
+#'          \item \code{feature} data.table containing complex feature candidates in the following format:
+#'           \itemize{
+#'           \item \code{complex_id} The complex_id of the query complex.
+#'           \item \code{complex_name} The complex_name of the query complex.
+#'           \item \code{subunits_annotated} The subunits (protein_ids) annotated for the complex separated by semi-colons.
+#'           \item \code{n_subunits_annotated} The number of subunits (protein_ids) annotated for the complex separated by semi-colons.
+#'           \item \code{subunits_with_signal} The subunits (protein_ids) with an MS/MS signal for the complex separated by semi-colons.
+#'           \item \code{n_subunits_with_signal} The number of subunits (protein_ids) with an MS/MS signal for the complex separated by semi-colons.
+#'           \item \code{subunits_detected} The subunits (protein_ids) detceted in the feature for the complex separated by semi-colons.
+#'           \item \code{n_subunits_detected} The number of subunits (protein_ids) detceted in the feature for the complex separated by semi-colons.
+#'           \item \code{completeness} The complex completeness as defined by \code{n_subunits_detected} divided by \code{n_subunits_annotated}.
+#'           \item \code{left_sw} The left boundary of the sliding-window feature.
+#'           \item \code{right_sw} The right boundary of the sliding-window feature.
+#'           \item \code{sw_score} The intra-sliding-window-feature correlation.
+#'           \item \code{left_pp} The left boundary of the selected peak by the peak-picker.
+#'           \item \code{right_pp} The right boundary of the selected peak by the peak-picker.
+#'           \item \code{apax} The apex of the selected peak by the peak-picker.
+#'           \item \code{area} The area (entire complex) of the selected peak by the peak-picker.
+#'           \item \code{total_intensity} The intensity of all protein_ids of the feature separated by semi-colons.
+#'           \item \code{intensity_ratio} The intensity ratio of all protein_ids of the feature separated by semi-colons.
+#'           \item \code{stoichiometry_estimated} The rounded \code{intensity_ratio} of all protein_ids of the feature separated by semi-colons.
+#'           \item \code{monomer_mw} The monomer molecular weights of all protein_ids of the feature separated by semi-colons.
+#'           \item \code{monomer_sec} The monomer sec fraction of all protein_ids of the feature separated by semi-colons.
+#'           \item \code{complex_mw_estimated} The complex molecular weight as expected fro the \code{stoichiometry_estimated}.
+#'           \item \code{complex_sec_estimated} The complex sec fraction as expected fro the \code{stoichiometry_estimated}.
+#'           \item \code{sec_diff} Difference between \code{complex_sec_estimated} and \code{apax} of the feature.
+#'          }
+#'        }
+
 annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,complex.annotation) {
   
   setkey(complex.annotation, protein_id)
   
+  # annotate feature data.table with known complex information 
   features <- complexFeatureStoichiometries$features
   features[,complex_id := complex.annotation$complex_id[1]]
   features[,complex_name := complex.annotation$complex_name[1]]
@@ -41,32 +72,29 @@ annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,com
   features[,completeness := n_subunits/n_subunits_annotated]
   features[,subunits_annotated := paste(complex.annotation$protein_id, collapse=';')]
   
+  # extract protein molecular weights from the trace_annotations in the traces.obj
   protein.mw <- subset(traces.obj$trace_annotation,id %in% complex.annotation$protein_id)
   setkey(protein.mw, id)
   
+  # add molecular weight and sec fraction information to each feature
   mw <- lapply(seq(1:nrow(features)), function(i){
     feature=features[i]
-    
+    # annotate features by complex information and monomer molecular weights
     subunits_annotated <- strsplit(feature$subunits_annotated, ';')[[1]]
     subunits_with_signal <- traces.obj$trace_annotation$id[i=which(traces.obj$trace_annotation$id %in% subunits_annotated)]
     subunits_with_signal <- sort(subunits_with_signal)
     n_subunits_with_signal <- length(subunits_with_signal)
-    
     subunits <- strsplit(feature$id, ';')[[1]]
-    
     subunit_MW <-  protein.mw$protein_mw[protein.mw$id %in% subunits]
-    
     subunit_SEC <- (log(subunit_MW)-9.682387)/(-0.1043329) # @TODO function
-    
+    # calculate complex molecular weight
     stoichiometry <- strsplit(feature$stoichiometry, ';')[[1]]
     stoichiometry <- as.integer(stoichiometry)
-    
     complex_mw <- sum(stoichiometry*subunit_MW)
-    
     complex_SEC <-  (log(complex_mw)-9.682387)/(-0.1043329)
-    
+    # calculate difference between apex of selected peak and the estimated comples sec fraction
     SEC_diff <- abs(feature$apex - complex_SEC)
-    
+    # create output data.table
     data.table(monomer_mw=paste(subunit_MW, collapse=';'),
                monomer_sec=paste(subunit_SEC, collapse=';'),
                complex_mw_estimated=complex_mw,
@@ -80,6 +108,7 @@ annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,com
   mw <- do.call("rbind", mw)
   features <- cbind(features,mw)
   
+  # order features data.table in a usefull way
   setcolorder(features, c("complex_id", "complex_name", "subunits_annotated",
                    "n_subunits_annotated","subunits_with_signal","n_subunits_with_signal",
                    "id","n_subunits",
@@ -89,6 +118,7 @@ annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,com
                    "monomer_mw","monomer_sec","complex_mw_estimated",
                    "complex_sec_estimated","sec_diff"))
   
+  # provide better column names for features data.table
   setnames(features,c("complex_id", "complex_name", "subunits_annotated",
                       "n_subunits_annotated","subunits_with_signal","n_subunits_with_signal",
                       "subunits_detected","n_subunits_detected",
@@ -98,12 +128,11 @@ annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,com
                       "monomer_mw","monomer_sec","complex_mw_estimated",
                       "complex_sec_estimated","sec_diff"))
   
-  features <- features[order(-n_subunits_detected, -area, -sw_score)]
+  # sort the features by the number of detected subunits, the sliding-windoe correlation, and the peak area
+  features <- features[order(-n_subunits_detected,-sw_score,-area)]
   
   data.table(features)
-  
   res <- list(features=features)
   class(res) = 'complexFeaturesAnnotated'
-  
   res
 }
