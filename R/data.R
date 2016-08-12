@@ -1,5 +1,5 @@
 #' Some protein traces of e4 that were filtered. TESTING DATA.
-'protein.traces'
+#'protein.traces'
 
 #' A sample data.table that holds information on CORUM complex membership.
 #'

@@ -4,12 +4,15 @@
 \alias{subsetComplexFeatures}
 \title{Filter result data.table according to desired complex_ids or minimum correlation score.}
 \usage{
-subsetComplexFeatures(res, complex_ids = NULL, min_completeness = NULL)
+subsetComplexFeatures(res, complex_ids = NULL, min_completeness = NULL,
+  collapse_same_peak = FALSE)
 }
 \arguments{
 \item{complex_ids}{A character vector containing all desired \code{complex_id} values.}
 
 \item{min_completeness}{A numeric value specifying the minimum \code{sw_score} for a complex feature.}
+
+\item{collapse_same_peak}{TRUE or FALSE, collapse if multiple subcomplexes have the same peak apex (identical peak).}
 
 \item{A}{data.table with the complex features in the format:
 \itemize{

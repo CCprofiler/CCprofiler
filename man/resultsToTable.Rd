@@ -6,6 +6,17 @@
 \usage{
 resultsToTable(swf)
 }
+\arguments{
+\item{A}{list containing various results.
+\itemize{
+ \item \code{sw.results} A list of results of the function
+       \code{findComplexFeatures}. One for each query complex.
+ \item \code{input.complexes} A character vector of all query
+        complexes.
+ \item \code{corr.cutoff} The correlation cutoff used.
+ \item \code{window.size} The window size used.
+ }}
+}
 \value{
 A data.table with all detected complex features of all query complexes
          in the format:

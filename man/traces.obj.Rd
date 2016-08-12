@@ -4,7 +4,7 @@
 \name{traces.obj}
 \alias{traces.obj}
 \title{An example object of class \code{FragmentTraces}.}
-\format{An object of class \code{Traces} of length 4.}
+\format{An object of class \code{traces} of length 4.}
 \usage{
 traces.obj
 }

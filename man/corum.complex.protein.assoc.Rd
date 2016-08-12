@@ -3,7 +3,9 @@
 \docType{data}
 \name{corum.complex.protein.assoc}
 \alias{corum.complex.protein.assoc}
-\title{A sample data.table that holds information on CORUM complex membership.}
+\title{Some protein traces of e4 that were filtered. TESTING DATA.
+protein.traces'
+A sample data.table that holds information on CORUM complex membership.}
 \format{An object of class \code{data.table} (inherits from \code{data.frame}) with 9701 rows and 3 columns.}
 \usage{
 corum.complex.protein.assoc

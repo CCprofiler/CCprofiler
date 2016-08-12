@@ -7,6 +7,7 @@
 #'                 complexes.
 #'          \item \code{corr.cutoff} The correlation cutoff used.
 #'          \item \code{window.size} The window size used.
+#'          }
 #' @return A data.table with all detected complex features of all query complexes
 #'          in the format:
 #'          \itemize{
@@ -75,13 +76,17 @@ resultsToTable <- function(swf){
 #'          }
 #'@param complex_ids A character vector containing all desired \code{complex_id} values.
 #'@param min_completeness A numeric value specifying the minimum \code{sw_score} for a complex feature.
+#'@param collapse_same_peak TRUE or FALSE, collapse if multiple subcomplexes have the same peak apex (identical peak).
 #'@return The same data.table format filtered according to the provided parameters.         
-subsetComplexFeatures <- function(res,complex_ids=NULL,min_completeness=NULL){
+subsetComplexFeatures <- function(res,complex_ids=NULL,min_completeness=NULL,collapse_same_peak=FALSE){
   if(!is.null(complex_ids)){
     res <- subset(res,complex_id %in% as.character(complex_ids))
   }
   if(!is.null(min_completeness)){
     res <- subset(res,completeness >= min_completeness)
+  }
+  if(collapse_same_peak){
+    res <- unique(res,by=c("apex",""))
   }
   res
 }
@@ -95,6 +100,7 @@ subsetComplexFeatures <- function(res,complex_ids=NULL,min_completeness=NULL){
 #'                 complexes.
 #'          \item \code{corr.cutoff} The correlation cutoff used.
 #'          \item \code{window.size} The window size used.
+#'          }
 #' @return A data.table with the BEST detected complex feature of each query complexe
 #'          in the format:
 #'          \itemize{
