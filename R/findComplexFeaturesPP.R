@@ -41,6 +41,7 @@ findComplexFeaturesPP <- function(traces.obj,complexFeaturesSW) {
 
     # create complex trace by summing up intensities
     features.new <- lapply(seq(1:nrow(features)), function(i){
+      #print(i) for debugging
        feature=features[i]
        subunits <- strsplit(feature$subgroup, ';')[[1]]
        # Extract only the traces for the subunits that make up this feature.
@@ -54,10 +55,17 @@ findComplexFeaturesPP <- function(traces.obj,complexFeaturesSW) {
        complex.peaks <- findpeaks(complex.trace.SG,minpeakdistance=5,nups=3,ndowns=3)
        # convert complex.peaks to data.table
        if (is.null(dim(complex.peaks))){
-         complex.peaks <- data.table(intensity=complex.peaks[1],
-           apex=complex.peaks[2],
-           left_pp=complex.peaks[3],
-           right_pp=complex.peaks[4])
+         if(!is.null(complex.peaks)){
+           complex.peaks <- data.table(intensity=complex.peaks[1],
+             apex=complex.peaks[2],
+             left_pp=complex.peaks[3],
+             right_pp=complex.peaks[4])
+         } else {
+           complex.peaks <- data.table(intensity=NA,
+                                       apex=NA,
+                                       left_pp=NA,
+                                       right_pp=NA)
+         }
        } else {
          complex.peaks <- data.table(complex.peaks)
          setnames(complex.peaks,c("intensity","apex","left_pp","right_pp"))
