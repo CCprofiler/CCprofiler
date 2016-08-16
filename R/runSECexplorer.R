@@ -49,6 +49,8 @@
 #'          }
 #'        }
 #'        }
+#'        }
+#' @export
 runSECexplorer <- function(ids,type){
   traces.obj <- traces.obj
   conversionRes <- convertIDs(ids,type,traces.obj)

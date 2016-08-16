@@ -11,6 +11,57 @@ runSECexplorer(ids, type)
 
 \item{type}{A character string specifying the type of ids.}
 }
+\value{
+A list containing the following elements: 
+   \itemize{
+     \item \code{conversionRes} A list of the following:
+       \itemize{
+          \item \code{not_defined} A character vector containing all input ids that are not defined in the current version of the package.
+          \item \code{no_ms_signal} A chaacter vector of all input ids that do not have an MS signal in the current SEC experiment.
+          \item \code{protein_ids}  A chaacter vector of all uniprotkb accession ids used for further analysis.
+          \item \code{mapping_table} A data.table containing the following information:
+          \itemize{
+           \item \code{UNIPROTKB} Uniprotkb accession ids.
+           \item \code{name} The combined name for the uniprotkb accession ids. This is \code{UNIPROTKB} | uniprot name.
+           \item \code{input type} If the input type was not \code{UNIPROTKB} this contains the ids of the input type.
+          }
+       }
+     \item \code{featureRes} A list of the following:
+     \itemize{
+       \item \code{traces} An object of type \code{traces.obj}. Filtered for input ids.
+       \item \code{features} An object of type \code{complexFeaturesAnnotated} that is a list containing the following:
+       \itemize{
+         \item \code{feature} data.table containing complex feature candidates in the following format:
+          \itemize{
+          \item \code{complex_id} The complex_id of the query complex.
+          \item \code{complex_name} The complex_name of the query complex.
+          \item \code{subunits_annotated} The subunits (protein_ids) annotated for the complex separated by semi-colons.
+          \item \code{n_subunits_annotated} The number of subunits (protein_ids) annotated for the complex separated by semi-colons.
+          \item \code{subunits_with_signal} The subunits (protein_ids) with an MS/MS signal for the complex separated by semi-colons.
+          \item \code{n_subunits_with_signal} The number of subunits (protein_ids) with an MS/MS signal for the complex separated by semi-colons.
+          \item \code{subunits_detected} The subunits (protein_ids) detceted in the feature for the complex separated by semi-colons.
+          \item \code{n_subunits_detected} The number of subunits (protein_ids) detceted in the feature for the complex separated by semi-colons.
+          \item \code{completeness} The complex completeness as defined by \code{n_subunits_detected} divided by \code{n_subunits_annotated}.
+          \item \code{left_sw} The left boundary of the sliding-window feature.
+          \item \code{right_sw} The right boundary of the sliding-window feature.
+          \item \code{sw_score} The intra-sliding-window-feature correlation.
+          \item \code{left_pp} The left boundary of the selected peak by the peak-picker.
+          \item \code{right_pp} The right boundary of the selected peak by the peak-picker.
+          \item \code{apax} The apex of the selected peak by the peak-picker.
+          \item \code{area} The area (entire complex) of the selected peak by the peak-picker.
+          \item \code{total_intensity} The intensity of all protein_ids of the feature separated by semi-colons.
+          \item \code{intensity_ratio} The intensity ratio of all protein_ids of the feature separated by semi-colons.
+          \item \code{stoichiometry_estimated} The rounded \code{intensity_ratio} of all protein_ids of the feature separated by semi-colons.
+          \item \code{monomer_mw} The monomer molecular weights of all protein_ids of the feature separated by semi-colons.
+          \item \code{monomer_sec} The monomer sec fraction of all protein_ids of the feature separated by semi-colons.
+          \item \code{complex_mw_estimated} The complex molecular weight as expected fro the \code{stoichiometry_estimated}.
+          \item \code{complex_sec_estimated} The complex sec fraction as expected fro the \code{stoichiometry_estimated}.
+          \item \code{sec_diff} Difference between \code{complex_sec_estimated} and \code{apax} of the feature.
+         }
+       }
+       }
+       }
+}
 \description{
 Run SECprofiler from SECexplorer y providing ids and their type.
 }
