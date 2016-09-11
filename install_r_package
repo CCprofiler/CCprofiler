@@ -1,0 +1,27 @@
+#!/usr/bin/env Rscript
+
+
+if (Sys.info()["effective_user"] != "root")
+{
+   cat("\n-> you must run this script as root, eg using sudo\n");
+   quit("no");
+}
+
+install <- function(name) {
+    if (!require(name, character.only=T))
+         install.packages(name, repos="https://cloud.r-project.org/");
+}
+
+install('devtools');
+install('roxygen2');
+install('data.table');
+install('ggplot2');
+install('proxy');
+install('reshape');
+install('doSNOW');
+install('foreach');
+install('parallel');
+install('pracma');
+
+library(devtools);
+devtools::install(".")
