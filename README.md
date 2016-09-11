@@ -18,9 +18,9 @@ After updating the roxygen docs issue the command
 
 ## Setup on server
 
-   To install the needed packages globally run
+To install the needed packages globally run
 
-   $ sudo ./install_r_package
+    $ sudo ./install_r_packages
 
 ## Help
 
