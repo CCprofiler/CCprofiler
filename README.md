@@ -1,17 +1,26 @@
 # SECprofiler
 
-## Setup
+## Setup for development
+
     $ git clone https://github.com/hafenr/SECprofiler
     $ cd SECprofiler
     $ R
     >> require(devtools)
     >> load_all()
+
     
 ## Workflow
 
 After updating the roxygen docs issue the command
 
     >> document()
+
+
+## Setup on server
+
+   To install the needed packages globally run
+
+   $ sudo ./install_r_package
 
 ## Help
 
