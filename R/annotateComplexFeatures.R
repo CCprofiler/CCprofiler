@@ -4,7 +4,7 @@
 
 #' @param traces.obj An object of type \code{traces.obj}.
 #' @param complexFeatureStoichiometries An object of type \code{complexFeatureStoichiometries} that is a list
-#'        containing the following: 
+#'        containing the following:
 #'        \itemize{
 #'          \item \code{feature} data.table containing complex feature candidates in the following format:
 #'           \itemize{
@@ -29,7 +29,7 @@
 #'         \item \code{protein_id}
 #'        }
 #' @return An object of type \code{complexFeaturesAnnotated} that is a list
-#'        containing the following: 
+#'        containing the following:
 #'        \itemize{
 #'          \item \code{feature} data.table containing complex feature candidates in the following format:
 #'           \itemize{
@@ -61,21 +61,21 @@
 #'        }
 
 annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,complex.annotation) {
-  
+
   setkey(complex.annotation, protein_id)
-  
-  # annotate feature data.table with known complex information 
+
+  # annotate feature data.table with known complex information
   features <- complexFeatureStoichiometries$features
   features[,complex_id := complex.annotation$complex_id[1]]
   features[,complex_name := complex.annotation$complex_name[1]]
   features[,n_subunits_annotated := nrow(complex.annotation)]
   features[,completeness := n_subunits/n_subunits_annotated]
   features[,subunits_annotated := paste(complex.annotation$protein_id, collapse=';')]
-  
+
   # extract protein molecular weights from the trace_annotations in the traces.obj
   protein.mw <- subset(traces.obj$trace_annotation,id %in% complex.annotation$protein_id)
   setkey(protein.mw, id)
-  
+
   # add molecular weight and sec fraction information to each feature
   mw <- lapply(seq(1:nrow(features)), function(i){
     feature=features[i]
@@ -92,45 +92,50 @@ annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,com
     stoichiometry <- as.integer(stoichiometry)
     complex_mw <- sum(stoichiometry*subunit_MW)
     complex_SEC <-  (log(complex_mw)-9.682387)/(-0.1043329)
+    # calculate apex molecular weight
+    apex_MW <-  exp((-0.1043329 * feature$apex) + 9.682387)
     # calculate difference between apex of selected peak and the estimated comples sec fraction
     SEC_diff <- abs(feature$apex - complex_SEC)
+    MW_diff <- abs(apex_MW - complex_mw)
     # create output data.table
     data.table(monomer_mw=paste(subunit_MW, collapse=';'),
                monomer_sec=paste(subunit_SEC, collapse=';'),
                complex_mw_estimated=complex_mw,
                complex_sec_estimated=complex_SEC,
                sec_diff=SEC_diff,
+               mw_diff=MW_diff,
                subunits_with_signal = paste(subunits_with_signal, collapse=';'),
-               n_subunits_with_signal = n_subunits_with_signal)
+               n_subunits_with_signal = n_subunits_with_signal,
+               apex_mw = apex_MW)
   }
   )
-  
+
   mw <- do.call("rbind", mw)
   features <- cbind(features,mw)
-  
+
   # order features data.table in a usefull way
   setcolorder(features, c("complex_id", "complex_name", "subunits_annotated",
                    "n_subunits_annotated","subunits_with_signal","n_subunits_with_signal",
                    "id","n_subunits",
                    "completeness","left_sw","right_sw","score",
-                   "left_pp","right_pp","apex","area",
+                   "left_pp","right_pp","apex","apex_mw","area",
                    "total_intensity","intensity_ratio","stoichiometry",
                    "monomer_mw","monomer_sec","complex_mw_estimated",
-                   "complex_sec_estimated","sec_diff"))
-  
+                   "complex_sec_estimated","sec_diff","mw_diff"))
+
   # provide better column names for features data.table
   setnames(features,c("complex_id", "complex_name", "subunits_annotated",
                       "n_subunits_annotated","subunits_with_signal","n_subunits_with_signal",
                       "subunits_detected","n_subunits_detected",
                       "completeness","left_sw","right_sw","sw_score",
-                      "left_pp","right_pp","apex","area",
+                      "left_pp","right_pp","apex","apex_mw","area",
                       "total_intensity","intensity_ratio","stoichiometry_estimated",
                       "monomer_mw","monomer_sec","complex_mw_estimated",
-                      "complex_sec_estimated","sec_diff"))
-  
+                      "complex_sec_estimated","sec_diff","mw_diff"))
+
   # sort the features by the number of detected subunits, the sliding-windoe correlation, and the peak area
   features <- features[order(-n_subunits_detected,-sw_score,-area)]
-  
+
   data.table(features)
   res <- list(features=features)
   class(res) = 'complexFeaturesAnnotated'
