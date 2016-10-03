@@ -8,17 +8,14 @@ correlation score}
 generateNetworkTable(Traces, correlation_cutoff = 0.9, write_csv = TRUE)
 }
 \arguments{
-\item{Traces}{A Traces object containing wide format elution profiles.}
+\item{Traces}{A Traces object containing wide format elution profiles (protein.traces).}
 
-\item{correlation_cutoff}{Minimum pearson correlation value to report an
-edge between two proteins.}
+\item{correlation_cutoff}{Minimum pearson correlation value to report an edge between two proteins.}
 
-\item{write_file}{Logical (TRUE/FALSE) whether an output file named
-[systime]_NetworkTable.csv shall be written to the working folder.}
+\item{write_file}{Logical (TRUE/FALSE) whether an output file named [systime]_NetworkTable.csv shall be written to the working folder.}
 }
 \value{
-A data.table containing columns UniProt_A UniProt_B and
-    pearson_correlation, readable e.g. by Cytoscape.
+A data.table containing columns UniProt_A UniProt_B and pearson_correlation, readable e.g. by Cytoscape.
 }
 \description{
 From protein level Traces, generate a Network table with pairwise profile

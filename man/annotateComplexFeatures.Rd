@@ -12,7 +12,7 @@ annotateComplexFeatures(traces.obj, complexFeatureStoichiometries,
 \item{traces.obj}{An object of type \code{traces.obj}.}
 
 \item{complexFeatureStoichiometries}{An object of type \code{complexFeatureStoichiometries} that is a list
-containing the following: 
+containing the following:
 \itemize{
   \item \code{feature} data.table containing complex feature candidates in the following format:
    \itemize{
@@ -40,7 +40,7 @@ containing the following:
 }
 \value{
 An object of type \code{complexFeaturesAnnotated} that is a list
-       containing the following: 
+       containing the following:
        \itemize{
          \item \code{feature} data.table containing complex feature candidates in the following format:
           \itemize{

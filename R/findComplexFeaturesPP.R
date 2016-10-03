@@ -1,9 +1,9 @@
-#' A helper function to perform peak picking on the complex features detected by 
+#' A helper function to perform peak picking on the complex features detected by
 #' the sliding-window approach.
 #'
 #' @param traces.obj An object of type \code{traces.obj}.
 #' @param complexFeaturesSW An object of type \code{complexFeaturesSW} that is a list
-#'        containing the following: 
+#'        containing the following:
 #'        \itemize{
 #'          \item \code{feature} data.table containing complex feature candidates in the following format:
 #'           \itemize{
@@ -18,7 +18,7 @@
 #'              function.
 #'        }
 #' @return An object of type \code{complexFeaturesPP} that is a list
-#'        containing the following: 
+#'        containing the following:
 #'        \itemize{
 #'          \item \code{feature} data.table containing complex feature candidates in the following format:
 #'           \itemize{
@@ -33,7 +33,7 @@
 #'           \item \code{area} The area (entire complex) of the selected peak by the peak-picker.
 #'           }
 #'        }
-
+#' @export
 findComplexFeaturesPP <- function(traces.obj,complexFeaturesSW) {
     features <- complexFeaturesSW$features
     # Compute the number of subunits in each complex feature

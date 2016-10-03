@@ -54,8 +54,8 @@ findComplexFeatures <- function(traces.obj,
     ## A helper function to execute the sliding window algorithm for a
     ## specific query complex.
     runSlidingWindow <- function(complex.id) {
-        complex.id <- input.complexes[i]
-        cat(sprintf('CHECKING RUN:  %d / %d', i, length(input.complexes)), '\n')
+        #complex.id <- input.complexes[i]
+        #cat(sprintf('CHECKING RUN:  %d / %d', i, length(input.complexes)), '\n')
         # Extract the protein traces belonging to the current complex
         complex.subunits <- complex.protein.assoc[complex_id == complex.id,
                                                   protein_id]
@@ -89,6 +89,7 @@ findComplexFeatures <- function(traces.obj,
         doSNOW::registerDoSNOW(cl)
         sw.results <- foreach(i=seq_along(input.complexes),
                              .packages=c('data.table', 'SECprofiler')) %dopar% {
+            cat(sprintf('CHECKING RUN:  %d / %d', i, length(input.complexes)), '\n')
             query.complex.id <- input.complexes[i]
             runSlidingWindow(query.complex.id)
         }
@@ -96,6 +97,7 @@ findComplexFeatures <- function(traces.obj,
     } else {
         sw.results <- foreach(i=seq_along(input.complexes)) %do% {
             query.complex.id <- input.complexes[i]
+            cat(sprintf('CHECKING RUN:  %d / %d', i, length(input.complexes)), '\n')
             runSlidingWindow(query.complex.id)
         }
     }
