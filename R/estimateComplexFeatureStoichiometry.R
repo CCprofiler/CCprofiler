@@ -3,7 +3,7 @@
 #'
 #' @param traces.obj An object of type \code{traces.obj}.
 #' @param complexFeaturesPP An object of type \code{complexFeaturesPP} that is a list
-#'        containing the following: 
+#'        containing the following:
 #'        \itemize{
 #'          \item \code{feature} data.table containing complex feature candidates in the following format:
 #'           \itemize{
@@ -19,7 +19,7 @@
 #'           }
 #'        }
 #' @return An object of type \code{complexFeatureStoichiometries} that is a list
-#'        containing the following: 
+#'        containing the following:
 #'        \itemize{
 #'          \item \code{feature} data.table containing complex feature candidates in the following format:
 #'           \itemize{
@@ -37,6 +37,7 @@
 #'           \item \code{stoichiometry} The rounded \code{intensity_ratio} of all protein_ids of the feature separated by semi-colons.
 #'           }
 #'        }
+#' @export
 
 estimateComplexFeatureStoichiometry <- function(traces.obj,complexFeaturesPP) {
 
@@ -50,12 +51,12 @@ estimateComplexFeatureStoichiometry <- function(traces.obj,complexFeaturesPP) {
       features <- data.frame()
     }
   }
-  
+
   # estimate the stoichiometry of each detected feature with a picked peak
   stoichiometry <- lapply(seq(1:nrow(features)), function(i){
     feature=features[i]
     subunits <- strsplit(feature$subgroup, ';')[[1]]
-    # select sec fractions whithin the boundaries of the picked peak and subset the traces.obj 
+    # select sec fractions whithin the boundaries of the picked peak and subset the traces.obj
     fractions <- feature$left_pp:feature$right_pp
     traces_sub <- subset(traces.obj,trace_ids=subunits,fraction_ids=fractions)
     traces_sub.long <- toLongFormat(traces_sub$traces) #long format is easier for processing
@@ -71,12 +72,12 @@ estimateComplexFeatureStoichiometry <- function(traces.obj,complexFeaturesPP) {
                 stoichiometry=paste(protein.info$stoichiometry, collapse=';'))
   }
   )
-  
+
   stoichiometry <- do.call("rbind", stoichiometry)
   features <- cbind(features,stoichiometry)
   # remove subgroup column becaus ewe have new id column which has the same protein_id order as the intensities, ratios and stoichiometry estimates
   features[,subgroup:=NULL]
-  
+
   data.table(features)
   res <- list(features=features)
   class(res) = 'complexFeatureStoichiometry'

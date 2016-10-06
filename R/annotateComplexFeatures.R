@@ -59,6 +59,7 @@
 #'           \item \code{sec_diff} Difference between \code{complex_sec_estimated} and \code{apax} of the feature.
 #'          }
 #'        }
+#' @export
 
 annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,complex.annotation) {
 
@@ -134,7 +135,7 @@ annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,com
                       "complex_sec_estimated","sec_diff","mw_diff"))
 
   # sort the features by the number of detected subunits, the sliding-windoe correlation, and the peak area
-  features <- features[order(-n_subunits_detected,-sw_score,-area)]
+  features <- features[order(-n_subunits_detected,-sw_score,-area,mw_diff)]
 
   data.table(features)
   res <- list(features=features)
