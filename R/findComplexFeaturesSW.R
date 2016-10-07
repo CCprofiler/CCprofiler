@@ -14,7 +14,7 @@
 #'        according to the noise estimation.
 #' @param min.sec The lowest SEC number in the sample.
 #' @return An object of type \code{complexFeaturesSW} that is a list
-#'        containing the following: 
+#'        containing the following:
 #'        \itemize{
 #'          \item \code{feature} data.table containing complex feature candidates in the following format:
 #'           \itemize{
@@ -58,6 +58,7 @@ findComplexFeaturesSW <- function(traces.obj,
     n.zero.entries <- sum(trace.mat == 0) # number of ZERO values in matrix
     noise.mean <- quantile(measure.vals, noise.quantile) # mean intensity of noise.quantile (e.g. noise.quantile = lowest 20% of intensities)
     noise.sd <- sd(measure.vals[measure.vals < noise.mean]) # SD of the intensities in the noise.quantile
+    set.seed(123) # set seed to always get same results
     trace.mat[trace.mat == 0] <- abs(rnorm(n.zero.entries, mean=noise.mean,
                                      sd=noise.sd)) # replace ZEROs in trace.mat by imputed noise bas don normal distribution
     # Where to stop the sliding window
