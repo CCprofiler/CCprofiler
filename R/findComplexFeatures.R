@@ -85,21 +85,28 @@ findComplexFeatures <- function(traces.obj,
     ## Execute the sliding window algorithm for each query complex.
     ## This computation can optionally be parstr(swf_ allelized.
     if (parallelized) {
-        cl <- snow::makeCluster(n.cores)
-        doSNOW::registerDoSNOW(cl)
-        sw.results <- foreach(i=seq_along(input.complexes),
-                             .packages=c('data.table', 'SECprofiler')) %dopar% {
-            cat(sprintf('CHECKING RUN:  %d / %d', i, length(input.complexes)), '\n')
-            query.complex.id <- input.complexes[i]
-            runSlidingWindow(query.complex.id)
-        }
-        parallel::stopCluster(cl)
+      cl <- snow::makeCluster(n.cores,outfile="")
+      # setting a seed is absolutely crutial to ensure reproducible results!!!!!!!!!!!!!!!!!!!
+      clusterSetRNGStream(cl,123)
+      doSNOW::registerDoSNOW(cl)
+      pb <- txtProgressBar(max = length(input.complexes), style = 3)
+      progress <- function(n) setTxtProgressBar(pb, n)
+      opts <- list(progress = progress)
+      sw.parallel <- foreach(i=seq_along(input.complexes),
+        .packages=c('data.table', 'SECprofiler'),.options.snow = opts) %dopar% {
+        query.complex.id <- input.complexes[i]
+        runSlidingWindow(query.complex.id)
+      }
+      close(pb)
+      parallel::stopCluster(cl)
     } else {
-        sw.results <- foreach(i=seq_along(input.complexes)) %do% {
-            query.complex.id <- input.complexes[i]
-            cat(sprintf('CHECKING RUN:  %d / %d', i, length(input.complexes)), '\n')
-            runSlidingWindow(query.complex.id)
-        }
+      pb <- txtProgressBar(max = length(input.complexes), style = 3)
+      sw.normal2 <- foreach(i=seq_along(input.complexes)) %do% {
+        setTxtProgressBar(pb, i)
+        query.complex.id <- input.complexes[i]
+        #cat(sprintf('CHECKING RUN:  %d / %d', i, length(input.complexes)), '\n')
+        runSlidingWindow(query.complex.id)
+      }
     }
     #names(sw.results) <- input.complexes
 
