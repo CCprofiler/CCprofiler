@@ -92,7 +92,7 @@ findComplexFeatures <- function(traces.obj,
       pb <- txtProgressBar(max = length(input.complexes), style = 3)
       progress <- function(n) setTxtProgressBar(pb, n)
       opts <- list(progress = progress)
-      sw.parallel <- foreach(i=seq_along(input.complexes),
+      sw.results <- foreach(i=seq_along(input.complexes),
         .packages=c('data.table', 'SECprofiler'),.options.snow = opts) %dopar% {
         query.complex.id <- input.complexes[i]
         runSlidingWindow(query.complex.id)
@@ -101,7 +101,7 @@ findComplexFeatures <- function(traces.obj,
       parallel::stopCluster(cl)
     } else {
       pb <- txtProgressBar(max = length(input.complexes), style = 3)
-      sw.normal2 <- foreach(i=seq_along(input.complexes)) %do% {
+      sw.results <- foreach(i=seq_along(input.complexes)) %do% {
         setTxtProgressBar(pb, i)
         query.complex.id <- input.complexes[i]
         #cat(sprintf('CHECKING RUN:  %d / %d', i, length(input.complexes)), '\n')
