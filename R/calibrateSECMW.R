@@ -7,21 +7,32 @@
 #' @return An additional column "apparentMW_kDa" in the Traces$fraction_annotation table
 #' @export
 
-calibrateSECMW <- function(Traces,
-                           std_weights_kDa = c(1398, 699, 300, 150, 44, 17),
-                           std_elu_fractions = c(21, 31, 39, 48, 56.5, 63)) {
+#std_weights_kDa = c(1398, 699, 300, 150, 44, 17)
+#std_elu_fractions = c(21, 31, 39, 48, 56.5, 63)
+
+calibrateSECMW <- function(std_weights_kDa,std_elu_fractions,plot=TRUE) {
   calibrants <- NULL
   calibrants$logMW = log(std_weights_kDa)
   calibrants$fraction = std_elu_fractions
+  if(length(calibrants$logMW) != length(calibrants$fraction)){
+    stop("Check the input data. The vector of molecular weights and elution fractions need to be of same length.")
+  }
+  if(length(calibrants$logMW)<2 | length(calibrants$fraction)<2){
+    stop("Check the input data. The vector of molecular weights and elution fractions need to be at least of length 2.")
+  }
   # plot(std_weights_kDa, std_elu_fractions)
   model = lm(calibrants$logMW ~ calibrants$fraction, data = calibrants)
   # Visual check -> plot
-  plot(calibrants$fraction, calibrants$logMW)
-  lines(calibrants$fraction, fitted(model))
+  if(plot==TRUE){
+    pdf("calibration.pdf")
+      plot(calibrants$fraction, calibrants$logMW, xlab="SEC fraction", ylab="log10(MW)")
+      lines(calibrants$fraction, fitted(model))
+    dev.off()
+  }
   # get linear model coefficients m and c for y = mx + c
-  intercept <- model$coefficients[1]
-  slope <- model$coefficients[2]
-  
+  intercept <- as.numeric(model$coefficients[1])
+  slope <- as.numeric(model$coefficients[2])
+
   # define resulting functions (how to export/update them for use by user?)
   MWtoSECfraction <- function(MW){
     round((log(MW)-intercept)/(slope), digits = 0)
@@ -29,8 +40,5 @@ calibrateSECMW <- function(Traces,
   SECfractionToMW <- function(SECfraction){
     exp(slope*SECfraction + intercept)
   }
-  
-  Traces$fraction_annotation[, apparentMW_kDa:= SECfractionToMW(id)]
-  Traces
+  return(list(MWtoSECfraction=MWtoSECfraction,SECfractionToMW=SECfractionToMW))
 }
-

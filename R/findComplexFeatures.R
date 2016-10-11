@@ -13,6 +13,12 @@
 #'               a protein and links it to a trace contained in
 #'               \code{traces.obj}.
 #'        }
+#' @param MWSECcalibrationFunctions A list that stores the functions for converting SEC fractions to molecular weight and vice versa. This
+#'        object is generated from the calibrateSECMW function.
+#'        \itemize{
+#'         \item \code{MWtoSECfraction} Function that needs MW as input and reports according SEC fraction.
+#'         \item \code{SECfractionToMW} Function that needs SEC fraction as input and reports according MW.
+#'        }
 #' @param corr.cutoff The correlation value for chromatograms above which
 #'        proteins are considered to be coeluting.
 #' @param window.size Size of the window. Numeric.
@@ -43,6 +49,7 @@
 #' @export
 findComplexFeatures <- function(traces.obj,
                                   complex.protein.assoc,
+                                  MWSECcalibrationFunctions,
                                   corr.cutoff=0.95,
                                   window.size=15,
                                   parallelized=FALSE,
@@ -74,7 +81,7 @@ findComplexFeatures <- function(traces.obj,
                                                           complexFeaturesSW=complexFeaturesSW)
               complexFeatureStoichiometries <- estimateComplexFeatureStoichiometry(traces.obj=traces.subs,
                                                           complexFeaturesPP=complexFeaturesPP)
-              complexFeatureAnnotated <- annotateComplexFeatures(traces.obj,complexFeatureStoichiometries,complex.annotation)
+              complexFeatureAnnotated <- annotateComplexFeatures(traces.obj,complexFeatureStoichiometries,complex.annotation,MWSECcalibrationFunctions)
               complexFeatureAnnotated
             } else {
                 list()
