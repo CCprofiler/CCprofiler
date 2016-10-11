@@ -1,64 +1,35 @@
 # Due to: http://stackoverflow.com/questions/24501245/data-table-throws-object-not-found-error
 .datatable.aware=TRUE
 
-#' Import peptide profiles from an OpenSWATH experiment.
-#' @name filterByPeptideCorrelation
-#' @import data.table
-#' @description filters peptide elution profiles based on sibling peptide
-#'     correlation. 
-#' @param traces Object of class traces containing the quantitative MS data
-#'     table.
-#' @param min.pairwise.corr Minimum pairwise pearson correlation necessary
-#'     to retain the data for a protein with 2 peptides.
-#' @param average.corr.cutoff For proteins with >= 3 peptides, retain all
-#'     in the data whose average correlation with all siblings is how good,
-#'     defaults to '>= median' but can be replaces with a numeric cutoff
-#'     (e.g. 0.6).
-#' @return An object of class traces (peptide level) containing table.wide,
-#'     table.long and id that can be processed with the herein contained
-#'     functions.
-#' @export
-filterByPeptideCorrelation <- function(Traces,
-                                       min.pairwise.corr=0.8,
-                                       average.corr.cutoff='>= median') {
-  quantdata <- getIntensityMatrix(Traces)
-  labels <- merge(Traces$traces$id, Traces$traces_annotation, by = "id")
-  proteins <- unique(labels$protein_id)
-  nproteins <- length(proteins)
-  passed <- logical(length=nrow(data))
-  for (i in 1:nproteins) {
-    message(paste('PROCESSED', i, 'of', nproteins, 'proteins'))
-    indexpos <- proteins[i] == labels$protein_id
-    df <- quantdata[indexpos, ]
-    df_cor <- cor(t(df))
-    if (isTRUE(nrow(df) == 2)){ # If there's only 2 peptides, request minpaircorr
-      paircorr <- mean(df_cor[1,2])
-      if (isTRUE(paircorr >= min.pairwise.corr)) {
-        passed[indexpos] <- TRUE
-      } else{
-        passed[indexpos] <- FALSE
-      }
-    } else if (isTRUE(nrow(df) >= 3)) {
-      # If there's 3 or more peps, keep those correlated
-      # equal or better than cutoff
-      avgcorr <- rowMeans(df_cor) - 1/nrow(df)
-      if (average.corr.cutoff == '>= median') {
-        survivors <- names(avgcorr[avgcorr >= median(avgcorr)])
-      }
-      if (class(average.corr.cutoff) == 'numeric') {
-        survivors <- names(avgcorr[avgcorr >= average.corr.cutoff])
-      }
-      indexpos <- data$peptide_id %in% survivors
-      passed[indexpos] <- TRUE
-    } else { # if only one peptide, do not keep
-      passed[indexpos] <- FALSE
-    }
-  }
-  traces_filtered <- Traces$traces[passed,]
-  traces_annotation_filtered <- Traces$traces_annotation[passed,]
+
+filterByPeptideCorrelation <- function(Traces, cutoff= 0.4 , Keep1pep = FALSE) {
   
-  result <- Traces
-  result$traces <- traces_filtered
-  result$traces_annotation <- traces_annotation_filtered
+  df <- as.data.frame(Traces$traces)
+  label <- as.data.frame(Traces$traces_annotation) 
+  df <- merge(df, label, by = 'id' , all.x = TRUE)
+  
+  if (Keep1pep) {
+    df[is.na(df$SibPepCorr),]$SibPepCorr <- 1
+  }
+  
+  
+  df <- subset(df, df$SibPepCorr >= cutoff)
+  
+  traces <- subset(df, select = c(2:(ncol(df)-3) , 1))
+  traces_type <- 'peptide'
+  traces_annotation <- subset(df, select = c(1,(ncol(df)-2):ncol(df)))
+  fraction_annotation <- Traces$fraction_annotation
+  
+  traces <- as.data.table(traces)
+  traces_annotation <- as.data.table(traces_annotation)
+  
+  result <- list("traces" = traces,
+                 "traces_type" = traces_type,
+                 "traces_annotation" = traces_annotation,
+                 "fraction_annotation" = fraction_annotation)
+  class(result) <- "Traces"
+  names(result) <- c("traces", "traces_type", "traces_annotation", "fraction_annotation")
+  
   return(result) #return the filtered Traces data
+  
 }

@@ -4,33 +4,65 @@
 #' Import peptide profiles from an OpenSWATH experiment.
 #' @import data.table
 #' @param file.name Quantitative MS data result file.
-#' @param annotation.table A data frame with two columns `run_id` and
-#'     `fraction_number` that map the run identifier as contained in
-#'     `file.name` to a SEC elution fraction.
+#' @param annotation.table path to tab-separated .txt file containing columns `filename` and
+#'     `fraction_number` that map the file names (occuring in input table filename column)
+#'     `to a SEC elution fraction.
 #' @param remove_requantified Whether requantified (noise) peak group quantities
-#'     should be removed, defaults to TRUE.
-#' @return An object of class Traces (peptide level) containing a
-#'     "traces.wide", and "ids" table that can be processed with the herein
-#'     contained functions.
+#'     (as indicated by m_score = 2) should be removed, defaults to TRUE.
+#' @return An object of class Traces containing 
+#'     "traces", "traces_type", "traces_annotation" and "fraction_annotation" list entries
+#'     that can be processed with the herein contained functions.
 #' @export
-importFromOpenSWATH <- function(file.name="OpenSwathData.tsv", 
+importFromOpenSWATH <- function(file_name= 'OpenSwathData.tsv', mode = 'file', #either 'file' or 'object' 
                                 annotation.table="annotation.txt",
-                                remove_requantified=TRUE) {
+                                remove_requantified=TRUE,
+                                MS1Quant=FALSE, rm.decoy = FALSE)
+  {
+  
   # read data & annotation table
   ##################################################
-  message('reading results file ...')
-  data  <- data.table::fread(file.name, sep="\t", header=TRUE)
-  data <- data[grep("^1/", data$ProteinName)] #remove non-proteotypic
-  data$ProteinName <- gsub("^1/","", data$ProteinName) #remove 2/ etc. tags
+  
+  if (mode == 'file') {
+    
+    message('reading results file ...')
+    data  <- data.table::fread(file_name, sep="\t", header=TRUE)
+    
+  } else if (mode == 'object'){
+      data <- as.data.table(file_name)
+    }
+  
+  
+  
+  #remove non-proteotypic discarding/keeping Decoys
+  if (rm.decoy == TRUE){
+    data <- data[grep("^1/", data$ProteinName)] 
+  } else {
+    data <- data[c(grep("^1/", data$ProteinName), grep("^DECOY_1/", data$ProteinName))] 
+  }
+  # data$ProteinName <- gsub("^1/","", data$ProteinName) #remove 2/ etc. tags
   annotation <- data.table::fread(annotation.table)
   
   # subset data to some important columns to save RAM
+  if (MS1Quant == TRUE) {
   column.names <- c('transition_group_id', 'ProteinName','FullPeptideName',
                     'filename', 'Sequence', 'decoy', 'aggr_prec_Peak_Area',
-                    'd_score', 'm_score', 'Intensity')
+                    'd_score', 'm_score')
+  }
+  else{
+  column.names <- c('transition_group_id', 'ProteinName','FullPeptideName',
+                      'filename', 'Sequence', 'decoy', 'd_score', 'm_score', 'Intensity')
+  }
+  
   data.s <- subset(data, select=column.names)
+  
+  # Use aggregated precursor (MS1) area as Intensity column if selected
+  if (MS1Quant == TRUE){
+    setnames(data.s, 'aggr_prec_Peak_Area', 'Intensity')
+  }
+  
   rm(data)
   gc()
+  
   if (remove_requantified == TRUE) {
       data.s <- data.s[m_score <= 1, ]
   }
@@ -67,9 +99,13 @@ importFromOpenSWATH <- function(file.name="OpenSwathData.tsv",
   
   traces_type = "peptide"
   
-  nfractions <- length(names(traces))-1
+  nfractions <- length(names(traces))
   fractions <- as.numeric(names(traces)[2:nfractions])
   fraction_annotation <- data.table(fractions)
+  
+  traces <- as.data.frame(traces)
+  traces <- traces[,c(2:nfractions,1)]
+  traces <- as.data.table(traces)
   
   result <- list("traces" = traces,
                  "traces_type" = traces_type,
