@@ -3,9 +3,9 @@
 .datatable.aware=TRUE
 
 
-ROC.SibPepCorr <- function(Traces, FFT = 0.50, Stepsize =0.001 , Summary = FALSE) {
+ROC.SibPepCorr <- function(Traces, FFT = 0.50, Stepsize =0.001 , Summary = FALSE, PDF=FALSE) {
   
-  trace_annot <- Traces$traces_annotation
+  trace_annot <- Traces$trace_annotation
   trace_annot$DECOY <- 0
   handle <- (substr(trace_annot$ProteinName,1,5) == 'DECOY')
   trace_annot$DECOY[handle] <- 1
@@ -37,13 +37,15 @@ ROC.SibPepCorr <- function(Traces, FFT = 0.50, Stepsize =0.001 , Summary = FALSE
     write.table(resulttable,'FDR_based_on_SibPepCorr.txt',quote = FALSE,sep = '\t',row.names = FALSE)
   }
   
-  
+  if(PDF == TRUE){
+    pdf("CorrFilter_SibPepCorr_ROC.pdf")
+  }
   plot(resulttable$FDR, resulttable$`Target proteins`, type = "l", lty = 2, main = paste("ROC Curve"), xlim = c(0,0.1) ,xlab='FDR',ylab='Proteins')
-  
   lines(resulttable$FDR, resulttable$`True target proteins`, lty = 1)
-  
   legend("bottomright", lty = c(2,1), legend = c("all target proteins", "true target proteins"))
-  
+  if(PDF == TRUE){
+    dev.off()
+  }
 }
   
   

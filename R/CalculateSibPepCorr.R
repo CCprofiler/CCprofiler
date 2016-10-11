@@ -6,7 +6,7 @@
 
 CalculateSibPepCorr <- function(pepTraces, Keep1pep = FALSE , Density_plot = TRUE , ROC_curve = TRUE , FFT = 0.5) {
   
-  labels <- as.data.frame(pepTraces$traces_annotation)
+  labels <- as.data.frame(pepTraces$trace_annotation)
   labels <- subset(labels, select = c('FullPeptideName','ProteinName'))
   data <- as.data.frame(pepTraces$traces)
   data <- merge(data, labels, by.x = 'id', by.y = 'FullPeptideName',all.x = TRUE)
@@ -51,17 +51,17 @@ CalculateSibPepCorr <- function(pepTraces, Keep1pep = FALSE , Density_plot = TRU
 
   #return the filtered Traces data
   traces <- subset(Result, select = c(4:ncol(Result),1))
-  traces_type <- 'peptide'
-  traces_annotation <- subset(Result, select = c(1:3))
-  traces_annotation$FullPeptideName <- traces_annotation$id
+  trace_type <- 'peptide'
+  trace_annotation <- subset(Result, select = c(1:3))
+  trace_annotation$FullPeptideName <- trace_annotation$id
   fraction_annotation <- pepTraces$fraction_annotation
   
   results <- list("traces" = traces,
-                 "traces_type" = traces_type,
-                 "traces_annotation" = traces_annotation,
+                 "trace_type" = trace_type,
+                 "trace_annotation" = trace_annotation,
                  "fraction_annotation" = fraction_annotation)
-  class(results) <- "Traces"
-  names(results) <- c("traces", "traces_type", "traces_annotation", "fraction_annotation")
+  class(results) <- "traces"
+  names(results) <- c("traces", "trace_type", "trace_annotation", "fraction_annotation")
   
   if (Density_plot == TRUE) {
     plot.SibPepCorrDensities(results)
@@ -72,14 +72,14 @@ CalculateSibPepCorr <- function(pepTraces, Keep1pep = FALSE , Density_plot = TRU
   }
   
   traces <- as.data.table(traces)
-  traces_annotation <- as.data.table(traces_annotation)
+  trace_annotation <- as.data.table(trace_annotation)
   
   results <- list("traces" = traces,
-                  "traces_type" = traces_type,
-                  "traces_annotation" = traces_annotation,
+                  "trace_type" = trace_type,
+                  "trace_annotation" = trace_annotation,
                   "fraction_annotation" = fraction_annotation)
   class(results) <- "Traces"
-  names(results) <- c("traces", "traces_type", "traces_annotation", "fraction_annotation")
+  names(results) <- c("traces", "trace_type", "trace_annotation", "fraction_annotation")
   
   return(results)
 }

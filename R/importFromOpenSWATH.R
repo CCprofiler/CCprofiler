@@ -47,8 +47,7 @@ importFromOpenSWATH <- function(file_name= 'OpenSwathData.tsv', mode = 'file', #
   column.names <- c('transition_group_id', 'ProteinName','FullPeptideName',
                     'filename', 'Sequence', 'decoy', 'aggr_prec_Peak_Area',
                     'd_score', 'm_score')
-  }
-  else{
+  }else{
   column.names <- c('transition_group_id', 'ProteinName','FullPeptideName',
                       'filename', 'Sequence', 'decoy', 'd_score', 'm_score', 'Intensity')
   }
@@ -93,6 +92,7 @@ importFromOpenSWATH <- function(file_name= 'OpenSwathData.tsv', mode = 'file', #
   
   traces_annotation <- data.table(traces.wide[,c("FullPeptideName", "ProteinName"), with = FALSE])
   traces_annotation[, id:=FullPeptideName]
+  setcolorder(traces_annotation, c("id","FullPeptideName", "ProteinName"))
   
   traces <- subset(traces.wide, select = -ProteinName)
   setnames(traces, "FullPeptideName", "id")
@@ -101,18 +101,18 @@ importFromOpenSWATH <- function(file_name= 'OpenSwathData.tsv', mode = 'file', #
   
   nfractions <- length(names(traces))
   fractions <- as.numeric(names(traces)[2:nfractions])
-  fraction_annotation <- data.table(fractions)
+  fraction_annotation <- data.table(id=fractions)
   
   traces <- as.data.frame(traces)
   traces <- traces[,c(2:nfractions,1)]
   traces <- as.data.table(traces)
   
   result <- list("traces" = traces,
-                 "traces_type" = traces_type,
-                 "traces_annotation" = traces_annotation,
+                 "trace_type" = traces_type,
+                 "trace_annotation" = traces_annotation,
                  "fraction_annotation" = fraction_annotation)
-  class(result) <- "Traces"
-  names(result) <- c("traces", "traces_type", "traces_annotation", "fraction_annotation")
+  class(result) <- "traces"
+  names(result) <- c("traces", "trace_type", "trace_annotation", "fraction_annotation")
 
   return(result)
 }

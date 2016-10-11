@@ -12,7 +12,7 @@ plot.SibPepCorrDensities <- function(Traces, PDF = FALSE){
   }
   
   
-  trace_annot <- Traces$traces_annotation
+  trace_annot <- Traces$trace_annotation
   dens_all <- density(na.omit(trace_annot$SibPepCorr))
   dens_targets <- density(na.omit(trace_annot[grep("^1/", trace_annot$ProteinName),]$SibPepCorr))
   dens_decoys <- density(na.omit(trace_annot[grep("^DECOY_1/", trace_annot$ProteinName),]$SibPepCorr))

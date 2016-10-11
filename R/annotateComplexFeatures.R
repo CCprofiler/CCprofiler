@@ -80,8 +80,10 @@ annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,com
   features[,subunits_annotated := paste(complex.annotation$protein_id, collapse=';')]
 
   # extract protein molecular weights from the trace_annotations in the traces.obj
-  protein.mw <- subset(traces.obj$trace_annotation,id %in% complex.annotation$protein_id)
-  setkey(protein.mw, id)
+  if ("protein_mw" %in% colnames(traces.obj$trace_annotation)) {
+    protein.mw <- subset(traces.obj$trace_annotation,id %in% complex.annotation$protein_id)
+    setkey(protein.mw, id)
+  }
 
   # add molecular weight and sec fraction information to each feature
   mw <- lapply(seq(1:nrow(features)), function(i){
@@ -92,7 +94,11 @@ annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,com
     subunits_with_signal <- sort(subunits_with_signal)
     n_subunits_with_signal <- length(subunits_with_signal)
     subunits <- strsplit(feature$id, ';')[[1]]
-    subunit_MW <-  protein.mw$protein_mw[protein.mw$id %in% subunits]
+    if ("protein_mw" %in% colnames(traces.obj$trace_annotation)) {
+      subunit_MW <-  protein.mw$protein_mw[protein.mw$id %in% subunits]
+    } else {
+      subunit_MW <-  0
+    }
     #subunit_SEC <- (log(subunit_MW)-9.682387)/(-0.1043329) 
     subunit_SEC <- MWSECcalibrationFunctions$MWtoSECfraction(subunit_MW)
     # calculate complex molecular weight

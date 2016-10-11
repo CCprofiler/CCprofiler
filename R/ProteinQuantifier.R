@@ -4,7 +4,7 @@
 
 ProteinQuantifier <- function(pepTraces, No_OF_PEPs = 2 , Keep_Less = FALSE , remove.decoys = TRUE) {
   
-  labels <- as.data.frame(pepTraces$traces_annotation)
+  labels <- as.data.frame(pepTraces$trace_annotation)
   labels <- subset(labels, select = c('FullPeptideName','ProteinName'))
   data <- as.data.frame(pepTraces$traces)
   data <- merge(data, labels, by.x = 'id', by.y = 'FullPeptideName',all.x = TRUE)
@@ -68,18 +68,18 @@ ProteinQuantifier <- function(pepTraces, No_OF_PEPs = 2 , Keep_Less = FALSE , re
   
   prot.traces$ProteinName <- NULL
   
-  traces_annotation <- as.data.frame(pepTraces$traces_annotation)
-  traces_annotation <- as.data.table(traces_annotation[(pepTraces$traces_annotation$ProteinName) %in% (prot.traces$id),])
-  traces_type <- 'protein'
+  trace_annotation <- data.frame(id=prot.traces$id)
+  
+  trace_type <- 'protein'
   fraction_annotation <- as.data.table(pepTraces$fraction_annotation)
   traces <- as.data.table(prot.traces)
 
   results <- list("traces" = traces,
-                  "traces_type" = traces_type,
-                  "traces_annotation" = traces_annotation,
+                  "trace_type" = trace_type,
+                  "trace_annotation" = trace_annotation,
                   "fraction_annotation" = fraction_annotation)
-  class(results) <- "Traces"
-  names(results) <- c("traces", "traces_type", "traces_annotation", "fraction_annotation")
+  class(results) <- "traces"
+  names(results) <- c("traces", "trace_type", "trace_annotation", "fraction_annotation")
   
   
   return(results)
