@@ -1,17 +1,10 @@
-
-# For some pretty weird reason
-.datatable.aware=TRUE
-
-
-ROC.SibPepCorr <- function(Traces, FFT = 0.50, Stepsize =0.001 , Summary = FALSE, PDF=FALSE) {
+ROC.SibPepCorr <- function(Traces, FFT = 0.50, Stepsize =0.001 , Summary = FALSE, PDF = FALSE) {
   
-  trace_annot <- Traces$trace_annotation
-  trace_annot$DECOY <- 0
-  handle <- (substr(trace_annot$ProteinName,1,5) == 'DECOY')
-  trace_annot$DECOY[handle] <- 1
-  corr_range <- sort(unique(trace_annot$SibPepCorr))
+  trace_annotation <- Traces$trace_annotation
+  trace_annotation$DECOY <- 0
+  trace_annotation$DECOY[grep('DECOY', trace_annotation$protein_id)] <- 1
+  corr_range <- sort(unique(trace_annotation$SibPepCorr))
   corr.test <- seq(min(corr_range), max(corr_range), Stepsize)
-  
   ncorr.test <- length(corr.test)
   target_proteins <- numeric(length = ncorr.test)
   decoy_proteins <- numeric(length = ncorr.test)
@@ -19,18 +12,17 @@ ROC.SibPepCorr <- function(Traces, FFT = 0.50, Stepsize =0.001 , Summary = FALSE
   
   for (i in 1:ncorr.test) {
     
-    targetprots <- unique(trace_annot[trace_annot$SibPepCorr >= corr.test[i] & trace_annot$DECOY == 0 ,]$ProteinName)
+    targetprots <- unique(trace_annotation[SibPepCorr >= corr.test[i] & DECOY == 0]$protein_id)
     target_protein_ids[i] <- paste(targetprots, collapse = ",")
     target_proteins[i] <- length(targetprots)
-    decoyprots <- unique(trace_annot[trace_annot$SibPepCorr >= corr.test[i] & trace_annot$DECOY == 1 ,]$ProteinName)
+    decoyprots <- unique(trace_annotation[SibPepCorr >= corr.test[i] & DECOY == 1]$protein_id)
     decoy_proteins[i] <- length(decoyprots)
     
     }
   
   fdr_protein <- FFT*decoy_proteins/(target_proteins+decoy_proteins)
   true_target_proteins <- as.integer(target_proteins * (1-fdr_protein))
-  
-  resulttable <- as.data.frame(cbind(corr.test, target_proteins, true_target_proteins, decoy_proteins,fdr_protein))
+  resulttable <- as.data.table(cbind(corr.test, target_proteins, true_target_proteins, decoy_proteins,fdr_protein))
   colnames(resulttable) <- c('Tested Corr' , 'Target proteins' , 'True target proteins','Decoys' , 'FDR')
   
   if (Summary == TRUE) {

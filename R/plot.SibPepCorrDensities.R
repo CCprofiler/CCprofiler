@@ -1,30 +1,37 @@
 
-# For some pretty weird reason
-.datatable.aware=TRUE
-
-
-
-
 plot.SibPepCorrDensities <- function(Traces, PDF = FALSE){
+  # check whether decoys are present in the input peptide traces object
+  trace_annotation <- Traces$trace_annotation
+  decoys_present = TRUE
+  if (sum(grep("^DECOY_1/", trace_annotation$protein_id)) == 0){
+    message("No decoy entries in trace_annotation$protein_id column \n
+            No decoy density will be plotted")
+    decoys_present = FALSE
+  }
+  
+  #check whether SibPepCorr has been calculated/is contained in trace_annotation
+  if (!("SibPepCorr" %in% names(Traces$trace_annotation))){
+    stop("No SibPepCorr has been calculated on this dataset. Use calculateSibPepCorr function.")
+  }
+  
+  dens_all <- density(na.omit(trace_annotation$SibPepCorr))
+  dens_targets <- density(na.omit(trace_annotation[grep("^1/", trace_annotation$protein_id),]$SibPepCorr))
   
   if(PDF == TRUE){
     pdf("CorrFilter_SibPepCorr_distributions_target_decoy.pdf")
   }
   
-  
-  trace_annot <- Traces$trace_annotation
-  dens_all <- density(na.omit(trace_annot$SibPepCorr))
-  dens_targets <- density(na.omit(trace_annot[grep("^1/", trace_annot$ProteinName),]$SibPepCorr))
-  dens_decoys <- density(na.omit(trace_annot[grep("^DECOY_1/", trace_annot$ProteinName),]$SibPepCorr))
-  
   plot(dens_targets$x, dens_targets$y*dens_targets$n, lty = 1, lwd = 3,
        , type = "l", ylab = "scaled frequency", xlab = "SibPepCorr",
-       main = "SEC-SWATH\n Sibling Peptide Correlation target vs decoy peptides")
+       main = "Sibling Peptide Correlation Density")
   
-  lines(dens_decoys$x, dens_decoys$y*dens_decoys$n, lty = 2, lwd = 3)
-  
-  legend("topleft", lty = c(1,3), lwd = c(3,3), legend = c("target peptides", "decoy peptides"))
-  
+  if (decoys_present){
+    dens_decoys <- density(na.omit(trace_annotation[grep("^DECOY_1/", trace_annotation$protein_id),]$SibPepCorr))
+    lines(dens_decoys$x, dens_decoys$y*dens_decoys$n, lty = 2, lwd = 3)
+    legend("topleft", lty = c(1,3), lwd = c(3,3), legend = c("target peptides", "decoy peptides"))
+  } else{
+    legend("topleft", lty = c(1), lwd = c(3), legend = c("target peptides"))
+  }
   
   if(PDF == TRUE){
     dev.off()

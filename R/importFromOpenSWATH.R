@@ -22,10 +22,10 @@ importFromOpenSWATH <- function(data= 'OpenSwathData.tsv',
   # read data & annotation table
   ##################################################
   
-  if (class(data) == "character") {
+  if (class(data)[1] == "character") {
     message('reading results file ...')
     data  <- data.table::fread(data, sep="\t", header=TRUE)
-  } else if (class(data) != c("data.table","data.frame")){
+  } else if (all(class(data) != c("data.table","data.frame"))) {
     stop("data input is neither file name or data.table")
   }
   
@@ -42,7 +42,11 @@ importFromOpenSWATH <- function(data= 'OpenSwathData.tsv',
   # convert ProteinName to uniprot ids
   if (length(grep("\\|",data$ProteinName)) > 0) {
     message('converting ProteinName to uniprot ids ...')
-    data$ProteinName <- gsub(".*\\|(.*?)\\|.*", "\\1", data$ProteinName)
+    #decoy_idx <- grep("^DECOY_",data$ProteinName)
+    #data$ProteinName <- gsub(".*\\|(.*?)\\|.*", "\\1", data$ProteinName)
+    #data$ProteinName[decoy_idx] <- paste0("DECOY_",data$ProteinName[decoy_idx])
+    # the above does not wrk further downstream because "1/" is removed
+    data$ProteinName <- extractIdsFromFastaHeader(data$ProteinName)
   }
   
   # subset data to some important columns to save RAM
