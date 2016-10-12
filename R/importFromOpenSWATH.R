@@ -3,7 +3,7 @@
 
 #' Import peptide profiles from an OpenSWATH experiment.
 #' @import data.table
-#' @param file.name Quantitative MS data result file.
+#' @param data Quantitative MS data in form of OpenSWATH result file or R data.table.
 #' @param annotation.table path to tab-separated .txt file containing columns `filename` and
 #'     `fraction_number` that map the file names (occuring in input table filename column)
 #'     `to a SEC elution fraction.
@@ -13,7 +13,7 @@
 #'     "traces", "traces_type", "traces_annotation" and "fraction_annotation" list entries
 #'     that can be processed with the herein contained functions.
 #' @export
-importFromOpenSWATH <- function(file_name= 'OpenSwathData.tsv', mode = 'file', #either 'file' or 'object' 
+importFromOpenSWATH <- function(data= 'OpenSwathData.tsv', 
                                 annotation.table="annotation.txt",
                                 remove_requantified=TRUE,
                                 MS1Quant=FALSE, rm.decoy = FALSE)
@@ -22,25 +22,28 @@ importFromOpenSWATH <- function(file_name= 'OpenSwathData.tsv', mode = 'file', #
   # read data & annotation table
   ##################################################
   
-  if (mode == 'file') {
-    
+  if (class(data) == "character") {
     message('reading results file ...')
-    data  <- data.table::fread(file_name, sep="\t", header=TRUE)
-    
-  } else if (mode == 'object'){
-      data <- as.data.table(file_name)
-    }
+    data  <- data.table::fread(data, sep="\t", header=TRUE)
+  } else if (class(data) != c("data.table","data.frame")){
+    stop("data input is neither file name or data.table")
+  }
   
-  
+  annotation <- data.table::fread(annotation.table)
   
   #remove non-proteotypic discarding/keeping Decoys
+  message('removing non-unique proteins only keeping proteotypic peptides ...')
   if (rm.decoy == TRUE){
+    message('remove decoys ...')
     data <- data[grep("^1/", data$ProteinName)] 
   } else {
     data <- data[c(grep("^1/", data$ProteinName), grep("^DECOY_1/", data$ProteinName))] 
   }
-  # data$ProteinName <- gsub("^1/","", data$ProteinName) #remove 2/ etc. tags
-  annotation <- data.table::fread(annotation.table)
+  # convert ProteinName to uniprot ids
+  if (length(grep("\\|",data$ProteinName)) > 0) {
+    message('converting ProteinName to uniprot ids ...')
+    data$ProteinName <- gsub(".*\\|(.*?)\\|.*", "\\1", data$ProteinName)
+  }
   
   # subset data to some important columns to save RAM
   if (MS1Quant == TRUE) {
@@ -51,7 +54,6 @@ importFromOpenSWATH <- function(file_name= 'OpenSwathData.tsv', mode = 'file', #
   column.names <- c('transition_group_id', 'ProteinName','FullPeptideName',
                       'filename', 'Sequence', 'decoy', 'd_score', 'm_score', 'Intensity')
   }
-  
   data.s <- subset(data, select=column.names)
   
   # Use aggregated precursor (MS1) area as Intensity column if selected
@@ -63,7 +65,7 @@ importFromOpenSWATH <- function(file_name= 'OpenSwathData.tsv', mode = 'file', #
   gc()
   
   if (remove_requantified == TRUE) {
-      data.s <- data.s[m_score <= 1, ]
+      data.s <- data.s[m_score < 2, ]
   }
   
   # add fraction number column to main dataframe
@@ -91,21 +93,18 @@ importFromOpenSWATH <- function(file_name= 'OpenSwathData.tsv', mode = 'file', #
                        fun.aggregate=sum))
   
   traces_annotation <- data.table(traces.wide[,c("FullPeptideName", "ProteinName"), with = FALSE])
-  traces_annotation[, id:=FullPeptideName]
-  setcolorder(traces_annotation, c("id","FullPeptideName", "ProteinName"))
+  setcolorder(traces_annotation, c("FullPeptideName", "ProteinName"))
+  setnames(traces_annotation,c("FullPeptideName", "ProteinName"),c("id","protein_id"))
   
   traces <- subset(traces.wide, select = -ProteinName)
-  setnames(traces, "FullPeptideName", "id")
+  traces[,id:=FullPeptideName]
+  traces[,FullPeptideName:=NULL]
   
-  traces_type = "peptide"
-  
-  nfractions <- length(names(traces))
-  fractions <- as.numeric(names(traces)[2:nfractions])
+  nfractions <- ncol(traces)-1
+  fractions <- as.numeric(c(1:nfractions))
   fraction_annotation <- data.table(id=fractions)
   
-  traces <- as.data.frame(traces)
-  traces <- traces[,c(2:nfractions,1)]
-  traces <- as.data.table(traces)
+  traces_type = "peptide"
   
   result <- list("traces" = traces,
                  "trace_type" = traces_type,
