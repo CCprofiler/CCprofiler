@@ -39,6 +39,8 @@ importFromOpenSWATH <- function(data= 'OpenSwathData.tsv',
   } else {
     data <- data[c(grep("^1/", data$ProteinName), grep("^DECOY_1/", data$ProteinName))] 
   }
+  
+  
   # convert ProteinName to uniprot ids
   if (length(grep("\\|",data$ProteinName)) > 0) {
     message('converting ProteinName to uniprot ids ...')

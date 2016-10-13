@@ -1,6 +1,3 @@
-# Due to: http://stackoverflow.com/questions/24501245/data-table-throws-object-not-found-error
-.datatable.aware=TRUE
-
 
 filterByPeptideCorrelation <- function(Traces, cutoff= 0.4 , Keep1pep = FALSE) {
   

@@ -2,7 +2,8 @@
 #annotation_table <- "/Users/ibludau/Downloads/uniprot-proteome%3AUP000000625.txt"
 #annotation_table <- read.table(annotation_table,sep = "\t",header = TRUE)
 #names(annotation_table) <- c("protein_id","protein_mw")
-#annotation_table$protein_mw <- as.numeric(gsub(",",".",annotation_table$protein_mw))
+#annotation_table$protein_mw <- as.numeric(gsub(",","",annotation_table$protein_mw))
+#annotation_table$protein_mw <- annotation_table$protein_mw/1000
 #write.table(annotation_table,"/Volumes/ibludau-1/SEC/Ecoli_data/Uniprot_mass_annotation.txt",sep="\t",col.names = TRUE,row.names = FALSE,quote = FALSE)
 
 annotateTraces <- function(traces, annotation_table){
