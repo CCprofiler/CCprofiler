@@ -1,9 +1,12 @@
-# For some pretty weird reason
-.datatable.aware=TRUE
-
+#' Calculate sibling peptide correlation in traces.object of type peptide
+#' @param traces.obj An object of type \code{traces.obj}.
+#' @param plot logical TRUE or FALSE 
+#' @param PDF logical TRUE or FALSE 
+#' @param FFT numeric fraction of false targets (pi0) 
+#' @return traces.obj An object of type \code{traces.obj}.
+#' @export
 
 calculateSibPepCorr <- function(pepTraces,
-                                Keep1pep = FALSE ,
                                 plot = TRUE,
                                 PDF = FALSE,
                                 FFT = 0.5) {
