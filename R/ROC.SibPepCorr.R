@@ -1,8 +1,13 @@
-ROC.SibPepCorr <- function(Traces, FFT = 0.50, Stepsize =0.001 , Summary = FALSE, PDF = FALSE) {
+ROC.SibPepCorr <- function(Traces,
+                           FFT = 1,
+                           Stepsize =0.001,
+                           plot = FALSE,
+                           PDF = FALSE,
+                           CSV = FALSE) {
   
   trace_annotation <- Traces$trace_annotation
   trace_annotation$DECOY <- 0
-  trace_annotation$DECOY[grep('DECOY', trace_annotation$protein_id)] <- 1
+  trace_annotation$DECOY[grep('^DECOY_', trace_annotation$protein_id)] <- 1
   corr_range <- sort(unique(trace_annotation$SibPepCorr))
   corr.test <- seq(min(corr_range), max(corr_range), Stepsize)
   ncorr.test <- length(corr.test)
@@ -13,38 +18,37 @@ ROC.SibPepCorr <- function(Traces, FFT = 0.50, Stepsize =0.001 , Summary = FALSE
   for (i in 1:ncorr.test) {
     
     targetprots <- unique(trace_annotation[SibPepCorr >= corr.test[i] & DECOY == 0]$protein_id)
-    target_protein_ids[i] <- paste(targetprots, collapse = ",")
+    # target_protein_ids[i] <- paste(targetprots, collapse = ",")
     target_proteins[i] <- length(targetprots)
     decoyprots <- unique(trace_annotation[SibPepCorr >= corr.test[i] & DECOY == 1]$protein_id)
     decoy_proteins[i] <- length(decoyprots)
     
-    }
+  }
   
   fdr_protein <- FFT*decoy_proteins/(target_proteins+decoy_proteins)
   true_target_proteins <- as.integer(target_proteins * (1-fdr_protein))
   resulttable <- as.data.table(cbind(corr.test, target_proteins, true_target_proteins, decoy_proteins,fdr_protein))
-  colnames(resulttable) <- c('Tested Corr' , 'Target proteins' , 'True target proteins','Decoys' , 'FDR')
+  colnames(resulttable) <- c('SibPepCorr_cutoff' , 'n_target_proteins' , 'n_true_target_proteins','n_decoys' , 'FDR')
+  resulttable <- resulttable[true_target_proteins >= 0.2*max(true_target_proteins)]
   
-  if (Summary == TRUE) {
-    write.table(resulttable,'FDR_based_on_SibPepCorr.txt',quote = FALSE,sep = '\t',row.names = FALSE)
+  # OUTPUT
+  if (CSV == TRUE) {
+    write.csv(resulttable,'SibPepCorr_ROC.csv', quote = FALSE, row.names = FALSE)
+  }
+  if (PDF == TRUE) {
+    pdf("SibPepCorr_ROC.pdf")
   }
   
-  if(PDF == TRUE){
-    pdf("CorrFilter_SibPepCorr_ROC.pdf")
+  if(plot){
+    plot(resulttable$FDR, resulttable$n_target_proteins, type = "l", lty = 2,
+       lwd = 2, main = paste("ROC Curve"), xlim = c(0,0.1) ,xlab='FDR',ylab='n',
+       ylim = c(0, 1.02* max(resulttable$n_target_proteins)))
+    lines(resulttable$FDR, resulttable$n_true_target_proteins, lty = 1, lwd = 2)
+    legend("bottomright", lty = c(2,1), legend = c("all target proteins", "true target proteins"))
   }
-  plot(resulttable$FDR, resulttable$`Target proteins`, type = "l", lty = 2, main = paste("ROC Curve"), xlim = c(0,0.1) ,xlab='FDR',ylab='Proteins')
-  lines(resulttable$FDR, resulttable$`True target proteins`, lty = 1)
-  legend("bottomright", lty = c(2,1), legend = c("all target proteins", "true target proteins"))
   if(PDF == TRUE){
     dev.off()
   }
+  
+  return(resulttable)
 }
-  
-  
-  
-  
-  
-  
-  
-  
-  

@@ -6,28 +6,29 @@
 #' @return traces.obj An object of type \code{traces.obj}.
 #' @export
 
-calculateSibPepCorr <- function(pepTraces,
+calculateSibPepCorr <- function(Traces,
                                 plot = TRUE,
-                                PDF = FALSE,
-                                FFT = 0.5) {
+                                PDF = FALSE)
+  {
   
-  if (pepTraces$trace_type != "peptide"){
+  # Check input type
+  if (Traces$trace_type != "peptide"){
     stop("Sibling peptide correlation can only be calculated on traces of type peptide")
   }
   
-  quantdata <- getIntensityMatrix.traces(pepTraces)
-  proteins <- unique(pepTraces$trace_annotation$protein_id)
+  # prepare data
+  quantdata <- getIntensityMatrix.traces(Traces)
+  proteins <- unique(Traces$trace_annotation$protein_id)
   nproteins <- length(proteins)
   
-  passed <- logical(length = nrow(pepTraces$trace_annotation))
-  SibPepCorr <- numeric(length = nrow(pepTraces$trace_annotation))
-  
-  
+  # calculation of SibPepCorr
+  passed <- logical(length = nproteins)
+  SibPepCorr <- numeric(length = nproteins)
   for (i in 1:nproteins){
     
     message(paste("PROCESSED", i, "of", nproteins, "proteins"))
     #indexpos <- proteins[i] == data$protein_id
-    indexpos <- proteins[i] == pepTraces$trace_annotation$protein_id
+    indexpos <- proteins[i] == Traces$trace_annotation$protein_id
     df <- quantdata[indexpos,]
     class(df) <- 'numeric'
     df_cor <- cor(t(df))
@@ -40,33 +41,24 @@ calculateSibPepCorr <- function(pepTraces,
       # If there's 3 or more peps
       sibcorrs <- sapply(1:nrow(df_cor), function(x){(sum(df_cor[x,])-1)/(nrow(df_cor)-1)})
       SibPepCorr[indexpos] <- sibcorrs
-    } else {       #if only one peptide, check with the option
+    } else { #if only one peptide, check with the option
       SibPepCorr[indexpos] <- NA
     }
   }
   
-  # Result <- cbind(labels, SibPepCorr, quantdata)
+  Traces$trace_annotation$SibPepCorr <- SibPepCorr
   
-#   if (!Keep1pep){
-#     Result <- subset(Result, !is.na(SibPepCorr))
-#   }
-#   
-  #return the filtered Traces data
-#   traces <- subset(Result, select = c(4:ncol(Result),1))
-#   trace_type <- 'peptide'
-  pepTraces$trace_annotation$SibPepCorr <- SibPepCorr
-  # output plots
+  # output plot
   if (plot){
     if (PDF){
-      pdf("SibPepCorrFilter_plot.pdf")
+      pdf("SibPepCorr_densityplot.pdf")
     }
-    plot.SibPepCorrDensities(pepTraces)
-    ROC.SibPepCorr(pepTraces,FFT = FFT)
+    plot.SibPepCorrDensities(Traces)
     if (PDF){
       dev.off()
     }
   }
-  return(pepTraces)
+  return(Traces)
 }
 
 

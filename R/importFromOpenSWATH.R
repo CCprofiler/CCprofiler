@@ -39,16 +39,17 @@ importFromOpenSWATH <- function(data= 'OpenSwathData.tsv',
   } else {
     data <- data[c(grep("^1/", data$ProteinName), grep("^DECOY_1/", data$ProteinName))] 
   }
+  data$ProteinName <- gsub("1\\/","",data$ProteinName) 
   
   
   # convert ProteinName to uniprot ids
   if (length(grep("\\|",data$ProteinName)) > 0) {
     message('converting ProteinName to uniprot ids ...')
-    #decoy_idx <- grep("^DECOY_",data$ProteinName)
-    #data$ProteinName <- gsub(".*\\|(.*?)\\|.*", "\\1", data$ProteinName)
-    #data$ProteinName[decoy_idx] <- paste0("DECOY_",data$ProteinName[decoy_idx])
+    decoy_idx <- grep("^DECOY_",data$ProteinName)
+    data$ProteinName <- gsub(".*\\|(.*?)\\|.*", "\\1", data$ProteinName)
+    data$ProteinName[decoy_idx] <- paste0("DECOY_",data$ProteinName[decoy_idx])
     # the above does not wrk further downstream because "1/" is removed
-    data$ProteinName <- extractIdsFromFastaHeader(data$ProteinName)
+    #data$ProteinName <- extractIdsFromFastaHeader(data$ProteinName)
   }
   
   # subset data to some important columns to save RAM
@@ -84,6 +85,7 @@ importFromOpenSWATH <- function(data= 'OpenSwathData.tsv',
       stop("Number of file names in annotation does not match data")
   }
   
+
   for (i in seq_along(files)) {
       idxs <- grep(files[i], data.filenames)
       fraction_number[idxs] <- annotation$fraction_number[i]

@@ -41,13 +41,8 @@ proteinQuantification <- function(Traces, topN = 2, keep_less = FALSE, remove.de
   peptideTraces.long[, intensity:=as.numeric(intensity)]
   peptideTraces.long[, peptide_intensity:=sum(intensity), peptide_id]
   peptideTraces.long[, n_peptides:=length(unique(peptide_id)), protein_id]
-  # ERROR UNIQUE NOT FOR PEPTIDE INTENSTY OTHERWISE IF TWO PEPTIDES HAVE SAME INTENSITY THIS GOES WRONG!!
-  # peptideTraces.long[, peptide_rank:=rank(-unique(peptide_intensity)), protein_id]
-  # ALSO NOT BRILLIANT BECAUSE THIS WILL impair the topN subsetting
-  # @TODO!!!
-  peptideTraces.long[, peptide_rank:=rank(-peptide_intensity[1:n_peptides[1]]), protein_id]
-  # idea: randomly add +1 to one of the peptid_intensities in case they are the same but from different peptide
-  # peptideTraces.long[, n_peptide_intensities:=length(unique(peptide_intensity)), protein_id]
+  # the ties.method makes sure how to deal with peptides of identical intensity: "first" keeps the order of occurence 
+  peptideTraces.long[, peptide_rank:=rank(-peptide_intensity[1:n_peptides[1]],ties.method = "first"), protein_id]
   peptideTraces.long <- peptideTraces.long[peptide_rank <= topN]
   # collect information which peptides were used for quantification
   peptideTraces.long[, quant_peptides_used:=paste(unique(peptide_id), collapse = ","), protein_id]

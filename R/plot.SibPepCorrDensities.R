@@ -3,7 +3,7 @@ plot.SibPepCorrDensities <- function(Traces, PDF = FALSE){
   # check whether decoys are present in the input peptide traces object
   trace_annotation <- Traces$trace_annotation
   decoys_present = TRUE
-  if (sum(grep("^DECOY_1/", trace_annotation$protein_id)) == 0){
+  if (sum(grep("^DECOY_", trace_annotation$protein_id)) == 0){
     message("No decoy entries in trace_annotation$protein_id column \n
             No decoy density will be plotted")
     decoys_present = FALSE
@@ -15,7 +15,7 @@ plot.SibPepCorrDensities <- function(Traces, PDF = FALSE){
   }
   
   dens_all <- density(na.omit(trace_annotation$SibPepCorr))
-  dens_targets <- density(na.omit(trace_annotation[grep("^1/", trace_annotation$protein_id),]$SibPepCorr))
+  dens_targets <- density(na.omit(trace_annotation[grep("^DECOY", trace_annotation$protein_id,invert = TRUE),]$SibPepCorr))
   
   if(PDF == TRUE){
     pdf("CorrFilter_SibPepCorr_distributions_target_decoy.pdf")
@@ -26,7 +26,7 @@ plot.SibPepCorrDensities <- function(Traces, PDF = FALSE){
        main = "Sibling Peptide Correlation Density")
   
   if (decoys_present){
-    dens_decoys <- density(na.omit(trace_annotation[grep("^DECOY_1/", trace_annotation$protein_id),]$SibPepCorr))
+    dens_decoys <- density(na.omit(trace_annotation[grep("^DECOY_", trace_annotation$protein_id),]$SibPepCorr))
     lines(dens_decoys$x, dens_decoys$y*dens_decoys$n, lty = 2, lwd = 3)
     legend("topleft", lty = c(1,3), lwd = c(3,3), legend = c("target peptides", "decoy peptides"))
   } else{
