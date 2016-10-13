@@ -27,7 +27,7 @@ according to the noise estimation.}
 }
 \value{
 An object of type \code{complexFeaturesSW} that is a list
-       containing the following: 
+       containing the following:
        \itemize{
          \item \code{feature} data.table containing complex feature candidates in the following format:
           \itemize{

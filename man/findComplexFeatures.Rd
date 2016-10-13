@@ -4,9 +4,9 @@
 \alias{findComplexFeatures}
 \title{Run the sliding window algorithm for a number of protein complexes.}
 \usage{
-findComplexFeatures(traces.obj, complex.protein.assoc, corr.cutoff = 0.95,
-  window.size = 15, parallelized = FALSE,
-  n.cores = parallel::detectCores())
+findComplexFeatures(traces.obj, complex.protein.assoc,
+  MWSECcalibrationFunctions, corr.cutoff = 0.95, window.size = 15,
+  parallelized = FALSE, n.cores = parallel::detectCores())
 }
 \arguments{
 \item{traces.obj}{An object of type \code{traces.obj}.}
@@ -22,6 +22,13 @@ format:
  \item \code{protein_id} A character vector that uniquely identifies
        a protein and links it to a trace contained in
        \code{traces.obj}.
+}}
+
+\item{MWSECcalibrationFunctions}{A list that stores the functions for converting SEC fractions to molecular weight and vice versa. This
+object is generated from the calibrateSECMW function.
+\itemize{
+ \item \code{MWtoSECfraction} Function that needs MW as input and reports according SEC fraction.
+ \item \code{SECfractionToMW} Function that needs SEC fraction as input and reports according MW.
 }}
 
 \item{corr.cutoff}{The correlation value for chromatograms above which
