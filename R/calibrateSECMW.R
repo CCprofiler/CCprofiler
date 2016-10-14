@@ -3,14 +3,15 @@
 #'
 #' @param std_weights_kDa The Molecular Weights of the standard proteins
 #' @param std_elu_fractions The fraction numbers where these standard proteins eluted
-#' @param Traces An Object of type Traces on which the calibration is to be performed
+#' @param plot logical, if to plot calibration line
+#' @param PDF logical, if to produce a PDF
 #' @return An additional column "apparentMW_kDa" in the Traces$fraction_annotation table
 #' @export
 
 #std_weights_kDa = c(1398, 699, 300, 150, 44, 17)
 #std_elu_fractions = c(21, 31, 39, 48, 56.5, 63)
 
-calibrateSECMW <- function(std_weights_kDa,std_elu_fractions,plot=TRUE) {
+calibrateSECMW <- function(std_weights_kDa,std_elu_fractions,plot=TRUE,PDF=FALSE) {
   calibrants <- NULL
   calibrants$logMW = log(std_weights_kDa)
   calibrants$fraction = std_elu_fractions
@@ -23,11 +24,15 @@ calibrateSECMW <- function(std_weights_kDa,std_elu_fractions,plot=TRUE) {
   # plot(std_weights_kDa, std_elu_fractions)
   model = lm(calibrants$logMW ~ calibrants$fraction, data = calibrants)
   # Visual check -> plot
-  if(plot==TRUE){
-    pdf("calibration.pdf")
-      plot(calibrants$fraction, calibrants$logMW, xlab="SEC fraction", ylab="log10(MW)")
-      lines(calibrants$fraction, fitted(model))
-    dev.off()
+  if(plot){
+    if(PDF){
+      pdf("calibration.pdf")
+    }
+    plot(calibrants$fraction, calibrants$logMW, xlab="SEC fraction", ylab="log10(MW)",main="calibration")
+    lines(calibrants$fraction, fitted(model))
+    if(PDF){
+      dev.off()
+    }
   }
   # get linear model coefficients m and c for y = mx + c
   intercept <- as.numeric(model$coefficients[1])
