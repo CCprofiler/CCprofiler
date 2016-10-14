@@ -57,9 +57,11 @@ proteinQuantification <- function(Traces, topN = 2, keep_less = FALSE, remove.de
                                      protein_id ~ fraction_number,
                                      value = "intensity",
                                      fun.aggregate = sum))
+  
   # move id column to end to ensure correct quant value index
   peptideTraces.topNsum.wide[, id:=protein_id]
   peptideTraces.topNsum.wide <- subset(peptideTraces.topNsum.wide, select=-protein_id)
+  setorder(peptideTraces.topNsum.wide, -id)
   
   ## assemble updated, protein-level trace_annotation table
   peptideTraces.topNsum.wide.annotation <- merge(subset(Traces$trace_annotation, select =-id),
@@ -67,6 +69,7 @@ proteinQuantification <- function(Traces, topN = 2, keep_less = FALSE, remove.de
                                                  by = "protein_id", all.x = FALSE, all.y = TRUE)
   peptideTraces.topNsum.wide.annotation <- unique(peptideTraces.topNsum.wide.annotation)
   peptideTraces.topNsum.wide.annotation[, id:=protein_id]
+  setorder(peptideTraces.topNsum.wide.annotation, -id)
 
   if (!all(peptideTraces.topNsum.wide.annotation$id == peptideTraces.topNsum.wide$id)){
     stop("traces$id != trace_annotation$id")
