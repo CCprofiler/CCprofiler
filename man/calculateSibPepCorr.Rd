@@ -4,16 +4,16 @@
 \alias{calculateSibPepCorr}
 \title{Calculate sibling peptide correlation in traces.object of type peptide}
 \usage{
-calculateSibPepCorr(pepTraces, plot = TRUE, PDF = FALSE, FFT = 0.5)
+calculateSibPepCorr(Traces, plot = TRUE, PDF = FALSE)
 }
 \arguments{
 \item{plot}{logical TRUE or FALSE}
 
 \item{PDF}{logical TRUE or FALSE}
 
-\item{FFT}{numeric fraction of false targets (pi0)}
-
 \item{traces.obj}{An object of type \code{traces.obj}.}
+
+\item{FFT}{numeric fraction of false targets (pi0)}
 }
 \value{
 traces.obj An object of type \code{traces.obj}.
