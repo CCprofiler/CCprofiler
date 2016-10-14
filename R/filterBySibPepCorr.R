@@ -1,6 +1,6 @@
 #' filter a traces object based on the Sibling Peptide Correlation (SibPepCorr).
 #' @description Column, estimating FDR if decoys are contained in $trace_annotation$protein_id.
-#' 
+#' @export
 
 filterBySibPepCorr <- function(Traces,
                                protein_fdr_cutoff = 0.01,
@@ -11,21 +11,28 @@ filterBySibPepCorr <- function(Traces,
                                PDF = FALSE,
                                CSV = FALSE) {
   
-  Traces <- calculateSibPepCorr(Traces,plot = plot,PDF=PDF)
+  # If sibling peptide correlation hass not been calculated yet, do it
+  if (!("SibPepCorr" %in% names(Traces$trace_annotation))){
+    message("Sibling peptide correlation not yet calculated for this dataset\nCalculating SibPepCorr(spc)...")
+    Traces <- calculateSibPepCorr(Traces, plot = plot, PDF = PDF)
+  } else{
+    message("Sibling peptide correlation values found...")
+  }
   
   # get spc_cutoff from FDR estimation or direct
   decoys_contained = length(grep("^DECOY_", Traces$trace_annotation$protein_id)) > 0  
   if (decoys_contained){
-    message("Estimating FDR...")
+    message("Decoys found...\nEstimating FDR...")
     roctable <- ROC.SibPepCorr(Traces, FFT = FFT, plot = FALSE)
     cutoff_for_fdr <- roctable[FDR <= protein_fdr_cutoff, min(SibPepCorr_cutoff)]
     fdr_reached <- roctable[FDR <= protein_fdr_cutoff, max(FDR)]
     target_proteins_remaining <- roctable[FDR <= protein_fdr_cutoff, max(n_target_proteins)]
-    message("Using SibCorrCutoff of ", cutoff_for_fdr, "to reach protein_fdr_cutoff ", fdr_reached)
+    message("Using SibCorrCutoff of ", round(cutoff_for_fdr, 4), "\nestimated FDR reached: ", round(fdr_reached, 4))
     spc_cutoff <- cutoff_for_fdr
   } else if (is.null(absolute_spc_cutoff)){
-    message("Please supply argument absolute_spc_cutoff as there appear to be no DECOY* among protein_ids")
+    message("No decoys found...\nPlease supply argument absolute_spc_cutoff\nor label decoy protein_ids with DECOY_ prefix")
   } else{
+    message("Using absulte_spc_cutoff: ", absolute_spc_cutoff)
     spc_cutoff <- absolute_spc_cutoff
   }
   
@@ -59,22 +66,30 @@ filterBySibPepCorr <- function(Traces,
     protein_fdr_after <- NA
   }
   
-  # TODO: maybe nicer later
-  data.table(data = c("unfiltered", paste0("min spc: ", spc_cutoff), "fraction_removed:"),
+  # OUTPUT
+  # Assemble small filter report table
+  SibPepCorrFilter_report <- data.table(cutoff_placeholder = c("pre-filter", "post-filter", "fraction_removed:"),
              n_target_proteins = c(target_proteins_before, target_proteins_after, (1- target_proteins_after/target_proteins_before)),
              n_decoy_proteins = c(decoy_proteins_before, decoy_proteins_after, (1- decoy_proteins_after/decoy_proteins_before)),
-             protein_fdr = c(protein_fdr_before, protein_fdr_after, "")
-             )
+             protein_fdr = c(protein_fdr_before, protein_fdr_after, ""))
+  setnames(SibPepCorrFilter_report, "cutoff_placeholder", paste0("spc_cutoff: ", spc_cutoff))
   
+  # CSV
+  if (CSV){
+    write.csv(roctable, file = "SibPepCorrFilter_ROCtable.csv", row.names = FALSE, quote = FALSE)
+    write.csv(SibPepCorrFilter_report, file = "SibPepCorrFilter_report.csv", row.names = FALSE, quote = FALSE)
+  }
+  
+  # PDF/ROCplot
   if (decoys_contained){
     if (PDF){
-      pdf("SibPepCorrFilter_plot.pdf")
+      pdf("SibPepCorrFilter_ROCplot.pdf")
     }
-    if(plot){
+  if(plot){
       plot(roctable$FDR, roctable$n_target_proteins, type = "l", lty = 2,
            lwd = 2,
-           main = paste0("ROC Curve\n target proteins remaining: ",
-                         target_proteins_remaining, "\nestimated FDR: ", round(fdr_reached, 3)),
+           main = paste0("ROC Curve\n spc_cutoff: ", round(spc_cutoff, 4), "\ntarget proteins remaining: ",
+                         target_proteins_remaining, "\nestimated FDR: ", round(fdr_reached, 4)),
            xlim = c(0,0.1), ylim = c(0, 1.02* max(roctable$n_target_proteins)), xlab='FDR',ylab='n')
       lines(roctable$FDR, roctable$n_true_target_proteins, lty = 1, lwd = 2)
       abline(h = target_proteins_remaining, lty = 2, col = "red")
@@ -85,18 +100,18 @@ filterBySibPepCorr <- function(Traces,
     if (PDF){
       dev.off()  
     }
-    if (CSV) {
-      write.table(roctable,'FDR_based_on_SibPepCorr.txt',quote = FALSE,sep = '\t',row.names = FALSE)
-    }
   }
   
+  # kick out decoys
   if (remove_decoys) {
       idx_decoys <- grep("^DECOY_",Traces.filtered$trace_annotation$protein_id)
       Traces.filtered$traces <- Traces.filtered$traces[-idx_decoys]
       Traces.filtered$trace_annotation<- Traces.filtered$trace_annotation[-idx_decoys]
+      message("Decoys have been removed...")
   }
   
   #return the filtered Traces data
+  message("Proteins remaining in dataset: ", target_proteins_after)
   return(Traces.filtered) 
   
 }
