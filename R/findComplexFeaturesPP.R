@@ -73,10 +73,10 @@ findComplexFeaturesPP <- function(traces.obj,complexFeaturesSW) {
 
        # select peaks within boundaries of correlation based window
        ## sel_peaks <- which((complex.peaks$left_pp>=feature$left_sw) & (complex.peaks$right_pp<=feature$right_sw)) # peak boundaries within SW window = problem becaus eof trunkated peaks
-       ## sel_peaks <- which((complex.peaks$apex>=feature$left_sw) & (complex.peaks$apex<=feature$right_sw)) # only apex within SW boundaries
-       sel_peaks <- which(((complex.peaks$apex>=feature$left_sw) & (complex.peaks$apex<=feature$right_sw)) |
-       ((complex.peaks$left_pp>=feature$left_sw) & (complex.peaks$left_pp<feature$right_sw)) |
-       ((complex.peaks$right_pp>feature$left_sw) & (complex.peaks$right_pp<=feature$right_sw))) # apex or any peak boundary within SW
+        sel_peaks <- which((complex.peaks$apex>=feature$left_sw) & (complex.peaks$apex<=feature$right_sw)) # only apex within SW boundaries
+       ##sel_peaks <- which(((complex.peaks$apex>=feature$left_sw) & (complex.peaks$apex<=feature$right_sw)) |
+       ##((complex.peaks$left_pp>=feature$left_sw) & (complex.peaks$left_pp<feature$right_sw)) |
+       ##((complex.peaks$right_pp>feature$left_sw) & (complex.peaks$right_pp<=feature$right_sw))) # apex or any peak boundary within SW
        if (length(sel_peaks > 0)) { # peak was detected within SW
          complex.peaks <- complex.peaks[sel_peaks]
          # only peak with highest intensity
