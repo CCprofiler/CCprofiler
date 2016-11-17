@@ -6,7 +6,7 @@
 Selects proteins by min_distance in the network.}
 \usage{
 generateComplexDecoys(target_hypothesis, dist_info, min_distance = 2,
-  seed = 123, n.cores = 3)
+  seed = 123, n.cores = 1)
 }
 \arguments{
 \item{target_hypothesis}{data.table in the format of complex hypotheses}

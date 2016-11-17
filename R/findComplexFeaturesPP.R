@@ -17,6 +17,7 @@
 #'          \item \code{corr.cutoff} The corr.cutoff used when running this
 #'              function.
 #'        }
+#' @param smoothing_length Integer length of savitzgy-golay filter.
 #' @return An object of type \code{complexFeaturesPP} that is a list
 #'        containing the following:
 #'        \itemize{
@@ -34,7 +35,7 @@
 #'           }
 #'        }
 #' @export
-findComplexFeaturesPP <- function(traces.obj,complexFeaturesSW) {
+findComplexFeaturesPP <- function(traces.obj,complexFeaturesSW,smoothing_length=11) {
     features <- complexFeaturesSW$features
     # Compute the number of subunits in each complex feature
     features[, n_subunits := length(strsplit(as.character(subgroup), ';')[[1]]),by=subgroup]
@@ -50,7 +51,7 @@ findComplexFeaturesPP <- function(traces.obj,complexFeaturesSW) {
        # create complex.trace matrix by summing traces for all subunits
        complex.trace <- colSums(subunit.traces.mat)
        # Savitzky-Golay Smoothing (from pracma package)
-       complex.trace.SG <-savgol(complex.trace, fl=11, forder = 2, dorder = 0)
+       complex.trace.SG <-savgol(complex.trace, fl=smoothing_length, forder = 2, dorder = 0)
        # peak picking (from pracma package)
        complex.peaks <- findpeaks(complex.trace.SG,minpeakdistance=5,nups=3,ndowns=3)
        # convert complex.peaks to data.table
@@ -80,8 +81,9 @@ findComplexFeaturesPP <- function(traces.obj,complexFeaturesSW) {
        if (length(sel_peaks > 0)) { # peak was detected within SW
          complex.peaks <- complex.peaks[sel_peaks]
          # only peak with highest intensity
-         complex.peak <- complex.peaks[which(complex.peaks$intensity==max(complex.peaks$intensity)),]
-         complex.peak$area <- sum(complex.trace[complex.peak$left_pp:complex.peak$right_pp])
+         #complex.peak <- complex.peaks[which(complex.peaks$intensity==max(complex.peaks$intensity)),]
+         #complex.peak$area <- sum(complex.trace[complex.peak$left_pp:complex.peak$right_pp])
+         complex.peak <- complex.peaks[,area:=NA]
        } else { #no peak was detected within SW
          #apex=feature$left_sw+((feature$right_sw - feature$left_sw)/2)
          #apex=unique(c(floor(apex),ceiling(apex)))
@@ -92,15 +94,17 @@ findComplexFeaturesPP <- function(traces.obj,complexFeaturesSW) {
        }
        complex.peak[,intensity:=NULL]
      })
-
-     features[, apex := unlist(lapply(features.new, function(x) x$apex))]
-     features[, left_pp := unlist(lapply(features.new, function(x) x$left_pp))]
-     features[, right_pp := unlist(lapply(features.new, function(x) x$right_pp))]
-     features[, area := unlist(lapply(features.new, function(x) x$area))]
-     data.table(features)
-
-     res <- list(features=features)
-     class(res) = 'complexFeaturesPP'
+    
+      features_rep <- unlist(lapply(features.new, nrow))
+      features <- features[rep(seq(1,nrow(features),1),features_rep)]
+      features[, apex := unlist(lapply(features.new, function(x) x$apex))]
+      features[, left_pp := unlist(lapply(features.new, function(x) x$left_pp))]
+      features[, right_pp := unlist(lapply(features.new, function(x) x$right_pp))]
+      features[, area := unlist(lapply(features.new, function(x) x$area))]
+      data.table(features)
+      
+      res <- list(features=features)
+      class(res) = 'complexFeaturesPP'
 
      res
 }
