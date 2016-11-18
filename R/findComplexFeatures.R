@@ -82,7 +82,9 @@ findComplexFeatures <- function(traces.obj,
                                                    complexFeaturesSW=complexFeaturesSW,
                                                    smoothing_length=11)
         complexFeaturesCollapsed <- collapseComplexFeatures(complexFeature=complexFeaturesPP,rt_height=5)
-        
+        if(dim(complexFeaturesCollapsed$features)[1] == 0){
+          return(list())
+        }
         # Calculate within peak boundary correlation
         complexFeaturesCollapsed.corr <- calculateFeatureCorrelation(traces.imputed.subs, complexFeaturesCollapsed)
         

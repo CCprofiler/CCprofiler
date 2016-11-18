@@ -60,6 +60,8 @@ estimateComplexFeatureStoichiometry <- function(traces.obj,complexFeaturesPP) {
     fractions <- feature$left_pp:feature$right_pp
     traces_sub <- subset(traces.obj,trace_ids=subunits,fraction_ids=fractions)
     traces_sub.long <- toLongFormat(traces_sub$traces) #long format is easier for processing
+    # make sure intensity is numeric
+    traces_sub.long$intensity <- as.numeric(traces_sub.long$intensity)
     # sum up the intensities for each subunit within the peak boundaries
     protein.info <- traces_sub.long[, list(total_intensity=sum(intensity)), by=id]
     # build intensity ratio by dividing all total subunit intensities by the value of the subunit with the lowest intensity
