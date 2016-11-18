@@ -134,7 +134,7 @@ annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,com
                    "n_subunits_annotated","subunits_with_signal","n_subunits_with_signal",
                    "id","n_subunits",
                    "completeness","left_sw","right_sw","score",
-                   "left_pp","right_pp","apex","apex_mw","area",
+                   "left_pp","right_pp","apex","apex_mw","area","peak_corr",
                    "total_intensity","intensity_ratio","stoichiometry",
                    "monomer_mw","monomer_sec","complex_mw_estimated",
                    "complex_sec_estimated","sec_diff","mw_diff"))
@@ -144,7 +144,7 @@ annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,com
                       "n_subunits_annotated","subunits_with_signal","n_subunits_with_signal",
                       "subunits_detected","n_subunits_detected",
                       "completeness","left_sw","right_sw","sw_score",
-                      "left_pp","right_pp","apex","apex_mw","area",
+                      "left_pp","right_pp","apex","apex_mw","area","peak_corr",
                       "total_intensity","intensity_ratio","stoichiometry_estimated",
                       "monomer_mw","monomer_sec","complex_mw_estimated",
                       "complex_sec_estimated","sec_diff","mw_diff"))
