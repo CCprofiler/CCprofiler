@@ -82,8 +82,12 @@ findComplexFeatures <- function(traces.obj,
                                                    complexFeaturesSW=complexFeaturesSW,
                                                    smoothing_length=11)
         complexFeaturesCollapsed <- collapseComplexFeatures(complexFeature=complexFeaturesPP,rt_height=5)
+        
+        # Calculate within peak boundary correlation
+        complexFeaturesCollapsed.corr <- calculateFeatureCorrelation(traces.imputed.subs, complexFeaturesCollapsed)
+        
         complexFeatureStoichiometries <- estimateComplexFeatureStoichiometry(traces.obj=traces.subs,
-                                                                             complexFeaturesPP=complexFeaturesCollapsed)
+                                                                             complexFeaturesPP=complexFeaturesCollapsed.corr)
         complexFeatureAnnotated <- annotateComplexFeatures(traces.obj,complexFeatureStoichiometries,complex.annotation,MWSECcalibrationFunctions)
         complexFeatureAnnotated
       } else {
