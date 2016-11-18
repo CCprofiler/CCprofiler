@@ -65,7 +65,12 @@ estimateComplexFeatureStoichiometry <- function(traces.obj,complexFeaturesPP) {
     # sum up the intensities for each subunit within the peak boundaries
     protein.info <- traces_sub.long[, list(total_intensity=sum(intensity)), by=id]
     # build intensity ratio by dividing all total subunit intensities by the value of the subunit with the lowest intensity
-    protein.info[,intensity_ratio:=total_intensity/min(protein.info$total_intensity)]
+    # MOD The lowest value has to be > 0
+    if(all(protein.info$total_intensity == 0)){
+      protein.info[,intensity_ratio := 0]
+    } else {
+      protein.info[,intensity_ratio:=total_intensity/min(protein.info$total_intensity[protein.info$total_intensity > 0])]
+    }
     # round the intensity ratios to get integer stoichiometry estimates
     protein.info[,stoichiometry:=round(intensity_ratio)]
     data.table(id=paste(protein.info$id, collapse=';'),
