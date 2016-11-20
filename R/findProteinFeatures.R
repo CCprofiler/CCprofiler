@@ -30,15 +30,24 @@ findProteinFeatures <- function(pepTraces,
   protein.peptide.association.table[, complex_name:=complex_id]
   protein.peptide.association.table <- subset(protein.peptide.association.table,select=c("complex_id","complex_name","protein_id"))
   #protein.peptide.association.table
+
+  calibration=MWSECcalibrationFunctions
+  corr=corr.cutoff
+  window=window.size
+  parallel=parallelized
+  ncores=n.cores
+  collapse=collapse_method
+  perturb=perturb.cutoff
+
   ProteinFeatures <- findComplexFeatures(traces.obj = pepTraces,
                                          complex.protein.assoc = protein.peptide.association.table,
-                                         MWSECcalibrationFunctions = MWSECcalibrationFunctions,
-                                         corr.cutoff = corr.cutoff,
-                                         window.size = window.size,
-                                         parallelized = parallelized,
-                                         n.cores=n.cores,
-                                         collapse_method=collapse_method,
-                                         perturb.cutoff=perturb.cutoff)
+                                         MWSECcalibrationFunctions = calibration,
+                                         corr.cutoff = corr,
+                                         window.size = window,
+                                         parallelized = parallel,
+                                         n.cores=ncores,
+                                         collapse_method=collapse,
+                                         perturb.cutoff=perturb)
   protRes <- resultsToTable(ProteinFeatures)
 
   fun <- function(x) {strsplit(x,split=";")[[1]][1]}
