@@ -35,7 +35,7 @@ findProteinFeatures <- function(pepTraces,
                                          MWSECcalibrationFunctions = MWSECcalibrationFunctions,
                                          corr.cutoff = corr.cutoff,
                                          window.size = window.size,
-                                         parallelized = parallel,
+                                         parallelized = parallelized,
                                          n.cores=n.cores,
                                          collapse_method=collapse_method,
                                          perturb.cutoff=perturb.cutoff)
