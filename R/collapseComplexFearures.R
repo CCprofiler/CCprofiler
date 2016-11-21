@@ -15,7 +15,7 @@
 #'        }
 #' @export
 
-collapseComplexFeatures <- function(complexFeature=complexFeaturesPP,rt_height=5){
+collapseComplexFeatures <- function(complexFeature=complexFeaturesPP,rt_height=5,collapse_method="apex_only"){
   complexFeature = complexFeature$features
   complexFeature <- subset(complexFeature,apex != "NA")
   if (nrow(complexFeature) > 1) {
@@ -31,15 +31,22 @@ collapseComplexFeatures <- function(complexFeature=complexFeaturesPP,rt_height=5
       if (nrow(data) > 1) {
         complex_subunits <- strsplit(data$subgroup, ';')
         n_complexes <- length(complex_subunits)
-        bi_list <- lapply(complex_subunits,combn,m=2)
-        bi_list.t <- lapply(bi_list,t)
-        bi_list.tt <- lapply(bi_list.t,as.data.table)
-        binary_interactions <- rbindlist(bi_list.tt)
-        binary_interactions <- unique(binary_interactions)
-        g <- graph.data.frame(binary_interactions)
-        c <- clusters(g)
-        c_proteins <- names(c$members)
-        c_groups <- as.vector(c$membership)
+        if (collapse_method=="apex_only"){
+          #apex_only collapses by apex
+          c_proteins <- unique(unlist(complex_subunits))
+          c_groups <- rep(1,length(c_proteins))
+        } else if (collapse_method == "apex_network"){
+          #apex_network collapses by apex and connected network cluster
+          bi_list <- lapply(complex_subunits,combn,m=2)
+          bi_list.t <- lapply(bi_list,t)
+          bi_list.tt <- lapply(bi_list.t,as.data.table)
+          binary_interactions <- rbindlist(bi_list.tt)
+          binary_interactions <- unique(binary_interactions)
+          g <- graph.data.frame(binary_interactions)
+          c <- clusters(g)
+          c_proteins <- names(c$members)
+          c_groups <- as.vector(c$membership)
+        }
         unique_c_groups <- unique(c_groups)
         for (c_group in unique_c_groups) {
           tf <- function(a){all(a %in% c_proteins[which(c_groups == c_group)])}

@@ -53,7 +53,8 @@ findComplexFeatures <- function(traces.obj,
                                             window.size=15,
                                             parallelized=FALSE,
                                             n.cores=parallel::detectCores(),
-                                            perturb.cutoff = "5%") { #MOD noise quantile can be user defined
+                                            perturb.cutoff = "5%",
+                                            collapse_method="apex_only") { #MOD noise quantile can be user defined
   
   ## All complexes used for input
   input.complexes <- unique(complex.protein.assoc$complex_id)
@@ -81,8 +82,10 @@ findComplexFeatures <- function(traces.obj,
         complexFeaturesPP <- findComplexFeaturesPP(traces.obj=traces.subs,
                                                    complexFeaturesSW=complexFeaturesSW,
                                                    smoothing_length=11)
-        complexFeaturesCollapsed <- collapseComplexFeatures(complexFeature=complexFeaturesPP,rt_height=5)
-        
+        complexFeaturesCollapsed <- collapseComplexFeatures(complexFeature=complexFeaturesPP,rt_height=5,collapse_method=collapse_method)
+        if(dim(complexFeaturesCollapsed$features)[1] == 0){
+          return(list())
+        }
         # Calculate within peak boundary correlation
         complexFeaturesCollapsed.corr <- calculateFeatureCorrelation(traces.imputed.subs, complexFeaturesCollapsed)
         
