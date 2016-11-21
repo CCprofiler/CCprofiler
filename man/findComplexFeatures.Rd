@@ -6,7 +6,8 @@
 \usage{
 findComplexFeatures(traces.obj, complex.protein.assoc,
   MWSECcalibrationFunctions, corr.cutoff = 0.95, window.size = 15,
-  parallelized = FALSE, n.cores = parallel::detectCores())
+  parallelized = FALSE, n.cores = parallel::detectCores(),
+  perturb.cutoff = "5\%", collapse_method = "apex_only")
 }
 \arguments{
 \item{traces.obj}{An object of type \code{traces.obj}.}
@@ -33,6 +34,12 @@ proteins are considered to be coeluting.}
 Optional.}
 
 \item{n.cores}{The number of cores to use for parallel processing. Optional.}
+
+\item{perturb.cutoff}{The quantile to use in estimating the perturbation level.
+Intensity values that are zero are replaced with random values that are
+below the specified quantile of the input values. Alternatively a
+cutoff value can be specified as an upper limit for perturbation values.
+This is nescessary for correlation calculation.}
 }
 \value{
 A list containing various results.

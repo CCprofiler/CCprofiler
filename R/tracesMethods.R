@@ -22,10 +22,10 @@ subset.traces <- function(traces.obj,trace_ids=NULL,fraction_ids=NULL){
 #' @param traces.obj An object of type \code{traces.obj}.
 #' @return A matrix of intensity values.
 #' @export
-getIntensityMatrix.traces <- function(traces.obj) {
+getIntensityMatrix <- function(traces.obj) {
     ids <- traces.obj$traces$id
-    intensity.mat <- as.matrix(subset(traces.obj$traces,
-                                      select=-id))
+    intensity.mat <- as.matrix(sapply(subset(traces.obj$traces,
+                                      select=-id),as.numeric))
     rownames(intensity.mat) <- ids
     intensity.mat
 }

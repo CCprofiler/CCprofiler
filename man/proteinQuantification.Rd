@@ -14,7 +14,7 @@ proteinQuantification(Traces, topN = 2, keep_less = FALSE,
 The ID of the peptides used is maintained in the $trace_annotation table of the output
 protein level traces object.}
 
-\item{keep_less}{logical, whether proteins with less than topN peptides shall be 
+\item{keep_less}{logical, whether proteins with less than topN peptides shall be
 kept (TRUE) or discarded (FALSE). Defaults to FALSE to enable label-free intensity comparisons
 following the best-flyer hypothesis.}
 

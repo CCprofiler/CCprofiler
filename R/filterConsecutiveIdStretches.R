@@ -18,7 +18,7 @@ filterConsecutiveIdStretches<-function(Traces,
                                        min_stretch_length=3,
                                        remove_empty=TRUE) {
   # Get traces from container
-  peptide.traces <- getIntensityMatrix.traces(Traces)
+  peptide.traces <- getIntensityMatrix(Traces)
   # Define n as the number of columns
   id <- rownames(peptide.traces)
   data <- peptide.traces
@@ -65,8 +65,8 @@ filterConsecutiveIdStretches<-function(Traces,
   data <- subset(data, select =-dummy)
 
   # Write data to traces object
-  peptide.traces.filtered <- cbind(data , id)
-  peptide.traces.filtered <- as.data.table(peptide.traces.filtered)
+  peptide.traces.filtered <- as.data.table(data)
+  peptide.traces.filtered[,id := rownames(data)]
 
   traces.annotation <- Traces$trace_annotation
 
