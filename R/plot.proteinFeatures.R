@@ -14,11 +14,13 @@ plot.proteinFeatures <- function(res,
                                  plot_peak=TRUE,
                                  plot_monomer=TRUE,
                                  log=FALSE,
-                                 plot_apex=TRUE) {
+                                 plot_apex=TRUE,
+                                 plot_in_complex_estimate=TRUE) {
 
 
   features <- subset(res, protein_id == proteinID)
-  peptides <- unique(unlist(strsplit(features$subunits_annotated, split = ";")))
+  #peptides <- unique(unlist(strsplit(features$subunits_annotated, split = ";")))
+  peptides <- traces.obj$trace_annotation[protein_id == proteinID]$id
   traces <- subset(traces.obj,trace_ids = peptides)
   traces.long <- toLongFormat(traces$traces)
 
@@ -28,7 +30,7 @@ plot.proteinFeatures <- function(res,
 
   setkey(traces.long, id)
 
-  proteinName = unique(features$protein_name)[1]
+  proteinName = unique(features$protein_id)[1]
 
   group.colors <- c("TRUE" = "green3", "FALSE" = "firebrick1")
 
@@ -44,8 +46,12 @@ plot.proteinFeatures <- function(res,
     }
 
   if(plot_peak==TRUE){
-    p <- p + geom_rect(data=features,aes(xmin = left_pp, xmax = right_pp, ymin = 0, ymax = Inf, fill=in_complex),alpha = 0.25) +
-    scale_fill_manual(values=group.colors)
+    if (plot_in_complex_estimate == TRUE) {
+      p <- p + geom_rect(data=features,aes(xmin = left_pp, xmax = right_pp, ymin = 0, ymax = Inf, fill=in_complex),alpha = 0.25) +
+      scale_fill_manual(values=group.colors)
+    } else {
+      p <- p + geom_rect(data=features,aes(xmin = left_pp, xmax = right_pp, ymin = 0, ymax = Inf),alpha = 0.25)
+    }
     p <- p + geom_vline(data=features,aes(xintercept = left_pp), colour="darkgrey", linetype="dashed")
     p <- p + geom_vline(data=features,aes(xintercept = right_pp), colour="darkgrey",linetype="dashed")
   }
