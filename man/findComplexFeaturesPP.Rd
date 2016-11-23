@@ -5,7 +5,7 @@
 \title{A helper function to perform peak picking on the complex features detected by
 the sliding-window approach.}
 \usage{
-findComplexFeaturesPP(traces.obj, complexFeaturesSW)
+findComplexFeaturesPP(traces.obj, complexFeaturesSW, smoothing_length = 11)
 }
 \arguments{
 \item{traces.obj}{An object of type \code{traces.obj}.}
@@ -25,6 +25,8 @@ containing the following:
   \item \code{corr.cutoff} The corr.cutoff used when running this
       function.
 }}
+
+\item{smoothing_length}{Integer length of savitzgy-golay filter.}
 }
 \value{
 An object of type \code{complexFeaturesPP} that is a list

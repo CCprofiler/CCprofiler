@@ -3,22 +3,22 @@
 
 #' filterConsecutiveIdStretches filters protein profiling traces based on
 #' minimal length of consecutive ID stretches.
-#'  
+#'
 #' @import data.table
 #' @param traces object of class traces containing the elution profiles that
 #'     are to be filtered.
 #' @param min_stretch_len The minimal length a stretch of contiguous
 #'     identifications has to have in order not to be removed.
 #' @param remove_empty Logical whether the entries with rowSum == 0 after
-#'     filtering are removed, defaults to TRUE. 
+#'     filtering are removed, defaults to TRUE.
 #' @return An object of class traces containing the filtered
-#'     chromatograms. 
+#'     chromatograms.
 #' @export
 filterConsecutiveIdStretches<-function(Traces,
                                        min_stretch_length=3,
                                        remove_empty=TRUE) {
   # Get traces from container
-  peptide.traces <- getIntensityMatrix.traces(Traces)
+  peptide.traces <- getIntensityMatrix(Traces)
   # Define n as the number of columns
   id <- rownames(peptide.traces)
   data <- peptide.traces
@@ -30,7 +30,7 @@ filterConsecutiveIdStretches<-function(Traces,
   tmp <- 1
   # Going through all rows, for all do:
   for (x in 1:nrow(data)) {
-    message(paste('processed', x, 'of', nrow(data), 'peptides'))
+    #message(paste('processed', x, 'of', nrow(data), 'peptides'))
     tmp <- 1
     # Go through values in all cols, from left to right and ask the following:
     for (i in 1:n) {
@@ -63,29 +63,29 @@ filterConsecutiveIdStretches<-function(Traces,
 
   # Remove dummy column
   data <- subset(data, select =-dummy)
-  
-  # Write data to traces object 
-  peptide.traces.filtered <- cbind(data , id)
-  peptide.traces.filtered <- as.data.table(peptide.traces.filtered)
-  
+
+  # Write data to traces object
+  peptide.traces.filtered <- as.data.table(data)
+  peptide.traces.filtered[,id := rownames(data)]
+
   traces.annotation <- Traces$trace_annotation
-  
+
   if (remove_empty) {
     idx <- which(rowSums(data) != 0)
     peptide.traces.filtered <- peptide.traces.filtered[idx]
     traces.annotation <- traces.annotation[idx]
   }
-  
+
   Traces$traces <- peptide.traces.filtered
-  Traces$trace_annotation <- traces.annotation 
-  
+  Traces$trace_annotation <- traces.annotation
+
   return(Traces)
 }
 
 # tests
 # test<-list(peptide.traces = as.data.table(head(subset(data.wide.pt, select=-decoy), n = 100)))
-# 
+#
 # filtered <- filterConsecutiveIdStretches(test)
-# 
+#
 # View(test$peptide.traces)
 # View(filtered$peptide.traces)

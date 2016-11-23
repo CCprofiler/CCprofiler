@@ -5,7 +5,7 @@
 \title{filter a traces object based on the Sibling Peptide Correlation (SibPepCorr).}
 \usage{
 filterBySibPepCorr(Traces, protein_fdr_cutoff = 0.01, FFT = 1,
-  absolute_spc_cutoff = NULL, remove_decoys = FALSE, plot = TRUE,
+  absolute_spc_cutoff = NULL, remove_decoys = TRUE, plot = TRUE,
   PDF = FALSE, CSV = FALSE)
 }
 \description{

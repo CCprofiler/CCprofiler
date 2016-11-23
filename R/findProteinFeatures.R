@@ -22,7 +22,9 @@ findProteinFeatures <- function(pepTraces,
                                 parallelized,
                                 n.cores,
                                 collapse_method,
-                                perturb.cutoff){
+                                perturb.cutoff,
+                                rt_height=5,
+                                smoothing_length=11){
   protein.peptide.association.table <- as.data.table(as.data.frame(pepTraces[["trace_annotation"]]))
   setorder(protein.peptide.association.table, "protein_id")
   setnames(protein.peptide.association.table, "protein_id", "complex_id")
@@ -31,23 +33,17 @@ findProteinFeatures <- function(pepTraces,
   protein.peptide.association.table <- subset(protein.peptide.association.table,select=c("complex_id","complex_name","protein_id"))
   #protein.peptide.association.table
 
-  calibration=MWSECcalibrationFunctions
-  corr=corr.cutoff
-  window=window.size
-  parallel=parallelized
-  ncores=n.cores
-  collapse=collapse_method
-  perturb=perturb.cutoff
-
   ProteinFeatures <- findComplexFeatures(traces.obj = pepTraces,
                                          complex.protein.assoc = protein.peptide.association.table,
-                                         MWSECcalibrationFunctions = calibration,
-                                         corr.cutoff = corr,
-                                         window.size = window,
-                                         parallelized = parallel,
-                                         n.cores=ncores,
-                                         collapse_method=collapse,
-                                         perturb.cutoff=perturb)
+                                         MWSECcalibrationFunctions = MWSECcalibrationFunctions,
+                                         corr.cutoff = corr.cutoff,
+                                         window.size = window.size,
+                                         parallelized = parallelized,
+                                         n.cores=n.cores,
+                                         collapse_method=collapse_method,
+                                         perturb.cutoff=perturb.cutoff,
+                                         rt_height=rt_height,
+                                         smoothing_length=smoothing_length)
   protRes <- resultsToTable(ProteinFeatures)
 
   fun <- function(x) {strsplit(x,split=";")[[1]][1]}

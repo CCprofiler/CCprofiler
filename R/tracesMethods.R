@@ -1,9 +1,9 @@
 #' Subset a traces.obj by trace_ids or fraction_ids.
 #' @param traces.obj An object of type \code{traces.obj}.
 #' @param trace_ids A character vector specifying the trace identifiers
-#'        for subsetting \code{trace_ids}.
+#'        for subsetting \code{traces.obj}.
 #' @param fraction_ids A numeric vector specifying the fraction identifiers
-#'        for subsetting \code{fragment_ids}.
+#'        for subsetting \code{traces.obj}.
 #' @return traces.obj An object of type \code{traces.obj}.
 #' @export
 subset.traces <- function(traces.obj,trace_ids=NULL,fraction_ids=NULL){
@@ -18,14 +18,14 @@ subset.traces <- function(traces.obj,trace_ids=NULL,fraction_ids=NULL){
     traces.obj
 }
 
-#' Get a matrix of intensity values for a traces object.
+#' Get a matrix of intensity values from a traces object.
 #' @param traces.obj An object of type \code{traces.obj}.
-#' @return A matrix of intensity values.
+#' @return A matrix with intensity values.
 #' @export
-getIntensityMatrix.traces <- function(traces.obj) {
+getIntensityMatrix <- function(traces.obj) {
     ids <- traces.obj$traces$id
-    intensity.mat <- as.matrix(subset(traces.obj$traces,
-                                      select=-id))
+    intensity.mat <- as.matrix(sapply(subset(traces.obj$traces,
+                                      select=-id),as.numeric))
     rownames(intensity.mat) <- ids
     intensity.mat
 }
@@ -50,15 +50,18 @@ toLongFormat <- function(traces.dt) {
   traces.dt.long
 }
 
-#' Plot.
+#' Plot a traces.obj.
 #' @param traces.obj An object of type \code{traces.obj}.
 #' @export
-plot.traces <- function(traces.obj, plot=TRUE) {
+plot.traces <- function(traces.obj, plot=TRUE, ledgend = TRUE) {
     traces.long <- toLongFormat(traces.obj$traces)
     pl <- ggplot(traces.long) +
         ggtitle(paste(traces.obj$trace_type, 'traces')) +
         xlab('fraction') + ylab('intensity')
         pl <- pl + geom_line(aes(x=fraction, y=intensity, color=id))
+        if (!ledgend) {
+          pl <- pl + theme(legend.position="none")
+        }
     if (plot) plot(pl)
     pl
 }

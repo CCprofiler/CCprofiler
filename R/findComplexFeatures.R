@@ -54,11 +54,13 @@ findComplexFeatures <- function(traces.obj,
                                             parallelized=FALSE,
                                             n.cores=parallel::detectCores(),
                                             perturb.cutoff = "5%",
-                                            collapse_method="apex_only") { #MOD noise quantile can be user defined
-  
+                                            collapse_method="apex_only",
+                                            rt_height=5,
+                                            smoothing_length=11) { #MOD noise quantile can be user defined
+
   ## All complexes used for input
   input.complexes <- unique(complex.protein.assoc$complex_id)
-  
+
   ## A helper function to execute the sliding window algorithm for a
   ## specific query complex.
   runSlidingWindow <- function(complex.id, traces.imputed) {
@@ -81,14 +83,15 @@ findComplexFeatures <- function(traces.obj,
         }
         complexFeaturesPP <- findComplexFeaturesPP(traces.obj=traces.subs,
                                                    complexFeaturesSW=complexFeaturesSW,
-                                                   smoothing_length=11)
-        complexFeaturesCollapsed <- collapseComplexFeatures(complexFeature=complexFeaturesPP,rt_height=5,collapse_method=collapse_method)
+                                                   smoothing_length=smoothing_length,
+                                                   rt_height=rt_height)
+        complexFeaturesCollapsed <- collapseComplexFeatures(complexFeature=complexFeaturesPP,rt_height=rt_height,collapse_method=collapse_method)
         if(dim(complexFeaturesCollapsed$features)[1] == 0){
           return(list())
         }
         # Calculate within peak boundary correlation
         complexFeaturesCollapsed.corr <- calculateFeatureCorrelation(traces.imputed.subs, complexFeaturesCollapsed)
-        
+
         complexFeatureStoichiometries <- estimateComplexFeatureStoichiometry(traces.obj=traces.subs,
                                                                              complexFeaturesPP=complexFeaturesCollapsed.corr)
         complexFeatureAnnotated <- annotateComplexFeatures(traces.obj,complexFeatureStoichiometries,complex.annotation,MWSECcalibrationFunctions)
@@ -98,8 +101,8 @@ findComplexFeatures <- function(traces.obj,
       }
     })
   }
-  
-  
+
+
   #MOD calculate traces_matrix with imputed noise here and save it
 
   ## Impute noise for missing intensity measurements globally for all traces alternative
@@ -115,12 +118,12 @@ findComplexFeatures <- function(traces.obj,
                                                       replace = TRUE)
 
   ##################################
-  
-  
+
+
   ## Execute the sliding window algorithm for each query complex.
   ## This computation can optionally be parstr(swf_ allelized.
   if (parallelized) {
-    cl <- snow::makeCluster(n.cores,outfile="")
+    cl <- snow::makeCluster(n.cores)
     # setting a seed is absolutely crutial to ensure reproducible results!!!!!!!!!!!!!!!!!!!
     clusterSetRNGStream(cl,123)
     doSNOW::registerDoSNOW(cl)
@@ -145,19 +148,19 @@ findComplexFeatures <- function(traces.obj,
     close(pb)
   }
   #names(sw.results) <- input.complexes
-  
+
   # @NEW remove results for complexes with ERROR message
   sel_errors <- which(sapply(sw.results, typeof) == "character")
   for (error_idx in sel_errors){
     sw.results[[error_idx]] <- list()
   }
-  
+
   res <- list(sw.results=sw.results,
               input.complexes=input.complexes,
               corr.cutoff=corr.cutoff,
               window.size=window.size)
-  
+
   class(res) <- 'complexFeatures'
-  
+
   res
 }
