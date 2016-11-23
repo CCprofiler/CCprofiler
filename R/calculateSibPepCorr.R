@@ -1,8 +1,7 @@
-#' Calculate sibling peptide correlation in traces.object of type peptide
+#' Calculate sibling peptide correlation in traces.object of type peptide.
 #' @param traces.obj An object of type \code{traces.obj}.
 #' @param plot logical TRUE or FALSE
 #' @param PDF logical TRUE or FALSE
-#' @param FFT numeric fraction of false targets (pi0)
 #' @return traces.obj An object of type \code{traces.obj}.
 #' @export
 
