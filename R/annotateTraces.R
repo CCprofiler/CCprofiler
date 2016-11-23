@@ -15,6 +15,9 @@
 
 annotateTraces <- function(traces, annotation_table){
   annotation_table <- fread(annotation_table)
+  setnames(annotation_table,c("Entry","Mass"),c("protein_id","protein_mw"))
+  annotation_table[,protein_mw := as.numeric(gsub(",","",protein_mw))]
+  annotation_table[,protein_mw := protein_mw/1000]
   new_annotation <- merge(traces$trace_annotation, annotation_table, by = "protein_id", all.x=TRUE)
   setcolorder(new_annotation, c("id", setdiff(names(new_annotation), "id")))
   traces$trace_annotation <- new_annotation
