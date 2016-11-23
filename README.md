@@ -32,3 +32,8 @@ More information on how to use/develop this package can be found under:  [](http
     $traces (data.table Column1: id Column 2:end numeric quant matrix)
     $annotation (data.table, contains id column as key for merging and associated annotations in separate columns)
     $trace_type (character, "peptide" or "protein")
+
+
+## Comments
+
+no comments yet
