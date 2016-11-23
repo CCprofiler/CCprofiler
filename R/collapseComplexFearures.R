@@ -54,7 +54,7 @@ collapseComplexFeatures <- function(complexFeature=complexFeaturesPP,rt_height=5
           c_data <- data[which(c_group_member_features==TRUE)]
           #c_data[,n_primary_features := nrow(c_data)]
           unique_subunits <- unique(unlist(complex_subunits[which(c_group_member_features==TRUE)]))
-          c_data[,n_old := n_subunits] 
+          c_data[,n_old := n_subunits]
           c_data$n_subunits = length(unique_subunits)
           c_data$subgroup = paste0(unique_subunits,collapse=";")
           c_data <- c_data[order(-n_old,-score,-area)]

@@ -35,7 +35,7 @@
 #'           }
 #'        }
 #' @export
-findComplexFeaturesPP <- function(traces.obj,complexFeaturesSW,smoothing_length=11) {
+findComplexFeaturesPP <- function(traces.obj,complexFeaturesSW,smoothing_length=11,rt_height=5) {
     features <- complexFeaturesSW$features
     # Compute the number of subunits in each complex feature
     features[, n_subunits := length(strsplit(as.character(subgroup), ';')[[1]]),by=subgroup]
@@ -53,7 +53,7 @@ findComplexFeaturesPP <- function(traces.obj,complexFeaturesSW,smoothing_length=
        # Savitzky-Golay Smoothing (from pracma package)
        complex.trace.SG <-savgol(complex.trace, fl=smoothing_length, forder = 2, dorder = 0)
        # peak picking (from pracma package)
-       complex.peaks <- findpeaks(complex.trace.SG,minpeakdistance=5,nups=3,ndowns=3)
+       complex.peaks <- findpeaks(complex.trace.SG,minpeakdistance=rt_height,nups=3,ndowns=3)
        # convert complex.peaks to data.table
        if (is.null(dim(complex.peaks))){
          if(!is.null(complex.peaks)){
@@ -94,7 +94,7 @@ findComplexFeaturesPP <- function(traces.obj,complexFeaturesSW,smoothing_length=
        }
        complex.peak[,intensity:=NULL]
      })
-    
+
       features_rep <- unlist(lapply(features.new, nrow))
       features <- features[rep(seq(1,nrow(features),1),features_rep)]
       features[, apex := unlist(lapply(features.new, function(x) x$apex))]
@@ -102,7 +102,7 @@ findComplexFeaturesPP <- function(traces.obj,complexFeaturesSW,smoothing_length=
       features[, right_pp := unlist(lapply(features.new, function(x) x$right_pp))]
       features[, area := unlist(lapply(features.new, function(x) x$area))]
       data.table(features)
-      
+
       res <- list(features=features)
       class(res) = 'complexFeaturesPP'
 
