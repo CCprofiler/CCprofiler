@@ -5,15 +5,16 @@
 \title{Calibrate SEC - establish connectivity between SEC fraction number and apparent
 Molecular Weight (in kDa)}
 \usage{
-calibrateSECMW(Traces, std_weights_kDa = c(1398, 699, 300, 150, 44, 17),
-  std_elu_fractions = c(21, 31, 39, 48, 56.5, 63))
+calibrateSECMW(std_weights_kDa, std_elu_fractions, plot = TRUE, PDF = FALSE)
 }
 \arguments{
-\item{Traces}{An Object of type Traces on which the calibration is to be performed}
-
 \item{std_weights_kDa}{The Molecular Weights of the standard proteins}
 
 \item{std_elu_fractions}{The fraction numbers where these standard proteins eluted}
+
+\item{plot}{logical, if to plot calibration line}
+
+\item{PDF}{logical, if to produce a PDF}
 }
 \value{
 An additional column "apparentMW_kDa" in the Traces$fraction_annotation table

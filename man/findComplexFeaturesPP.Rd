@@ -2,16 +2,17 @@
 % Please edit documentation in R/findComplexFeaturesPP.R
 \name{findComplexFeaturesPP}
 \alias{findComplexFeaturesPP}
-\title{A helper function to perform peak picking on the complex features detected by 
+\title{A helper function to perform peak picking on the complex features detected by
 the sliding-window approach.}
 \usage{
-findComplexFeaturesPP(traces.obj, complexFeaturesSW)
+findComplexFeaturesPP(traces.obj, complexFeaturesSW, smoothing_length = 11,
+  rt_height = 5)
 }
 \arguments{
 \item{traces.obj}{An object of type \code{traces.obj}.}
 
 \item{complexFeaturesSW}{An object of type \code{complexFeaturesSW} that is a list
-containing the following: 
+containing the following:
 \itemize{
   \item \code{feature} data.table containing complex feature candidates in the following format:
    \itemize{
@@ -25,10 +26,12 @@ containing the following:
   \item \code{corr.cutoff} The corr.cutoff used when running this
       function.
 }}
+
+\item{smoothing_length}{Integer length of savitzgy-golay filter.}
 }
 \value{
 An object of type \code{complexFeaturesPP} that is a list
-       containing the following: 
+       containing the following:
        \itemize{
          \item \code{feature} data.table containing complex feature candidates in the following format:
           \itemize{
@@ -45,7 +48,7 @@ An object of type \code{complexFeaturesPP} that is a list
        }
 }
 \description{
-A helper function to perform peak picking on the complex features detected by 
+A helper function to perform peak picking on the complex features detected by
 the sliding-window approach.
 }
 

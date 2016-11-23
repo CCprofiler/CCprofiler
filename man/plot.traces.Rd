@@ -2,14 +2,14 @@
 % Please edit documentation in R/tracesMethods.R
 \name{plot.traces}
 \alias{plot.traces}
-\title{Plot.}
+\title{Plot a traces.obj.}
 \usage{
-\method{plot}{traces}(traces.obj, plot = TRUE)
+plot.traces(traces.obj, plot = TRUE, ledgend = TRUE)
 }
 \arguments{
 \item{traces.obj}{An object of type \code{traces.obj}.}
 }
 \description{
-Plot.
+Plot a traces.obj.
 }
 

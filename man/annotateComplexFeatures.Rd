@@ -6,13 +6,13 @@
 information.}
 \usage{
 annotateComplexFeatures(traces.obj, complexFeatureStoichiometries,
-  complex.annotation)
+  complex.annotation, MWSECcalibrationFunctions)
 }
 \arguments{
 \item{traces.obj}{An object of type \code{traces.obj}.}
 
 \item{complexFeatureStoichiometries}{An object of type \code{complexFeatureStoichiometries} that is a list
-containing the following: 
+containing the following:
 \itemize{
   \item \code{feature} data.table containing complex feature candidates in the following format:
    \itemize{
@@ -37,10 +37,17 @@ containing the following:
  \item \code{complex_name}
  \item \code{protein_id}
 }}
+
+\item{MWSECcalibrationFunctions}{A list that stores the functions for converting SEC fractions to molecular weight and vice versa. This
+object is generated from the calibrateSECMW function.
+\itemize{
+ \item \code{MWtoSECfraction} Function that needs MW as input and reports according SEC fraction.
+ \item \code{SECfractionToMW} Function that needs SEC fraction as input and reports according MW.
+}}
 }
 \value{
 An object of type \code{complexFeaturesAnnotated} that is a list
-       containing the following: 
+       containing the following:
        \itemize{
          \item \code{feature} data.table containing complex feature candidates in the following format:
           \itemize{

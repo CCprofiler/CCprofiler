@@ -11,7 +11,7 @@ estimateComplexFeatureStoichiometry(traces.obj, complexFeaturesPP)
 \item{traces.obj}{An object of type \code{traces.obj}.}
 
 \item{complexFeaturesPP}{An object of type \code{complexFeaturesPP} that is a list
-containing the following: 
+containing the following:
 \itemize{
   \item \code{feature} data.table containing complex feature candidates in the following format:
    \itemize{
@@ -29,7 +29,7 @@ containing the following:
 }
 \value{
 An object of type \code{complexFeatureStoichiometries} that is a list
-       containing the following: 
+       containing the following:
        \itemize{
          \item \code{feature} data.table containing complex feature candidates in the following format:
           \itemize{

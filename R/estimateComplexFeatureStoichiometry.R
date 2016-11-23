@@ -3,7 +3,7 @@
 #'
 #' @param traces.obj An object of type \code{traces.obj}.
 #' @param complexFeaturesPP An object of type \code{complexFeaturesPP} that is a list
-#'        containing the following: 
+#'        containing the following:
 #'        \itemize{
 #'          \item \code{feature} data.table containing complex feature candidates in the following format:
 #'           \itemize{
@@ -19,7 +19,7 @@
 #'           }
 #'        }
 #' @return An object of type \code{complexFeatureStoichiometries} that is a list
-#'        containing the following: 
+#'        containing the following:
 #'        \itemize{
 #'          \item \code{feature} data.table containing complex feature candidates in the following format:
 #'           \itemize{
@@ -37,6 +37,7 @@
 #'           \item \code{stoichiometry} The rounded \code{intensity_ratio} of all protein_ids of the feature separated by semi-colons.
 #'           }
 #'        }
+#' @export
 
 estimateComplexFeatureStoichiometry <- function(traces.obj,complexFeaturesPP) {
 
@@ -50,19 +51,26 @@ estimateComplexFeatureStoichiometry <- function(traces.obj,complexFeaturesPP) {
       features <- data.frame()
     }
   }
-  
+
   # estimate the stoichiometry of each detected feature with a picked peak
   stoichiometry <- lapply(seq(1:nrow(features)), function(i){
     feature=features[i]
     subunits <- strsplit(feature$subgroup, ';')[[1]]
-    # select sec fractions whithin the boundaries of the picked peak and subset the traces.obj 
+    # select sec fractions whithin the boundaries of the picked peak and subset the traces.obj
     fractions <- feature$left_pp:feature$right_pp
     traces_sub <- subset(traces.obj,trace_ids=subunits,fraction_ids=fractions)
     traces_sub.long <- toLongFormat(traces_sub$traces) #long format is easier for processing
+    # make sure intensity is numeric
+    traces_sub.long$intensity <- as.numeric(traces_sub.long$intensity)
     # sum up the intensities for each subunit within the peak boundaries
     protein.info <- traces_sub.long[, list(total_intensity=sum(intensity)), by=id]
     # build intensity ratio by dividing all total subunit intensities by the value of the subunit with the lowest intensity
-    protein.info[,intensity_ratio:=total_intensity/min(protein.info$total_intensity)]
+    # MOD The lowest value has to be > 0
+    if(all(protein.info$total_intensity == 0)){
+      protein.info[,intensity_ratio := 0]
+    } else {
+      protein.info[,intensity_ratio:=total_intensity/min(protein.info$total_intensity[protein.info$total_intensity > 0])]
+    }
     # round the intensity ratios to get integer stoichiometry estimates
     protein.info[,stoichiometry:=round(intensity_ratio)]
     data.table(id=paste(protein.info$id, collapse=';'),
@@ -71,12 +79,12 @@ estimateComplexFeatureStoichiometry <- function(traces.obj,complexFeaturesPP) {
                 stoichiometry=paste(protein.info$stoichiometry, collapse=';'))
   }
   )
-  
+
   stoichiometry <- do.call("rbind", stoichiometry)
   features <- cbind(features,stoichiometry)
   # remove subgroup column becaus ewe have new id column which has the same protein_id order as the intensities, ratios and stoichiometry estimates
   features[,subgroup:=NULL]
-  
+
   data.table(features)
   res <- list(features=features)
   class(res) = 'complexFeatureStoichiometry'

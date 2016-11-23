@@ -9,6 +9,9 @@
 plot.complexFeatures <- function(res,
                                  traces.obj,
                                  complexID,
+                                 pp=FALSE,
+                                 sw=FALSE,
+                                 estimate=FALSE,
                                  monomerMW=FALSE,
                                  log=FALSE) {
 
@@ -58,14 +61,19 @@ plot.complexFeatures <- function(res,
 #                   data=found.features) +
 #        theme(legend.position='none')
 
-
-    p <- p + geom_rect(data=features,aes(xmin = left_pp, xmax = right_pp, ymin = -Inf, ymax = Inf, fill=subunits_detected),alpha = 0.25)
-    p <- p + geom_vline(data=features,aes(xintercept=left_sw), colour="grey",linetype="longdash")
-    p <- p + geom_vline(data=features,aes(xintercept=right_sw), colour="grey",linetype="longdash")
-    p <- p + geom_vline(data=features,aes(xintercept=apex), colour="black",linetype="solid")
-    p <- p + geom_vline(data=features,aes(xintercept=complex_sec_estimated), colour="black",linetype="longdash")
+    if(pp==TRUE){
+      p <- p + geom_rect(data=features,aes(xmin = left_pp, xmax = right_pp, ymin = -Inf, ymax = Inf, fill=subunits_detected),alpha = 0.25)
+    }
+    if(sw==TRUE){
+      p <- p + geom_vline(data=features,aes(xintercept=left_sw), colour="grey",linetype="longdash")
+      p <- p + geom_vline(data=features,aes(xintercept=right_sw), colour="grey",linetype="longdash")
+    }
+    if(estimate==TRUE){
+      p <- p + geom_vline(data=features,aes(xintercept=complex_sec_estimated), colour="black",linetype="longdash")
+    }
     if (monomerMW==TRUE){
       p <- p + geom_vline(data=subset(traces.long,!is.na(mw)),aes(xintercept=mw,colour=id),linetype="solid")
     }
+    p <- p + geom_vline(data=features,aes(xintercept=apex), colour="black",linetype="solid")
     print(p)
 }

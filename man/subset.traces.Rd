@@ -4,16 +4,16 @@
 \alias{subset.traces}
 \title{Subset a traces.obj by trace_ids or fraction_ids.}
 \usage{
-\method{subset}{traces}(traces.obj, trace_ids = NULL, fraction_ids = NULL)
+subset.traces(traces.obj, trace_ids = NULL, fraction_ids = NULL)
 }
 \arguments{
 \item{traces.obj}{An object of type \code{traces.obj}.}
 
 \item{trace_ids}{A character vector specifying the trace identifiers
-for subsetting \code{trace_ids}.}
+for subsetting \code{traces.obj}.}
 
 \item{fraction_ids}{A numeric vector specifying the fraction identifiers
-for subsetting \code{fragment_ids}.}
+for subsetting \code{traces.obj}.}
 }
 \value{
 traces.obj An object of type \code{traces.obj}.

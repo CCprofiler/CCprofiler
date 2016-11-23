@@ -4,7 +4,7 @@
 \alias{plot.FragmentTraces}
 \title{Plot.}
 \usage{
-\method{plot}{FragmentTraces}(trace.obj, plot = TRUE)
+plot.FragmentTraces(trace.obj, plot = TRUE)
 }
 \description{
 Plot.

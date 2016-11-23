@@ -19,6 +19,11 @@
 #' @param parallelized If the computation should be done in parallel.
 #'        Optional.
 #' @param n.cores The number of cores to use for parallel processing. Optional.
+#' @param perturb.cutoff The quantile to use in estimating the perturbation level.
+#'        Intensity values that are zero are replaced with random values that are
+#'        below the specified quantile of the input values. Alternatively a
+#'        cutoff value can be specified as an upper limit for perturbation values.
+#'        This is nescessary for correlation calculation.
 #' @return A list containing various results.
 #'         \itemize{
 #'          \item \code{sw.results} A list of results of the function
@@ -42,77 +47,120 @@
 #' #                           complex.protein.assoc)
 #' @export
 findComplexFeatures <- function(traces.obj,
-                                  complex.protein.assoc,
-                                  corr.cutoff=0.95,
-                                  window.size=15,
-                                  parallelized=FALSE,
-                                  n.cores=parallel::detectCores()) {
+                                            complex.protein.assoc,
+                                            MWSECcalibrationFunctions,
+                                            corr.cutoff=0.95,
+                                            window.size=15,
+                                            parallelized=FALSE,
+                                            n.cores=parallel::detectCores(),
+                                            perturb.cutoff = "5%",
+                                            collapse_method="apex_only",
+                                            rt_height=5,
+                                            smoothing_length=11) { #MOD noise quantile can be user defined
 
-    ## All complexes used for input
-    input.complexes <- unique(complex.protein.assoc$complex_id)
+  ## All complexes used for input
+  input.complexes <- unique(complex.protein.assoc$complex_id)
 
-    ## A helper function to execute the sliding window algorithm for a
-    ## specific query complex.
-    runSlidingWindow <- function(complex.id) {
-        complex.id <- input.complexes[i]
-        cat(sprintf('CHECKING RUN:  %d / %d', i, length(input.complexes)), '\n')
-        # Extract the protein traces belonging to the current complex
-        complex.subunits <- complex.protein.assoc[complex_id == complex.id,
-                                                  protein_id]
-        traces.subs <- subset(traces.obj=traces.obj,trace_ids=complex.subunits)
-        complex.annotation <- subset(complex.protein.assoc,complex_id == complex.id)
-        # Run the algorithm
-        try({
-            if (nrow(traces.subs$traces) >= 2) {
-              complexFeaturesSW <- findComplexFeaturesSW(traces.obj=traces.subs,
-                                                          corr.cutoff=corr.cutoff,
-                                                          window.size=window.size)
-              if((dim(complexFeaturesSW$features)[1] == 0) & (dim(complexFeaturesSW$features)[2] == 0)){
-                return(list())
-              }
-              complexFeaturesPP <- findComplexFeaturesPP(traces.obj=traces.subs,
-                                                          complexFeaturesSW=complexFeaturesSW)
-              complexFeatureStoichiometries <- estimateComplexFeatureStoichiometry(traces.obj=traces.subs,
-                                                          complexFeaturesPP=complexFeaturesPP)
-              complexFeatureAnnotated <- annotateComplexFeatures(traces.obj,complexFeatureStoichiometries,complex.annotation)
-              complexFeatureAnnotated
-            } else {
-                list()
-            }
-        })
-    }
-
-    ## Execute the sliding window algorithm for each query complex.
-    ## This computation can optionally be parstr(swf_ allelized.
-    if (parallelized) {
-        cl <- snow::makeCluster(n.cores)
-        doSNOW::registerDoSNOW(cl)
-        sw.results <- foreach(i=seq_along(input.complexes),
-                             .packages=c('data.table', 'SECprofiler')) %dopar% {
-            query.complex.id <- input.complexes[i]
-            runSlidingWindow(query.complex.id)
+  ## A helper function to execute the sliding window algorithm for a
+  ## specific query complex.
+  runSlidingWindow <- function(complex.id, traces.imputed) {
+    #complex.id <- input.complexes[i]
+    #cat(sprintf('CHECKING RUN:  %d / %d', i, length(input.complexes)), '\n')
+    # Extract the protein traces belonging to the current complex
+    complex.subunits <- complex.protein.assoc[complex_id == complex.id,
+                                              protein_id]
+    traces.subs <- subset(traces.obj=traces.obj,trace_ids=complex.subunits)
+    traces.imputed.subs <- traces.imputed[rownames(traces.imputed) %in% complex.subunits,,drop=F]
+    complex.annotation <- subset(complex.protein.assoc,complex_id == complex.id)
+    # Run the algorithm
+    try({
+      if (nrow(traces.imputed.subs) >= 2) {
+        complexFeaturesSW <- findComplexFeaturesSW(trace.mat=traces.imputed.subs,
+                                                            corr.cutoff=corr.cutoff,
+                                                            window.size=window.size)
+        if((dim(complexFeaturesSW$features)[1] == 0) & (dim(complexFeaturesSW$features)[2] == 0)){
+          return(list())
         }
-        parallel::stopCluster(cl)
-    } else {
-        sw.results <- foreach(i=seq_along(input.complexes)) %do% {
-            query.complex.id <- input.complexes[i]
-            runSlidingWindow(query.complex.id)
+        complexFeaturesPP <- findComplexFeaturesPP(traces.obj=traces.subs,
+                                                   complexFeaturesSW=complexFeaturesSW,
+                                                   smoothing_length=smoothing_length,
+                                                   rt_height=rt_height)
+        complexFeaturesCollapsed <- collapseComplexFeatures(complexFeature=complexFeaturesPP,rt_height=rt_height,collapse_method=collapse_method)
+        if(dim(complexFeaturesCollapsed$features)[1] == 0){
+          return(list())
         }
+        # Calculate within peak boundary correlation
+        complexFeaturesCollapsed.corr <- calculateFeatureCorrelation(traces.imputed.subs, complexFeaturesCollapsed)
+
+        complexFeatureStoichiometries <- estimateComplexFeatureStoichiometry(traces.obj=traces.subs,
+                                                                             complexFeaturesPP=complexFeaturesCollapsed.corr)
+        complexFeatureAnnotated <- annotateComplexFeatures(traces.obj,complexFeatureStoichiometries,complex.annotation,MWSECcalibrationFunctions)
+        complexFeatureAnnotated
+      } else {
+        list()
+      }
+    })
+  }
+
+
+  #MOD calculate traces_matrix with imputed noise here and save it
+
+  ## Impute noise for missing intensity measurements globally for all traces alternative
+  trace.mat.imputed <- getIntensityMatrix(traces.obj)
+  n.zero.entries <- sum(trace.mat.imputed == 0) # number of ZERO values in matrix
+  measure.vals <- trace.mat.imputed[trace.mat.imputed != 0]
+  if(class(perturb.cutoff) == "character"){
+    qt <- as.numeric(gsub("%","",perturb.cutoff))/100
+    perturb.cutoff <- quantile(measure.vals, qt)
+  }
+  set.seed(123) # set seed to always get same results
+  trace.mat.imputed[trace.mat.imputed == 0] <- sample(1:perturb.cutoff,size = n.zero.entries,
+                                                      replace = TRUE)
+
+  ##################################
+
+
+  ## Execute the sliding window algorithm for each query complex.
+  ## This computation can optionally be parstr(swf_ allelized.
+  if (parallelized) {
+    cl <- snow::makeCluster(n.cores)
+    # setting a seed is absolutely crutial to ensure reproducible results!!!!!!!!!!!!!!!!!!!
+    clusterSetRNGStream(cl,123)
+    doSNOW::registerDoSNOW(cl)
+    pb <- txtProgressBar(max = length(input.complexes), style = 3)
+    progress <- function(n) setTxtProgressBar(pb, n)
+    opts <- list(progress = progress)
+    sw.results <- foreach(i=seq_along(input.complexes),
+                          .packages=c('data.table', 'SECprofiler'),.options.snow = opts) %dopar% {
+                            query.complex.id <- input.complexes[i]
+                            runSlidingWindow(query.complex.id, traces.imputed = trace.mat.imputed)
+                          }
+    close(pb)
+    parallel::stopCluster(cl)
+  } else {
+    pb <- txtProgressBar(max = length(input.complexes), style = 3)
+    sw.results <- foreach(i=seq_along(input.complexes)) %do% {
+      setTxtProgressBar(pb, i)
+      query.complex.id <- input.complexes[i]
+      #cat(sprintf('CHECKING RUN:  %d / %d', i, length(input.complexes)), '\n')
+      runSlidingWindow(query.complex.id, traces.imputed = trace.mat.imputed)
     }
-    #names(sw.results) <- input.complexes
+    close(pb)
+  }
+  #names(sw.results) <- input.complexes
 
-    # @NEW remove results for complexes with ERROR message
-    sel_errors <- which(sapply(sw.results, typeof) == "character")
-    for (error_idx in sel_errors){
-      sw.results[[error_idx]] <- list()
-    }
+  # @NEW remove results for complexes with ERROR message
+  sel_errors <- which(sapply(sw.results, typeof) == "character")
+  for (error_idx in sel_errors){
+    sw.results[[error_idx]] <- list()
+  }
 
-    res <- list(sw.results=sw.results,
-                input.complexes=input.complexes,
-                corr.cutoff=corr.cutoff,
-                window.size=window.size)
+  res <- list(sw.results=sw.results,
+              input.complexes=input.complexes,
+              corr.cutoff=corr.cutoff,
+              window.size=window.size)
 
-    class(res) <- 'complexFeatures'
+  class(res) <- 'complexFeatures'
 
-    res
+  res
 }

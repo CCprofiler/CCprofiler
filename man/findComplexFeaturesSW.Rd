@@ -6,11 +6,12 @@
 sliding a window across the SEC dimension. Within each window proteins
 with traces that correlate well are clustered together.}
 \usage{
-findComplexFeaturesSW(traces.obj, corr.cutoff = 0.95, window.size = 15,
-  with.plot = F, noise.quantile = 0.2, min.sec = 1)
+findComplexFeaturesSW(trace.mat, corr.cutoff = 0.95, window.size = 15,
+  with.plot = F, min.sec = 1)
 }
 \arguments{
-\item{traces.obj}{An object of type \code{traces.obj}.}
+\item{trace.mat}{A matrix of all traces in a complex hypothesis with small perturbations
+added to all 0 values for correlation calculation.}
 
 \item{corr.cutoff}{The correlation value for chromatograms above which
 proteins are considered to be coeluting.}
@@ -19,15 +20,15 @@ proteins are considered to be coeluting.}
 
 \item{with.plot}{T (TRUE) or F (FALSE) whether to plot the correlation tree.}
 
+\item{min.sec}{The lowest SEC number in the sample.}
+
 \item{noise.quantile}{The quantile to use in estimating the noise level.
 Intensity values that are zero are imputed with random noise
 according to the noise estimation.}
-
-\item{min.sec}{The lowest SEC number in the sample.}
 }
 \value{
 An object of type \code{complexFeaturesSW} that is a list
-       containing the following: 
+       containing the following:
        \itemize{
          \item \code{feature} data.table containing complex feature candidates in the following format:
           \itemize{
