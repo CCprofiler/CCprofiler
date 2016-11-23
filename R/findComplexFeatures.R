@@ -123,7 +123,7 @@ findComplexFeatures <- function(traces.obj,
   ## Execute the sliding window algorithm for each query complex.
   ## This computation can optionally be parstr(swf_ allelized.
   if (parallelized) {
-    cl <- snow::makeCluster(n.cores,outfile="")
+    cl <- snow::makeCluster(n.cores)
     # setting a seed is absolutely crutial to ensure reproducible results!!!!!!!!!!!!!!!!!!!
     clusterSetRNGStream(cl,123)
     doSNOW::registerDoSNOW(cl)
