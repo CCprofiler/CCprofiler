@@ -102,7 +102,9 @@ SECexplorer_processing <- function(protein_ids,traces.obj){
   #@TODO ID mapping?
   traces.obj <- subset(traces.obj,trace_ids = protein_ids)
   complex.table <- data.table(complex_id=rep(1,length(protein_ids)),complex_name=rep("1",length(protein_ids)),protein_id=protein_ids)
-  calibration = calibrateSECMW(std_weights_kDa = c(1398, 699, 300, 150, 44, 17), std_elu_fractions = c(19, 29, 37, 46, 54.5, 61),plot=TRUE,PDF=FALSE)
+  std_weights_kDa = c(1398, 699, 300, 150, 44, 17)
+  std_elu_fractions = c(19, 29, 37, 46, 54.5, 61)
+  calibration = calibrateSECMW(std_weights_kDa = std_weights_kDa, std_elu_fractions = std_elu_fractions,plot=TRUE,PDF=FALSE)
   swf <- findComplexFeatures(traces.obj = traces.obj,
                              complex.protein.assoc = complex.table,
                              MWSECcalibrationFunctions=calibration,
@@ -114,7 +116,10 @@ SECexplorer_processing <- function(protein_ids,traces.obj){
                              rt_height=5,
                              smoothing_length=11)
   res = resultsToTable(swf)
-  list(traces=traces.obj,features=res)
+  model = lm(log(std_weights_kDa) ~ std_elu_fractions)
+  model_coeffitients = model$coefficients
+  names(model_coeffitients) = c("intercept","slope")
+  list(traces=traces.obj,features=res,calibration=model_coeffitients)
 }
 
 #TEST
