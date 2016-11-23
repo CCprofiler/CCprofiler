@@ -4,8 +4,8 @@
 \alias{plot.complexFeaturesSW}
 \title{Plot the result of the sliding window algorithm.}
 \usage{
-\method{plot}{complexFeaturesSW}(sw.result, trace.mat, protein.names,
-  n.largest = NULL, log = FALSE)
+plot.complexFeaturesSW(sw.result, trace.mat, protein.names, n.largest = NULL,
+  log = FALSE)
 }
 \arguments{
 \item{sw.result}{An object of type 'complexFeaturesSW'.}

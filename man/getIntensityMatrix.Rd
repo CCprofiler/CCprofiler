@@ -2,7 +2,7 @@
 % Please edit documentation in R/tracesMethods.R
 \name{getIntensityMatrix}
 \alias{getIntensityMatrix}
-\title{Get a matrix of intensity values for a traces object.}
+\title{Get a matrix of intensity values from a traces object.}
 \usage{
 getIntensityMatrix(traces.obj)
 }
@@ -10,9 +10,9 @@ getIntensityMatrix(traces.obj)
 \item{traces.obj}{An object of type \code{traces.obj}.}
 }
 \value{
-A matrix of intensity values.
+A matrix with intensity values.
 }
 \description{
-Get a matrix of intensity values for a traces object.
+Get a matrix of intensity values from a traces object.
 }
 

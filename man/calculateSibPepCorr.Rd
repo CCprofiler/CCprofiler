@@ -2,7 +2,7 @@
 % Please edit documentation in R/calculateSibPepCorr.R
 \name{calculateSibPepCorr}
 \alias{calculateSibPepCorr}
-\title{Calculate sibling peptide correlation in traces.object of type peptide}
+\title{Calculate sibling peptide correlation in traces.object of type peptide.}
 \usage{
 calculateSibPepCorr(Traces, plot = TRUE, PDF = FALSE)
 }
@@ -12,13 +12,11 @@ calculateSibPepCorr(Traces, plot = TRUE, PDF = FALSE)
 \item{PDF}{logical TRUE or FALSE}
 
 \item{traces.obj}{An object of type \code{traces.obj}.}
-
-\item{FFT}{numeric fraction of false targets (pi0)}
 }
 \value{
 traces.obj An object of type \code{traces.obj}.
 }
 \description{
-Calculate sibling peptide correlation in traces.object of type peptide
+Calculate sibling peptide correlation in traces.object of type peptide.
 }
 

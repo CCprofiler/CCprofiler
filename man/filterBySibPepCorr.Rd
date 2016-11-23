@@ -2,13 +2,33 @@
 % Please edit documentation in R/filterBySibPepCorr.R
 \name{filterBySibPepCorr}
 \alias{filterBySibPepCorr}
-\title{filter a traces object based on the Sibling Peptide Correlation (SibPepCorr).}
+\title{Filter a traces.object based on the Sibling Peptide Correlation (SibPepCorr).}
 \usage{
 filterBySibPepCorr(Traces, protein_fdr_cutoff = 0.01, FFT = 1,
   absolute_spc_cutoff = NULL, remove_decoys = TRUE, plot = TRUE,
   PDF = FALSE, CSV = FALSE)
 }
+\arguments{
+\item{protein_fdr_cutoff}{numeric specifying the FDR cutoff to be applied to select a sibling correlation cutoff}
+
+\item{FFT}{numeric specifying the fraction of false targets (FFT). Default is 1.}
+
+\item{absolute_spc_cutoff}{numeric specifying an absolute sibling correlation cutoff to be applied instead of FDR based cutoff estimation.}
+
+\item{remove_decoys}{logical specifying if decoys should be removed. It is strongly recommended to keep the decoys. Default is FALSE.}
+
+\item{plot}{logical TRUE or FALSE}
+
+\item{PDF}{logical TRUE or FALSE}
+
+\item{CSV}{logical TRUE or FALSE}
+
+\item{traces.obj}{An object of type \code{traces.obj}.}
+}
+\value{
+traces.obj An object of type \code{traces.obj}.
+}
 \description{
-Column, estimating FDR if decoys are contained in $trace_annotation$protein_id.
+Filter a traces.object based on the Sibling Peptide Correlation (SibPepCorr).
 }
 

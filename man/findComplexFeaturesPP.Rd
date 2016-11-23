@@ -5,7 +5,8 @@
 \title{A helper function to perform peak picking on the complex features detected by
 the sliding-window approach.}
 \usage{
-findComplexFeaturesPP(traces.obj, complexFeaturesSW, smoothing_length = 11)
+findComplexFeaturesPP(traces.obj, complexFeaturesSW, smoothing_length = 11,
+  rt_height = 5)
 }
 \arguments{
 \item{traces.obj}{An object of type \code{traces.obj}.}

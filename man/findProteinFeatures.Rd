@@ -5,7 +5,8 @@
 \title{Run the sliding window algorithm to find protein features.}
 \usage{
 findProteinFeatures(pepTraces, MWSECcalibrationFunctions, corr.cutoff,
-  window.size, parallelized, n.cores, collapse_method, perturb.cutoff)
+  window.size, parallelized, n.cores, collapse_method, perturb.cutoff,
+  rt_height = 5, smoothing_length = 11)
 }
 \arguments{
 \item{pepTraces}{An object of type \code{traces.obj}.}
