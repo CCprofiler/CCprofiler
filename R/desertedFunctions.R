@@ -173,8 +173,10 @@ estimateComplexMass <- function(traces,
     subunit.abundances.in.feature.norm <-
         subunit.abundances.in.feature / min(subunit.abundances.in.feature)
     stoichiometry <- round(subunit.abundances.in.feature.norm)
+
     est.complex.mass <- sum(stoichiometry * subunit.mws)
 
     data.table(mw_estimated=est.complex.mass,
+
                stoichiometry=paste(stoichiometry, collapse=';'))
 }

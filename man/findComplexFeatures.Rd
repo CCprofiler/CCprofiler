@@ -7,7 +7,8 @@
 findComplexFeatures(traces.obj, complex.protein.assoc,
   MWSECcalibrationFunctions, corr.cutoff = 0.95, window.size = 15,
   parallelized = FALSE, n.cores = parallel::detectCores(),
-  perturb.cutoff = "5\%", collapse_method = "apex_only")
+  perturb.cutoff = "5\%", collapse_method = "apex_only", rt_height = 5,
+  smoothing_length = 11)
 }
 \arguments{
 \item{traces.obj}{An object of type \code{traces.obj}.}

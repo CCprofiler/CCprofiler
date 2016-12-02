@@ -1,7 +1,7 @@
 #' Run SECprofiler from SECexplorer y providing ids and their type.
 #' @param ids A character vector containing names or identifiers.
 #' @param type A character string specifying the type of ids.
-#' @return A list containing the following elements: 
+#' @return A list containing the following elements:
 #'    \itemize{
 #'      \item \code{conversionRes} A list of the following:
 #'        \itemize{
@@ -64,7 +64,7 @@ runSECexplorer <- function(ids,type){
 #' SECexplorer processing.
 #' @param protein_ids A character vector containing \code{UNIPROTKB} accession ids.
 #' @param traces.obj An object of type \code{traces.obj}.
-#' @return A list containing the following: 
+#' @return A list containing the following:
 #'      \itemize{
 #'        \item \code{traces} An object of type \code{traces.obj}. Filtered for input ids.
 #'        \item \code{features} An object of type \code{complexFeaturesAnnotated} that is a list containing the following:
@@ -102,13 +102,24 @@ SECexplorer_processing <- function(protein_ids,traces.obj){
   #@TODO ID mapping?
   traces.obj <- subset(traces.obj,trace_ids = protein_ids)
   complex.table <- data.table(complex_id=rep(1,length(protein_ids)),complex_name=rep("1",length(protein_ids)),protein_id=protein_ids)
+  std_weights_kDa = c(1398, 699, 300, 150, 44, 17)
+  std_elu_fractions = c(19, 29, 37, 46, 54.5, 61)
+  calibration = calibrateSECMW(std_weights_kDa = std_weights_kDa, std_elu_fractions = std_elu_fractions,plot=TRUE,PDF=FALSE)
   swf <- findComplexFeatures(traces.obj = traces.obj,
                              complex.protein.assoc = complex.table,
-                             corr.cutoff = 0.95,
-                             window.size = 6,
-                             parallelized = FALSE)
+                             MWSECcalibrationFunctions=calibration,
+                             corr.cutoff=0.95,
+                             window.size=15,
+                             parallelized=FALSE,
+                             perturb.cutoff = "5%",
+                             collapse_method="apex_only",
+                             rt_height=5,
+                             smoothing_length=11)
   res = resultsToTable(swf)
-  list(traces=traces.obj,features=res)
+  model = lm(log(std_weights_kDa) ~ std_elu_fractions)
+  model_coeffitients = model$coefficients
+  names(model_coeffitients) = c("intercept","slope")
+  list(traces=traces.obj,features=res,calibration=model_coeffitients)
 }
 
 #TEST
@@ -125,7 +136,7 @@ SECexplorer_processing <- function(protein_ids,traces.obj){
 #' @param ids A character vector containing names or identifiers.
 #' @param type A character string specifying the type of ids.
 #' @param traces.obj An object of type \code{traces.obj}.
-#' @return A data.table containing the following information: 
+#' @return A data.table containing the following information:
 #'        \itemize{
 #'           \item \code{not_defined} A character vector containing all input ids that are not defined in the current version of the package.
 #'           \item \code{no_ms_signal} A chaacter vector of all input ids that do not have an MS signal in the current SEC experiment.
