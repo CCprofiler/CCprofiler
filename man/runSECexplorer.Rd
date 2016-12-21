@@ -12,7 +12,7 @@ runSECexplorer(ids, type)
 \item{type}{A character string specifying the type of ids.}
 }
 \value{
-A list containing the following elements: 
+A list containing the following elements:
    \itemize{
      \item \code{conversionRes} A list of the following:
        \itemize{

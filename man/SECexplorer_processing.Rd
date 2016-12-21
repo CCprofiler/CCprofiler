@@ -12,7 +12,7 @@ SECexplorer_processing(protein_ids, traces.obj)
 \item{traces.obj}{An object of type \code{traces.obj}.}
 }
 \value{
-A list containing the following: 
+A list containing the following:
      \itemize{
        \item \code{traces} An object of type \code{traces.obj}. Filtered for input ids.
        \item \code{features} An object of type \code{complexFeaturesAnnotated} that is a list containing the following:

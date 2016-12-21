@@ -54,7 +54,11 @@
 runSECexplorer <- function(ids,type){
   traces.obj <- traces.obj
   conversionRes <- convertIDs(ids,type,traces.obj)
-  featureRes <- SECexplorer_processing(conversionRes$protein_ids,traces.obj)
+  if(length(conversionRes$protein_ids) > 0) {
+    featureRes <- SECexplorer_processing(conversionRes$protein_ids,traces.obj)
+  } else {
+    featureRes <- NULL
+  }
   list(conversionRes = conversionRes,featureRes = featureRes)
 }
 

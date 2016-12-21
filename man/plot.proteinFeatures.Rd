@@ -4,8 +4,9 @@
 \alias{plot.proteinFeatures}
 \title{Plot protein features.}
 \usage{
-plot.proteinFeatures(res, traces.obj, proteinID, plot_peak = TRUE,
-  plot_monomer = TRUE, log = FALSE, plot_apex = TRUE)
+\method{plot}{proteinFeatures}(res, traces.obj, proteinID, plot_peak = TRUE,
+  plot_monomer = TRUE, log = FALSE, plot_apex = TRUE,
+  plot_in_complex_estimate = TRUE)
 }
 \arguments{
 \item{res}{proteinFeatures}
