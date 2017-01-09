@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 
 
-if (Sys.info()["effective_user"] != "root")
+if (FALSE && Sys.info()["effective_user"] != "root")
 {
    cat("\n-> you must run this script as root, eg using sudo\n");
    quit("no");
@@ -22,6 +22,7 @@ install('doSNOW');
 install('foreach');
 install('parallel');
 install('pracma');
+install('gridExtra');
 
 library(devtools);
 devtools::install(".")
