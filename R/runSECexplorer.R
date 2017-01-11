@@ -54,10 +54,12 @@
 runSECexplorer <- function(ids,type){
   traces.obj <- traces.obj
   conversionRes <- convertIDs(ids,type,traces.obj)
-  if(length(conversionRes$protein_ids) > 0) {
-    featureRes <- SECexplorer_processing(conversionRes$protein_ids,traces.obj)
-  } else {
+  if (length(conversionRes$protein_ids) == 0) {
     featureRes <- NULL
+  } else if (length(conversionRes$protein_ids) == 1) {
+    featureRes <- list(traces=traces.obj,features=NULL,calibration=NULL)
+  } else if (length(conversionRes$protein_ids) > 1) {
+    featureRes <- SECexplorer_processing(conversionRes$protein_ids,traces.obj)
   }
   list(conversionRes = conversionRes,featureRes = featureRes)
 }
