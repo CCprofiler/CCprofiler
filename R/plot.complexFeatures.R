@@ -99,10 +99,8 @@ plot.complexFeatures <- function(res,
     }
     p <- p + geom_vline(data=features,aes(xintercept=apex), colour="black",linetype="solid")
 
-
-    p <- p + scale_x_continuous(name="SEC fraction",limits=c(0,80),breaks=seq(0,80,10),labels=seq(0,80,10))
-
     p2 <- p
+    p <- p + scale_x_continuous(name="SEC fraction",limits=c(0,80),breaks=seq(0,80,10),labels=seq(0,80,10))    
     p2 <- p2 + scale_x_continuous(name="MW",
                    ,limits=c(0,80),breaks=seq(0,80,10),
                    labels=round(calibration$SECfractionToMW(seq(0,80,10)),digits=0)
