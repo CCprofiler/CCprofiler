@@ -59,8 +59,11 @@ runSECexplorer <- function(ids,type){
   } else if (length(conversionRes$protein_ids) == 1) {
     std_weights_kDa = c(1398, 699, 300, 150, 44, 17)
     std_elu_fractions = c(19, 29, 37, 46, 54.5, 61)
-    calibration = calibrateSECMW(std_weights_kDa = std_weights_kDa, std_elu_fractions = std_elu_fractions,plot=FALSE,PDF=FALSE)
-    featureRes <- list(traces=traces.obj,features=NULL,calibration=calibration)
+    # calibration = calibrateSECMW(std_weights_kDa = std_weights_kDa, std_elu_fractions = std_elu_fractions,plot=FALSE,PDF=FALSE)
+    model = lm(log(std_weights_kDa) ~ std_elu_fractions)
+    model_coeffitients = model$coefficients
+    names(model_coeffitients) = c("intercept","slope")
+    featureRes <- list(traces=traces.obj,features=NULL,calibration=model_coeffitients)
   } else if (length(conversionRes$protein_ids) > 1) {
     featureRes <- SECexplorer_processing(conversionRes$protein_ids,traces.obj)
   }
