@@ -14,7 +14,7 @@ convertIDs(ids = ids, type = "UNIPROTKB", traces.obj = traces.obj)
 \item{traces.obj}{An object of type \code{traces.obj}.}
 }
 \value{
-A data.table containing the following information: 
+A data.table containing the following information:
        \itemize{
           \item \code{not_defined} A character vector containing all input ids that are not defined in the current version of the package.
           \item \code{no_ms_signal} A chaacter vector of all input ids that do not have an MS signal in the current SEC experiment.

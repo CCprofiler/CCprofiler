@@ -4,7 +4,8 @@
 \alias{plot.traces}
 \title{Plot a traces.obj.}
 \usage{
-plot.traces(traces.obj, plot = TRUE, ledgend = TRUE)
+\method{plot}{traces}(traces.obj, plot = TRUE, ledgend = TRUE,
+  title = NULL)
 }
 \arguments{
 \item{traces.obj}{An object of type \code{traces.obj}.}

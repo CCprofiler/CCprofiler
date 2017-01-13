@@ -4,7 +4,7 @@
 \alias{subset.traces}
 \title{Subset a traces.obj by trace_ids or fraction_ids.}
 \usage{
-subset.traces(traces.obj, trace_ids = NULL, fraction_ids = NULL)
+\method{subset}{traces}(traces.obj, trace_ids = NULL, fraction_ids = NULL)
 }
 \arguments{
 \item{traces.obj}{An object of type \code{traces.obj}.}
