@@ -42,10 +42,15 @@ proteinQuantification <- function(Traces, topN = 2, keep_less = FALSE, remove.de
   }
 
   # Sum peptides to protein level (wide) traces table
-  peptideTraces.topNsum.wide <- as.data.table(cast(peptideTraces.long,
-                                                   protein_id ~ fraction_number,
-                                                   value = "intensity",
-                                                   fun.aggregate = sum))
+  # peptideTraces.topNsum.wide <- as.data.table(cast(peptideTraces.long,
+  #                                                  protein_id ~ fraction_number,
+  #                                                  value = "intensity",
+  #                                                  fun.aggregate = sum))
+  #This is much faster
+  peptideTraces.topNsum.wide <- dcast(peptideTraces.long,
+                                       protein_id ~ fraction_number,
+                                       value.var = "intensity",
+                                       fun.aggregate = sum)
 
   # move id column to end to ensure correct quant value index
   peptideTraces.topNsum.wide[, id:=protein_id]
