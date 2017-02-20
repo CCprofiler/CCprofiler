@@ -1,0 +1,51 @@
+---
+title: "Differential Traces"
+output: 
+  pdf_document: 
+    keep_tex: yes
+header-includes:
+   - \usepackage{texshade}
+---
+
+```{r plot, results='asis', eval=TRUE, tidy=TRUE, fig.width=10, fig.height=5}
+
+
+dir.create(paste0(getwd(),"/alignments"))
+
+for(proteinID in proteinIDs){
+  top <- which(diff_scores[[proteinID]]$combined_score >= highlight_cutoff, arr.ind = TRUE)
+  if(length(top)>0){ 
+    outlier_pep <- rownames(top)
+    plot.proteinFeatures(features,traces,proteinID, plot_in_complex_estimate = T,
+                              plot_monomer = T, highlight = outlier_pep, legend = T)
+    # paste(sequences[[proteinID]])
+    pepseq <- traces$trace_annotation[protein_id == proteinID, id]
+    pepseq <- gsub("\\(.*?\\)","",pepseq)
+    # cat(blue(str_break(paste(sequences[[proteinID]]),80)), sep = "\n")
+    # pepString_chr <- numeric(0)
+    ranges <- numeric(0)
+    for(i in which(names(sequences) == proteinID)){
+      ranges2 <- IRanges(start = unlist(sapply(pepseq,function(x) start(matchPattern(sequences[[i]], pattern = x)))),
+                        end = unlist(sapply(pepseq, function(x) end(matchPattern(sequences[[i]], pattern = x)))))
+      if(length(ranges2) >= length(ranges)){
+        ranges <- ranges2
+        idx <- i
+      }
+    }
+    pepString <- AAString(paste(rep("-", length(sequences[[idx]])), collapse = ""))
+    if(length(ranges) != 0){
+      for(i in 1:length(ranges)){
+        pepString <- replaceAt(pepString, at = ranges[i], value = pepseq[i])
+      }
+      # pepString_chr <- c(pepString_chr, paste(pepString))
+    }
+    # pepString <- AAStringSet(pepString_chr)
+    # options(warn = -1)
+    alignment <- msa(append(sequences[idx], AAStringSet(pepString)), verbose = F, method = "Muscle")
+    # options(warn = 0)
+    msaPrettyPrint(alignment, output="asis", showNames="none", alFile = paste0(getwd(),"/alignments/",proteinID,"alignment.fasta"),
+                   showLogo="none", askForOverwrite=FALSE, showLegend = FALSE, verbose = F)
+
+  }
+}
+```

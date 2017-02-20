@@ -8,7 +8,7 @@
 #'        added to all 0 values for correlation calculation.
 #' @param corr.cutoff The correlation value for chromatograms above which
 #'        proteins are considered to be coeluting.
-#' @param window.size Size of the window. Numeric.
+#' @param window_size Size of the window. Numeric.
 #' @param with.plot T (TRUE) or F (FALSE) whether to plot the correlation tree.
 #' @param noise.quantile The quantile to use in estimating the noise level.
 #'        Intensity values that are zero are imputed with random noise
@@ -24,7 +24,7 @@
 #'           \item \code{right_sw} The right boundary of the sliding-window feature.
 #'           \item \code{score} The intra-sliding-window-feature correlation.
 #'           }
-#'          \item \code{window.size} The window.size used when running this
+#'          \item \code{window_size} The window_size used when running this
 #'              function.
 #'          \item \code{corr.cutoff} The corr.cutoff used when running this
 #'              function.
@@ -38,7 +38,7 @@
 #' @export
 findComplexFeaturesSW <- function(trace.mat,
                                   corr.cutoff=0.95,
-                                  window.size=15,
+                                  window_size=15,
                                   with.plot=F,
                                   min.sec=1){
   # trace.mat = getIntensityMatrix(traces.obj)
@@ -63,13 +63,13 @@ findComplexFeaturesSW <- function(trace.mat,
   # trace.mat[trace.mat == 0] <- abs(rnorm(n.zero.entries, mean=noise.mean,
   #                                        sd=noise.sd)) # replace ZEROs in trace.mat by imputed noise bas don normal distribution
   # Where to stop the sliding window
-  end.idx <- ncol(trace.mat) - window.size
+  end.idx <- ncol(trace.mat) - window_size
   
   # Analyze each window for groups of protein chromatograms that correlate
   # well.
   groups.by.window <- lapply(seq(1, ncol(trace.mat)), function(i) {
     start.window.idx <- min(end.idx, i)
-    end.window.idx <- start.window.idx + window.size
+    end.window.idx <- start.window.idx + window_size
     window.trace.mat <- trace.mat[, start.window.idx:end.window.idx]
     groups.within.window <-
       findComplexFeaturesWithinWindow(window.trace.mat=window.trace.mat,
@@ -97,10 +97,10 @@ findComplexFeaturesSW <- function(trace.mat,
       # window, where the correlation was high enough. So for example
       # if the window at RT == 20 found some subgroup, then the
       # subgroup should be reported for the interval
-      # [20, 20 + window.size].
+      # [20, 20 + window_size].
       # To achieve this, we replicate the data.table and each time
       # change the RT value.
-      do.call(rbind, lapply(seq(i, min(i + window.size, ncol(trace.mat))),
+      do.call(rbind, lapply(seq(i, min(i + window_size, ncol(trace.mat))),
                             function(t) {
                               new.rt.dt <- rt.dt
                               new.rt.dt$sec <- t + (min.sec - 1)
@@ -144,7 +144,7 @@ findComplexFeaturesSW <- function(trace.mat,
   # TODO: Include traces object as character string
   # and then get object form environment when plotting.
   result <- list(features=groups.feats,
-                 window.size=window.size,
+                 window_size=window_size,
                  corr.cutoff=corr.cutoff)
   class(result) <- 'complexFeaturesSW'
   result

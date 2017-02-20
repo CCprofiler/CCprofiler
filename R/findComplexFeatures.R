@@ -15,7 +15,7 @@
 #'        }
 #' @param corr.cutoff The correlation value for chromatograms above which
 #'        proteins are considered to be coeluting.
-#' @param window.size Size of the window. Numeric.
+#' @param window_size Size of the window. Numeric.
 #' @param parallelized If the computation should be done in parallel.
 #'        Optional.
 #' @param n.cores The number of cores to use for parallel processing. Optional.
@@ -31,7 +31,7 @@
 #'          \item \code{input.complexes} A character vector of all query
 #'                 complexes.
 #'          \item \code{corr.cutoff} The correlation cutoff used.
-#'          \item \code{window.size} The window size used.
+#'          \item \code{window_size} The window size used.
 #'         }
 #' @examples
 #' # NOT RUN:
@@ -50,7 +50,7 @@ findComplexFeatures <- function(traces.obj,
                                             complex.protein.assoc,
                                             MWSECcalibrationFunctions,
                                             corr.cutoff=0.95,
-                                            window.size=15,
+                                            window_size=15,
                                             parallelized=FALSE,
                                             n.cores=parallel::detectCores(),
                                             perturb.cutoff = "5%",
@@ -77,7 +77,7 @@ findComplexFeatures <- function(traces.obj,
       if (nrow(traces.imputed.subs) >= 2) {
         complexFeaturesSW <- findComplexFeaturesSW(trace.mat=traces.imputed.subs,
                                                             corr.cutoff=corr.cutoff,
-                                                            window.size=window.size)
+                                                            window_size=window_size)
         if((dim(complexFeaturesSW$features)[1] == 0) & (dim(complexFeaturesSW$features)[2] == 0)){
           return(list())
         }
@@ -158,7 +158,7 @@ findComplexFeatures <- function(traces.obj,
   res <- list(sw.results=sw.results,
               input.complexes=input.complexes,
               corr.cutoff=corr.cutoff,
-              window.size=window.size)
+              window_size=window_size)
 
   class(res) <- 'complexFeatures'
 

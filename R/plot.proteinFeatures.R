@@ -1,11 +1,17 @@
 #' Plot protein features.
 #'
 #' @param res proteinFeatures
-#' @param pepTraces An object of type \code{traces.obj}.
+#' @param traces.obj An object of type \code{traces.obj}.
 #' @param proteinID protein ID
-#' @param window.size Size of the window. Numeric.
 #' @param plot_peak logical
 #' @param plot_monomer logical
+#' @param log logical
+#' @param plot_apex logical
+#' @param plot_in_complex_estimate logical
+#' @param legend logical
+#' @param highlight vector of trace ids to highlight
+#' @param showtraces character Either "annotated" or "detected".
+#' @param 
 #' @export
 
 plot.proteinFeatures <- function(res,
@@ -15,15 +21,26 @@ plot.proteinFeatures <- function(res,
                                  plot_monomer=TRUE,
                                  log=FALSE,
                                  plot_apex=TRUE,
-                                 plot_in_complex_estimate=TRUE) {
+                                 plot_in_complex_estimate=TRUE,
+                                 legend=FALSE,
+                                 highlight=NULL,
+                                 showtraces="annotated") {
 
 
   features <- subset(res, protein_id == proteinID)
-  #peptides <- unique(unlist(strsplit(features$subunits_annotated, split = ";")))
-  peptides <- traces.obj$trace_annotation[protein_id == proteinID]$id
+  if(showtraces == "annotated"){
+    peptides <- unique(unlist(strsplit(features$subunits_annotated, split = ";")))
+  }else if(showtraces == "detected"){
+    peptides <- unique(unlist(strsplit(features$subunits_detected, split = ";")))
+  }else{
+    stop("Parameter 'showtraces' must be either 'annotated' or 'detected'")
+  }
+  # peptides <- traces.obj$trace_annotation[protein_id == proteinID]$id
   traces <- subset(traces.obj,trace_ids = peptides)
   traces.long <- toLongFormat(traces$traces)
-
+  if(!is.null(highlight)){
+    traces.long$outlier <- traces.long$id %in% highlight
+  }
   # add monomer MW
   monomer = as.numeric(unlist(features$monomer_sec))
   monomer_max = as.numeric(unlist(features$monomer_sec_max))
@@ -38,9 +55,12 @@ plot.proteinFeatures <- function(res,
     geom_line(aes_string(x='fraction', y='intensity', color='id')) +
     ggtitle(proteinName) +
     xlab('fraction') +
-    ylab('intensity') +
-    guides(color=FALSE)
-
+    ylab('intensity')
+  
+    if(!legend){
+      p <- p + guides(color=FALSE)
+    }
+    
     if (log) {
       p <- p + scale_y_log10('log(intensity)')
     }
@@ -64,5 +84,11 @@ plot.proteinFeatures <- function(res,
     p <- p + geom_vline(data=features,aes(xintercept=apex), colour="darkgrey", linetype="solid")
   }
   #p <- p + theme(legend.position="none")
+  if(!is.null(highlight)){
+    legend_peps <- unique(traces.long[outlier == TRUE, id])
+  p <- p + 
+    geom_line(data = traces.long[outlier == TRUE], aes_string(x='fraction', y='intensity', color='id'), lwd=2) +
+    scale_color_discrete(breaks = legend_peps)
+  }
   print(p)
 }
