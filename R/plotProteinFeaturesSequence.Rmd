@@ -35,7 +35,9 @@ for(proteinID in proteinIDs){
     pepString <- AAString(paste(rep("-", length(sequences[[idx]])), collapse = ""))
     if(length(ranges) != 0){
       for(i in 1:length(ranges)){
-        pepString <- replaceAt(pepString, at = ranges[i], value = pepseq[i])
+        if(end(ranges[i]) <= length(pepString)){
+          pepString <- replaceAt(pepString, at = ranges[i], value = pepseq[i])
+        }
       }
       # pepString_chr <- c(pepString_chr, paste(pepString))
     }

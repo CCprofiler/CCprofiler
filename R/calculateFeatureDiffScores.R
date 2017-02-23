@@ -235,6 +235,7 @@ plotDifferentialTraces <- function(proteinIDs, diff_scores, features, traces, hi
     
     # knit("Y:/Master_Project/results/2017-02-14/plotProteinFeaturesSequence.Rmd", envir = parent.frame())
     # pandoc("Y:/Master_Project/results/2017-02-14/plotProteinFeaturesSequence.md", format = "pdf")
+    if(!grepl("\\.pdf$", outfile_name)) outfile_name <- paste0(outfile_name,".pdf")
     rmarkdown::render(input = base::system.file("R/plotProteinFeaturesSequence.Rmd",package = "SECprofiler"),
                       output_file = outfile_name, output_dir = getwd(), knit_root_dir = getwd())
     
