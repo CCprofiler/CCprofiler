@@ -69,3 +69,18 @@ plot.traces <- function(traces.obj, plot=TRUE, ledgend = TRUE, title=NULL) {
   if (plot) plot(pl)
   pl
 }
+
+
+#' Summarize a \code{traces.obj}
+#' @param traces.obj An object of type \code{traces.obj}.
+#' @export
+summary.traces <- function(traces.obj) {
+  no_traces <- nrow(traces.obj$trace_annotation)
+  no_decoys <- length(grep("DECOY", traces.obj$trace_annotation$protein_id))
+  no_targets <- no_traces - no_decoys
+  pct_decoys <- signif(no_decoys/no_traces * 100, 2)
+  res <- c(no_traces, no_targets, no_decoys, pct_decoys)
+  names(res) <- c("No. of Traces", "No. of Targets", "No. of Decoys", "% Decoys")
+  res
+}
+
