@@ -5,21 +5,25 @@
 \title{Import peptide profiles from an OpenSWATH experiment.}
 \usage{
 importFromOpenSWATH(data = "OpenSwathData.tsv",
-  annotation.table = "annotation.txt", remove_requantified = TRUE,
-  MS1Quant = FALSE, rm.decoy = FALSE)
+  annotation_table = "annotation.txt", rm_requantified = TRUE,
+  rm_decoys = FALSE, MS1Quant = FALSE)
 }
 \arguments{
 \item{data}{Quantitative MS data in form of OpenSWATH result file or R data.table.}
 
-\item{annotation.table}{path to tab-separated .txt file containing columns `filename` and
+\item{annotation_table}{path to tab-separated .txt file containing columns `filename` and
 `fraction_number` that map the file names (occuring in input table filename column)
 `to a SEC elution fraction.}
 
-\item{remove_requantified}{Whether requantified (noise) peak group quantities
+\item{rm_requantified}{Whether requantified (noise) peak group quantities
 (as indicated by m_score = 2) should be removed, defaults to TRUE.}
+
+\item{rm_decoys}{Whether decoys should be removed, defaults to FALSE.}
+
+\item{MS1Quant}{Wheather MS1 quantification should be used, defaults to FALSE.}
 }
 \value{
-An object of class Traces containing 
+An object of class Traces containing
     "traces", "traces_type", "traces_annotation" and "fraction_annotation" list entries
     that can be processed with the herein contained functions.
 }

@@ -17,3 +17,4 @@ Depends:
     pracma
 RoxygenNote: 5.0.1
 Imports: igraph
+Suggests: testthat
