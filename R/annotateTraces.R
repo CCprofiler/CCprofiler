@@ -1,10 +1,3 @@
-#' Import peptide profiles from an OpenSWATH experiment.
-#' @import data.table
-#' @param traces.obj An object of type \code{traces.obj}.
-#' @param annotation.table path to tab-separated .txt file for annotation of the traces
-#' @return traces.obj An object of type \code{traces.obj}.
-#' @export
-
 #' annotate Traces object
 #' @description Add columns to the trace_annotation table from an external annotation table
 #' @param traces Object of class traces
