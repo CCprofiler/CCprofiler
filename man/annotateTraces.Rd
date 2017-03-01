@@ -2,25 +2,30 @@
 % Please edit documentation in R/annotateTraces.R
 \name{annotateTraces}
 \alias{annotateTraces}
-\title{annotate Traces object}
+\title{Annotate traces object.}
 \usage{
-annotateTraces(traces, traces_id_column = "id",
-  annotation_table = "uniprot.tab", annotation_table_id_column = "Entry",
+annotateTraces(traces, annotation_table = "uniprot.tab",
+  traces_id_column = "id", annotation_table_id_column = "Entry",
   replace_whitespace = TRUE)
 }
 \arguments{
-\item{traces}{Object of class traces}
+\item{traces}{object of class traces}
 
-\item{annotation_table}{path to tab-separated annotation table to be merged into trace_annotation}
+\item{annotation_table}{tab-separated annotation table to be merged into trace_annotation, file or R data.table}
+
+\item{traces_id_column}{name of the id column specifying the entries to be annotated}
+
+\item{annotation_table_id_column}{name of the column in the reference table that contains the ids
+defaults to "Entry" as expexted from uniprot.tab files}
 
 \item{replace_whitespace}{whether spaces contained in the anntation table column names shall be replaced by "_"
 defaults to TRUE
 ,typically FullPeptideName or Uniprot Entry names as protein_id. Same as in traces$traces$id}
-
-\item{id_column}{name/header of the column in the reference table that contains the ids
-defaults to "Entry" as expexted from uniprot.tab files}
+}
+\value{
+traces object of class traces with extended annotation
 }
 \description{
-Add columns to the trace_annotation table from an external annotation table
+Add columns to the trace_annotation table from an external annotation table.
 }
 

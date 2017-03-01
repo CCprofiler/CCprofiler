@@ -1,37 +1,44 @@
-#' Filter a traces.object based on the Sibling Peptide Correlation (SibPepCorr).
-#' @param traces.obj An object of type \code{traces.obj}.
+# Due to: http://stackoverflow.com/questions/24501245/data-table-throws-object-not-found-error
+.datatable.aware=TRUE
+
+#' filterBySibPepCorr
+#' @description Filter protein profiling traces based on
+#' Sibling Peptide Correlation (SibPepCorr).
+#' @import data.table
+#' @param traces An object of type \code{traces.obj}.
 #' @param protein_fdr_cutoff numeric specifying the FDR cutoff to be applied to select a sibling correlation cutoff
 #' @param FFT numeric specifying the fraction of false targets (FFT). Default is 1.
 #' @param absolute_spc_cutoff numeric specifying an absolute sibling correlation cutoff to be applied instead of FDR based cutoff estimation.
-#' @param remove_decoys logical specifying if decoys should be removed. It is strongly recommended to keep the decoys. Default is FALSE.
+#' Only used if protein_fdr_cutoff is not provided. Default is NULL.
+#' @param rm_decoys logical specifying if decoys should be removed. It is strongly recommended to keep the decoys. Default is FALSE.
 #' @param plot logical TRUE or FALSE
 #' @param PDF logical TRUE or FALSE
 #' @param CSV logical TRUE or FALSE
-#' @return traces.obj An object of type \code{traces.obj}.
+#' @return An object of type \code{traces.obj}.
 #' @export
 
-filterBySibPepCorr <- function(Traces,
+filterBySibPepCorr <- function(traces,
                                protein_fdr_cutoff = 0.01,
                                FFT = 1,
                                absolute_spc_cutoff = NULL,
-                               remove_decoys = TRUE,
+                               rm_decoys = FALSE,
                                plot = TRUE,
                                PDF = FALSE,
                                CSV = FALSE) {
 
   # If sibling peptide correlation hass not been calculated yet, do it
-  if (!("SibPepCorr" %in% names(Traces$trace_annotation))){
+  if (!("SibPepCorr" %in% names(traces$trace_annotation))){
     message("Sibling peptide correlation not yet calculated for this dataset\nCalculating SibPepCorr(spc)...")
-    Traces <- calculateSibPepCorr(Traces, plot = plot, PDF = PDF)
+    traces <- calculateSibPepCorr(traces, plot = plot, PDF = PDF)
   } else{
     message("Sibling peptide correlation values found...")
   }
 
   # get spc_cutoff from FDR estimation or direct
-  decoys_contained = length(grep("^DECOY_", Traces$trace_annotation$protein_id)) > 0
+  decoys_contained = length(grep("^DECOY_", traces$trace_annotation$protein_id)) > 0
   if (decoys_contained){
     message("Decoys found...\nEstimating FDR...")
-    table <- ROC.SibPepCorr(Traces, FFT = FFT, plot = FALSE)
+    roctable <- ROC.SibPepCorr(traces, FFT = FFT, plot = FALSE)
     cutoff_for_fdr <- roctable[FDR <= protein_fdr_cutoff, min(SibPepCorr_cutoff)]
     fdr_reached <- roctable[FDR <= protein_fdr_cutoff, max(FDR)]
     target_proteins_remaining <- roctable[FDR <= protein_fdr_cutoff, max(n_target_proteins)]
@@ -44,32 +51,32 @@ filterBySibPepCorr <- function(Traces,
     spc_cutoff <- absolute_spc_cutoff
   }
 
-  # subset Traces object
-  Traces.filtered <- Traces
-  Traces.filtered$trace_annotation <- Traces$trace_annotation[SibPepCorr >= spc_cutoff]
-  Traces.filtered$traces <- Traces$traces[Traces$trace_annotation$SibPepCorr >= spc_cutoff]
+  # subset traces object
+  traces.filtered <- traces
+  traces.filtered$trace_annotation <- traces$trace_annotation[SibPepCorr >= spc_cutoff]
+  traces.filtered$traces <- traces$traces[traces$trace_annotation$SibPepCorr >= spc_cutoff]
 
   # compare target/decoy numbers before and after
   if (decoys_contained){
     # before
-    Traces$trace_annotation$DECOY <- 0
-    Traces$trace_annotation$DECOY[grep('^DECOY_', Traces$trace_annotation$protein_id)] <- 1
-    target_proteins_before <- Traces$trace_annotation[DECOY == 0, length(unique(protein_id))]
-    decoy_proteins_before <- Traces$trace_annotation[DECOY == 1, length(unique(protein_id))]
+    traces$trace_annotation$DECOY <- 0
+    traces$trace_annotation$DECOY[grep('^DECOY_', traces$trace_annotation$protein_id)] <- 1
+    target_proteins_before <- traces$trace_annotation[DECOY == 0, length(unique(protein_id))]
+    decoy_proteins_before <- traces$trace_annotation[DECOY == 1, length(unique(protein_id))]
     protein_fdr_before = decoy_proteins_before/(decoy_proteins_before+target_proteins_before) * FFT
     # after
-    Traces.filtered$trace_annotation$DECOY <- 0
-    Traces.filtered$trace_annotation$DECOY[grep('^DECOY_', Traces.filtered$trace_annotation$protein_id)] <- 1
-    target_proteins_after <- Traces.filtered$trace_annotation[DECOY == 0, length(unique(protein_id))]
-    decoy_proteins_after <- Traces.filtered$trace_annotation[DECOY == 1, length(unique(protein_id))]
+    traces.filtered$trace_annotation$DECOY <- 0
+    traces.filtered$trace_annotation$DECOY[grep('^DECOY_', traces.filtered$trace_annotation$protein_id)] <- 1
+    target_proteins_after <- traces.filtered$trace_annotation[DECOY == 0, length(unique(protein_id))]
+    decoy_proteins_after <- traces.filtered$trace_annotation[DECOY == 1, length(unique(protein_id))]
     protein_fdr_after = decoy_proteins_after/(decoy_proteins_after+target_proteins_after) * FFT
   } else{
     # before
-    target_proteins_before <- Traces$trace_annotation[, length(unique(protein_id))]
+    target_proteins_before <- traces$trace_annotation[, length(unique(protein_id))]
     decoy_proteins_before <- 0
     protein_fdr_before <- NA
     # after
-    target_proteins_after <- Traces.filtered$trace_annotation[, length(unique(protein_id))]
+    target_proteins_after <- traces.filtered$trace_annotation[, length(unique(protein_id))]
     decoy_proteins_after <- 0
     protein_fdr_after <- NA
   }
@@ -112,20 +119,20 @@ filterBySibPepCorr <- function(Traces,
   }
 
   # remove decoys
-  if (remove_decoys) {
-    n_decoys <- length(grep("^DECOY", Traces.filtered$trace_annotation$protein_id))
+  if (rm_decoys) {
+    n_decoys <- length(grep("^DECOY", traces.filtered$trace_annotation$protein_id))
     if ( n_decoys > 0){
-      idx_decoys <- grep("^DECOY_",Traces.filtered$trace_annotation$protein_id)
-      Traces.filtered$traces <- Traces.filtered$traces[-idx_decoys]
-      Traces.filtered$trace_annotation<- Traces.filtered$trace_annotation[-idx_decoys]
+      idx_decoys <- grep("^DECOY_",traces.filtered$trace_annotation$protein_id)
+      traces.filtered$traces <- traces.filtered$traces[-idx_decoys]
+      traces.filtered$trace_annotation<- traces.filtered$trace_annotation[-idx_decoys]
       message(n_decoys, " decoys removed")
     } else {
       message("no decoys contained/removed")
     }
   }
 
-  #return the filtered Traces data
+  #return the filtered traces data
   message("Proteins remaining in dataset: ", target_proteins_after)
-  return(Traces.filtered)
+  return(traces.filtered)
 
 }

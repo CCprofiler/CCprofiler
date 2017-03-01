@@ -1,23 +1,28 @@
-#' Calculate sibling peptide correlation in traces.object of type peptide.
-#' @param traces.obj An object of type \code{traces.obj}.
+# Due to: http://stackoverflow.com/questions/24501245/data-table-throws-object-not-found-error
+.datatable.aware=TRUE
+
+#' calculateSibPepCorr
+#' @description Calculate sibling peptide correlation in traces.object of type peptide.
+#' @import data.table
+#' @param traces An object of type \code{traces.obj}.
 #' @param plot logical TRUE or FALSE
 #' @param PDF logical TRUE or FALSE
-#' @return traces.obj An object of type \code{traces.obj}.
+#' @return An object of type \code{traces.obj}.
 #' @export
 
-calculateSibPepCorr <- function(Traces,
+calculateSibPepCorr <- function(traces,
                                 plot = TRUE,
                                 PDF = FALSE)
   {
 
   # Check input type
-  if (Traces$trace_type != "peptide"){
+  if (traces$trace_type != "peptide"){
     stop("Sibling peptide correlation can only be calculated on traces of type peptide")
   }
 
   # prepare data
-  quantdata <- getIntensityMatrix(Traces)
-  proteins <- unique(Traces$trace_annotation$protein_id)
+  quantdata <- getIntensityMatrix(traces)
+  proteins <- unique(traces$trace_annotation$protein_id)
   nproteins <- length(proteins)
 
   # calculation of SibPepCorr
@@ -27,7 +32,7 @@ calculateSibPepCorr <- function(Traces,
 
     #message(paste("PROCESSED", i, "of", nproteins, "proteins"))
     #indexpos <- proteins[i] == data$protein_id
-    indexpos <- proteins[i] == Traces$trace_annotation$protein_id
+    indexpos <- proteins[i] == traces$trace_annotation$protein_id
     df <- quantdata[indexpos,]
     class(df) <- 'numeric'
     df_cor <- cor(t(df))
@@ -45,17 +50,17 @@ calculateSibPepCorr <- function(Traces,
     }
   }
 
-  Traces$trace_annotation$SibPepCorr <- SibPepCorr
+  traces$trace_annotation$SibPepCorr <- SibPepCorr
 
   # output plot
   if (plot){
     if (PDF){
       pdf("SibPepCorr_densityplot.pdf")
     }
-    plot.SibPepCorrDensities(Traces)
+    plot.SibPepCorrDensities(traces)
     if (PDF){
       dev.off()
     }
   }
-  return(Traces)
+  return(traces)
 }

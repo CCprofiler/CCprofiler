@@ -5,8 +5,7 @@
 #' @description Filter protein profiling traces based on
 #' minimal length of consecutive ID stretches.
 #' @import data.table
-#' @param traces object of class traces containing the elution profiles that
-#'     are to be filtered.
+#' @param traces An object of type \code{traces.obj}.
 #' @param min_stretch_length The minimal length a stretch of contiguous
 #'     identifications has to have in order not to be removed.
 #' @param remove_empty Logical whether the entries with rowSum == 0 after

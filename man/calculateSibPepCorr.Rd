@@ -2,19 +2,19 @@
 % Please edit documentation in R/calculateSibPepCorr.R
 \name{calculateSibPepCorr}
 \alias{calculateSibPepCorr}
-\title{Calculate sibling peptide correlation in traces.object of type peptide.}
+\title{calculateSibPepCorr}
 \usage{
-calculateSibPepCorr(Traces, plot = TRUE, PDF = FALSE)
+calculateSibPepCorr(traces, plot = TRUE, PDF = FALSE)
 }
 \arguments{
+\item{traces}{An object of type \code{traces.obj}.}
+
 \item{plot}{logical TRUE or FALSE}
 
 \item{PDF}{logical TRUE or FALSE}
-
-\item{traces.obj}{An object of type \code{traces.obj}.}
 }
 \value{
-traces.obj An object of type \code{traces.obj}.
+An object of type \code{traces.obj}.
 }
 \description{
 Calculate sibling peptide correlation in traces.object of type peptide.
