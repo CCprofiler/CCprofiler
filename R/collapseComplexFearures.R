@@ -13,7 +13,6 @@
 #'           \item \code{score} The intra-sliding-window-feature correlation.
 #'           }
 #'        }
-#' @export
 
 collapseComplexFeatures <- function(complexFeature=complexFeaturesPP,rt_height=5,collapse_method="apex_only"){
   complexFeature = complexFeature$features

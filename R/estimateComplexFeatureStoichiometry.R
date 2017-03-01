@@ -37,7 +37,6 @@
 #'           \item \code{stoichiometry} The rounded \code{intensity_ratio} of all protein_ids of the feature separated by semi-colons.
 #'           }
 #'        }
-#' @export
 
 estimateComplexFeatureStoichiometry <- function(traces.obj,complexFeaturesPP) {
 

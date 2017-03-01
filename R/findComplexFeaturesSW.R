@@ -35,7 +35,7 @@
 #' # traces <- subset(protein.traces[protein_id %in% protein.ids],
 #' #                  select=-protein_id)
 #' # sw.res <- findComplexFeaturesSW(traces, protein.ids, protein.mw.conc)
-#' @export
+
 findComplexFeaturesSW <- function(trace.mat,
                                   corr.cutoff=0.95,
                                   window.size=15,
@@ -64,7 +64,7 @@ findComplexFeaturesSW <- function(trace.mat,
   #                                        sd=noise.sd)) # replace ZEROs in trace.mat by imputed noise bas don normal distribution
   # Where to stop the sliding window
   end.idx <- ncol(trace.mat) - window.size
-  
+
   # Analyze each window for groups of protein chromatograms that correlate
   # well.
   groups.by.window <- lapply(seq(1, ncol(trace.mat)), function(i) {
@@ -77,10 +77,10 @@ findComplexFeaturesSW <- function(trace.mat,
                                       protein.names=protein.names,
                                       with.plot=with.plot,
                                       sec=start.window.idx)
-    
+
     groups.within.window
   })
-  
+
   groups.dt.list <- lapply(1:length(groups.by.window), function(i) {
     # A list of clusters that were found at position `i`.
     subgroups <- groups.by.window[[i]]
@@ -111,15 +111,15 @@ findComplexFeaturesSW <- function(trace.mat,
     do.call(rbind, subgroups.dt.list)
   })
   groups.dt <- do.call(rbind, groups.dt.list)
-  
+
   if (!is.null(groups.dt)) {
     groups.only <- subset(groups.dt, select=-protein_id)
     setkey(groups.only) # sorts all columns in ascending order
     groups.only <- unique(groups.only)
-    
+
     groups.only$is_present <- T
     groups.only.wide <- cast(groups.only, subgroup ~ sec, length, value='is_present', fill=F)
-    
+
     sec.range=ncol(trace.mat)
     subgroup.range=length(unique(groups.only$subgroup))
     groups.only.wide.tf = matrix(FALSE,ncol=sec.range,nrow=subgroup.range)
@@ -132,7 +132,7 @@ findComplexFeaturesSW <- function(trace.mat,
         }
       }
     }
-    
+
     groups.mat <- groups.only.wide.tf
     #groups.mat <- as.matrix(subset(groups.only.wide, select=-subgroup))
     groups.feats <- findFeatureBoundaries(groups.mat,
@@ -255,7 +255,7 @@ findFeatureBoundaries <- function(m, subgroup.names, groups.dt) {
       left.boundaries <- boundaries.m[1, ]
       right.boundaries <- boundaries.m[2, ]
       subgroup.name <- subgroup.names[i]
-      
+
       # Extract the groupscore for each feature found
       # for this subgroup.
       n.features.found <- length(left.boundaries)

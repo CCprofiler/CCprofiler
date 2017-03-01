@@ -65,7 +65,6 @@
 #'           \item \code{sec_diff} Difference between \code{complex_sec_estimated} and \code{apax} of the feature.
 #'          }
 #'        }
-#' @export
 
 annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,complex.annotation,MWSECcalibrationFunctions) {
 
@@ -99,7 +98,7 @@ annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,com
     } else {
       subunit_MW <-  0
     }
-    #subunit_SEC <- (log(subunit_MW)-9.682387)/(-0.1043329) 
+    #subunit_SEC <- (log(subunit_MW)-9.682387)/(-0.1043329)
     subunit_SEC <- MWSECcalibrationFunctions$MWtoSECfraction(subunit_MW)
     # calculate complex molecular weight
     stoichiometry <- strsplit(feature$stoichiometry, ';')[[1]]

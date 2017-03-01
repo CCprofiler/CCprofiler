@@ -34,7 +34,7 @@
 #'           \item \code{area} The area (entire complex) of the selected peak by the peak-picker.
 #'           }
 #'        }
-#' @export
+
 findComplexFeaturesPP <- function(traces.obj,complexFeaturesSW,smoothing_length=11,rt_height=5) {
     features <- complexFeaturesSW$features
     # Compute the number of subunits in each complex feature
