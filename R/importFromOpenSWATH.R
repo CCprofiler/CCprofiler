@@ -2,6 +2,7 @@
 .datatable.aware=TRUE
 
 #' Import peptide profiles from an OpenSWATH experiment.
+#' @description Import peptide profiles from an OpenSWATH experiment.
 #' @import data.table
 #' @param data Quantitative MS data in form of OpenSWATH result file or R data.table.
 #' @param annotation_table path to tab-separated .txt file containing columns `filename` and
@@ -15,6 +16,7 @@
 #'     "traces", "traces_type", "traces_annotation" and "fraction_annotation" list entries
 #'     that can be processed with the herein contained functions.
 #' @export
+
 importFromOpenSWATH <- function(data= 'OpenSwathData.tsv',
                                 annotation_table="annotation.txt",
                                 rm_requantified=TRUE,
@@ -142,5 +144,8 @@ importFromOpenSWATH <- function(data= 'OpenSwathData.tsv',
   class(result) <- "traces"
   names(result) <- c("traces", "trace_type", "trace_annotation", "fraction_annotation")
 
+  # sort both trace_annotation and traces for consistency (also done in annotateTraces function)
+  setorder(result$trace_annotation, id)
+  setorder(result$traces, id)
   return(result)
 }
