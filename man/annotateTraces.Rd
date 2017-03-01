@@ -2,19 +2,25 @@
 % Please edit documentation in R/annotateTraces.R
 \name{annotateTraces}
 \alias{annotateTraces}
-\title{Import peptide profiles from an OpenSWATH experiment.}
+\title{annotate Traces object}
 \usage{
-annotateTraces(traces, annotation_table)
+annotateTraces(traces, traces_id_column = "id",
+  annotation_table = "uniprot.tab", annotation_table_id_column = "Entry",
+  replace_whitespace = TRUE)
 }
 \arguments{
-\item{traces.obj}{An object of type \code{traces.obj}.}
+\item{traces}{Object of class traces}
 
-\item{annotation.table}{path to tab-separated .txt file for annotation of the traces}
-}
-\value{
-traces.obj An object of type \code{traces.obj}.
+\item{annotation_table}{path to tab-separated annotation table to be merged into trace_annotation}
+
+\item{replace_whitespace}{whether spaces contained in the anntation table column names shall be replaced by "_"
+defaults to TRUE
+,typically FullPeptideName or Uniprot Entry names as protein_id. Same as in traces$traces$id}
+
+\item{id_column}{name/header of the column in the reference table that contains the ids
+defaults to "Entry" as expexted from uniprot.tab files}
 }
 \description{
-Import peptide profiles from an OpenSWATH experiment.
+Add columns to the trace_annotation table from an external annotation table
 }
 

@@ -31,7 +31,7 @@ filterBySibPepCorr <- function(Traces,
   decoys_contained = length(grep("^DECOY_", Traces$trace_annotation$protein_id)) > 0
   if (decoys_contained){
     message("Decoys found...\nEstimating FDR...")
-    roctable <- ROC.SibPepCorr(Traces, FFT = FFT, plot = FALSE)
+    table <- ROC.SibPepCorr(Traces, FFT = FFT, plot = FALSE)
     cutoff_for_fdr <- roctable[FDR <= protein_fdr_cutoff, min(SibPepCorr_cutoff)]
     fdr_reached <- roctable[FDR <= protein_fdr_cutoff, max(FDR)]
     target_proteins_remaining <- roctable[FDR <= protein_fdr_cutoff, max(n_target_proteins)]
@@ -84,19 +84,20 @@ filterBySibPepCorr <- function(Traces,
 
   # CSV
   if (CSV){
-    write.csv(roctable, file = "SibPepCorrFilter_ROCtable.csv", row.names = FALSE, quote = FALSE)
+    write.csv(roctable, file = "SibPepCorrFilter_IDFDRtable.csv", row.names = FALSE, quote = FALSE)
     write.csv(SibPepCorrFilter_report, file = "SibPepCorrFilter_report.csv", row.names = FALSE, quote = FALSE)
   }
 
-  # PDF/ROCplot
+  # PDF/ROC-like plot
   if (decoys_contained){
     if (PDF){
-      pdf("SibPepCorrFilter_ROCplot.pdf")
+      pdf("SibPepCorrFilter_IDFDRplot.pdf")
     }
   if(plot){
+	  par(mar=c(5.4,5.4,6.4,5.4))
       plot(roctable$FDR, roctable$n_target_proteins, type = "l", lty = 2,
            lwd = 2,
-           main = paste0("ROC Curve\n spc_cutoff: ", round(spc_cutoff, 4), "\ntarget proteins remaining: ",
+           main = paste0("ID-FDR Curve\n spc_cutoff: ", round(spc_cutoff, 4), "\ntarget proteins remaining: ",
                          target_proteins_remaining, "\nestimated FDR: ", round(fdr_reached, 4)),
            xlim = c(0,0.1), ylim = c(0, 1.02* max(roctable$n_target_proteins)), xlab='FDR',ylab='n')
       lines(roctable$FDR, roctable$n_true_target_proteins, lty = 1, lwd = 2)
@@ -112,11 +113,11 @@ filterBySibPepCorr <- function(Traces,
 
   # remove decoys
   if (remove_decoys) {
-    n_decoys <- length(grep("^DECOY", Traces$trace_annotation$protein_id))
+    n_decoys <- length(grep("^DECOY", Traces.filtered$trace_annotation$protein_id))
     if ( n_decoys > 0){
-      idx_decoys <- grep("^DECOY_",Traces$trace_annotation$protein_id)
-      Traces$traces <- Traces$traces[-idx_decoys]
-      Traces$trace_annotation<- Traces$trace_annotation[-idx_decoys]
+      idx_decoys <- grep("^DECOY_",Traces.filtered$trace_annotation$protein_id)
+      Traces.filtered$traces <- Traces.filtered$traces[-idx_decoys]
+      Traces.filtered$trace_annotation<- Traces.filtered$trace_annotation[-idx_decoys]
       message(n_decoys, " decoys removed")
     } else {
       message("no decoys contained/removed")
