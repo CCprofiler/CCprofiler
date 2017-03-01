@@ -18,13 +18,14 @@ subset.traces <- function(traces.obj,trace_ids=NULL,fraction_ids=NULL){
     traces.obj
 }
 
-#' Get a matrix of intensity values from a traces object.
-#' @param traces.obj An object of type \code{traces.obj}.
+#' getIntensityMatrix
+#' @description  Get a matrix of intensity values from a traces object.
+#' @param traces An object of type \code{traces}.
 #' @return A matrix with intensity values.
 #' @export
-getIntensityMatrix <- function(traces.obj) {
-    ids <- traces.obj$traces$id
-    intensity.mat <- as.matrix(sapply(subset(traces.obj$traces,
+getIntensityMatrix <- function(traces) {
+    ids <- traces$traces$id
+    intensity.mat <- as.matrix(sapply(subset(traces$traces,
                                       select=-id),as.numeric))
     rownames(intensity.mat) <- ids
     intensity.mat
@@ -83,4 +84,3 @@ summary.traces <- function(traces.obj) {
   names(res) <- c("No. of Traces", "No. of Targets", "No. of Decoys", "% Decoys")
   res
 }
-

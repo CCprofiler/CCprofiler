@@ -2,12 +2,12 @@
 % Please edit documentation in R/tracesMethods.R
 \name{getIntensityMatrix}
 \alias{getIntensityMatrix}
-\title{Get a matrix of intensity values from a traces object.}
+\title{getIntensityMatrix}
 \usage{
-getIntensityMatrix(traces.obj)
+getIntensityMatrix(traces)
 }
 \arguments{
-\item{traces.obj}{An object of type \code{traces.obj}.}
+\item{traces}{An object of type \code{traces}.}
 }
 \value{
 A matrix with intensity values.
