@@ -1,3 +1,12 @@
+# proteinQuantification
+#' @description calculates protein level chromatographic traces object from peptide level traces object
+#' @param topN number of most-intense peptide chromatograms to aggregate (sum) to protein level signal.
+#' @param keep_less if proteins with less than topN peptides shall be kept in the dataset, quantified
+#' only on the available peptide signal(s)
+#' @param remove.decoys whether decoy proteins shall be removed from the dataset
+#' @import data.table
+#' @export
+
 proteinQuantification <- function(Traces, topN = 2, keep_less = FALSE, remove.decoys = TRUE){
   # Check if it's a peptide level table
   if(Traces$trace_type != "peptide"){
@@ -57,7 +66,7 @@ proteinQuantification <- function(Traces, topN = 2, keep_less = FALSE, remove.de
   # removal of peptide level SibPepCorr necessary after merge.data.table update 2016-11
   if ("SibPepCorr" %in% names(old_annotation_peptidelevel)){
     old_annotation_peptidelevel[, SibPepCorr_protein_mean:=mean(SibPepCorr), protein_id]
-	old_annotation_peptidelevel = unique(subset(old_annotation_peptidelevel, select =-SibPepCorr))
+	  old_annotation_peptidelevel = unique(subset(old_annotation_peptidelevel, select =-SibPepCorr))
 	}
   new_annotation = unique(peptideTraces.long[,.(protein_id, n_peptides, quant_peptides_used)])
   peptideTraces.topNsum.wide.annotation <- merge(old_annotation_peptidelevel,
