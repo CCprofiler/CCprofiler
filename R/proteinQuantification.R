@@ -1,16 +1,29 @@
-proteinQuantification <- function(Traces, topN = 2, keep_less = FALSE, remove.decoys = TRUE){
+# Due to: http://stackoverflow.com/questions/24501245/data-table-throws-object-not-found-error
+.datatable.aware=TRUE
+
+#' proteinQuantification
+#' @description Calculate protein quantities basen on the topN peptide intensities.
+#' @import data.table
+#' @param traces An object of type \code{traces.obj}, trace_type is peptide
+#' @param topN numeric specifying the number of peptides to use for protein quantification
+#' @param keep_less logical specifying wheather peptides with less than topN peptides should be kept in the data, default is FALSE
+#' @param rm_decoys logical specifying wheather decoys should be kept. The decoys have only limited use on the protein level, default is TRUE
+#' @return An object of type \code{traces.obj}, trace_type is protein
+#' @export
+
+proteinQuantification <- function(traces, topN = 2, keep_less = FALSE, rm_decoys = TRUE){
   # Check if it's a peptide level table
-  if(Traces$trace_type != "peptide"){
-    stop("The input object is not a peptide level traces object but", Traces$trace_type)
+  if(traces$trace_type != "peptide"){
+    stop("The input object is not a peptide level traces object but", traces$trace_type)
   }
 
   #remove decoys
-  if (remove.decoys) {
-    n_decoys <- length(grep("^DECOY", Traces$trace_annotation$protein_id))
+  if (rm_decoys) {
+    n_decoys <- length(grep("^DECOY", traces$trace_annotation$protein_id))
     if ( n_decoys > 0){
-      idx_decoys <- grep("^DECOY_",Traces$trace_annotation$protein_id)
-      Traces$traces <- Traces$traces[-idx_decoys]
-      Traces$trace_annotation<- Traces$trace_annotation[-idx_decoys]
+      idx_decoys <- grep("^DECOY_",traces$trace_annotation$protein_id)
+      traces$traces <- traces$traces[-idx_decoys]
+      traces$trace_annotation<- traces$trace_annotation[-idx_decoys]
       message(n_decoys, " decoys removed")
     } else {
       message("no decoys contained/removed")
@@ -18,9 +31,9 @@ proteinQuantification <- function(Traces, topN = 2, keep_less = FALSE, remove.de
   }
 
   # Extract wide table for calculations
-  peptideTracesTable <- data.table(protein_id = Traces$trace_annotation$protein_id,
-                                   peptide_id = Traces$trace_annotation$id,
-                                   subset(Traces$traces, select =-id))
+  peptideTracesTable <- data.table(protein_id = traces$trace_annotation$protein_id,
+                                   peptide_id = traces$trace_annotation$id,
+                                   subset(traces$traces, select =-id))
 
   # Calculations in long format - sum the topN peptides per protein
   peptideTraces.long <- melt(peptideTracesTable,
@@ -53,7 +66,7 @@ proteinQuantification <- function(Traces, topN = 2, keep_less = FALSE, remove.de
   setorder(peptideTraces.topNsum.wide, -id)
 
   ## assemble updated, protein-level trace_annotation table
-  old_annotation_peptidelevel = subset(Traces$trace_annotation, select =-id)
+  old_annotation_peptidelevel = subset(traces$trace_annotation, select =-id)
   # removal of peptide level SibPepCorr necessary after merge.data.table update 2016-11
   if ("SibPepCorr" %in% names(old_annotation_peptidelevel)){
     old_annotation_peptidelevel[, SibPepCorr_protein_mean:=mean(SibPepCorr), protein_id]
@@ -73,8 +86,8 @@ proteinQuantification <- function(Traces, topN = 2, keep_less = FALSE, remove.de
   }
 
   # assemble result protein level traces object
-  Traces$traces <- peptideTraces.topNsum.wide
-  Traces$trace_annotation <- peptideTraces.topNsum.wide.annotation
-  Traces$trace_type <- "protein"
-  return(Traces)
+  traces$traces <- peptideTraces.topNsum.wide
+  traces$trace_annotation <- peptideTraces.topNsum.wide.annotation
+  traces$trace_type <- "protein"
+  return(traces)
 }
