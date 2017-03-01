@@ -15,4 +15,3 @@ Apparent MW at this SEC fraction in kDa.
 \description{
 Convert a fraction number to an estimated molecular weight.
 }
-

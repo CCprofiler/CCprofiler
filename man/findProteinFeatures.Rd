@@ -33,4 +33,3 @@ A data.table containing several columns TODO.
 \description{
 Run the sliding window algorithm to find protein features.
 }
-

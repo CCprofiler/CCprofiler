@@ -51,4 +51,3 @@ An object of type \code{complexFeaturesPP} that is a list
 A helper function to perform peak picking on the complex features detected by
 the sliding-window approach.
 }
-

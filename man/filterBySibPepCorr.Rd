@@ -33,4 +33,3 @@ An object of type \code{traces.obj}.
 Filter protein profiling traces based on
 Sibling Peptide Correlation (SibPepCorr).
 }
-

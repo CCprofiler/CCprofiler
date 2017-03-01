@@ -23,4 +23,3 @@ e.g. for use as "complex hypotheses" for
 createGroupsFromNetworkTable create protein groups around network nodes 
 with all proteins connected by 1 edge (first degree interactors)
 }
-

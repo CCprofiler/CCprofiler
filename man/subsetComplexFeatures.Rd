@@ -48,4 +48,3 @@ The same data.table format filtered according to the provided parameters.
 \description{
 Filter result data.table according to desired complex_ids or minimum correlation score.
 }
-

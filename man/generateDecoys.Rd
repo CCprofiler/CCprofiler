@@ -23,4 +23,3 @@ data.table with binary interactions between "a" and "b"
 \description{
 Generate list of proteins for one complex decoy hypothesis
 }
-

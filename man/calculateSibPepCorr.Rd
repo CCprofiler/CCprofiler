@@ -19,4 +19,3 @@ An object of type \code{traces.obj}.
 \description{
 Calculate sibling peptide correlation in traces.object of type peptide.
 }
-

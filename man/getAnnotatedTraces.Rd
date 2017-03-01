@@ -15,4 +15,3 @@ A data.table of annotated traces.
 \description{
 Get a data.table of annotated Traces
 }
-

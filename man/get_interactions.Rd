@@ -19,4 +19,3 @@ data.table with binary interactions between "a" and "b" appended by current comp
 \description{
 Append binary interaction table with additional complexes
 }
-

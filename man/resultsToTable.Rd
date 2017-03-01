@@ -50,4 +50,3 @@ A data.table with all detected complex features of all query complexes
 \description{
 Reformat result object to a data.table.
 }
-

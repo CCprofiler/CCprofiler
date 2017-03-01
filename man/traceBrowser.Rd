@@ -16,4 +16,3 @@ protein_mw to fraction and back, allowing to indicate expected monomeric elution
 basic data browser allowing to display select subsets of chromatographic elution
 profiles, e.g. SECtraces
 }
-

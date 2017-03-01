@@ -28,4 +28,3 @@ traces object of class traces with extended annotation
 \description{
 Add columns to the trace_annotation table from an external annotation table.
 }
-

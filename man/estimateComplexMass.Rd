@@ -37,4 +37,3 @@ A list with the following to entries 'stoichiometry' and
 A helper function to compute an estimate of the mass of a complex and
 its stoichiometry.
 }
-

@@ -28,4 +28,3 @@ data.table with binary interactions between "a" and "b"
 Generate complex decoy hypotheses from target hypotheses and distance table.
 Selects proteins by min_distance in the network.
 }
-

@@ -2,6 +2,7 @@
 % Please edit documentation in R/formatConversion.R, R/helper.R
 \name{toWideFormat}
 \alias{toWideFormat}
+\alias{toWideFormat}
 \title{Convert a data.table containing traces from wide format to long format.}
 \usage{
 toWideFormat(traces.dt)
@@ -55,4 +56,3 @@ Convert a data.table containing traces from wide format to long format.
 
 Convert a data.table containing traces from wide format to long format.
 }
-

@@ -84,4 +84,3 @@ Run the sliding window algorithm for a number of protein complexes.
 #                           protein.mw.conc[protein_id \%in\% protein.ids],
 #                           complex.protein.assoc)
 }
-

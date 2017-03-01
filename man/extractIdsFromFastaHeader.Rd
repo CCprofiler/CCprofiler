@@ -17,4 +17,3 @@ extractIdsFromFastaHeader(fasta_ids, id_type = "accession",
 \description{
 sp|P11021|GRP78_HUMAN --> P11021
 }
-

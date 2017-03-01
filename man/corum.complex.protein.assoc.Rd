@@ -21,4 +21,3 @@ The structure of this data.table is as follows:
 }
 }
 \keyword{datasets}
-

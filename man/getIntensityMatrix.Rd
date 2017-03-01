@@ -15,4 +15,3 @@ A matrix with intensity values.
 \description{
 Get a matrix of intensity values from a traces object.
 }
-

@@ -23,4 +23,3 @@ An additional column "apparentMW_kDa" in the Traces$fraction_annotation table
 Calibrate SEC - establish connectivity between SEC fraction number and apparent
 Molecular Weight (in kDa)
 }
-

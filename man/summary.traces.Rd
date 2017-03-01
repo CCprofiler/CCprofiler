@@ -12,4 +12,3 @@
 \description{
 Summarize a \code{traces.obj}
 }
-

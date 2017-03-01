@@ -21,4 +21,3 @@ plot_network(complex_hypothesis, dt, col_a = "darkblue", col_b = "darkred",
 \description{
 Plot networks
 }
-

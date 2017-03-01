@@ -30,4 +30,3 @@ An object of class Traces containing
 \description{
 Import peptide profiles from an OpenSWATH experiment.
 }
-

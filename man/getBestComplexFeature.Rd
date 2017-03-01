@@ -50,4 +50,3 @@ A data.table with the BEST detected complex feature of each query complexe
 \description{
 Reformat result object to a data.table containing only the best subcomplex feature per complex query.
 }
-

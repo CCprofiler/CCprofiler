@@ -57,7 +57,7 @@ calculateSibPepCorr <- function(traces,
     if (PDF){
       pdf("SibPepCorr_densityplot.pdf")
     }
-    plot.SibPepCorrDensities(traces)
+    plotSibPepCorrDensities(traces)
     if (PDF){
       dev.off()
     }

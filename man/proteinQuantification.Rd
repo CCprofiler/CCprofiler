@@ -22,4 +22,3 @@ An object of type \code{traces.obj}, trace_type is protein
 \description{
 Calculate protein quantities basen on the topN peptide intensities.
 }
-

@@ -21,4 +21,3 @@ A data.table containing columns UniProt_A UniProt_B and pearson_correlation, rea
 From protein level Traces, generate a Network table with pairwise profile
 correlation score
 }
-

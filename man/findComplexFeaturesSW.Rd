@@ -55,4 +55,3 @@ with traces that correlate well are clustered together.
 #                  select=-protein_id)
 # sw.res <- findComplexFeaturesSW(traces, protein.ids, protein.mw.conc)
 }
-

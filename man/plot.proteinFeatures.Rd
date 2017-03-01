@@ -24,4 +24,3 @@
 \description{
 Plot protein features.
 }
-

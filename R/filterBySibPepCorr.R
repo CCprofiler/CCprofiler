@@ -38,7 +38,7 @@ filterBySibPepCorr <- function(traces,
   decoys_contained = length(grep("^DECOY_", traces$trace_annotation$protein_id)) > 0
   if (decoys_contained){
     message("Decoys found...\nEstimating FDR...")
-    roctable <- ROC.SibPepCorr(traces, FFT = FFT, plot = FALSE)
+    roctable <- rocSibPepCorr(traces, FFT = FFT, plot = FALSE)
     cutoff_for_fdr <- roctable[FDR <= protein_fdr_cutoff, min(SibPepCorr_cutoff)]
     fdr_reached <- roctable[FDR <= protein_fdr_cutoff, max(FDR)]
     target_proteins_remaining <- roctable[FDR <= protein_fdr_cutoff, max(n_target_proteins)]

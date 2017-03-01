@@ -28,4 +28,3 @@ An object of class Traces (peptide level) containing a 'traces.wide',
 Import peptide profiles from an MaxQuant DDA data analysis search result
 table.
 }
-

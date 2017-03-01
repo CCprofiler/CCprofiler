@@ -15,4 +15,3 @@ data.table with binary interactions between "a" and "b"
 \description{
 Generate binary network from concrete complex hypotheses (e.g. CORUM).
 }
-

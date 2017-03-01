@@ -18,4 +18,3 @@ An object of type \code{FragmentTraces} with summed traces.
 \description{
 Produce analyte traces by summing traces of fragments.
 }
-

@@ -13,4 +13,3 @@
 \description{
 Plot a traces.obj.
 }
-

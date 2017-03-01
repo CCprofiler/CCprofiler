@@ -12,4 +12,3 @@ traces.obj
 An example object of class \code{FragmentTraces}.
 }
 \keyword{datasets}
-

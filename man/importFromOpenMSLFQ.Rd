@@ -25,4 +25,3 @@ An object of class Traces (peptide level) containing a
 Import peptide profiles from an OpenMS MS1-LFQ DDA data analysis result
 table.
 }
-

@@ -24,4 +24,3 @@ An object of class traces containing the filtered
 Filter protein profiling traces based on
 minimal length of consecutive ID stretches.
 }
-

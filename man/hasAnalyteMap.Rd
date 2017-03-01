@@ -9,4 +9,3 @@ hasAnalyteMap(trace.obj)
 \description{
 Check if the trace object has a analyte map.
 }
-

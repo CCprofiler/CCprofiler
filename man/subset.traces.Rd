@@ -21,4 +21,3 @@ traces.obj An object of type \code{traces.obj}.
 \description{
 Subset a traces.obj by trace_ids or fraction_ids.
 }
-

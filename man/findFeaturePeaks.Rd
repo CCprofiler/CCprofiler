@@ -47,4 +47,3 @@ The same data.table as the input argument extended with the
 A helper function to extend a list of complex features with additional
 information.
 }
-

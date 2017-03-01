@@ -21,4 +21,3 @@ A data.table with columns
 \description{
 Convert a data.table containing traces from wide format to long format.
 }
-

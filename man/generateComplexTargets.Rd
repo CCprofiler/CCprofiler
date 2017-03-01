@@ -21,4 +21,3 @@ data.table in the format of complex hypotheses
 Generate target hypotheses from distance table. This is done by choosing all
 max_distance (e.g. 1st) degree interactors for each protein in a distance table.
 }
-

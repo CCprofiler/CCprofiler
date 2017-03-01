@@ -21,4 +21,3 @@ the matrix \code{trace.mat}.}
 \description{
 Plot the result of the sliding window algorithm.
 }
-
