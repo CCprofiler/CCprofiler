@@ -2,8 +2,7 @@
 % Please edit documentation in R/calibrateSECMW.R
 \name{calibrateSECMW}
 \alias{calibrateSECMW}
-\title{Calibrate SEC - establish connectivity between SEC fraction number and apparent
-Molecular Weight (in kDa)}
+\title{calibrateSECMW}
 \usage{
 calibrateSECMW(std_weights_kDa, std_elu_fractions, plot = TRUE, PDF = FALSE)
 }
@@ -12,12 +11,12 @@ calibrateSECMW(std_weights_kDa, std_elu_fractions, plot = TRUE, PDF = FALSE)
 
 \item{std_elu_fractions}{The fraction numbers where these standard proteins eluted}
 
-\item{plot}{logical, if to plot calibration line}
+\item{plot}{logical, if to plot calibration}
 
 \item{PDF}{logical, if to produce a PDF}
 }
 \value{
-An additional column "apparentMW_kDa" in the Traces$fraction_annotation table
+List of two functions: MWtoSECfraction and SECfractionToMW
 }
 \description{
 Calibrate SEC - establish connectivity between SEC fraction number and apparent

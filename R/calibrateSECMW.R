@@ -1,15 +1,15 @@
-#' Calibrate SEC - establish connectivity between SEC fraction number and apparent
+#' calibrateSECMW
+#' @description Calibrate SEC - establish connectivity between SEC fraction number and apparent
 #' Molecular Weight (in kDa)
-#'
 #' @param std_weights_kDa The Molecular Weights of the standard proteins
 #' @param std_elu_fractions The fraction numbers where these standard proteins eluted
-#' @param plot logical, if to plot calibration line
+#' @param plot logical, if to plot calibration
 #' @param PDF logical, if to produce a PDF
-#' @return An additional column "apparentMW_kDa" in the Traces$fraction_annotation table
+#' @return List of two functions: MWtoSECfraction and SECfractionToMW
 #' @export
 
 #std_weights_kDa = c(1398, 699, 300, 150, 44, 17)
-#std_elu_fractions = c(21, 31, 39, 48, 56.5, 63)
+#std_elu_fractions = c(19, 29, 37, 46, 54.5, 61)
 
 calibrateSECMW <- function(std_weights_kDa,std_elu_fractions,plot=TRUE,PDF=FALSE) {
   calibrants <- NULL
