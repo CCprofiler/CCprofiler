@@ -2,7 +2,7 @@
 % Please edit documentation in R/findProteinFeatures.R
 \name{findProteinFeatures}
 \alias{findProteinFeatures}
-\title{Run the sliding window algorithm to find protein features.}
+\title{Protein feature detection}
 \usage{
 findProteinFeatures(pepTraces, MWSECcalibrationFunctions, corr.cutoff,
   window.size, parallelized, n.cores, collapse_method, perturb.cutoff,

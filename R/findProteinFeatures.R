@@ -1,5 +1,5 @@
-#' Run the sliding window algorithm to find protein features.
-#'
+#' Protein feature detection
+#' @description Run the sliding window algorithm to find protein features.
 #' @param pepTraces An object of type \code{traces.obj}.
 #' @param corr.cutoff The correlation value for chromatograms above which
 #'        peptides are considered to be coeluting.
