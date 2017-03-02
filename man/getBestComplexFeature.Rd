@@ -2,12 +2,12 @@
 % Please edit documentation in R/complexFeaturesMethods.R
 \name{getBestComplexFeature}
 \alias{getBestComplexFeature}
-\title{Reformat result object to a data.table containing only the best subcomplex feature per complex query.}
+\title{Select best complex feature for each hypothesis}
 \usage{
-getBestComplexFeature(swf)
+getBestComplexFeature(complexFeatures)
 }
 \arguments{
-\item{A}{list containing various results.
+\item{complexFeatures}{A list containing various results.
 \itemize{
  \item \code{sw.results} A list of results of the function
        \code{findComplexFeatures}. One for each query complex.

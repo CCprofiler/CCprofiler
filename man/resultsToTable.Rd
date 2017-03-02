@@ -2,12 +2,12 @@
 % Please edit documentation in R/complexFeaturesMethods.R
 \name{resultsToTable}
 \alias{resultsToTable}
-\title{Reformat result object to a data.table.}
+\title{ComplexFeature object to data.table}
 \usage{
-resultsToTable(swf)
+resultsToTable(complexFeatures)
 }
 \arguments{
-\item{A}{list containing various results.
+\item{complexFeatures}{A list containing various results.
 \itemize{
  \item \code{sw.results} A list of results of the function
        \code{findComplexFeatures}. One for each query complex.
@@ -48,5 +48,5 @@ A data.table with all detected complex features of all query complexes
          }
 }
 \description{
-Reformat result object to a data.table.
+Reformat complec feature object to a data.table.
 }

@@ -1,5 +1,6 @@
-#' Reformat result object to a data.table.
-#' @param A list containing various results.
+#' ComplexFeature object to data.table
+#' @description Reformat complec feature object to a data.table.
+#' @param complexFeatures A list containing various results.
 #'         \itemize{
 #'          \item \code{sw.results} A list of results of the function
 #'                \code{findComplexFeatures}. One for each query complex.
@@ -36,18 +37,20 @@
 #'           \item \code{complex_sec_estimated} The complex sec fraction as expected fro the \code{stoichiometry_estimated}.
 #'           \item \code{sec_diff} Difference between \code{complex_sec_estimated} and \code{apax} of the feature.
 #'          }
-resultsToTable <- function(swf){
-  res <- swf$sw.results
+#' @export
+resultsToTable <- function(complexFeatures){
+  res <- complexFeatures$sw.results
   res.list <- lapply(seq(1:length(res)), function(i){
     features <- res[[i]]$features
     features
   })
-  res <- do.call("rbind", res.list)        
+  res <- do.call("rbind", res.list)
   res
 }
 
-#' Filter result data.table according to desired complex_ids or minimum correlation score.
-#' @param A data.table with the complex features in the format:
+#' Filter complex feature table
+#' @description Filter result data.table according to desired complex_ids or minimum correlation score.
+#' @param res A data.table with the complex features in the format:
 #'          \itemize{
 #'           \item \code{complex_id} The complex_id of the query complex.
 #'           \item \code{complex_name} The complex_name of the query complex.
@@ -74,10 +77,11 @@ resultsToTable <- function(swf){
 #'           \item \code{complex_sec_estimated} The complex sec fraction as expected fro the \code{stoichiometry_estimated}.
 #'           \item \code{sec_diff} Difference between \code{complex_sec_estimated} and \code{apax} of the feature.
 #'          }
-#'@param complex_ids A character vector containing all desired \code{complex_id} values.
-#'@param min_completeness A numeric value specifying the minimum \code{sw_score} for a complex feature.
-#'@param collapse_same_peak TRUE or FALSE, collapse if multiple subcomplexes have the same peak apex (identical peak).
-#'@return The same data.table format filtered according to the provided parameters.         
+#' @param complex_ids A character vector containing all desired \code{complex_id} values.
+#' @param min_completeness A numeric value specifying the minimum \code{sw_score} for a complex feature.
+#' @param collapse_same_peak TRUE or FALSE, collapse if multiple subcomplexes have the same peak apex (identical peak).
+#' @return The same data.table format filtered according to the provided parameters.
+#' @export
 subsetComplexFeatures <- function(res,complex_ids=NULL,min_completeness=NULL,collapse_same_peak=FALSE){
   if(!is.null(complex_ids)){
     res <- subset(res,complex_id %in% as.character(complex_ids))
@@ -91,8 +95,9 @@ subsetComplexFeatures <- function(res,complex_ids=NULL,min_completeness=NULL,col
   res
 }
 
-#' Reformat result object to a data.table containing only the best subcomplex feature per complex query.
-#' @param A list containing various results.
+#' Select best complex feature for each hypothesis
+#' @description Reformat result object to a data.table containing only the best subcomplex feature per complex query.
+#' @param complexFeatures A list containing various results.
 #'         \itemize{
 #'          \item \code{sw.results} A list of results of the function
 #'                \code{findComplexFeatures}. One for each query complex.
@@ -129,14 +134,13 @@ subsetComplexFeatures <- function(res,complex_ids=NULL,min_completeness=NULL,col
 #'           \item \code{complex_sec_estimated} The complex sec fraction as expected fro the \code{stoichiometry_estimated}.
 #'           \item \code{sec_diff} Difference between \code{complex_sec_estimated} and \code{apax} of the feature.
 #'          }
-getBestComplexFeature <- function(swf){
-  res <- swf$sw.results
+#' @export
+getBestComplexFeature <- function(complexFeatures){
+  res <- complexFeatures$sw.results
   res.list <- lapply(seq(1:length(res)), function(i){
     features <- res[[i]]$features
-    features[1] 
+    features[1]
   })
   res <- do.call("rbind", res.list)
   res
-} 
-
-
+}

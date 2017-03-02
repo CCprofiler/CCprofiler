@@ -2,19 +2,13 @@
 % Please edit documentation in R/complexFeaturesMethods.R
 \name{subsetComplexFeatures}
 \alias{subsetComplexFeatures}
-\title{Filter result data.table according to desired complex_ids or minimum correlation score.}
+\title{Filter complex feature table}
 \usage{
 subsetComplexFeatures(res, complex_ids = NULL, min_completeness = NULL,
   collapse_same_peak = FALSE)
 }
 \arguments{
-\item{complex_ids}{A character vector containing all desired \code{complex_id} values.}
-
-\item{min_completeness}{A numeric value specifying the minimum \code{sw_score} for a complex feature.}
-
-\item{collapse_same_peak}{TRUE or FALSE, collapse if multiple subcomplexes have the same peak apex (identical peak).}
-
-\item{A}{data.table with the complex features in the format:
+\item{res}{A data.table with the complex features in the format:
 \itemize{
  \item \code{complex_id} The complex_id of the query complex.
  \item \code{complex_name} The complex_name of the query complex.
@@ -41,6 +35,12 @@ subsetComplexFeatures(res, complex_ids = NULL, min_completeness = NULL,
  \item \code{complex_sec_estimated} The complex sec fraction as expected fro the \code{stoichiometry_estimated}.
  \item \code{sec_diff} Difference between \code{complex_sec_estimated} and \code{apax} of the feature.
 }}
+
+\item{complex_ids}{A character vector containing all desired \code{complex_id} values.}
+
+\item{min_completeness}{A numeric value specifying the minimum \code{sw_score} for a complex feature.}
+
+\item{collapse_same_peak}{TRUE or FALSE, collapse if multiple subcomplexes have the same peak apex (identical peak).}
 }
 \value{
 The same data.table format filtered according to the provided parameters.
