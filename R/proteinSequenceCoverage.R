@@ -11,7 +11,7 @@
 #' @import data.table
 #' @export
 
-plotPeptidesPerProtein <- function(pepTraces_list, scaled = F, log = T, cutoff = 50){
+plotPeptidesPerProtein <- function(pepTraces_list, scaled = F, log = F, cutoff = 50){
   
   annotation <- lapply(pepTraces_list, "[[","trace_annotation")
   names(annotation) <- names(pepTraces_list)
@@ -44,6 +44,7 @@ plotPeptidesPerProtein <- function(pepTraces_list, scaled = F, log = T, cutoff =
 #' @import ggplot2
 #' @import data.table
 #' @import Biostrings
+#' @import IRanges
 #' @export
 
 
@@ -81,26 +82,40 @@ calculateSequenceCoverage <- function(pepTraces, proteinFasta){
 
 #' Plot a distribution of Sequence Coverage in your peptideTraces object(s)
 #' @param pepTraces_list A list of one or more peptideTraces objects to plot distributions for
+#' @param sequence_coverage_list A List of sequence coverages per protein, as output by 
+#' \code{calculateSequenceCoverage}.
 #' @param proteinFasta Path to a fasta file with Protein Sequences and headers that contain
 #' the Protein names in the protein_id column of your peptideTraces object. Usually this will be the
 #' fasta file used for library generation in the proteomics search.
 #' @param scaled \code{boolean}, Wether to draw a scaled density plot or a histogram
 #' @param log \code{boolean}, Wether to plot a logarithmic x-axis
 #' @return A density plot or histogram of the peptides per protein in peptideTraces objects.
-#' @details Can be used to compare peptide coverage before and after filtering, or from different searches.
+#' @details Either pepTraces_list or Sequence_coverage_llist has to be provided. If only pepTraces object
+#' is provided, the sequence coverage will be calculated (This can take some time).
+#' Can be used to compare peptide coverage before and after filtering, or from different searches.
 #' Provide a list wit all peptideTraces objects to be compared.
 #' @import ggplot2
 #' @import data.table
 #' @export
 
-plotSequenceCoverage <- function(pepTraces_list, proteinFasta, scaled = TRUE, log = FALSE){
+plotSequenceCoverage <- function(pepTraces_list = NULL, sequence_coverage_list= NULL,
+                                 proteinFasta = NULL, scaled = TRUE, log = FALSE){
   
-  seq_coverage <- lapply(pepTraces_list, calculateSequenceCoverage, proteinFasta)
-  seq_coverage <- lapply(1:length(seq_coverage), function(i) seq_coverage[[i]][,Name := names(pepTraces_list)[i]])
+  if(!is.null(sequence_coverage_list)){
+    seq_coverage <- sequence_coverage_list
+    condition <- names(sequence_coverage_list)
+  }else if(!is.null(pepTraces_list) & !is.null(proteinFasta)){
+    seq_coverage <- lapply(pepTraces_list, calculateSequenceCoverage, proteinFasta)
+    condition <- names(pepTraces_list)
+  }else{
+    stop("Either pepTraces_list or Sequence_coverage_llist has to be provided")
+  }
+  
+  seq_coverage <- lapply(1:length(seq_coverage), function(i) seq_coverage[[i]][,Name := condition[i]])
   seq_coverage <- do.call("rbind", seq_coverage)
-  
+  seq_coverage <- seq_coverage[!is.na(seq_coverage)]
   p <- ggplot(data = seq_coverage) 
-  if(scale){
+  if(scaled){
     p <- p + geom_density(aes(x = seq_coverage, fill = Name, colour = Name), alpha = 0.3, adjust = 1) 
   }else{
     p <- p + geom_histogram(aes(x = seq_coverage, fill = Name), position = "dodge")
