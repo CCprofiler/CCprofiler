@@ -4,14 +4,13 @@
 \alias{importFromOpenSWATH}
 \title{Import peptide profiles from an OpenSWATH experiment.}
 \usage{
-importFromOpenSWATH(data = "OpenSwathData.tsv",
-  annotation_table = "annotation.txt", rm_requantified = TRUE,
+importFromOpenSWATH(data, annotation_table, rm_requantified = TRUE,
   rm_decoys = FALSE, MS1Quant = FALSE)
 }
 \arguments{
 \item{data}{Quantitative MS data in form of OpenSWATH result file or R data.table.}
 
-\item{annotation_table}{path to tab-separated .txt file containing columns `filename` and
+\item{annotation_table}{file or data.table containing columns `filename` and
 `fraction_number` that map the file names (occuring in input table filename column)
 `to a SEC elution fraction.}
 

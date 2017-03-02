@@ -5,7 +5,7 @@
 #' @description Import peptide profiles from an OpenSWATH experiment.
 #' @import data.table
 #' @param data Quantitative MS data in form of OpenSWATH result file or R data.table.
-#' @param annotation_table path to tab-separated .txt file containing columns `filename` and
+#' @param annotation_table file or data.table containing columns `filename` and
 #'     `fraction_number` that map the file names (occuring in input table filename column)
 #'     `to a SEC elution fraction.
 #' @param rm_requantified Whether requantified (noise) peak group quantities
@@ -17,8 +17,8 @@
 #'     that can be processed with the herein contained functions.
 #' @export
 
-importFromOpenSWATH <- function(data= 'OpenSwathData.tsv',
-                                annotation_table="annotation.txt",
+importFromOpenSWATH <- function(data,
+                                annotation_table,
                                 rm_requantified=TRUE,
                                 rm_decoys = FALSE,
                                 MS1Quant=FALSE)
@@ -46,11 +46,15 @@ importFromOpenSWATH <- function(data= 'OpenSwathData.tsv',
     stop("data input is neither file name or data.table")
   }
 
-  if (file.exists(annotation_table)) {
-    message('reading annotation_table ...')
-    annotation <- data.table::fread(annotation_table)
-  } else {
-    stop("annotation_table doesn't exist")
+  if (class(annotation_table)[1] == "character") {
+    if (file.exists(annotation_table)) {
+      message('reading annotation table ...')
+      annotation_table  <- data.table::fread(annotation_table)
+    } else {
+      stop("annotation_table file doesn't exist")
+    }
+  } else if (all(class(annotation_table) != c("data.table","data.frame"))) {
+    stop("annotation_table input is neither file name or data.table")
   }
 
   #remove non-proteotypic discarding/keeping Decoys
@@ -101,17 +105,17 @@ importFromOpenSWATH <- function(data= 'OpenSwathData.tsv',
   # add fraction number column to main dataframe
   ##################################################
   fraction_number <- integer(length=nrow(data.s))
-  files <- annotation$filename
+  files <- annotation_table$filename
   data.filenames <- data.s$filename
 
   if (length(files) != length(unique(data.filenames))) {
-      stop("Number of file names in annotation does not match data")
+      stop("Number of file names in annotation_table does not match data")
   }
 
 
   for (i in seq_along(files)) {
       idxs <- grep(files[i], data.filenames)
-      fraction_number[idxs] <- annotation$fraction_number[i]
+      fraction_number[idxs] <- annotation_table$fraction_number[i]
       message(paste("PROCESSED", i, "/", length(files), "filenames"))
   }
   data.s <- cbind(data.s, fraction_number)
