@@ -1,8 +1,10 @@
 #' calibrateSECMW
 #' @description Calibrate SEC - establish connectivity between SEC fraction number and apparent
 #' Molecular Weight (in kDa)
-#' @param std_weights_kDa The Molecular Weights of the standard proteins
-#' @param std_elu_fractions The fraction numbers where these standard proteins eluted
+#' @param calibration_table tab-separated calibration table, file or R data.table
+#' Columns: 
+#' std_weights_kDa = The Molecular Weights of the standard proteins
+#' std_elu_fractions = The fraction numbers where these standard proteins eluted
 #' @param plot logical, if to plot calibration
 #' @param PDF logical, if to produce a PDF
 #' @return List of two functions: MWtoSECfraction and SECfractionToMW
@@ -11,10 +13,22 @@
 #std_weights_kDa = c(1398, 699, 300, 150, 44, 17)
 #std_elu_fractions = c(19, 29, 37, 46, 54.5, 61)
 
-calibrateSECMW <- function(std_weights_kDa,std_elu_fractions,plot=TRUE,PDF=FALSE) {
+calibrateSECMW <- function(calibration_table,plot=TRUE,PDF=FALSE) {
+  # use or if path to file read annotation table and add id column
+  if (class(calibration_table)[1] == "character") {
+    if (file.exists(calibration_table)) {
+      message('reading calibration table ...')
+      calibration_table  <- data.table::fread(calibration_table, header = TRUE)
+    } else {
+      stop("calibration_table file doesn't exist")
+    }
+  } else if (all(class(calibration_table) != c("data.table","data.frame"))) {
+    stop("calibration_table input is neither file name or data.table")
+  }
+
   calibrants <- NULL
-  calibrants$logMW = log(std_weights_kDa)
-  calibrants$fraction = std_elu_fractions
+  calibrants$logMW = log(calibration_table$std_weights_kDa)
+  calibrants$fraction = calibration_table$std_elu_fractions
   if(length(calibrants$logMW) != length(calibrants$fraction)){
     stop("Check the input data. The vector of molecular weights and elution fractions need to be of same length.")
   }

@@ -23,10 +23,15 @@ annotateTraces <- function(traces,
 
 
   # use or if path to file read annotation table and add id column
-  if (isTRUE(class(annotation_table) == "character")){
-    annotation_table <- fread(annotation_table, header = TRUE)
-  } else if (isTRUE(class(annotation_table) == "data.frame")){
-    annotation_table <- as.data.table(annotation_table)
+  if (class(annotation_table)[1] == "character") {
+    if (file.exists(annotation_table)) {
+      message('reading annotation table ...')
+      annotation_table  <- data.table::fread(annotation_table, header = TRUE)
+    } else {
+      stop("annotation_table file doesn't exist")
+    }
+  } else if (all(class(annotation_table) != c("data.table","data.frame"))) {
+    stop("annotation_table input is neither file name or data.table")
   }
 
   # test if the annotation column ids match those in traces

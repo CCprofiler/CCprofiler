@@ -4,12 +4,13 @@
 \alias{calibrateSECMW}
 \title{calibrateSECMW}
 \usage{
-calibrateSECMW(std_weights_kDa, std_elu_fractions, plot = TRUE, PDF = FALSE)
+calibrateSECMW(calibration_table, plot = TRUE, PDF = FALSE)
 }
 \arguments{
-\item{std_weights_kDa}{The Molecular Weights of the standard proteins}
-
-\item{std_elu_fractions}{The fraction numbers where these standard proteins eluted}
+\item{calibration_table}{tab-separated calibration table, file or R data.table
+Columns: 
+std_weights_kDa = The Molecular Weights of the standard proteins
+std_elu_fractions = The fraction numbers where these standard proteins eluted}
 
 \item{plot}{logical, if to plot calibration}
 
