@@ -20,4 +20,3 @@ of the sequence covered by peptides
 \description{
 Calculate the peptide Sequence coverage in every protein by realignment to the protein sequence
 }
-

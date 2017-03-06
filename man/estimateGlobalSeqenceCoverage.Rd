@@ -21,4 +21,3 @@ and of all proteins in the supplied sequence database
 \description{
 Estimate the total coverage of all measured proteins, and of all proteins in your fasta database
 }
-

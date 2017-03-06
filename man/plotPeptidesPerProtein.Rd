@@ -4,7 +4,7 @@
 \alias{plotPeptidesPerProtein}
 \title{Plot a distribution of the prptides per Protein in your peptideTraces object(s)}
 \usage{
-plotPeptidesPerProtein(pepTraces_list, scaled = F, log = T, cutoff = 50)
+plotPeptidesPerProtein(pepTraces_list, scaled = F, log = F, cutoff = 50)
 }
 \arguments{
 \item{pepTraces_list}{A list of one or more peptideTraces objects to plot distributions for}
@@ -25,4 +25,3 @@ Plot a distribution of the prptides per Protein in your peptideTraces object(s)
 Can be used to compare peptide coverage before and after filtering, or from different searches.
 Provide a list wit all peptideTraces objects to be compared.
 }
-

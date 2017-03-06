@@ -4,11 +4,14 @@
 \alias{plotSequenceCoverage}
 \title{Plot a distribution of Sequence Coverage in your peptideTraces object(s)}
 \usage{
-plotSequenceCoverage(pepTraces_list, proteinFasta, scaled = TRUE,
-  log = FALSE)
+plotSequenceCoverage(pepTraces_list = NULL, sequence_coverage_list = NULL,
+  proteinFasta = NULL, scaled = TRUE, log = FALSE)
 }
 \arguments{
 \item{pepTraces_list}{A list of one or more peptideTraces objects to plot distributions for}
+
+\item{sequence_coverage_list}{A List of sequence coverages per protein, as output by 
+\code{calculateSequenceCoverage}.}
 
 \item{proteinFasta}{Path to a fasta file with Protein Sequences and headers that contain
 the Protein names in the protein_id column of your peptideTraces object. Usually this will be the
@@ -25,7 +28,8 @@ A density plot or histogram of the peptides per protein in peptideTraces objects
 Plot a distribution of Sequence Coverage in your peptideTraces object(s)
 }
 \details{
+Either pepTraces_list or Sequence_coverage_llist has to be provided. If only pepTraces object
+is provided, the sequence coverage will be calculated (This can take some time).
 Can be used to compare peptide coverage before and after filtering, or from different searches.
 Provide a list wit all peptideTraces objects to be compared.
 }
-

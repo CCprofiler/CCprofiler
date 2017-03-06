@@ -132,8 +132,11 @@ findComplexFeatures <- function(traces,
               input.complexes=input.complexes,
               corr.cutoff=corr_cutoff,
               window.size=window_size)
-
   class(res) <- 'complexFeatures'
+  #res
 
-  res
+  # only report table to make things easier
+  complexRes <- resultsToTable(res)
+  complexRes
+
 }

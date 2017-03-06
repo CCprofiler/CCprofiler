@@ -47,18 +47,17 @@ findProteinFeatures <- function(traces,
                                          perturb_cutoff=perturb_cutoff,
                                          rt_height=rt_height,
                                          smoothing_length=smoothing_length)
-  protRes <- resultsToTable(ProteinFeatures)
 
   fun <- function(x) {strsplit(x,split=";")[[1]][1]}
-  protRes$monomer_mw <- as.numeric(unlist(lapply(protRes$monomer_mw,fun)))
-  protRes$monomer_sec <- as.numeric(unlist(lapply(protRes$monomer_sec,fun)))
-  names(protRes) <- gsub("complex","protein",names(protRes))
+  ProteinFeatures$monomer_mw <- as.numeric(unlist(lapply(ProteinFeatures$monomer_mw,fun)))
+  ProteinFeatures$monomer_sec <- as.numeric(unlist(lapply(ProteinFeatures$monomer_sec,fun)))
+  names(ProteinFeatures) <- gsub("complex","protein",names(ProteinFeatures))
 
-  protRes <- subset(protRes,select=c("protein_id","protein_name","subunits_annotated","n_subunits_annotated","subunits_detected","n_subunits_detected","completeness","left_pp","right_pp","apex","apex_mw","area","peak_corr","monomer_sec","monomer_mw"))
-  protRes[,monomer_mw_max := 2*protRes$monomer_mw]
-  protRes[,monomer_sec_max := calibration$MWtoSECfraction(monomer_mw_max)]
-  protRes[,in_complex := FALSE]
-  protRes$in_complex[protRes$apex_mw > 2*protRes$monomer_mw] = TRUE
+  ProteinFeatures <- subset(ProteinFeatures,select=c("protein_id","protein_name","subunits_annotated","n_subunits_annotated","subunits_detected","n_subunits_detected","completeness","left_pp","right_pp","apex","apex_mw","area","peak_corr","monomer_sec","monomer_mw"))
+  ProteinFeatures[,monomer_mw_max := 2*ProteinFeatures$monomer_mw]
+  ProteinFeatures[,monomer_sec_max := calibration$MWtoSECfraction(monomer_mw_max)]
+  ProteinFeatures[,in_complex := FALSE]
+  ProteinFeatures$in_complex[ProteinFeatures$apex_mw > 2*ProteinFeatures$monomer_mw] = TRUE
 
-  protRes
+  ProteinFeatures
 }

@@ -4,7 +4,7 @@
 \alias{summary.traces}
 \title{Summarize a \code{traces.obj}}
 \usage{
-\method{summary}{traces}(traces.obj)
+summary.traces(traces.obj)
 }
 \arguments{
 \item{traces.obj}{An object of type \code{traces.obj}.}

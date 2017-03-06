@@ -4,21 +4,32 @@
 \alias{plot.complexFeatures}
 \title{Plot the result of the sliding window algorithm.}
 \usage{
-\method{plot}{complexFeatures}(res, traces.obj, complexID, calibration,
-  pp = FALSE, sw = FALSE, estimate = FALSE, monomerMW = FALSE,
-  log = FALSE)
+\method{plot}{complexFeatures}(res, proteinTraces, complexID, calibration,
+  annotationID = "protein_id", peak_area = FALSE,
+  sliding_window_area = FALSE, estimated_complex_MW = FALSE,
+  monomer_MW = FALSE, log = FALSE)
 }
 \arguments{
-\item{sw.result}{An object of type 'complexFeaturesSW'.}
+\item{res}{data.table}
 
-\item{trace.mat}{The same matrix that was passend to
-\code{findComplexFeatures}.}
+\item{proteinTraces}{traces object of type protein}
 
-\item{protein.names}{The names of proteins whose traces are contained in
-the matrix \code{trace.mat}.}
+\item{complexID}{character string specifying complex_id}
 
-\item{n.largest}{Only plot the n largest subgroups. Optional.}
+\item{calibration}{list of calibraion functions form calibrateSECMW}
+
+\item{annotationID}{character string specifying column name in trace annotation to use for trace labeling, default is protein_id (uniprot id)}
+
+\item{peak_area}{logical if selected peak area should be highlighted}
+
+\item{estimated_complex_MW}{logical if estimated complex MW should be indicated}
+
+\item{monomer_MW}{logical if monomer MWs should be indicated}
+
+\item{log}{logical if intensities should be log transformed}
+
+\item{sliding_window_are}{logical if original sliding_window area should be highlighted}
 }
 \description{
-Plot the result of the sliding window algorithm.
+Chomatographic visualization
 }

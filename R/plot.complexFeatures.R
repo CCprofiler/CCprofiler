@@ -1,29 +1,35 @@
 #' Plot the result of the sliding window algorithm.
+#' @description Chomatographic visualization
 #' @import data.table
 #' @import grid
 #' @import gridExtra
 #' @import gtable
-#' @param sw.result An object of type 'complexFeaturesSW'.
-#' @param trace.mat The same matrix that was passend to
-#'        \code{findComplexFeatures}.
-#' @param protein.names The names of proteins whose traces are contained in
-#'        the matrix \code{trace.mat}.
-#' @param n.largest Only plot the n largest subgroups. Optional.
+#' @param res data.table
+#' @param proteinTraces traces object of type protein
+#' @param complexID character string specifying complex_id
+#' @param calibration list of calibraion functions form calibrateSECMW
+#' @param annotationID character string specifying column name in trace annotation to use for trace labeling, default is protein_id (uniprot id)
+#' @param peak_area logical if selected peak area should be highlighted
+#' @param sliding_window_are logical if original sliding_window area should be highlighted
+#' @param estimated_complex_MW logical if estimated complex MW should be indicated
+#' @param monomer_MW logical if monomer MWs should be indicated
+#' @param log logical if intensities should be log transformed
 #' @export
 plot.complexFeatures <- function(res,
-                                 traces.obj,
+                                 proteinTraces,
                                  complexID,
                                  calibration,
-                                 pp=FALSE,
-                                 sw=FALSE,
-                                 estimate=FALSE,
-                                 monomerMW=FALSE,
+                                 annotationID="protein_id",
+                                 peak_area=FALSE,
+                                 sliding_window_area=FALSE,
+                                 estimated_complex_MW=FALSE,
+                                 monomer_MW=FALSE,
                                  log=FALSE) {
 
 
     features <- subset(res, complex_id == complexID)
     proteins <- unique(unlist(strsplit(features$subunits_annotated, split = ";")))
-    traces <- subset(traces.obj,trace_ids = proteins)
+    traces <- subset(proteinTraces,trace_ids = proteins)
     traces.long <- toLongFormat(traces$traces)
 
     detectedSubunits = strsplit(features$subunits_detected, ';')[[1]]
@@ -37,12 +43,12 @@ plot.complexFeatures <- function(res,
 
     traces.long = merge(traces.long,subunitMW.dt,by="id",all.x = TRUE)
 
-    up_map=uniprot_extended_table_human9606_20161130
+    up_map=traces$trace_annotation
     for (i in seq(1,nrow(traces.long),1)) {
-      sel = which(up_map$Entry == traces.long$id[i])
-      gene_names=unique(up_map$`Gene names  (primary )`[sel])
+      sel = which(up_map$protein_id == traces.long$id[i])
+      gene_names=unique(subset(up_map,select=eval(annotationID))[sel])
       if(length(gene_names) > 0) {
-        traces.long$id[i] <- gene_names[1]
+        traces.long$id[i] <- unlist(gene_names[1])
       }
     }
 
@@ -82,17 +88,17 @@ plot.complexFeatures <- function(res,
 #                   data=found.features) +
 #        theme(legend.position='none')
 
-    if(pp==TRUE){
+    if(peak_area==TRUE){
       p <- p + geom_rect(data=features,aes(xmin = left_pp, xmax = right_pp, ymin = -Inf, ymax = Inf, fill=subunits_detected),alpha = 0.25)
     }
-    if(sw==TRUE){
+    if(sliding_window_area==TRUE){
       p <- p + geom_vline(data=features,aes(xintercept=left_sw), colour="grey",linetype="longdash")
       p <- p + geom_vline(data=features,aes(xintercept=right_sw), colour="grey",linetype="longdash")
     }
-    if(estimate==TRUE){
+    if(estimated_complex_MW==TRUE){
       p <- p + geom_vline(data=features,aes(xintercept=complex_sec_estimated), colour="black",linetype="longdash")
     }
-    if (monomerMW==TRUE){
+    if (monomer_MW==TRUE){
       #p <- p + geom_vline(data=subset(traces.long,!is.na(mw)),aes(xintercept=mw,colour=id),linetype="solid")
       p <- p + geom_point(data = subset(traces.long,!is.na(mw)), mapping = aes(x = mw, y = Inf, colour=id),shape=18,size=5,alpha=.5)
       #p <- p + geom_segment(data=subset(traces.long,!is.na(mw)), aes(x=mw, y=0, xend=mw, yend=-Inf, colour=id))
@@ -100,7 +106,7 @@ plot.complexFeatures <- function(res,
     p <- p + geom_vline(data=features,aes(xintercept=apex), colour="black",linetype="solid")
 
     p2 <- p
-    p <- p + scale_x_continuous(name="SEC fraction",limits=c(0,80),breaks=seq(0,80,10),labels=seq(0,80,10))    
+    p <- p + scale_x_continuous(name="SEC fraction",limits=c(0,80),breaks=seq(0,80,10),labels=seq(0,80,10))
     p2 <- p2 + scale_x_continuous(name="MW",
                    ,limits=c(0,80),breaks=seq(0,80,10),
                    labels=round(calibration$SECfractionToMW(seq(0,80,10)),digits=0)

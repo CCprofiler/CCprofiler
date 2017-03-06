@@ -8,7 +8,7 @@
 #' @param all_b logical TRUE if all vertices in b should be colored, FALSE to only color those connected to a's with the complex_hypothesis. Example: a = bait and b= prays, if FALSE, only preys that were found by pulling on the baits within the complex hypothesis are colored.
 #' @export
 
-plot_network <- function(complex_hypothesis,dt,col_a="darkblue",col_b="darkred",all_b=FALSE){
+plotNetwork <- function(complex_hypothesis,dt,col_a="darkblue",col_b="darkred",all_b=FALSE){
   a <- dt$a
   b <- dt$b
   dt_filtered=subset(dt, (a %in% complex_hypothesis$protein_id) & (b %in% complex_hypothesis$protein_id))
