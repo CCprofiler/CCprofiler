@@ -10,7 +10,7 @@
 #' @export
 
 findNonSwissprotPeptides <- function(pepTraces, proteinFasta, id_table = NULL,
-                                     mode = "ENSEMBL", download = FALSE){
+                                     mode = "ENSEMBL", download = FALSE, extr2 = T, alignsTo = F){
   # Read the data
   if(class(proteinFasta)[1] == "character"){
     sequences <- readAAStringSet(filepath = proteinFasta)
@@ -19,8 +19,10 @@ findNonSwissprotPeptides <- function(pepTraces, proteinFasta, id_table = NULL,
   }else{
     stop("Input ProteinFasta must be of type character (Filepath to fasta file) or AAStringSet")
   }
-  names <- strsplit(names(sequences), split = "\\|")
-  names(sequences) <- sapply(names, "[", 2)
+  if(extr2){
+    names <- strsplit(names(sequences), split = "\\|")
+    names(sequences) <- sapply(names, "[", 2)
+  }
   
   if(class(id_table)[1] == "character"){
     idmapping <- read.delim(id_table, 
@@ -29,7 +31,7 @@ findNonSwissprotPeptides <- function(pepTraces, proteinFasta, id_table = NULL,
     idmapping <- idmapping[, list(ensembl_id = unlist(strsplit(ensembl_id, ";"))), by=uniprot_id]
     
   }else if(any(class(id_table) %in% "data.table")){
-    idmapping <- data.table(uniprot_id = id_table[,V1], ensembl_id = id_table[,V19])
+    idmapping <- data.table(uniprot_id = id_table[,sp_id], ensembl_id = id_table[,from_id])
     idmapping <- idmapping[, list(ensembl_id = unlist(strsplit(ensembl_id, ";"))), by=uniprot_id]
   }else if(download){
     idmapping <- downloadIdMapping(pepTraces)
@@ -40,13 +42,13 @@ findNonSwissprotPeptides <- function(pepTraces, proteinFasta, id_table = NULL,
   
   # map the gene names
   
-  alignsSwissprot <- apply(pepTraces$trace_annotation, 1, alignPeptide, sequences, idmapping, mode)
+  alignsSwissprot <- apply(pepTraces$trace_annotation, 1, alignPeptide, sequences, idmapping, mode, alignsTo)
   pepTraces$trace_annotation$AlignsSwissprot <- alignsSwissprot
   return(pepTraces$trace_annotation)
 }
 
 
-alignPeptide <- function(Trace, sequences, idmapping, mode = "ENSEMBL"){
+alignPeptide <- function(Trace, sequences, idmapping, mode = "ENSEMBL", alignsTo){
   gene <- Trace[2]
   if(grepl("DECOY", gene)){
     return(FALSE)
@@ -58,10 +60,15 @@ alignPeptide <- function(Trace, sequences, idmapping, mode = "ENSEMBL"){
       up_ids <- gene
     }
     # if(is.na(up_ids)) message(paste0("Warning: Gene ", gene, " had no corresponding uniprot ID in the mapping table"))
-    seqs <- sequences[names(sequences) %in% up_ids]
+    seqs <- sequences[grep(up_ids, names(sequences))]
     if(length(seqs) == 0) message(paste0("Warning: Gene ", gene, 
                                          " had no corresponding Swissprot sequence"))
-    return(any(grepl(pep, seqs)))
+    matches <- grepl(pep, seqs)
+    if(alignsTo){
+      return(paste(names(seqs)[matches], collapse = ";"))
+    }else{
+      return(any(matches))
+    }
   }
 }
 
