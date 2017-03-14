@@ -129,16 +129,16 @@ generateDecoys <- function(size,all_proteins,dist_info,min_distance){
 #' @param append logical if to append decoys to the input target hypotheses, default is FALSE
 #' @param seed numeric seed for random number generator
 #' @param parallelized logical, if the computation should be done in parallel, default=FALSE
-#' @param n.cores numeric number of cores used for parallelization
+#' @param n_cores numeric number of cores used for parallelization
 #' @return data.table with binary interactions between "a" and "b"
 #' @export
-generateComplexDecoys <- function(target_hypothesis,dist_info,min_distance=2,append=FALSE,seed=123,parallelized=FALSE,n.cores=1){
+generateComplexDecoys <- function(target_hypothesis,dist_info,min_distance=2,append=FALSE,seed=123,parallelized=FALSE,n_cores=1){
   input = target_hypothesis
   proteins <- unique(target_hypothesis$protein_id)
   target_hypothesis <- target_hypothesis[,list(protein_count=length(complex_id)),by=list(unique.complex_id=complex_id)]
   size=target_hypothesis$protein_count
   if (parallelized) {
-    cl <- snow::makeCluster(n.cores)
+    cl <- snow::makeCluster(n_cores)
     # setting a seed is absolutely crutial to ensure reproducible results!!!!!!!!!!!!!!!!!!!
     clusterSetRNGStream(cl,seed)
     doSNOW::registerDoSNOW(cl)

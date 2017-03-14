@@ -5,7 +5,7 @@
 \title{generateComplexDecoys}
 \usage{
 generateComplexDecoys(target_hypothesis, dist_info, min_distance = 2,
-  append = FALSE, seed = 123, parallelized = FALSE, n.cores = 1)
+  append = FALSE, seed = 123, parallelized = FALSE, n_cores = 1)
 }
 \arguments{
 \item{target_hypothesis}{data.table in the format of complex hypotheses}
@@ -22,7 +22,7 @@ This is the output from calculatePathlength()}
 
 \item{parallelized}{logical, if the computation should be done in parallel, default=FALSE}
 
-\item{n.cores}{numeric number of cores used for parallelization}
+\item{n_cores}{numeric number of cores used for parallelization}
 }
 \value{
 data.table with binary interactions between "a" and "b"
