@@ -2,7 +2,7 @@
 % Please edit documentation in R/generateHypotheses.R
 \name{generateBinaryNetwork}
 \alias{generateBinaryNetwork}
-\title{Generate binary network from concrete complex hypotheses (e.g. CORUM).}
+\title{generateBinaryNetwork}
 \usage{
 generateBinaryNetwork(complex_hypothesis)
 }

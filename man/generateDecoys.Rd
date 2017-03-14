@@ -2,7 +2,7 @@
 % Please edit documentation in R/generateHypotheses.R
 \name{generateDecoys}
 \alias{generateDecoys}
-\title{Generate list of proteins for one complex decoy hypothesis}
+\title{generateDecoys}
 \usage{
 generateDecoys(size, all_proteins, dist_info, min_distance)
 }

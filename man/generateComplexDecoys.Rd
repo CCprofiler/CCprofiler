@@ -2,11 +2,10 @@
 % Please edit documentation in R/generateHypotheses.R
 \name{generateComplexDecoys}
 \alias{generateComplexDecoys}
-\title{Generate complex decoy hypotheses from target hypotheses and distance table.
-Selects proteins by min_distance in the network.}
+\title{generateComplexDecoys}
 \usage{
 generateComplexDecoys(target_hypothesis, dist_info, min_distance = 2,
-  seed = 123, n.cores = 1)
+  append = FALSE, seed = 123, parallelized = FALSE, n.cores = 1)
 }
 \arguments{
 \item{target_hypothesis}{data.table in the format of complex hypotheses}
@@ -17,7 +16,11 @@ This is the output from calculatePathlength()}
 
 \item{min_distance}{numeric minimum distance between to proteins to be able to be in same complex decoy}
 
+\item{append}{logical if to append decoys to the input target hypotheses, default is FALSE}
+
 \item{seed}{numeric seed for random number generator}
+
+\item{parallelized}{logical, if the computation should be done in parallel, default=FALSE}
 
 \item{n.cores}{numeric number of cores used for parallelization}
 }

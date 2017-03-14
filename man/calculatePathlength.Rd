@@ -2,9 +2,7 @@
 % Please edit documentation in R/generateHypotheses.R
 \name{calculatePathlength}
 \alias{calculatePathlength}
-\title{Calculate shortest paths between all members of a binary interaction network.
-This function creates a table that contains all possible combinations of 2 from
-all input proteins (binomial coeffitient (length(proteins) over 2)).}
+\title{calculatePathlength}
 \usage{
 calculatePathlength(binaryInteractionTable)
 }

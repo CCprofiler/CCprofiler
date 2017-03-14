@@ -2,8 +2,7 @@
 % Please edit documentation in R/generateHypotheses.R
 \name{generateComplexTargets}
 \alias{generateComplexTargets}
-\title{Generate target hypotheses from distance table. This is done by choosing all
-max_distance (e.g. 1st) degree interactors for each protein in a distance table.}
+\title{generateComplexTargets}
 \usage{
 generateComplexTargets(dist_info, max_distance = 1)
 }
