@@ -26,9 +26,45 @@ estimate_error_decoy <- function(complex_hypothesis,detected_complex_features){
 
 #' Estimate statistics based on manual annotation.
 #' @description Estimate statistics based on manual annotation.
-#' @param table data.table with complex features mapped to manual annotation.
+#' @param detected_features data.table containing filtered feature results.
+#' @param manual_features data.table containing manual feature results.
 #' @return List with stats
 #' @export
+estimate_error_manual <- function(detected_features, manual_features){
+  detected_features[ , count := .N, by = protein_name]
+  detected_features <- detected_features[order(-rank(count), protein_name)]
+  results <- detected_features
+  results[,results_id := seq_len(.N)]
+  results$manual_id <- NA
+  for (i in seq_len(nrow(results))) {
+    results$manual_id[i] <- manualFeatureMapping(results[i],dist_cutoff=3,manual_annotation=manual_features)
+  }
+  results[,manual_id := as.integer(manual_id)]
+  results[,manual_id_mapp := manual_id]
+  manual_features[,manual_id := as.integer(manual_id)]
+  results_merged <- merge(results,manual_features,by="manual_id",all=TRUE,suffixes=c("",".manual"))
+
+  # don't allow same manul id to be assigned to two features
+  results_merged[,apex_dist:= abs(apex-apex.manual)]
+  results_merged[,left_pp_dist:= abs(left_pp-left_pp.manual)]
+  results_merged[,right_pp_dist:= abs(right_pp-right_pp.manual)]
+  results_merged[,peak_dist := (0.5*apex_dist)+(0.25*left_pp_dist)+(0.25*right_pp_dist)]
+  # @TODO test if correctly done
+  unique_manual_ids <- unique(results_merged$manual_id_mapp[which((!is.na(results_merged$manual_id_mapp)) & (results_merged$manual_id_mapp != 0))])
+  result_ids_to_unassign <-  unlist(lapply(unique_manual_ids,resolveDoubleAssignments,mapped_features=results_merged))
+  if (length(result_ids_to_unassign) > 0) {
+    results_merged$manual_id_mapp[which(results_merged$results_id %in% result_ids_to_unassign)]=0
+    results_merged$manual_id[which(results_merged$results_id %in% result_ids_to_unassign)]=0
+  }
+  stats <- estimate_errors(results_merged)
+  list(data=results_merged,stats=stats)
+}
+
+
+#' Estimate statistics based on manual annotation.
+#' @description Estimate statistics based on manual annotation.
+#' @param table data.table with complex features mapped to manual annotation.
+#' @return List with stats
 estimate_errors <- function(table){
   FP_result_ids=table$results_id[which(table$manual_id_mapp == 0)]
   FN_manual_ids=table$manual_id[which(is.na(table$manual_id_mapp))]
@@ -79,7 +115,6 @@ estimate_errors <- function(table){
 #' @param dist_cutoff numeric maximal apex distance for features to be mapped
 #' @param manual_annotation data.table containing manual annotation
 #' @return data.table with mached detected and manual features
-#' @export
 manualFeatureMapping <- function(feature,dist_cutoff,manual_annotation){
   manual_features <- subset(manual_annotation,protein_id==feature$protein_id)
   if (nrow(manual_features) == 0) {
@@ -115,7 +150,6 @@ manualFeatureMapping <- function(feature,dist_cutoff,manual_annotation){
 #' @param id feature_id
 #' @param mapped_features data.table with all mapped features
 #' @return data.table with mached detected and manual features
-#' @export
 resolveDoubleAssignments <- function(id,mapped_features){
   features <- mapped_features[which(manual_id_mapp== id)]
   if (nrow(features) > 1) {
