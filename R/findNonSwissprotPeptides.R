@@ -42,7 +42,7 @@ findNonSwissprotPeptides <- function(pepTraces, proteinFasta, id_table = NULL,
   
   # map the gene names
   
-  alignsSwissprot <- apply(pepTraces$trace_annotation, 1, alignPeptide, sequences, idmapping, mode, alignsTo)
+  alignsSwissprot <- pbapply(pepTraces$trace_annotation, 1, alignPeptide, sequences, idmapping, mode, alignsTo)
   pepTraces$trace_annotation$AlignsSwissprot <- alignsSwissprot
   return(pepTraces$trace_annotation)
 }
@@ -60,7 +60,7 @@ alignPeptide <- function(Trace, sequences, idmapping, mode = "ENSEMBL", alignsTo
       up_ids <- gene
     }
     # if(is.na(up_ids)) message(paste0("Warning: Gene ", gene, " had no corresponding uniprot ID in the mapping table"))
-    seqs <- sequences[grep(up_ids, names(sequences))]
+    seqs <- sequences[unlist(sapply(up_ids, grep, names(sequences)))]
     if(length(seqs) == 0) message(paste0("Warning: Gene ", gene, 
                                          " had no corresponding Swissprot sequence"))
     matches <- grepl(pep, seqs)
