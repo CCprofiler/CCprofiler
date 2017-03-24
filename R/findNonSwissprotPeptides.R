@@ -7,6 +7,7 @@
 #' ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/idmapping/by_organism/
 #' @import Biostrings
 #' @import data.table
+#' @import pbapply
 #' @export
 
 findNonSwissprotPeptides <- function(pepTraces, proteinFasta, id_table = NULL,
@@ -39,16 +40,16 @@ findNonSwissprotPeptides <- function(pepTraces, proteinFasta, id_table = NULL,
     stop("Input id_table must be of type character(Path to table) or data.table")
   }
   setkey(idmapping, ensembl_id)
+  idmapping <- idmapping[uniprot_id != ""]
   
   # map the gene names
-  
-  alignsSwissprot <- pbapply(pepTraces$trace_annotation, 1, alignPeptide, sequences, idmapping, mode, alignsTo)
+  alignsSwissprot <- pbapply(pepTraces$trace_annotation, 1, alignPeptide, sequences, idmapping, mode, alignsTo, extr2)
   pepTraces$trace_annotation$AlignsSwissprot <- alignsSwissprot
   return(pepTraces$trace_annotation)
 }
 
 
-alignPeptide <- function(Trace, sequences, idmapping, mode = "ENSEMBL", alignsTo){
+alignPeptide <- function(Trace, sequences, idmapping, mode = "ENSEMBL", alignsTo, extr2 = F){
   gene <- Trace[2]
   if(grepl("DECOY", gene)){
     return(FALSE)
@@ -60,7 +61,15 @@ alignPeptide <- function(Trace, sequences, idmapping, mode = "ENSEMBL", alignsTo
       up_ids <- gene
     }
     # if(is.na(up_ids)) message(paste0("Warning: Gene ", gene, " had no corresponding uniprot ID in the mapping table"))
-    seqs <- sequences[unlist(sapply(up_ids, grep, names(sequences)))]
+    if(is.na(up_ids[1])){
+      return(FALSE)
+    }
+    if(extr2){
+      seqs <- sequences[names(sequences) %in% up_ids]
+    }else{
+      seqs <- sequences[unlist(sapply(up_ids, grep, names(sequences)))]
+    }
+    
     if(length(seqs) == 0) message(paste0("Warning: Gene ", gene, 
                                          " had no corresponding Swissprot sequence"))
     matches <- grepl(pep, seqs)
