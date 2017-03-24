@@ -43,7 +43,7 @@ plot.proteinFeatures <- function(res,
   traces <- subset(traces.obj,trace_ids = peptides)
   traces.long <- toLongFormat(traces$traces)
   if(!is.null(highlight)){
-    traces.long$outlier <- traces.long$id %in% highlight
+    traces.long$outlier <- gsub("\\(.*?\\)","",traces.long$id) %in% gsub("\\(.*?\\)","",highlight)
   }
   # add monomer MW
   monomer = as.numeric(unlist(features$monomer_sec))
