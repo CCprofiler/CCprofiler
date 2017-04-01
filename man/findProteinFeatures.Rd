@@ -5,9 +5,9 @@
 \title{Protein feature detection}
 \usage{
 findProteinFeatures(traces, calibration, corr_cutoff = 0.95,
-  window_size = 15, parallelized = FALSE, n_cores = 1,
+  window_size = 12, parallelized = FALSE, n_cores = 1,
   collapse_method = "apex_only", perturb_cutoff = "5\%", rt_height = 5,
-  smoothing_length = 11)
+  smoothing_length = 9)
 }
 \arguments{
 \item{traces}{An object of type \code{traces}.}
@@ -17,7 +17,7 @@ findProteinFeatures(traces, calibration, corr_cutoff = 0.95,
 \item{corr_cutoff}{The correlation value for chromatograms above which
 peptides are considered to be coeluting, default=0.95.}
 
-\item{window_size}{numeric size of the window, default=15}
+\item{window_size}{numeric size of the window, default=12}
 
 \item{parallelized}{logical, if the computation should be done in parallel, default=FALSE}
 
@@ -33,7 +33,7 @@ This is nescessary for correlation calculation.}
 
 \item{rt_height}{numeric RT cutoff for collapsing features, default is 5}
 
-\item{smoothing_length}{numeric smoothing length of Savitzky-Golay filter, default is 11}
+\item{smoothing_length}{numeric smoothing length of Savitzky-Golay filter, default is 7}
 }
 \value{
 A data.table containing protein features.

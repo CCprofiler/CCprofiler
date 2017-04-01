@@ -4,20 +4,22 @@
 \alias{plot.proteinFeatures}
 \title{Plot protein features.}
 \usage{
-\method{plot}{proteinFeatures}(res, traces.obj, proteinID, plot_peak = TRUE,
-  plot_monomer = TRUE, log = FALSE, plot_apex = TRUE,
+\method{plot}{proteinFeatures}(res, peptideTraces, proteinID, calibration,
+  plot_peak = TRUE, plot_monomer = TRUE, log = FALSE, plot_apex = TRUE,
   plot_in_complex_estimate = TRUE)
 }
 \arguments{
 \item{res}{proteinFeatures}
 
+\item{peptideTraces}{An object of type \code{traces}.}
+
 \item{proteinID}{protein ID}
+
+\item{calibration}{list of calibraion functions form calibrateSECMW}
 
 \item{plot_peak}{logical}
 
 \item{plot_monomer}{logical}
-
-\item{pepTraces}{An object of type \code{traces.obj}.}
 
 \item{window.size}{Size of the window. Numeric.}
 }

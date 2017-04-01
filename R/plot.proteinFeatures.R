@@ -1,16 +1,18 @@
 #' Plot protein features.
 #'
 #' @param res proteinFeatures
-#' @param pepTraces An object of type \code{traces.obj}.
+#' @param peptideTraces An object of type \code{traces}.
 #' @param proteinID protein ID
+#' @param calibration list of calibraion functions form calibrateSECMW
 #' @param window.size Size of the window. Numeric.
 #' @param plot_peak logical
 #' @param plot_monomer logical
 #' @export
 
 plot.proteinFeatures <- function(res,
-                                 traces.obj,
+                                 peptideTraces,
                                  proteinID,
+                                 calibration,
                                  plot_peak=TRUE,
                                  plot_monomer=TRUE,
                                  log=FALSE,
@@ -20,8 +22,8 @@ plot.proteinFeatures <- function(res,
 
   features <- subset(res, protein_id == proteinID)
   #peptides <- unique(unlist(strsplit(features$subunits_annotated, split = ";")))
-  peptides <- traces.obj$trace_annotation[protein_id == proteinID]$id
-  traces <- subset(traces.obj,trace_ids = peptides)
+  peptides <- peptideTraces$trace_annotation[protein_id == proteinID]$id
+  traces <- subset(peptideTraces,trace_ids = peptides)
   traces.long <- toLongFormat(traces$traces)
 
   # add monomer MW
@@ -34,11 +36,18 @@ plot.proteinFeatures <- function(res,
 
   group.colors <- c("TRUE" = "green3", "FALSE" = "firebrick1")
 
+  grid.newpage()
+
   p <- ggplot(traces.long) +
     geom_line(aes_string(x='fraction', y='intensity', color='id')) +
     ggtitle(proteinName) +
     xlab('fraction') +
     ylab('intensity') +
+    theme_bw() +
+    theme(panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()) +
+    theme(plot.margin = unit(c(1,.5,.5,.5),"cm")) +
+    theme(plot.title = element_text(vjust=19,size=10)) +
     guides(color=FALSE)
 
     if (log) {
@@ -61,8 +70,50 @@ plot.proteinFeatures <- function(res,
     p <- p + geom_vline(xintercept=monomer_max,linetype="dashed")
   }
   if(plot_apex==TRUE){
-    p <- p + geom_vline(data=features,aes(xintercept=apex), colour="darkgrey", linetype="solid")
+    p <- p + geom_vline(data=features,aes(xintercept=apex), colour="darkgrey", linetype="solid",size=1.5)
   }
   #p <- p + theme(legend.position="none")
-  print(p)
+  #print(p)
+  p2 <- p
+  p <- p + scale_x_continuous(name="SEC fraction",limits=c(0,80),breaks=seq(0,80,10),labels=seq(0,80,10))
+  p2 <- p2 + scale_x_continuous(name="MW",
+                 ,limits=c(0,80),breaks=seq(0,80,10),
+                 labels=round(calibration$SECfractionToMW(seq(0,80,10)),digits=0)
+                 )
+
+  ## extract gtable
+  g1 <- ggplot_gtable(ggplot_build(p))
+  g2 <- ggplot_gtable(ggplot_build(p2))
+
+  ## overlap the panel of the 2nd plot on that of the 1st plot
+  pp <- c(subset(g1$layout, name=="panel", se=t:r))
+
+  g <- gtable_add_grob(g1, g2$grobs[[which(g2$layout$name=="panel")]], pp$t, pp$l, pp$b, pp$l)
+
+  ## steal axis from second plot and modify
+  ia <- which(g2$layout$name == "axis-b")
+  ga <- g2$grobs[[ia]]
+  ax <- ga$children[[2]]
+
+  ## switch position of ticks and labels
+  ax$heights <- rev(ax$heights)
+  ax$grobs <- rev(ax$grobs)
+
+  ## modify existing row to be tall enough for axis
+  g$heights[[2]] <- g$heights[g2$layout[ia,]$t]
+
+  ## add new axis
+  g <- gtable_add_grob(g, ax, 2, 4, 2, 4)
+
+  ## add new row for upper axis label
+  g <- gtable_add_rows(g, g2$heights[1], 1)
+
+  ## steal axis label from second plot
+  ia2 <- which(g2$layout$name == "xlab-b")
+  ga2 <- g2$grobs[[ia2]]
+  g <- gtable_add_grob(g,ga2, 3, 4, 2, 4)
+
+  # draw it
+  #pdf("test.pdf",height=4,width=7)
+  grid.draw(g)
 }
