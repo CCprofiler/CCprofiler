@@ -24,7 +24,11 @@ estimateDecoyFDR <- function(complex_features,grid_search_list=FALSE){
   }
 }
 
-
+#' Perform complex feature grid search
+#' @description Perform complex feature grid search.
+#' @param complex_features data.table containing filtered complex feature results.
+#' @return List with stats
+#' @export
 performComplexGridSearch <- function(traces,
                                     complex_hypothesis,
                                     calibration,
@@ -71,33 +75,52 @@ runGridComplexFeatureFinding <- function(params,protTraces,calibration,complex_h
   res[]
 }
 
-
+#' Perform complex feature grid search filter
+#' @description Perform complex feature grid search filter.
+#' @param complex_features data.table containing filtered complex feature results.
+#' @return List with stats
+#' @export
 filterGridSearchResults <- function(grid_search_results,
                                     peak_corr_cutoffs = c(0.5,0.75,0.9),
                                     completeness_cutoffs = c(0,0.5,1),
-                                    n_subunits_cutoffs =c(2,3,4)
+                                    n_subunits_cutoffs =c(2,3,4),
+                                    remove_decoys=FALSE
                                     ) {
   parameter_grid <- expand.grid(peak_corr_cutoffs,completeness_cutoffs,n_subunits_cutoffs)
   names(parameter_grid) <- c("peak_corr_cutoffs","completeness_cutoffs","n_subunits_cutoffs")
   data <- list()
-  data <- c(data,unlist(lapply(grid_search_results,helperFilterByParams,params=parameter_grid),recursive=FALSE))
+  data <- c(data,unlist(lapply(grid_search_results,helperFilterByParams,params=parameter_grid,remove_decoys=remove_decoys),recursive=FALSE))
   data
 }
 
-helperFilterByParams <- function(data,params){
+helperFilterByParams <- function(data,params,remove_decoys){
   res <- list()
-  res <- c(res,apply(params,1,helperSubset,data=data))
+  res <- c(res,apply(params,1,helperSubset,data=data,remove_decoys=remove_decoys))
   res
 }
 
-helperSubset <- function(param,data){
+helperSubset <- function(param,data,remove_decoys){
   x <- subset(data,((peak_corr >= as.numeric(param["peak_corr_cutoffs"])) & (completeness >= as.numeric(param["completeness_cutoffs"])) & (n_subunits_detected >= as.numeric(param["n_subunits_cutoffs"]))))
+  if (remove_decoys) {
+    if("complex_id" %in% names(x)){
+      x <- x[!(grep("DECOY",complex_id))]
+    } else if ("protein_id" %in% names(x)) {
+      x <- x[!(grep("DECOY",protein_id))]
+    } else {
+      message("not a valid search result")
+    }
+  }
   x[,peak_corr_cutoff:=as.numeric(param["peak_corr_cutoffs"])]
   x[,completeness_cutoff:=as.numeric(param["completeness_cutoffs"])]
   x[,n_subunits_cutoff:=as.numeric(param["n_subunits_cutoffs"])]
   x[]
 }
 
+#' Perform complex feature grid search FDR
+#' @description Perform complex feature grid search.
+#' @param complex_features data.table containing filtered complex feature results.
+#' @return List with stats
+#' @export
 estimateGridSearchDecoyFDR<- function(complex_features_list){
   x=lapply(complex_features_list,estimateDecoyFDR,grid_search_list=TRUE)
   x_names = names(x[[1]])
@@ -106,6 +129,11 @@ estimateGridSearchDecoyFDR<- function(complex_features_list){
   y[]
 }
 
+#' Plot FDR gridsearch
+#' @description Perform complex feature grid search.
+#' @param complex_features data.table containing filtered complex feature results.
+#' @return List with stats
+#' @export
 plotIdFDRspace <- function(grid_search_stats,FDR_cutoff=0.1,colour_parameter="completeness_cutoff",PDF=TRUE,name="ID_FDR_plot.pdf"){
   #@TODO mark best parameter combination and put these parameters in subtitle
   if(PDF){pdf(name)}
