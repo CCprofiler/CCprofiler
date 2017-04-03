@@ -41,6 +41,7 @@ getIntensityMatrix <- function(traces) {
 #'           \item \code{fraction}
 #'           \item \code{intensity}
 #'          }
+#' @export
 toLongFormat <- function(traces.dt) {
   traces.dt.long <-
     melt(traces.dt, id.var='id', variable.name='fraction',
