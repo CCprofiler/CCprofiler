@@ -80,8 +80,8 @@ plotComplexMScoverageScatter <- function(complexMScoverage,PDF=TRUE){
     geom_abline(intercept=0,slope=0.5, linetype=2) +
     annotate("text",x=70,y=80, label="100%", angle = 45) +
     annotate("text",x=70,y=9.5, label="50%", angle = 23) +
-    scale_x_log10(name = "N subunits in hypothesis", breaks = c(1,10,100), limits = c(1,100)) +
-    scale_y_log10(name = "N subunits observed by MS", breaks = c(1,10,100), limits = c(1,100)) +
+    scale_x_log10(name = "N subunits in hypothesis", breaks = c(1,10,100), limits = c(1,200)) +
+    scale_y_log10(name = "N subunits observed by MS", breaks = c(1,10,100), limits = c(1,200)) +
     theme_bw() +
     theme(panel.grid.major = element_blank(),
     panel.grid.minor = element_blank()) +
