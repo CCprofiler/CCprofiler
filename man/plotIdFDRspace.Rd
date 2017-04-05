@@ -4,11 +4,13 @@
 \alias{plotIdFDRspace}
 \title{Plot FDR gridsearch}
 \usage{
-plotIdFDRspace(grid_search_stats, FDR_cutoff = 0.1,
+plotIdFDRspace(grid_search_stats, level = "complex", FDR_cutoff = 0.1,
   colour_parameter = "completeness_cutoff", PDF = TRUE,
   name = "ID_FDR_plot.pdf")
 }
 \arguments{
+\item{level}{character sting either complex or protein}
+
 \item{complex_features}{data.table containing filtered complex feature results.}
 }
 \value{

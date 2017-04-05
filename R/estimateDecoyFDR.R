@@ -32,7 +32,14 @@ estimateDecoyFDR <- function(complex_features,grid_search_list=FALSE){
 
 #' Perform complex feature grid search
 #' @description Perform complex feature grid search.
-#' @param complex_features data.table containing filtered complex feature results.
+#' @param traces traces object of type protein
+#' @param calibration list of two functions for calibration
+#' @param corrs numeric vector
+#' @param windows numeric vector
+#' @param smoothing numeric vector
+#' @param rt_heights numeric vector
+#' @param parallelized logical default=TRUE
+#' @param n_cores numeric number of cores to use if parallelized (default=1)
 #' @return List with stats
 #' @export
 performComplexGridSearch <- function(traces,

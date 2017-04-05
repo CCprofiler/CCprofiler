@@ -10,7 +10,21 @@ performComplexGridSearch(traces, complex_hypothesis, calibration,
   n_cores = 1)
 }
 \arguments{
-\item{complex_features}{data.table containing filtered complex feature results.}
+\item{traces}{traces object of type protein}
+
+\item{calibration}{list of two functions for calibration}
+
+\item{corrs}{numeric vector}
+
+\item{windows}{numeric vector}
+
+\item{smoothing}{numeric vector}
+
+\item{rt_heights}{numeric vector}
+
+\item{parallelized}{logical default=TRUE}
+
+\item{n_cores}{numeric number of cores to use if parallelized (default=1)}
 }
 \value{
 List with stats
