@@ -4,7 +4,13 @@
 #' @return List with stats
 #' @export
 estimateDecoyFDR <- function(complex_features,grid_search_list=FALSE){
-  complexes <- complex_features$complex_id
+  if("complex_id" %in% names(complex_features)){
+    complexes <- complex_features$complex_id
+  } else if ("protein_id" %in% names(complex_features)) {
+    complexes <- complex_features$protein_id
+  } else {
+    message("not a valid search result")
+  }
   decoys = complexes[grep("DECOY",complexes)]
   targets = complexes[!complexes %in% decoys]
   if(!length(decoys)>0){
@@ -53,9 +59,6 @@ performComplexGridSearch <- function(traces,
 }
 
 runGridComplexFeatureFinding <- function(params,protTraces,calibration,complex_hypothesis) {
-  name=paste(params,collapse="_")
-  name=gsub("\\.","",name)
-  name=gsub(" ","",name)
   res = findComplexFeatures(traces=protTraces,
                             complex_hypothesis = complex_hypothesis,
                             calibration = calibration,
@@ -132,16 +135,22 @@ estimateGridSearchDecoyFDR<- function(complex_features_list){
 #' Plot FDR gridsearch
 #' @description Perform complex feature grid search.
 #' @param complex_features data.table containing filtered complex feature results.
+#' @param level character sting either complex or protein
 #' @return List with stats
 #' @export
-plotIdFDRspace <- function(grid_search_stats,FDR_cutoff=0.1,colour_parameter="completeness_cutoff",PDF=TRUE,name="ID_FDR_plot.pdf"){
+plotIdFDRspace <- function(grid_search_stats,level="complex",FDR_cutoff=0.1,colour_parameter="completeness_cutoff",PDF=TRUE,name="ID_FDR_plot.pdf"){
   #@TODO mark best parameter combination and put these parameters in subtitle
+  if(level=="complex"){
+    sep=100
+  } else if (level=="protein"){
+    sep=1000
+  }
   if(PDF){pdf(name)}
   pl <- ggplot(data=grid_search_stats,aes(y=TP,x=FDR,colour=get(colour_parameter))) +
     geom_point() +
     scale_x_continuous(breaks=seq(0,1,0.1),limits=c(0,1),minor_breaks=NULL) +
-    scale_y_continuous(breaks=seq(0,ceiling(max(grid_search_stats$TP)/100)*100,100),limits=c(0,ceiling(max(grid_search_stats$TP)/100)*100),minor_breaks=NULL) +
-    scale_colour_continuous(guide = guide_legend(title = eval(colour_parameter))) +
+    scale_y_continuous(breaks=seq(0,ceiling(max(grid_search_stats$TP)/100)*100,sep),limits=c(0,ceiling(max(grid_search_stats$TP)/100)*100),minor_breaks=NULL) +
+    labs(colour = paste0(eval(colour_parameter),"\n")) +
     geom_vline(xintercept=FDR_cutoff,colour="red",linetype=2) +
     theme_bw()
   print(pl)
