@@ -12,7 +12,8 @@ subset.traces <- function(traces.obj,trace_ids=NULL,fraction_ids=NULL){
       traces.obj$trace_annotation <- subset(traces.obj$trace_annotation ,id %in% trace_ids)
     }
     if (!is.null(fraction_ids)){
-      traces.obj$traces <- traces.obj$traces[,c(fraction_ids,"id"),with=FALSE]
+      #traces.obj$traces <- traces.obj$traces[,c(fraction_ids,"id"),with=FALSE]
+      traces.obj$traces <- subset(traces.obj$traces,select=c(names(traces.obj$traces)[fraction_ids],"id"))
       traces.obj$fraction_annotation <- subset(traces.obj$fraction_annotation ,id %in% fraction_ids)
     }
     traces.obj
