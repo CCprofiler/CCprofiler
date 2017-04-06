@@ -28,7 +28,7 @@ getBestProteinFeatures <- function(res){
 #' @param traces traces object of type peptide
 #' @param calibration list of two functions for calibration
 #' @param corrs numeric vector
-#' @param windows numeric vector 
+#' @param windows numeric vector
 #' @param smoothing numeric vector
 #' @param rt_heights numeric vector
 #' @param parallelized logical default=TRUE
