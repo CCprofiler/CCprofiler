@@ -68,6 +68,7 @@ findComplexFeaturesSW <- function(trace.mat,
   # Analyze each window for groups of protein chromatograms that correlate
   # well.
   groups.by.window <- lapply(seq(1, ncol(trace.mat)), function(i) {
+    #print(i)
     start.window.idx <- min(end.idx, i)
     end.window.idx <- start.window.idx + window.size
     window.trace.mat <- trace.mat[, start.window.idx:end.window.idx]
@@ -173,6 +174,7 @@ findComplexFeaturesWithinWindow <- function(window.trace.mat, protein.names,
   # is performed.
   if (nrow(window.trace.mat) == 2) {
     corr <- proxy::simil(window.trace.mat, method='correlation')[1]
+    corr[!is.finite(corr)] <- 1000
     if (corr > corr.cutoff) {
       group.assignments <- c(1, 1)
     } else {
@@ -185,6 +187,7 @@ findComplexFeaturesWithinWindow <- function(window.trace.mat, protein.names,
     distance <- proxy::dist(window.trace.mat, method='correlation')
     # Cluster correlation vectors hierarchically s.t. proteins that correlate
     # well with a similar group of other proteins cluster together.
+    distance[!is.finite(distance)] <- 1000
     cl <- hclust(distance)
     if (with.plot) {
       plot(cl)
