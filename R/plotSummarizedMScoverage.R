@@ -37,10 +37,11 @@ plotSummarizedMScoverage <- function(hypotheses,protTraces,PDF=TRUE){
 #' @param PDF logical default = TRUE
 #' @return plots summarizing the MS coverage
 plotProteinMScoveragePie <- function(proteinMScoverageSummary,PDF=TRUE){
+  cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
   if(PDF){
     pdf("proteinMScoveragePie.pdf")
   }
-  print(pie(x=proteinMScoverageSummary$count,labels=paste0(proteinMScoverageSummary$name,"\n",proteinMScoverageSummary$count)))
+  print(pie(x=proteinMScoverageSummary$count,labels=paste0(proteinMScoverageSummary$name,"\n",proteinMScoverageSummary$count,col=cbPalette[1:nrow(complexCompletenessSummary)])))
   if(PDF){
     dev.off()
   }
@@ -54,10 +55,11 @@ plotProteinMScoveragePie <- function(proteinMScoverageSummary,PDF=TRUE){
 #' @param PDF logical default = TRUE
 #' @return plots summarizing the MS coverage
 plotComplexMScoveragePie <- function(complexMScoverageSummary,PDF=TRUE){
+  cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
   if(PDF){
     pdf("complexMScoveragePie.pdf")
   }
-  print(pie(x=complexMScoverageSummary$count,labels=paste0(complexMScoverageSummary$name,"\n",complexMScoverageSummary$count)))
+  print(pie(x=complexMScoverageSummary$count,labels=paste0(complexMScoverageSummary$name,"\n",complexMScoverageSummary$count,col=cbPalette[1:nrow(complexCompletenessSummary)])))
   if(PDF){
     dev.off()
   }
