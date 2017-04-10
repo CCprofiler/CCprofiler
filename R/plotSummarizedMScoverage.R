@@ -41,7 +41,7 @@ plotProteinMScoveragePie <- function(proteinMScoverageSummary,PDF=TRUE){
   if(PDF){
     pdf("proteinMScoveragePie.pdf")
   }
-  print(pie(x=proteinMScoverageSummary$count,labels=paste0(proteinMScoverageSummary$name,"\n",proteinMScoverageSummary$count,col=cbPalette[1:nrow(proteinMScoverageSummary)])))
+  print(pie(x=proteinMScoverageSummary$count,labels=paste0(proteinMScoverageSummary$name,"\n",proteinMScoverageSummary$count),col=cbPalette[1:nrow(proteinMScoverageSummary)]))
   if(PDF){
     dev.off()
   }
@@ -59,7 +59,7 @@ plotComplexMScoveragePie <- function(complexMScoverageSummary,PDF=TRUE){
   if(PDF){
     pdf("complexMScoveragePie.pdf")
   }
-  print(pie(x=complexMScoverageSummary$count,labels=paste0(complexMScoverageSummary$name,"\n",complexMScoverageSummary$count,col=cbPalette[1:nrow(complexMScoverageSummary)])))
+  print(pie(x=complexMScoverageSummary$count,labels=paste0(complexMScoverageSummary$name,"\n",complexMScoverageSummary$count),col=cbPalette[1:nrow(complexMScoverageSummary)]))
   if(PDF){
     dev.off()
   }
