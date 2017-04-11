@@ -102,6 +102,7 @@ generateComplexTargets <- function(dist_info,max_distance=1){
 #' This is the output from calculatePathlength()
 #' @param min_distance numeric minimum distance between to proteins to be able to be in same complex decoy
 #' @return data.table with binary interactions between "a" and "b"
+#' @export
 generateDecoys <- function(size,all_proteins,dist_info,min_distance){
   complex_proteins <- vector(mode="character",length=size)
   for(j in c(1:size)){
