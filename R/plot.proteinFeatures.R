@@ -9,7 +9,7 @@
 #' @param plot_monomer logical
 #' @export
 
-plot.proteinFeatures <- function(res,
+plotProteinFeatures <- function(res,
                                  peptideTraces,
                                  proteinID,
                                  calibration,

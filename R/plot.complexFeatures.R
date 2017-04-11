@@ -15,7 +15,7 @@
 #' @param monomer_MW logical if monomer MWs should be indicated
 #' @param log logical if intensities should be log transformed
 #' @export
-plot.complexFeatures <- function(res,
+plotComplexFeatures <- function(res,
                                  proteinTraces,
                                  complexID,
                                  calibration,
