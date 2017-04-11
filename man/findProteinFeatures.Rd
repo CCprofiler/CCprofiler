@@ -7,7 +7,7 @@
 findProteinFeatures(traces, calibration, corr_cutoff = 0.95,
   window_size = 12, parallelized = FALSE, n_cores = 1,
   collapse_method = "apex_only", perturb_cutoff = "5\%", rt_height = 5,
-  smoothing_length = 9)
+  smoothing_length = 9, useRandomDecoyModel = TRUE)
 }
 \arguments{
 \item{traces}{An object of type \code{traces}.}
@@ -34,6 +34,8 @@ This is nescessary for correlation calculation.}
 \item{rt_height}{numeric RT cutoff for collapsing features, default is 5}
 
 \item{smoothing_length}{numeric smoothing length of Savitzky-Golay filter, default is 7}
+
+\item{useRandomDecoyModel}{logical if random peptide protein associations should be used as decoy model, default = TRUE}
 }
 \value{
 A data.table containing protein features.

@@ -15,6 +15,7 @@
 #'        This is nescessary for correlation calculation.
 #' @param rt_height numeric RT cutoff for collapsing features, default is 5
 #' @param smoothing_length numeric smoothing length of Savitzky-Golay filter, default is 7
+#' @param useRandomDecoyModel logical if random peptide protein associations should be used as decoy model, default = TRUE
 #' @return A data.table containing protein features.
 #' @export
 
@@ -27,7 +28,8 @@ findProteinFeatures <- function(traces,
                                 collapse_method="apex_only",
                                 perturb_cutoff= "5%",
                                 rt_height=5,
-                                smoothing_length=9){
+                                smoothing_length=9,
+                                useRandomDecoyModel=TRUE){
   protein.peptide.association.table <- as.data.table(as.data.frame(traces[["trace_annotation"]]))
   setorder(protein.peptide.association.table, "protein_id")
   setnames(protein.peptide.association.table, "protein_id", "complex_id")
@@ -35,6 +37,14 @@ findProteinFeatures <- function(traces,
   protein.peptide.association.table[, complex_name:=complex_id]
   protein.peptide.association.table <- subset(protein.peptide.association.table,select=c("complex_id","complex_name","protein_id"))
   #protein.peptide.association.table
+  if(useRandomDecoyModel){
+    set.seed(123)
+    random_peptides = sample(protein.peptide.association.table$protein_id) # naming is already changed for featureFinding (protein_ids == peptide_ids)
+    random.association.table <- data.table(complex_id=paste0("DECOY_",protein.peptide.association.table$complex_id),
+                                          complex_name=paste0("DECOY_",protein.peptide.association.table$complex_name),
+                                          protein_id=paste0(random_peptides))
+    protein.peptide.association.table <- rbind(protein.peptide.association.table,random.association.table)
+  }
 
   ProteinFeatures <- findComplexFeatures(traces = traces,
                                          complex_hypothesis = protein.peptide.association.table,

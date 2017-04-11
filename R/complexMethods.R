@@ -46,3 +46,28 @@ getBestComplexFeature <- function(res){
   res_best <- unique(res,by="complex_id")
   res_best
 }
+
+#' Filter protein feature table
+#' @description Filter result data.table according to desired protein_ids or minimum correlation score.
+#' @param res A data.table with the protein features.
+#' @param protein_ids A character vector containing all desired \code{protein_id} values.
+#' @param min_completeness Numeric between 0 and 1, specifying the required completeness of a feature reltive to the tested hypothesis.
+#' @param min_subunits Integer specifying minimum number of subunits in a protein.
+#' @param min_peak_corr Numeric value betwee 0 and 1 specifying minimum peak correlation, default is 0.5
+#' @return The same data.table format filtered according to the provided parameters.
+#' @export
+subsetProteinFeatures <- function(res,protein_ids=NULL,min_completeness=NULL,min_subunits=NULL,min_peak_corr=0.5){
+  if(!is.null(protein_ids)){
+    res <- subset(res,protein_id %in% as.character(protein_ids))
+  }
+  if(!is.null(min_completeness)){
+    res <- subset(res,completeness >= min_completeness)
+  }
+  if(!is.null(min_subunits)){
+    res <- subset(res,n_subunits_detected >= min_subunits)
+  }
+  if(!is.null(min_peak_corr)){
+    res <- subset(res,peak_corr >= min_peak_corr)
+  }
+  res
+}

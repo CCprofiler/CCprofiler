@@ -67,24 +67,12 @@ runGridProteinFeatureFinding <- function(params,traces,calibration) {
                             collapse_method="apex_only",
                             perturb_cutoff="1%",
                             rt_height=as.numeric(params["rt_height"]),
-                            smoothing_length=as.numeric(params["smoothing"])
+                            smoothing_length=as.numeric(params["smoothing"]),
+                            useRandomDecoyModel=TRUE
                             )
-  #generate random peptide traces
-  traces_random <- generateRandomPepTraces(traces)
-  res_random = findProteinFeatures(traces=traces_random,
-                            calibration = calibration,
-                            corr_cutoff = as.numeric(params["corr"]),
-                            window_size = as.numeric(params["window"]),
-                            parallelized = FALSE,
-                            collapse_method="apex_only",
-                            perturb_cutoff="1%",
-                            rt_height=as.numeric(params["rt_height"]),
-                            smoothing_length=as.numeric(params["smoothing"])
-                            )
-  res_all <- rbind(res,res_random)
-  res_all[,corr:=as.numeric(params["corr"])]
-  res_all[,window:=as.numeric(params["window"])]
-  res_all[,rt_height:=as.numeric(params["rt_height"])]
-  res_all[,smoothing_length:=as.numeric(params["smoothing"])]
-  res_all[]
+  res[,corr:=as.numeric(params["corr"])]
+  res[,window:=as.numeric(params["window"])]
+  res[,rt_height:=as.numeric(params["rt_height"])]
+  res[,smoothing_length:=as.numeric(params["smoothing"])]
+  res[]
 }
