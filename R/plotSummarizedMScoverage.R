@@ -8,6 +8,7 @@
 #' @return multiple plots summarizing the MS coverage
 #' @export
 plotSummarizedMScoverage <- function(hypotheses,protTraces,PDF=TRUE){
+  hypotheses <- hypotheses[grep("DECOY",hypotheses$complex_id,invert=TRUE)]
   proteins_in_hypotheses <- unique(hypotheses$protein_id)
   proteins_in_traces <- unique(protTraces$traces$id)
   proteinMScoverageSummary <- data.table(name=c("not detected","detected"),count=c(sum(!(proteins_in_hypotheses %in% proteins_in_traces)),sum(proteins_in_hypotheses %in% proteins_in_traces)))
