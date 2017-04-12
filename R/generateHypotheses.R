@@ -71,6 +71,7 @@ generateComplexTargets <- function(dist_info,max_distance=1){
   all_proteins <- unique(c(dist_info$x,dist_info$y))
   complex_table <- data.table(complex_id=character(0),complex_name=character(0),protein_id=character(0))
   unique_complexes <- vector(mode="character")
+  unique_complexes_names <- vector(mode="character")
   t=0
   x=0
   for (i in c(1:length(all_proteins))) {
@@ -82,11 +83,17 @@ generateComplexTargets <- function(dist_info,max_distance=1){
     interactor_string <- paste(interactors,collapse ="_")
     if(! interactor_string %in% unique_complexes) {
       x=x+1
-      DT <- data.table(complex_id=rep(paste0("c",x),length(interactors)),complex_name=rep(paste0("complex_",x),length(interactors)),protein_id=interactors)
+      DT <- data.table(complex_id=rep(paste0("c",x),length(interactors)),complex_name=rep(paste0("complex_",protein),length(interactors)),protein_id=interactors)
       complex_table <- rbind(complex_table,DT)
       unique_complexes <- c(unique_complexes,interactor_string)
+      unique_complexes_names <- c(unique_complexes_names,paste0("complex_",protein))
     } else {
       t=t+1
+      sel_idx <- which(unique_complexes == interactor_string)
+      complex_name <- unique_complexes_names[sel_idx]
+      table_idx <- which(complex_table$complex_name == complex_name)
+      complex_table$complex_name[table_idx] = paste(complex_table$complex_name[table_idx[1]],protein,sep="_")
+      unique_complexes_names[sel_idx] = paste(unique_complexes_names[sel_idx],protein,sep="_")
     }
   }
   complex_table[]
@@ -167,7 +174,7 @@ generateComplexDecoys <- function(target_hypothesis,dist_info,min_distance=2,app
   }
   #decoy_list <- lapply(size,generateDecoys,all_proteins=proteins,dist_info=dist_info,min_distance=min_distance)
   decoy_list <- unlist(decoy_list)
-  decoy_hypothesis <- data.table(complex_id=paste0("d",seq(1,length(decoy_list),1)),complex_name=paste0("decoy_complex_",seq(1,length(decoy_list),1)),protein_id=decoy_list)
+  decoy_hypothesis <- data.table(complex_id=paste0("DECOY_",seq(1,length(decoy_list),1)),complex_name=paste0("DECOY_",seq(1,length(decoy_list),1)),protein_id=decoy_list)
   decoy_hypothesis <- decoy_hypothesis[,list(protein = unlist(strsplit(protein_id, ";"))), by=c("complex_id","complex_name")]
   names(decoy_hypothesis)[3] <- "protein_id"
   if (append == TRUE) {
