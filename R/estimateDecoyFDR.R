@@ -145,21 +145,81 @@ estimateGridSearchDecoyFDR<- function(complex_features_list){
 #' @param level character sting either complex or protein
 #' @return List with stats
 #' @export
-plotIdFDRspace <- function(grid_search_stats,level="complex",FDR_cutoff=0.1,colour_parameter="completeness_cutoff",PDF=TRUE,name="ID_FDR_plot.pdf"){
+plotIdFDRspace <- function(grid_search_stats,level="complex",id_level="TP",FDR_cutoff=0.1,colour_parameter="completeness_cutoff",PDF=TRUE,name="ID_FDR_plot.pdf"){
   #@TODO mark best parameter combination and put these parameters in subtitle
   if(level=="complex"){
     sep=100
   } else if (level=="protein"){
     sep=1000
   }
-  if(PDF){pdf(name)}
-  pl <- ggplot(data=grid_search_stats,aes(y=TP,x=FDR,colour=get(colour_parameter))) +
-    geom_point() +
-    scale_x_continuous(breaks=seq(0,1,0.1),limits=c(0,1),minor_breaks=NULL) +
-    scale_y_continuous(breaks=seq(0,ceiling(max(grid_search_stats$TP)/100)*100,sep),limits=c(0,ceiling(max(grid_search_stats$TP)/100)*100),minor_breaks=NULL) +
-    labs(colour = paste0(eval(colour_parameter),"\n")) +
-    geom_vline(xintercept=FDR_cutoff,colour="red",linetype=2) +
-    theme_bw()
-  print(pl)
-  if(PDF){dev.off()}
+  BestStats <- getBestParameterStats(grid_search_stats)
+  sel_best <- which((grid_search_stats$peak_corr_cutoff==BestStats$peak_corr_cutoff) &
+   (grid_search_stats$corr==BestStats$corr) &
+   (grid_search_stats$window==BestStats$window) &
+   (grid_search_stats$rt_height==BestStats$rt_height) &
+   (grid_search_stats$smoothing_length==BestStats$smoothing_length) &
+   (grid_search_stats$peak_corr_cutoff==BestStats$peak_corr_cutoff) &
+   (grid_search_stats$completeness_cutoff==BestStats$completeness_cutoff) &
+   (grid_search_stats$n_subunits_cutoff==BestStats$n_subunits_cutoff))
+  grid_search_stats[,best:=1]
+  grid_search_stats$best[sel_best] = 1.5
+  if(id_level=="TP"){
+    if(PDF){pdf(name)}
+    pl <- ggplot(data=grid_search_stats,aes(y=TP,x=FDR,colour=factor(get(colour_parameter)),size=best)) +
+      geom_point() +
+      scale_x_continuous(breaks=seq(0,1,0.1),limits=c(0,1),minor_breaks=NULL) +
+      scale_y_continuous(breaks=seq(0,ceiling(max(grid_search_stats$TP)/100)*100,sep),limits=c(0,ceiling(max(grid_search_stats$TP)/100)*100),minor_breaks=NULL) +
+      scale_size(guide = FALSE) +
+      scale_colour_hue(guide = guide_legend(title = paste0(eval(colour_parameter),"\n"))) +
+      geom_vline(xintercept=FDR_cutoff,colour="red",linetype=2) +
+      theme_bw()
+    print(pl)
+    if(PDF){dev.off()}
+  } else if (id_level=="P"){
+    if(PDF){pdf(name)}
+    pl <- ggplot(data=grid_search_stats,aes(y=P,x=FDR,colour=factor(get(colour_parameter)),size=best)) +
+      geom_point() +
+      scale_x_continuous(breaks=seq(0,1,0.1),limits=c(0,1),minor_breaks=NULL) +
+      scale_y_continuous(breaks=seq(0,ceiling(max(grid_search_stats$P)/100)*100,sep),limits=c(0,ceiling(max(grid_search_stats$P)/100)*100),minor_breaks=NULL) +
+      scale_size(guide = FALSE) +
+      scale_colour_hue(guide = guide_legend(title = paste0(eval(colour_parameter),"\n"))) +
+      geom_vline(xintercept=FDR_cutoff,colour="red",linetype=2) +
+      theme_bw()
+    print(pl)
+    if(PDF){dev.off()}
+  } else {
+    message("pick TP or P as id_level")
+  }
+}
+
+#' getBestParameterStats
+#' @description getBestParameterStats.
+#' @param stats data.table with all stats from grid search
+#' @param FDR numeric maximum FDR tat should be considered, default = 0.1
+#' @return data.table one row with best stats across grid search
+#' @export
+getBestParameterStats <- function(stats,FDR=0.1){
+  stats <- subset(stats,FDR<=0.1)
+  stats <- stats[order(-P,-TP,FDR)]
+  stats[1]
+}
+
+#' getBestParameterData
+#' @description getBestParameterData.
+#' @param grid_data list with all filtered grid search results
+#' @param FDR numeric maximum FDR tat should be considered, default = 0.1
+#' @return data.table with complex features for best parameter set
+#' @export
+getBestParameterData <- function(grid_data,FDR=0.1){
+  grid_stats <- estimateGridSearchDecoyFDR(grid_data)
+  BestStats <- getBestParameterStats(grid_stats,FDR=FDR)
+  sel_params <- which((grid_stats$peak_corr_cutoff==BestStats$peak_corr_cutoff) &
+   (grid_stats$corr==BestStats$corr) &
+   (grid_stats$window==BestStats$window) &
+   (grid_stats$rt_height==BestStats$rt_height) &
+   (grid_stats$smoothing_length==BestStats$smoothing_length) &
+   (grid_stats$peak_corr_cutoff==BestStats$peak_corr_cutoff) &
+   (grid_stats$completeness_cutoff==BestStats$completeness_cutoff) &
+   (grid_stats$n_subunits_cutoff==BestStats$n_subunits_cutoff))
+  grid_data[[sel_params]]
 }

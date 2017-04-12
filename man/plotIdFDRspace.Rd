@@ -4,8 +4,8 @@
 \alias{plotIdFDRspace}
 \title{Plot FDR gridsearch}
 \usage{
-plotIdFDRspace(grid_search_stats, level = "complex", FDR_cutoff = 0.1,
-  colour_parameter = "completeness_cutoff", PDF = TRUE,
+plotIdFDRspace(grid_search_stats, level = "complex", id_level = "TP",
+  FDR_cutoff = 0.1, colour_parameter = "completeness_cutoff", PDF = TRUE,
   name = "ID_FDR_plot.pdf")
 }
 \arguments{
