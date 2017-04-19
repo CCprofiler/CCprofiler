@@ -152,7 +152,7 @@ plotIdFDRspace <- function(grid_search_stats,level="complex",id_level="TP",FDR_c
   } else if (level=="protein"){
     sep=1000
   }
-  BestStats <- getBestParameterStats(grid_search_stats)
+  BestStats <- getBestParameterStats(grid_search_stats,FDR=FDR_cutoff)
   sel_best <- which((grid_search_stats$peak_corr_cutoff==BestStats$peak_corr_cutoff) &
    (grid_search_stats$corr==BestStats$corr) &
    (grid_search_stats$window==BestStats$window) &
@@ -199,8 +199,13 @@ plotIdFDRspace <- function(grid_search_stats,level="complex",id_level="TP",FDR_c
 #' @return data.table one row with best stats across grid search
 #' @export
 getBestParameterStats <- function(stats,FDR=0.1){
-  stats <- subset(stats,FDR<=0.1)
-  stats <- stats[order(-P,-TP,FDR)]
+  env<-environment()
+  stats <- subset(stats,FDR<=get('FDR',env))
+  if("P" %in% names(stats)) {
+    stats <- stats[order(-P,-TP,FDR)]
+  } else {
+    stats <- stats[order(-TP,FDR)]
+  }
   stats[1]
 }
 
