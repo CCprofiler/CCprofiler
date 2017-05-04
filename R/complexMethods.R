@@ -2,7 +2,7 @@
 #' @description Filter result data.table according to desired complex_ids or minimum correlation score.
 #' @param res A data.table with the complex features.
 #' @param complex_ids A character vector containing all desired \code{complex_id} values.
-#' @param min_completeness Numeric between 0 and 1, specifying the required completeness of a feature reltive to the tested hypothesis.
+#' @param min_completeness Numeric between 0 and 1, specifying the required completeness of a feature reltive to the tested hypothesis (keeps all features if at least one is bigger than the cutoff).
 #' @param min_subunits Integer specifying minimum number of subunits in a complex.
 #' @param min_peak_corr Numeric value betwee 0 and 1 specifying minimum peak correlation, default is 0.5
 #' @param min_monomer_distance_factor Numeric value specifying factor to multiply largest monomer MW, default is 1
@@ -13,7 +13,9 @@ subsetComplexFeatures <- function(res,complex_ids=NULL,min_completeness=NULL,min
     res <- subset(res,complex_id %in% as.character(complex_ids))
   }
   if(!is.null(min_completeness)){
-    res <- subset(res,completeness >= min_completeness)
+    # res <- subset(res,completeness >= min_completeness)
+    allowed_ids <- res[completeness>=min_completeness, unique(complex_id)]
+    res <- res[complex_id %in% allowed_ids]
   }
   if(!is.null(min_subunits)){
     res <- subset(res,n_subunits_detected >= min_subunits)
