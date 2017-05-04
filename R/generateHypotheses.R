@@ -47,13 +47,12 @@ appendBinaryInteractions <- function(complex,hypothesis,binary_interactions){
 calculatePathlength <- function(binaryInteractionTable){
   proteins <- unique(c(binaryInteractionTable$a,binaryInteractionTable$b)) # get all protein ids in interaction table
   g <- graph_from_data_frame(binaryInteractionTable, directed = FALSE) # create undirected graph using the igraph package
-  distMatrix <- as.data.frame(shortest.paths(g, v=V(g), to=V(g),weights = NULL, mode="all")) # calculate shortest path between all vertices
-  combinations <- as.data.table(t(combn(proteins,2))) #initialize data.table with all combinations of vertices
-  names(combinations) <- c("x","y")
-  #combinations <- head(combinations)
-  combinations[,rowid := 1:nrow(combinations)]
-  combinations[,dist:=distMatrix[x,y],by=rowid] # get shortest path distance from distMatrix
-  combinations[,rowid:=NULL]
+  distMatrix <- distances(g) #as.data.frame(shortest.paths(g, v=V(g), to=V(g),weights = NULL, mode="all")) # calculate shortest path between all vertices
+  combinations <- melt(distMatrix)
+  combinations <- as.data.table(combinations)
+  names(combinations) = c("x","y","dist")
+  combinations$x <- as.character(combinations$x)
+  combinations$y <- as.character(combinations$y)
   combinations[]
 }
 
@@ -65,39 +64,79 @@ calculatePathlength <- function(binaryInteractionTable){
 #' of proteins and their shortest distance.
 #' This is the output from calculatePathlength()
 #' @param max_distance numeric maximum distance between to proteins to be considered as being in one complex
+#' @param redundancy_cutoff numeric maximum overlap distance between two hypotheses (0=identical,1=subset,between 1 and 2=some shared subunits, 2=no shared subunits), default=1
 #' @return data.table in the format of complex hypotheses
 #' @export
-generateComplexTargets <- function(dist_info,max_distance=1){
+generateComplexTargets <- function(dist_info,max_distance=1,redundancy_cutoff=1){
   all_proteins <- unique(c(dist_info$x,dist_info$y))
-  complex_table <- data.table(complex_id=character(0),complex_name=character(0),protein_id=character(0))
-  unique_complexes <- vector(mode="character")
-  unique_complexes_names <- vector(mode="character")
-  t=0
-  x=0
+  #complex_table <- data.table(complex_id=character(0),complex_name=character(0),protein_id=character(0))
+  initial_complexes <- data.table(complex_id=character(0),subunits_detected=character(0),n_subunits=character(0))
   for (i in c(1:length(all_proteins))) {
     #print(paste0(i," / ",length(all_proteins)))
     protein <- all_proteins[i]
     combi_sub <- subset(dist_info,(((x == protein) | (y == protein)) & (dist<=max_distance)))
     interactors <- sort(unique(c(combi_sub$x,combi_sub$y)))
-    # test if exact same complex already exists
-    interactor_string <- paste(interactors,collapse ="_")
-    if(! interactor_string %in% unique_complexes) {
-      x=x+1
-      DT <- data.table(complex_id=rep(paste0("c",x),length(interactors)),complex_name=rep(paste0("complex_",protein),length(interactors)),protein_id=interactors)
-      complex_table <- rbind(complex_table,DT)
-      unique_complexes <- c(unique_complexes,interactor_string)
-      unique_complexes_names <- c(unique_complexes_names,paste0("complex_",protein))
-    } else {
-      t=t+1
-      sel_idx <- which(unique_complexes == interactor_string)
-      complex_name <- unique_complexes_names[sel_idx]
-      table_idx <- which(complex_table$complex_name == complex_name)
-      complex_table$complex_name[table_idx] = paste(complex_table$complex_name[table_idx[1]],protein,sep="_")
-      unique_complexes_names[sel_idx] = paste(unique_complexes_names[sel_idx],protein,sep="_")
-    }
+    interactor_string <- paste(interactors,collapse =";")
+    DT <- data.table(complex_id=protein,subunits_detected=interactor_string,n_subunits=length(interactors))
+    initial_complexes <- rbind(initial_complexes,DT)
   }
+  # remove redundant hypotheses
+  dist_hyp <- getDistanceMatrix(initial_complexes)
+  clust_hyp <- complexClustering(initial_complexes,dist_hyp)
+  tree_cut=cutree(clust_hyp,h=redundancy_cutoff)
+  initial_complexes[,consecutive_feature_identifier := .I]
+  initial_complexes[,unique_feature_identifier := 0]
+  unique_feature_identifier=0
+  unique_tree_groups <- unique(tree_cut)
+  for (tree_group in unique_tree_groups) {
+    unique_feature_identifier = unique_feature_identifier+1
+    tree_complex_ids <- which(tree_cut==tree_group)
+    initial_complexes$unique_feature_identifier[tree_complex_ids] = unique_feature_identifier
+  }
+  initial_complexes <- initial_complexes[order(unique_feature_identifier,-n_subunits)]
+  initial_complexes[,complex_name := paste(complex_id,collapse="_"),by="unique_feature_identifier"]
+  initial_complexes_unique <- unique(initial_complexes,by="unique_feature_identifier")
+  initial_complexes_unique[,complex_id := paste0("c",.I)]
+  initial_complexes_unique[,complex_name := paste0("complex_",complex_name)]
+  complex_table <- subset(initial_complexes_unique,select=c("complex_id","complex_name","subunits_detected"))
+  complex_table <- complex_table[,list(protein_id = unlist(strsplit(subunits_detected, ";"))), by=c("complex_id","complex_name")]
   complex_table[]
 }
+
+#' collapseHypothesis
+#' @description Remove redundancy in existing complex hypotheses
+#' @import data.table
+#' @param hypothesis data.table with complex hypotheses
+#' @param redundancy_cutoff numeric maximum overlap distance between two hypotheses (0=identical,1=subset,between 1 and 2=some shared subunits, 2=no shared subunits), default=1
+#' @return data.table in the format of complex hypotheses
+#' @export
+collapseHypothesis <- function(hypothesis,redundancy_cutoff=1){
+  hypothesis[,n_subunits := length(protein_id),by="complex_id"]
+  hypothesis[,subunits_detected := paste(protein_id,collapse=";"),by="complex_id"]
+  hypothesis <- unique(hypothesis,by="complex_id")
+  hypothesis[,protein_id := NULL]
+  dist_hyp <- getDistanceMatrix(hypothesis)
+  clust_hyp <- complexClustering(hypothesis,dist_hyp)
+  tree_cut=cutree(clust_hyp,h=redundancy_cutoff)
+  hypothesis[,consecutive_feature_identifier := .I]
+  hypothesis[,unique_feature_identifier := 0]
+  unique_feature_identifier=0
+  tree_features <- names(tree_cut)
+  unique_tree_groups <- unique(tree_cut)
+  for (tree_group in unique_tree_groups) {
+    unique_feature_identifier = unique_feature_identifier+1
+    tree_complex_ids <- which(tree_cut==tree_group)
+    hypothesis$unique_feature_identifier[tree_complex_ids] = unique_feature_identifier
+  }
+  hypothesis <- hypothesis[order(unique_feature_identifier,-n_subunits)]
+  hypothesis[,complex_name := paste(complex_name,collapse="; "),by="unique_feature_identifier"]
+  hypothesis_unique <- unique(hypothesis,by="unique_feature_identifier")
+  hypothesis_unique <- subset(hypothesis_unique,select=c("complex_id","complex_name","subunits_detected"))
+  hypothesis_unique <- hypothesis_unique[,list(protein_id = unlist(strsplit(subunits_detected, ";"))), by=c("complex_id","complex_name")]
+  hypothesis_unique
+}
+
+
 
 #' generateDecoys
 #' @description Generate list of proteins for one complex decoy hypothesis

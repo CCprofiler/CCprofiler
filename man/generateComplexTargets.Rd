@@ -4,7 +4,7 @@
 \alias{generateComplexTargets}
 \title{generateComplexTargets}
 \usage{
-generateComplexTargets(dist_info, max_distance = 1)
+generateComplexTargets(dist_info, max_distance = 1, redundancy_cutoff = 1)
 }
 \arguments{
 \item{dist_info}{data.table with three columns (x,y,dist) containing all possible combinations
@@ -12,6 +12,8 @@ of proteins and their shortest distance.
 This is the output from calculatePathlength()}
 
 \item{max_distance}{numeric maximum distance between to proteins to be considered as being in one complex}
+
+\item{redundancy_cutoff}{numeric maximum overlap distance between two hypotheses (0=identical,1=subset,between 1 and 2=some shared subunits, 2=no shared subunits), default=1}
 }
 \value{
 data.table in the format of complex hypotheses
