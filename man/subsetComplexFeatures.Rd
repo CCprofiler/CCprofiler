@@ -13,7 +13,7 @@ subsetComplexFeatures(res, complex_ids = NULL, min_completeness = NULL,
 
 \item{complex_ids}{A character vector containing all desired \code{complex_id} values.}
 
-\item{min_completeness}{Numeric between 0 and 1, specifying the required completeness of a feature reltive to the tested hypothesis.}
+\item{min_completeness}{Numeric between 0 and 1, specifying the required completeness of a feature reltive to the tested hypothesis (keeps all features if at least one is bigger than the cutoff).}
 
 \item{min_subunits}{Integer specifying minimum number of subunits in a complex.}
 
