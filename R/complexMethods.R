@@ -45,6 +45,7 @@ subsetComplexFeatures <- function(res,complex_ids=NULL,min_completeness=NULL,min
 #' @return A data.table with the "best" detected complex feature of each query complex.
 #' @export
 getBestComplexFeature <- function(res){
+  res <- res[order(-n_subunits_detected,-sw_score,-area,mw_diff)]
   res_best <- unique(res,by="complex_id")
   res_best
 }

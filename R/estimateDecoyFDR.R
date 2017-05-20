@@ -111,6 +111,7 @@ helperFilterByParams <- function(data,params,remove_decoys){
 
 helperSubset <- function(param,data,remove_decoys){
   x <- subset(data,((peak_corr >= as.numeric(param["peak_corr_cutoffs"])) & (n_subunits_detected >= as.numeric(param["n_subunits_cutoffs"]))))
+  x <- x[order(complex_id,-n_subunits_detected,-sw_score,-area,mw_diff)]
   if("complex_id" %in% names(x)){
     allowed_ids <- x[completeness>=as.numeric(param["completeness_cutoffs"]), unique(complex_id)]
     x <- x[complex_id %in% allowed_ids]
