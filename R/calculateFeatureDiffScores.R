@@ -16,7 +16,7 @@
 #' @import data.table
 #' @export
 
-calculateFeatureDiffScores <- function(traces.obj, features, score_weights = c(1,1)){
+calculateFeatureDiffScores <- function(traces.obj, features, score_weights = c(1,1), pos = T){
   
   trace_corr <- extractCorrelation(traces.obj = traces.obj, features.obj = features)
   
@@ -24,12 +24,27 @@ calculateFeatureDiffScores <- function(traces.obj, features, score_weights = c(1
     lapply(names(trace_corr), function(feature){
       comparisons <- combn(seq_len(length(trace_corr[[feature]])),m=2)
       # Get correlation difference (set negative correlations to 0)
-      corr <- apply(comparisons,2, function(x){
-        b <-sapply(seq_along(trace_corr[[feature]][[1]]$corr), function(i){
-          abs(trace_corr[[feature]][[x[1]]]$corr[i] * (trace_corr[[feature]][[x[1]]]$corr[i] > 0) -
-                trace_corr[[feature]][[x[2]]]$corr[i] * (trace_corr[[feature]][[x[2]]]$corr[i] > 0))
+      if(pos){
+        corr <- apply(comparisons,2, function(x){
+          b <-sapply(seq_along(trace_corr[[feature]][[1]]$corr), function(i){
+            abs(trace_corr[[feature]][[x[1]]]$corr[i] * (trace_corr[[feature]][[x[1]]]$corr[i] > 0) -
+                  trace_corr[[feature]][[x[2]]]$corr[i] * (trace_corr[[feature]][[x[2]]]$corr[i] > 0))
+            # b <-sapply(seq_along(trace_corr[[feature]][[1]]$corr), function(i){
+            #   abs((trace_corr[[feature]][[x[1]]]$corr[i] * (trace_corr[[feature]][[x[1]]]$corr[i] > 0))/
+            #         (max(trace_corr[[feature]][[x[1]]]$corr) * (max(trace_corr[[feature]][[x[1]]]$corr) > 0))-
+            #         (trace_corr[[feature]][[x[2]]]$corr[i] * (trace_corr[[feature]][[x[2]]]$corr[i]) > 0))/
+            #     (max(trace_corr[[feature]][[x[2]]]$corr) * (max(trace_corr[[feature]][[x[2]]]$corr) > 0))
+            #   
+          })
         })
-      })
+      }else{
+        corr <- apply(comparisons,2, function(x){
+          b <-sapply(seq_along(trace_corr[[feature]][[1]]$corr), function(i){
+            trace_corr[[feature]][[x[1]]]$corr[i] * (trace_corr[[feature]][[x[1]]]$corr[i] > 0) -
+                  trace_corr[[feature]][[x[2]]]$corr[i] * (trace_corr[[feature]][[x[2]]]$corr[i] > 0)
+          })
+        })
+      }
       # # Get rank difference
       # rnk <- apply(comparisons,2, function(x){
       #   b <-sapply(seq_along(trace_corr[[feature]][[1]]$corr), function(i){
@@ -38,12 +53,21 @@ calculateFeatureDiffScores <- function(traces.obj, features, score_weights = c(1
       # })
       # rnk <- rnk/length(rnk)
       # Get intensity difference
-      int <- apply(comparisons,2, function(x){
-        b <-sapply(seq_along(trace_corr[[feature]][[1]]$corr), function(i){
-          abs(trace_corr[[feature]][[x[1]]]$intensities[i]/max(trace_corr[[feature]][[x[1]]]$intensities) -
-                trace_corr[[feature]][[x[2]]]$intensities[i]/max(trace_corr[[feature]][[x[2]]]$intensities))
+      if(pos){
+        int <- apply(comparisons,2, function(x){
+          b <-sapply(seq_along(trace_corr[[feature]][[1]]$corr), function(i){
+            abs(trace_corr[[feature]][[x[1]]]$intensities[i]/max(trace_corr[[feature]][[x[1]]]$intensities) -
+                  trace_corr[[feature]][[x[2]]]$intensities[i]/max(trace_corr[[feature]][[x[2]]]$intensities))
+          })
         })
-      })
+      }else{
+        int <- apply(comparisons,2, function(x){
+          b <-sapply(seq_along(trace_corr[[feature]][[1]]$corr), function(i){
+            trace_corr[[feature]][[x[1]]]$intensities[i]/max(trace_corr[[feature]][[x[1]]]$intensities) -
+                  trace_corr[[feature]][[x[2]]]$intensities[i]/max(trace_corr[[feature]][[x[2]]]$intensities)
+          })
+        })
+      }
       # Get if intensity difference is increasing from small to large
       smallToLarge <- apply(comparisons,2, function(x){
         b <-sapply(seq_along(trace_corr[[feature]][[1]]$corr), function(i){
@@ -73,11 +97,18 @@ calculateFeatureDiffScores <- function(traces.obj, features, score_weights = c(1
 #' @import reshape2
 #' @export
 
-plotDiffScoreDistribution <- function(diff, quantile_cutoff = 0.95){
+plotDiffScoreDistribution <- function(diff, quantile_cutoff = 0.95, logx = F, plot = T, smTL = F,weights=0.5){
   
-  combined_scores <- as.data.frame(do.call("rbind",sapply(diff, function(x) sapply(1:3, function(i) x[[i]]))))
-  names(combined_scores) <- names(diff[[1]])[1:3]
-
+  combined_scores <- as.data.frame(do.call("rbind",sapply(diff, function(x) sapply(1:4, function(i) x[[i]]))))
+  names(combined_scores) <- names(diff[[1]])[1:4]
+  if(smTL){
+    combined_scores <-combined_scores[combined_scores$smallToLarge > 0, 1:3]
+  }else{
+    combined_scores <-combined_scores[, 1:3]
+  }
+  combined_scores$corr_diff <- combined_scores$corr_diff * (weights)
+  combined_scores$intensity_diff <- combined_scores$intensity_diff * (1-weights)
+  
   outlier_cutoff <- quantile(combined_scores$combined_score,quantile_cutoff)
   # library(ggplot2)
   # library(reshape2)
@@ -86,8 +117,16 @@ plotDiffScoreDistribution <- function(diff, quantile_cutoff = 0.95){
     geom_density(alpha = 0.6)
   if(!is.null(quantile_cutoff)){
     p <- p + geom_vline(xintercept = outlier_cutoff, lty = "dashed", colour = "red")
+    if(logx){
+      p <- p + scale_x_log10()
+    }
   }
-  print(p)
+  if(plot){
+    print(p)
+  }else{
+    return(p)
+  }
+ 
 }
 
 
@@ -184,17 +223,18 @@ extractCorrelation <- function(traces.obj, features.obj,
 #' @param outfile_name Name of the pdf to be printed
 #' @param pdf \code{boolean} Wether to print a pdf file or to console
 #' @param diff_scores list of diff_scores produced by calculateFeatureDiffScores
-#' @param plot_sequence \code{boolean} Wether to also print the protein sequence
+#' @param plot_sequence either NULL, "align" or "position" to plot a sequence below chromatogram
 #' @param ProteinFasta A path to a fasta file with protein sequences or an \code{AAStringSet} object.
 #' This is ignored if \code{plot_sequence} is set to \code{FALSE} and reqired if \code{TRUE}.
 #' @import Biostrings
+#' @import grid
 #' @import msa
 #' @export
 
 plotDifferentialTraces <- function(proteinIDs, diff_scores, features, traces, highlight_cutoff = 1,
                                    outfile_name = "Differentially_behaving_Traces.pdf", pdf = TRUE,
-                                   plot_sequence = FALSE, ProteinFasta = NULL){
-  if(!plot_sequence){
+                                   plot_sequence = NULL, ProteinFasta = NULL){
+  if(is.null(plot_sequence)){
     if(pdf){
       pdf(outfile_name,height=5,width=10)
       for(proteinID in proteinIDs){
@@ -207,18 +247,18 @@ plotDifferentialTraces <- function(proteinIDs, diff_scores, features, traces, hi
         }
       }
       dev.off()
-    }else{
+    }else {
       for(proteinID in proteinIDs){
-        top <- which(diff_scores_sorted[[proteinID]]$combined_score >= highlight_cutoff, arr.ind = TRUE)
+        top <- which(diff_scores[[proteinID]]$combined_score >= highlight_cutoff, arr.ind = TRUE)
         if(length(top)>0){ 
           outlier_pep <- rownames(top)
-          print(plot.proteinFeatures(proteinFeatures_peakcorr05_compl05,pepTraces,proteinID, plot_in_complex_estimate = T,
-                                     plot_monomer = T, highlight = outlier_pep, legend = T))
-          
+          p <- plot.proteinFeatures(features, traces, proteinID, plot_in_complex_estimate = T,
+                                     plot_monomer = T, highlight = outlier_pep, legend = T, plot = F)
+          return(p)
         }
       }
     }
-  }else{
+  }else if (plot_sequence == "align"){
     
     if(class(ProteinFasta) == "character"){
       sequences <- readAAStringSet(filepath = ProteinFasta)
@@ -239,8 +279,156 @@ plotDifferentialTraces <- function(proteinIDs, diff_scores, features, traces, hi
     rmarkdown::render(input = base::system.file("R/plotProteinFeaturesSequence.Rmd",package = "SECprofiler"),
                       output_file = outfile_name, output_dir = getwd(), knit_root_dir = getwd())
     
+  } else if(plot_sequence == "position"){
+    if(pdf){
+      pdf(outfile_name,height=4,width=8)
+      for(proteinID in proteinIDs){
+        top <- which(diff_scores[[proteinID]]$combined_score >= highlight_cutoff, arr.ind = TRUE)
+        if(length(top)>0){ 
+          outlier_pep <- rownames(top)
+          p1 <- plot.proteinFeatures(features, traces, proteinID, plot_in_complex_estimate = F,
+                                    plot_monomer = T, highlight = outlier_pep, legend = F,
+                                    plot = F, highlight_col = "red")
+          
+          p2 <- plotPeptideCoverage(proteinID, traces, ProteinFasta, highlight = outlier_pep)
+          # layout <- matrix(c(1, 1, 1, 1, 2), nrow = 5, byrow = TRUE)
+          # multiplot(plotlist = list(p1,p2), layout = layout)
+          grid.arrange(p1,p2, ncol =1, heights = c(4.5,0.5))
+        }
+      }
+      dev.off()
+    }else {
+      for(proteinID in proteinIDs){
+        top <- which(diff_scores[[proteinID]]$combined_score >= highlight_cutoff, arr.ind = TRUE)
+        if(length(top)>0){ 
+          outlier_pep <- rownames(top)
+
+          p1 <- plot.proteinFeatures(features, traces, proteinID, plot_in_complex_estimate = T,
+                                     plot_monomer = T, highlight = outlier_pep, legend = T, plot = F)
+          p2 <- plotPeptideCoverage(proteinID, traces, ProteinFasta, highlight = outlier_pep)
+
+          return(list(p1,p2))
+        }
+      }
+    }
+    
   }
   # plotproteinFeaturesSequence <- function(proteinFeatures,pepTraces,proteinIDs, ProteinFasta, output){
   # }
   
+}
+
+
+
+
+
+
+
+
+plotPeptideCoverage <- function(proteinID, traces,  ProteinFasta, cov_color = "green",
+                                highlight = NULL, highlight_col = "red", alignTo = NULL){
+  pepseq <- traces$trace_annotation[protein_id == proteinID, id]
+  pepseq <- gsub("\\(.*?\\)","",pepseq)
+  hl <- pepseq %in% gsub("\\(.*?\\)","",highlight)
+  if(is.null(alignTo)){
+      ranges <- list()
+  for(i in grep(proteinID, names(ProteinFasta))){
+    ranges2 <- matchPDict(AAStringSet(pepseq), ProteinFasta[[i]])
+    if(length(ranges2[elementNROWS(ranges2)==1]) >= length(ranges[elementNROWS(ranges)==1])){
+      ranges <- ranges2
+      idx <- i
+    }
+  }
+
+  }else{
+    idx <- grep(alignTo, names(ProteinFasta))
+    ranges <- matchPDict(AAStringSet(pepseq), ProteinFasta[[idx]])
+    
+  }
+  # pepseq_h <- traces$trace_annotation[protein_id == proteinID, id]
+  # pepseq_h <- gsub("\\(.*?\\)","",pepseq_h)
+  # 
+  # ranges_h <- numeric(0)
+  # for(i in grep(proteinID, names(ProteinFasta))){
+  #   ranges2 <- matchPDict(AAStringSet(pepseq_h), ProteinFasta[[i]])
+  #   if(length(ranges2[elementNROWS(ranges2)==1]) >= length(ranges2[elementNROWS(ranges)==1])){
+  #     ranges_h <- ranges2
+  #     idx_h <- i
+  #   }
+  # }
+  # 
+  
+  
+  if(length(start(ranges)>= 0 )){
+    l <- length(ProteinFasta[[idx]])
+    # cov_match <- reduce(unlist(ranges))
+    # d <- data.table(x1 =start(cov_match), x2 = end(cov_match))
+    d <-  data.table(x1 =sapply(start(ranges), "[",1), x2 = sapply(end(ranges), "[",1), highlight = hl)
+    p <- ggplot() + 
+      theme_void() +
+      geom_rect(aes(ymin=0, ymax = 1, xmin = 1, xmax = l), colour = "grey") +
+      scale_x_continuous(name="x") + 
+      scale_y_continuous(name="y") +
+      geom_rect(data=d, mapping=aes(xmin=x1, xmax=x2, ymin=0, ymax=1), fill=cov_color) +
+      geom_rect(data=d[highlight == T], mapping=aes(xmin=x1, xmax=x2, ymin=0, ymax=1), fill=highlight_col) 
+      # ggtitle(proteinID)
+    
+  }else{
+    l <- 1
+    p <- ggplot() + 
+      theme_void() +
+      geom_rect(aes(ymin=0, ymax = 1, xmin = 1, xmax = l), colour = "grey") +
+      scale_x_continuous(name="x") + 
+      scale_y_continuous(name="y") 
+      # ggtitle(proteinID)
+    
+  }
+  return(p)
+}
+
+
+# Multiple plot function
+#
+# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
+# - cols:   Number of columns in layout
+# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
+#
+# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
+# then plot 1 will go in the upper left, 2 will go in the upper right, and
+# 3 will go all the way across the bottom.
+#
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+  
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+  
+  numPlots = length(plots)
+  
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                     ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+  
+  if (numPlots==1) {
+    print(plots[[1]])
+    
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+    
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+      
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
 }
