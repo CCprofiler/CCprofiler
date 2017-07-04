@@ -131,13 +131,13 @@ importFromOpenSWATH <- function(data= 'OpenSwathData.tsv',
   data.filenames <- data.s$filename
   
   if (length(files) != length(unique(data.filenames))) {
-      stop("Number of file names in annotation does not match data")
+    stop("Number of file names in annotation does not match data")
   }
   
   msg <- txtProgressBar(min=1, max=length(files), initial=1)
   message(paste0("Processing " ,length(files), " Filenames"))
   for (i in seq_along(files)) {
-      idxs <- grep(files[i], data.filenames)
+      idxs <- grep(files[i], data.filenames, ignore.case = T)
       fraction_number[idxs] <- annotation$fraction_number[i]
       # message(paste("PROCESSED", i, "/", length(files), "filenames"))
       setTxtProgressBar(msg, i)
