@@ -10,6 +10,7 @@
 #' @param plot_in_complex_estimate logical
 #' @param legend logical
 #' @param highlight vector of trace ids to highlight
+#' @param highlight_col color to highlight traces in
 #' @param showtraces character Either "annotated" or "detected".
 #' @param plot boolean, wether to print the plot or return the plot object
 #' @param 
@@ -25,6 +26,7 @@ plot.proteinFeatures <- function(res,
                                  plot_in_complex_estimate=TRUE,
                                  legend=FALSE,
                                  highlight=NULL,
+                                 highlight_col=NULL,
                                  showtraces="annotated",
                                  plot = TRUE) {
 
@@ -91,9 +93,15 @@ plot.proteinFeatures <- function(res,
   #p <- p + theme(legend.position="none")
   if(!is.null(highlight)){
     legend_peps <- unique(traces.long[outlier == TRUE, id])
-  p <- p + 
-    geom_line(data = traces.long[outlier == TRUE], aes_string(x='fraction', y='intensity', color='id'), lwd=2) +
-    scale_color_discrete(breaks = legend_peps)
+    if(is.null(highlight_col)){
+      p <- p + 
+        geom_line(data = traces.long[outlier == TRUE], aes_string(x='fraction', y='intensity', color='id'), lwd=2) +
+        scale_color_discrete(breaks = legend_peps)
+    }else{
+      p <- p + 
+        geom_line(data = traces.long[outlier == TRUE], aes_string(x='fraction', y='intensity', group = 'id'), color = highlight_col, lwd=2)
+        # scale_color_discrete(breaks = legend_peps)
+    }
   }
   if(plot){
     print(p)
