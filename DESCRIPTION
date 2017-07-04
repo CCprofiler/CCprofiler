@@ -17,4 +17,7 @@ Depends:
     pracma
 RoxygenNote: 6.0.1
 Imports: igraph
-Suggests: testthat
+Suggests: testthat,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
