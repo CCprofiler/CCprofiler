@@ -9,6 +9,11 @@
 * Use <- not = for assignment.
 * Use “##” to start full-line comments. Indent at the same level as surrounding code.
 * New classes should be defined in 'AllClasses.R'.
+* message() communicates diagnostic messages (e.g., progress during lengthy computations) during code evaluation.
+* warning() communicates unusual situations handled by your code.
+* stop() indicates an error condition.
+* cat() or print() are used only when displaying an object to the user, e.g., in a show method.
+
 
 ## Package specific guidelines
 * Use data.table and not data.frame
