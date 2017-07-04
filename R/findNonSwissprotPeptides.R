@@ -43,8 +43,13 @@ findNonSwissprotPeptides <- function(pepTraces, proteinFasta, id_table = NULL,
   idmapping <- idmapping[uniprot_id != ""]
   
   # map the gene names
-  alignsSwissprot <- pbapply(pepTraces$trace_annotation, 1, alignPeptide, sequences, idmapping, mode, alignsTo, extr2)
-  pepTraces$trace_annotation$AlignsSwissprot <- alignsSwissprot
+  if(alignsTo){
+    aligns <- pbapply(pepTraces$trace_annotation, 1, alignPeptide, sequences, idmapping, mode, alignsTo, extr2)
+    pepTraces$trace_annotation$AlignsTo <- aligns
+  }else{
+    alignsSwissprot <- pbapply(pepTraces$trace_annotation, 1, alignPeptide, sequences, idmapping, mode, alignsTo, extr2)
+    pepTraces$trace_annotation$AlignsSwissprot <- alignsSwissprot
+  }
   return(pepTraces$trace_annotation)
 }
 
@@ -62,7 +67,8 @@ alignPeptide <- function(Trace, sequences, idmapping, mode = "ENSEMBL", alignsTo
     }
     # if(is.na(up_ids)) message(paste0("Warning: Gene ", gene, " had no corresponding uniprot ID in the mapping table"))
     if(is.na(up_ids[1])){
-      return(FALSE)
+      message(paste0("Warning: Gene ", gene, " had no corresponding Swissprot sequence"))
+      return("No_match")
     }
     if(extr2){
       seqs <- sequences[names(sequences) %in% up_ids]
@@ -70,14 +76,27 @@ alignPeptide <- function(Trace, sequences, idmapping, mode = "ENSEMBL", alignsTo
       seqs <- sequences[unlist(sapply(up_ids, grep, names(sequences)))]
     }
     
-    if(length(seqs) == 0) message(paste0("Warning: Gene ", gene, 
-                                         " had no corresponding Swissprot sequence"))
-    matches <- grepl(pep, seqs)
-    if(alignsTo){
-      return(paste(names(seqs)[matches], collapse = ";"))
+    if(length(seqs) == 0){
+      message(paste0("Warning: Gene ", gene, " had no corresponding Swissprot sequence"))
+      return("No_match")
     }else{
-      return(any(matches))
-    }
+      matches <- grepl(pep, seqs)
+      if(alignsTo){
+        return(paste(names(seqs)[matches], collapse = ";"))
+      }else{
+        if(any(matches)){
+          return(any(matches))
+        }else{
+          s <- sum(vcountPattern(pattern = pep, subject = seqs, min.mismatch = 1, max.mismatch = 1))
+          if(s > 0){
+            return("1 mismatch")
+          }else{
+            return(FALSE)
+          }
+        }
+        
+      }
+    }     
   }
 }
 
