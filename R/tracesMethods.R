@@ -53,7 +53,7 @@ toLongFormat <- function(traces.dt) {
 #' Plot a traces.obj.
 #' @param traces.obj An object of type \code{traces.obj}.
 #' @export
-plot.traces <- function(traces.obj, plot=TRUE, ledgend = TRUE, title=NULL) {
+plot.traces <- function(traces.obj, plot=TRUE, ledgend = TRUE, title=NULL, size = 1) {
   traces.long <- toLongFormat(traces.obj$traces)
   pl <- ggplot(traces.long)
   if (is.null(title)) {
@@ -62,7 +62,7 @@ plot.traces <- function(traces.obj, plot=TRUE, ledgend = TRUE, title=NULL) {
     pl <- pl + ggtitle(title)
   }
   pl <- pl + xlab('fraction') + ylab('intensity')
-  pl <- pl + geom_line(aes(x=fraction, y=intensity, color=id))
+  pl <- pl + geom_line(aes(x=fraction, y=intensity, color=id), size = size)
   if (!ledgend) {
     pl <- pl + theme(legend.position="none")
   }
