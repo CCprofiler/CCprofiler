@@ -1,0 +1,222 @@
+---
+title: "Introduction to the PCprofiler package"
+author: "Isabell Bludau, Max Frank"
+date: '`r Sys.Date()`'
+output:
+  html_document:
+    depth: 3
+    number_sections: yes
+    theme: united
+    toc: yes
+  pdf_document:
+    toc: yes
+vignette: |
+  %\VignetteIndexEntry{Introduction to the PCprofiler package} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
+---
+
+# Overview
+PCprofiler introduction...
+```{r, eval=TRUE, message=FALSE}
+require(devtools)
+install_github("PedrioliLab/SECprofiler",ref="isa")
+library('SECprofiler')
+```
+
+# Preparation
+## Example data
+Quickly describe dataset used in vignette
+* Generate bigger test set ~ 50 complex hypotheses
+* reformat and rename exampleOpenSWATHinput to generalize
+```{r, eval=TRUE}
+pcpData <- exampleOpenSWATHinput
+fractionAnnotation <- exampleFractionAnnotation
+calibrationTable <- exampleCalibrationTable
+traceAnnotation <- exampleTraceAnnotation
+```
+## Input data
+### Quantitative PCP-MS data
+```{r, eval=TRUE}
+head(pcpData, n=2)
+```
+### Fraction annotation table
+```{r, eval=TRUE}
+head(fractionAnnotation, n=2)
+```
+### Trace annotation table
+```{r,eval=TRUE}
+head(traceAnnotation, n=2)
+```
+### Molecular weight calibration
+```{r, eval=TRUE, fig.show='hold'}
+head(calibrationTable, n=2)
+calibration = calibrateSECMW(calibrationTable, 
+                             PDF=FALSE, 
+                             plot=TRUE)
+```
+
+# Standard analysis workflow
+## Import of elution profiles to traces object
+* write general import functionfor quant matrix (wide and long)
+* improve, extend summary function for traces objects: fraction info, pep/prot info
+```{r, eval=TRUE, message=FALSE}
+pepTraces <- importFromOpenSWATH(data=pcpData,
+                                 annotation_table=fractionAnnotation)
+pepTraces <- annotateTraces(traces=pepTraces, 
+                            annotation_table=traceAnnotation, 
+                            traces_id_column="protein_id")
+summary(pepTraces)
+```
+## Quality control and filtering
+* correct FDR estimation function
+```{r, eval=TRUE, fig.show='hold'}
+pepTraces_cons <- filterConsecutiveIdStretches(traces=pepTraces)
+pepTraces_cons_sib <- filterBySibPepCorr(traces=pepTraces_cons,
+                                         PDF=FALSE,
+                                         plot=TRUE)
+summary(pepTraces_cons_sib)
+```
+## Protein quantification
+```{r, eval=TRUE}
+protTraces <- proteinQuantification(pepTraces_cons_sib)
+summary(protTraces)
+```
+## Protein feature finding
+### Co-elution signal detection
+* check improve write summary function for features
+```{r, eval=TRUE, message=FALSE}
+proteinFeatures <- findProteinFeatures(traces=pepTraces_cons_sib,
+                                       calibration=calibration,
+                                       parallelized=FALSE,
+                                       useRandomDecoyModel=TRUE)
+proteinFeatures_filtered <- subsetProteinFeatures(res=proteinFeatures,
+                                                  min_subunits=3,
+                                                  min_peak_corr=0.8)
+head(proteinFeatures_filtered)
+```
+### FDR estimation
+```{r,eval=TRUE}
+proteinFeatures_stats <- estimateDecoyFDR(proteinFeatures_filtered)
+```
+## Complex feature finding
+### Complex hypothesis generation
+#### Targets
+You can either load complex hypotheses in this format:
+```{r,eval=TRUE}
+complexHypotheses <- exampleComplexHypotheses
+head(exampleComplexHypotheses)
+```
+Or generate complexes from an interacton network
+* instead of generating binary interactions from hypotheses >> include example network ibn lazyLoad
+```{r,eval=TRUE}
+binaryHypotheses <- generateBinaryNetwork(complexHypotheses)
+pathLength <- calculatePathlength(binaryHypotheses)
+networkTargets <- generateComplexTargets(pathLength)
+```
+
+#### Decoys
+* make sure the correct version of the decoy genertr is loaded & check decoy generation again (make faster?)
+```{r,eval=FALSE}
+networkHypotheses <- generateComplexDecoys(target_hypothesis=networkTargets,
+                                           dist_info=pathLength,
+                                           append=TRUE)
+```
+### Co-elution signal detection
+```{r,eval=TRUE}
+complexFeatures <- findComplexFeatures(traces=protTraces,
+                                       complex_hypothesis = networkTargets,
+                                       calibration = calibration,
+                                       parallelized=FALSE)
+
+complexFeatures_filtered <- subsetComplexFeatures(complexFeatures,min_peak_corr=0.5)
+complexFeatures_filtered_best <- getBestComplexFeature(complexFeatures_filtered)
+```
+### FDR estimation
+### Complex feature collapsing
+
+# Visualization
+## plotTraces
+* include PDF option, include group by option
+```{r, eval=TRUE, fig.show='hold'}
+plot(protTraces)
+```
+## plotFeatures
+* check for plotting function that takes any type of traces (pep and prot)
+* plot once for peps and once for prots
+```{r, eval=TRUE, fig.show='hold'}
+plotComplexFeatures(res=complexFeatures_filtered,
+                       proteinTraces=protTraces,
+                       complexID = "1187",
+                       calibration = calibration,
+                       peak_area=TRUE)
+```
+
+## plot summarized MS coverage of complex hypotheses
+* maybe rename function
+```{r, eval=TRUE, fig.show='hold'}
+plotSummarizedMScoverage(hypotheses=corumNetworkHypotheses,protTraces=protTraces)
+```
+## plot complex subfeature summary
+```{r, eval=TRUE, fig.show='hold'}
+plotComplexSubfeatureSummary(complexFeatures_bestParameterData)
+```
+
+# Parameter optimization
+## Protein-level grid search
+```{r, eval=FALSE}
+proteinFeatures_grid <- performProteinGridSearch(traces=pepTraces_cons_sib,
+                                                  calibration= calibration,
+                                                  corrs = c(0.9,0.95),
+                                                  windows = c(8),
+                                                  smoothing = c(7),
+                                                  rt_heights = c(3),
+                                                  parallelized = TRUE,
+                                                  n_cores=2)
+
+proteinFeatures_grid_filtered <- filterGridSearchResults(proteinFeatures_grid,
+                                                        peak_corr_cutoffs = c(0.5,0.75,0.9),
+                                                        completeness_cutoffs = c(0,0.25,0.5,0.75),
+                                                        n_subunits_cutoffs =c(2,3,4),
+                                                        remove_decoys=FALSE
+                                                        )
+
+proteinFeatures_grid_filtered_stats <- estimateGridSearchDecoyFDR(proteinFeatures_grid_filtered)
+
+proteinFeatures_bestParameterStats <- getBestParameterStats(stats=proteinFeatures_grid_filtered_stats,FDR=0.1)
+proteinFeatures_bestParameterData <- getBestParameterData(proteinFeatures_grid_filtered)
+```
+
+## Complex-level grid search
+```{r, eval=FALSE}
+complexFeatures_grid <- performComplexGridSearch(traces=protTraces,
+                                                complex_hypothesis=complexHypotheses,
+                                                calibration=calibration,
+                                                corrs = c(0.9,0.95),
+                                                windows = c(8),
+                                                smoothing = c(7),
+                                                rt_heights = c(3),
+                                                parallelized = TRUE,
+                                                n_cores=2
+                                                )
+
+complexFeatures_grid_filtered <- filterGridSearchResults(complexFeatures_grid,
+                                                        peak_corr_cutoffs = c(0.5,0.75,0.9),
+                                                        completeness_cutoffs = c(0,0.25,0.5,0.75),
+                                                        n_subunits_cutoffs =c(2,3,4),
+                                                        remove_decoys=FALSE
+                                                        )
+
+complexFeatures_grid_filtered_stats <- estimateGridSearchDecoyFDR(complexFeatures_grid_filtered)
+
+complexFeatures_bestParameterStats <- getBestParameterStats(stats=complexFeatures_grid_filtered_stats,FDR=0.1)
+complexFeatures_bestParameterData <- getBestParameterData(complexFeatures_grid_filtered,FDR=0.1)
+
+```
+
+
+
+# Session information
+```{r, val=TRUE, echo=FALSE}
+session_info()
+```
+
+# References
