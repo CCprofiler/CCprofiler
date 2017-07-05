@@ -137,6 +137,7 @@ importPCPdata <- function(input_data,
     setcolorder(input_dataWide, c("peptide_id", "protein_id", sort(unique(fraction_number))))
     traces_annotation <- data.table(input_dataWide[,c("peptide_id", "protein_id"), with = FALSE])
     setnames(traces_annotation,c("peptide_id", "protein_id"),c("id","protein_id"))
+    setkey(traces_annotation, protein_id, id)
     traces_type <- "peptide"
     traces <- subset(input_dataWide, select = -protein_id)
     traces[,id:=peptide_id]
@@ -152,6 +153,7 @@ importPCPdata <- function(input_data,
     setcolorder(input_dataWide, c("protein_id", sort(unique(fraction_number))))
     traces_annotation <- data.table(input_dataWide[,.(protein_id)])
     setnames(traces_annotation,"protein_id", "id")
+    setkey(traces_annotation, id)
     traces_type <- "protein"
     traces <- input_dataWide
     traces[,id:=protein_id]
