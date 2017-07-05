@@ -4,23 +4,23 @@
 \alias{annotateTraces}
 \title{Annotate traces object}
 \usage{
-annotateTraces(traces, annotation_table, traces_id_column = "protein_id",
-  annotation_table_id_column = "Entry",
-  annotation_table_mass_column = "Mass", uniprot_mass_format = TRUE,
+annotateTraces(traces, trace_annotation, traces_id_column = "protein_id",
+  trace_annotation_id_column = "Entry",
+  trace_annotation_mass_column = "Mass", uniprot_mass_format = TRUE,
   replace_whitespace = TRUE)
 }
 \arguments{
 \item{traces}{Object of class traces.}
 
-\item{annotation_table}{Tab-separated annotation table to be merged into trace_annotation, file or R data.table.}
+\item{trace_annotation}{Tab-separated annotation table to be merged into trace_annotation, file or R data.table.}
 
 \item{traces_id_column}{Character string with name of the id column specifying the entries to be annotated.
 Defaults to "protein_id".}
 
-\item{annotation_table_id_column}{Character string with name of the column in the reference table that contains the ids.
+\item{trace_annotation_id_column}{Character string with name of the column in the reference table that contains the ids.
 Defaults to "Entry" as expexted from uniprot.tab files.}
 
-\item{annotation_table_mass_column}{Character string with name of the column in the reference table that contains the protein mass annotation in kDa. If \code{uniprot_mass_format = TRUE}, this column should be called "Mass" and is in Da (PCprofiler will do the conversion). Defaults to "Mass".}
+\item{trace_annotation_mass_column}{Character string with name of the column in the reference table that contains the protein mass annotation in kDa. If \code{uniprot_mass_format = TRUE}, this column should be called "Mass" and is in Da (PCprofiler will do the conversion). Defaults to "Mass".}
 
 \item{uniprot_mass_format}{Logical, whether mass annotation is in the format of uniprot ("Mass" column with molecular weight in Da and comma as thouthands separator).}
 
@@ -40,8 +40,8 @@ inputAnnotation <- exampleTraceAnnotation
 # Run the annotation:
 annotatedTraces <- annotateTraces(
 traces=inputTraces,
-annotation_table=inputAnnotation,
+trace_annotation=inputAnnotation,
 traces_id_column = "protein_id",
-annotation_table_id_column = "Entry")
+trace_annotation_id_column = "Entry")
 annotatedTraces$trace_annotation
 }

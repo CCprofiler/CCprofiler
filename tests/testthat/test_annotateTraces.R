@@ -1,10 +1,10 @@
 context("annotateTraces")
 
 annotatedTraces <- annotateTraces(traces=examplePeptideTracesUnannotated,
-                                  annotation_table=exampleTraceAnnotation,
+                                  trace_annotation=exampleTraceAnnotation,
                                   traces_id_column = "protein_id",
-                                  annotation_table_id_column = "Entry",
-                                  annotation_table_mass_column = "Mass",
+                                  trace_annotation_id_column = "Entry",
+                                  trace_annotation_mass_column = "Mass",
                                   uniprot_mass_format = TRUE,
                                   replace_whitespace = TRUE)
 
