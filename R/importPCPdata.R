@@ -93,25 +93,21 @@ importPCPdata <- function(input_data,
     ## Detect if long  quantMatrix is peptide or protein intensities
     if("peptide_id" %in% names(input_data)){
       
-      ## check if there are duplicated entries (e.g. from different charge states)
-      if(any(duplicated(input_data))){
-        stop("The input data contains duplicated values (maybe. from different charge states?).
-           Please make sure you provide unique protein_id, peptide_id, filename combinations")
-      }
-      input_dataWide <- dcast(input_data, protein_id + peptide_id ~ fraction_number,
-                              value.var="intensity", fill = 0)
+      input_dataWide <- data.table(dcast(input_data, protein_id + peptide_id ~ fraction_number,
+                              value.var="intensity", fill = 0))
       ## Make sure fractions are in ascending order
       setcolorder(input_dataWide, c("peptide_id", "protein_id", sort(unique(fraction_number))))
       
     }else{
       
-      input_dataWide <- dcast(input_data, protein_id ~ fraction_number,
-                              value.var="intensity", fill = 0)
+      input_dataWide <- data.table(dcast(input_data, protein_id ~ fraction_number,
+                              value.var="intensity", fill = 0))
       setcolorder(input_dataWide, c("protein_id", sort(unique(fraction_number))))
       
     }
     
   }else{
+    
     ## if wide data add fraction number as column names
     input_dataFilenames <- names(input_data)[!(names(input_data) %in% c("peptide_id", "protein_id"))]
     fraction_number <- integer(length=length(input_dataFilenames))
@@ -131,7 +127,12 @@ importPCPdata <- function(input_data,
   
   
   if("peptide_id" %in% names(input_data)){
-    
+    ## Check for duplications
+    if(any(duplicated(input_dataWide[, .(protein_id, peptide_id)]))){
+      stop("The input data contains duplicated  intensity values (maybe. from different peptides?).
+           Please make sure you provide unique protein_id, peptide_id filename combinations")
+      
+    }
     setcolorder(input_dataWide, c("peptide_id", "protein_id", sort(unique(fraction_number))))
     traces_annotation <- data.table(input_dataWide[,c("peptide_id", "protein_id"), with = FALSE])
     setnames(traces_annotation,c("peptide_id", "protein_id"),c("id","protein_id"))
@@ -148,7 +149,7 @@ importPCPdata <- function(input_data,
     }
     
     setcolorder(input_dataWide, c("protein_id", sort(unique(fraction_number))))
-    traces_annotation <- data.table(input_dataWide[,c("protein_id"), with = FALSE])
+    traces_annotation <- data.table(input_dataWide[,.(protein_id)])
     setnames(traces_annotation,"protein_id", "id")
     traces_type <- "protein"
     traces <- input_dataWide
