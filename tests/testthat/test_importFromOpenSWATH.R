@@ -1,8 +1,11 @@
 context("Import from OpenSWATH")
 
-#@TODO put test data in lazy load
 
-output_rds=readRDS("/Volumes/ibludau-1/SEC/write_tests/test_osw_input.rda")
+traces <- importFromOpenSWATH(data = exampleOpenSWATHinput,
+                              annotation_table = exampleFractionAnnotation,
+                              rm_requantified = T)
+tracesFromWide <- importPCPdata(input_data = examplePCPdataWide,
+                                annotation_table = exampleFractionAnnotation)
 
 test_that("Data import messages", {
   testthat::expect_error(importFromOpenSWATH(),"Need to specify data in form of OpenSWATH result file or R data.table.")
@@ -16,13 +19,5 @@ test_that("Data import messages", {
 })
 
 test_that("Output format",{
-  testthat::expect_equal(importFromOpenSWATH(data=exampleOpenSWATHinput,annotation_table=exampleFractionAnnotation),output_rds)
-  decoy_idx=grep("DECOY",output_rds$trace_annotation$protein_id,invert=TRUE)
-  output_rds_noDecoys=output_rds
-  output_rds_noDecoys$trace_annotation=output_rds_noDecoys$trace_annotation[decoy_idx]
-  output_rds_noDecoys$traces=output_rds_noDecoys$traces[decoy_idx]
-  testthat::expect_equal(importFromOpenSWATH(data=exampleOpenSWATHinput,annotation_table=exampleFractionAnnotation,rm_decoys=TRUE),output_rds_noDecoys)
-  #@TODO write test for MS1Quant
-  #@TODO write test for import of non-uniprot names
-  #@TODO write test for rm_requantified
+  testthat::expect_equal(sum(subset(traces$traces, select = -id)), sum(subset(tracesFromWide$traces, select = -id)))
 })
