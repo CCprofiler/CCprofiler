@@ -2,29 +2,46 @@
 % Please edit documentation in R/annotateTraces.R
 \name{annotateTraces}
 \alias{annotateTraces}
-\title{Annotate traces object.}
+\title{Annotate traces object}
 \usage{
-annotateTraces(traces, annotation_table = "uniprot.tab",
-  traces_id_column = "id", annotation_table_id_column = "Entry",
+annotateTraces(traces, annotation_table, traces_id_column = "protein_id",
+  annotation_table_id_column = "Entry",
+  annotation_table_mass_column = "Mass", uniprot_mass_format = TRUE,
   replace_whitespace = TRUE)
 }
 \arguments{
-\item{traces}{object of class traces}
+\item{traces}{Object of class traces.}
 
-\item{annotation_table}{tab-separated annotation table to be merged into trace_annotation, file or R data.table}
+\item{annotation_table}{Tab-separated annotation table to be merged into trace_annotation, file or R data.table.}
 
-\item{traces_id_column}{name of the id column specifying the entries to be annotated}
+\item{traces_id_column}{Character string with name of the id column specifying the entries to be annotated.
+Defaults to "protein_id".}
 
-\item{annotation_table_id_column}{name of the column in the reference table that contains the ids
-defaults to "Entry" as expexted from uniprot.tab files}
+\item{annotation_table_id_column}{Character string with name of the column in the reference table that contains the ids.
+Defaults to "Entry" as expexted from uniprot.tab files.}
 
-\item{replace_whitespace}{whether spaces contained in the anntation table column names shall be replaced by "_"
-defaults to TRUE
-,typically FullPeptideName or Uniprot Entry names as protein_id. Same as in traces$traces$id}
+\item{annotation_table_mass_column}{Character string with name of the column in the reference table that contains the protein mass annotation in kDa. If \code{uniprot_mass_format = TRUE}, this column should be called "Mass" and is in Da (PCprofiler will do the conversion). Defaults to "Mass".}
+
+\item{uniprot_mass_format}{Logical, whether mass annotation is in the format of uniprot ("Mass" column with molecular weight in Da and comma as thouthands separator).}
+
+\item{replace_whitespace}{Logical, whether spaces contained in the anntation table column names shall be replaced by "_".
+Defaults to \code{TRUE}.}
 }
 \value{
-traces object of class traces with extended annotation
+Traces object of class traces with extended annotation.
 }
 \description{
-Add columns to the trace_annotation table from an external annotation table.
+Add custom annotation columns to the trace_annotation in a traces object from an external annotation table, e.g. UniProt.
+}
+\examples{
+# Load some example data:
+inputTraces <- examplePeptideTracesUnannotated
+inputAnnotation <- exampleTraceAnnotation
+# Run the annotation:
+annotatedTraces <- annotateTraces(
+traces=inputTraces,
+annotation_table=inputAnnotation,
+traces_id_column = "protein_id",
+annotation_table_id_column = "Entry")
+annotatedTraces$trace_annotation
 }

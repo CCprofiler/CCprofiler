@@ -2,14 +2,23 @@
 % Please edit documentation in R/tracesMethods.R
 \name{plot.traces}
 \alias{plot.traces}
-\title{Plot a traces.obj.}
+\title{Plot traces}
 \usage{
-\method{plot}{traces}(traces.obj, plot = TRUE, ledgend = TRUE,
-  title = NULL)
+\method{plot}{traces}(traces, ledgend = TRUE, PDF = FALSE,
+  name = "Traces")
 }
 \arguments{
-\item{traces.obj}{An object of type \code{traces.obj}.}
+\item{traces}{Object of class traces.}
+
+\item{PDF}{Logical, whether to plot to PDF. Default is \code{FALSE}.}
+
+\item{name}{Character string with name of the plot, only used if \code{PDF=TRUE}. Default is "Traces".}
+
+\item{legend}{Logical, whether a legend of the traces should be plotted. Default is \code{TRUE}.}
 }
 \description{
-Plot a traces.obj.
+Plot a traces object as chromatograms.
+}
+\examples{
+plot(exampleProteinTraces)
 }
