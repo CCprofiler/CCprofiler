@@ -61,9 +61,13 @@ calibration = calibrateSECMW(calibrationTable,
 ```{r, eval=TRUE, message=FALSE}
 pepTraces <- importFromOpenSWATH(data=pcpData,
                                  annotation_table=fractionAnnotation)
-pepTraces <- annotateTraces(traces=pepTraces, 
-                            annotation_table=traceAnnotation, 
-                            traces_id_column="protein_id")
+pepTraces <- annotateTraces(traces=pepTraces,
+                            annotation_table=traceAnnotation,
+                            traces_id_column = "protein_id",
+                            annotation_table_id_column = "Entry",
+                            uniprot_mass_format = TRUE,
+                            replace_whitespace = TRUE)
+
 summary(pepTraces)
 ```
 ## Quality control and filtering
