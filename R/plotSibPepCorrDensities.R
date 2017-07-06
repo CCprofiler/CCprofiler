@@ -1,13 +1,19 @@
 # Due to: http://stackoverflow.com/questions/24501245/data-table-throws-object-not-found-error
 .datatable.aware=TRUE
 
-#' plot.SibPepCorrDensities
-#' @description Plot sibling peptide correlation in traces.object of type peptide.
+#' plot SibPepCorrDensities
+#' @description Plot sibling peptide correlation in traces object of type peptide.
 #' @import data.table
-#' @param traces An object of type \code{traces.obj}.
-#' @param PDF logical TRUE or FALSE
+#' @param traces An object of type traces.
+#' @param PDF logical, wether to print SibPepCorr density plot to a PDF file.
 #' @return Plot.
 #' @export
+#' @example 
+#' ## Load example data
+#' traces_obj <- examplePeptideTracesFiltered
+#' 
+#' ## Plot the SibPepCorr density plot
+#' plotSibPepCorrDensities(traces_obj)
 
 plotSibPepCorrDensities <- function(traces, PDF = FALSE){
 
@@ -33,7 +39,7 @@ plotSibPepCorrDensities <- function(traces, PDF = FALSE){
   }
 
   plot(dens_targets$x, dens_targets$y*dens_targets$n, lty = 1, lwd = 3,
-       , type = "l", ylab = "scaled frequency", xlab = "SibPepCorr",
+       type = "l", ylab = "scaled frequency", xlab = "SibPepCorr",
        main = "Sibling Peptide Correlation Density")
 
   if (decoys_present){

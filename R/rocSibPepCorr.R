@@ -12,6 +12,18 @@
 #' @param CSV logical TRUE or FALSE
 #' @return An data.table containing ROC characteristics.
 #' @export
+#' @example 
+#' # Load example data
+#' tracesRaw <- examplePeptideTraces
+#' ## Calculate the sibPepCorr
+#' tracesRawSpc <- calculateSibPepCorr(traces = tracesRaw,
+#'                                       plot = TRUE)
+#' ## Calculate protein FDR at different correllation cutoffs
+#' fdrTable <- rocSibPepCorr(traces = tracesRawSpc,
+#'                           plot = TRUE,
+#'                           fdr_type = "protein")
+#' 
+#' head(fdrTable)
 
 rocSibPepCorr <- function(traces,
                           fdr_type = "protein",
@@ -19,52 +31,76 @@ rocSibPepCorr <- function(traces,
                           stepsize =0.001,
                           plot = TRUE,
                           PDF = FALSE,
-                          CSV = FALSE) {
+                          CSV = FALSE){
 
-   #check whether SibPepCorr has been calculated/is contained in trace_annotation
+   ## check whether SibPepCorr has been calculated/is contained in trace_annotation
    if (!("SibPepCorr" %in% names(traces$trace_annotation))){
      stop("No SibPepCorr has been calculated on this dataset. Use calculateSibPepCorr function.")
    }
-
+  ##  Make sure that teh right FDR type is specified
+  if(!(fdr_type %in% c("protein", "peptide"))) stop("Parameter fdr_type must be 'protein' or 'peptide'")
+  
   trace_annotation <- traces$trace_annotation
   trace_annotation$DECOY <- 0
   trace_annotation$DECOY[grep('^DECOY_', trace_annotation$protein_id)] <- 1
   corr_range <- sort(unique(trace_annotation$SibPepCorr))
-  corr.test <- seq(min(corr_range), max(corr_range), stepsize)
-  ncorr.test <- length(corr.test)
-  target_proteins <- numeric(length = ncorr.test)
-  decoy_proteins <- numeric(length = ncorr.test)
-  target_protein_ids <- character(length = ncorr.test)
-  target_peptides <- numeric(length = ncorr.test)
-  decoy_peptides <- numeric(length = ncorr.test)
-  target_peptide_ids <- character(length = ncorr.test)
+  corrTest <- seq(min(corr_range), max(corr_range), stepsize)
+  ncorrTest <- length(corrTest)
+  targetProteins <- numeric(length = ncorrTest)
+  decoyProteins <- numeric(length = ncorrTest)
+  targetPeptides <- numeric(length = ncorrTest)
+  decoyPeptides <- numeric(length = ncorrTest)
+
+  # Step through the spc cutoffs and calculate the FDR
   
-  for (i in 1:ncorr.test) {
-    remaining_traces <- trace_annotation[SibPepCorr >= corr.test[i]]
-    ## Count proteins
-    targetprots <- unique(remaining_traces[DECOY == 0]$protein_id)
-    target_proteins[i] <- length(targetprots)
-    decoyprots <- unique(remaining_traces[DECOY == 1]$protein_id)
-    decoy_proteins[i] <- length(decoyprots)
+  if(fdr_type == "peptide"){
+    for (i in 1:ncorrTest) {
+      remainingTraces <- trace_annotation[SibPepCorr >= corrTest[i]]
+      ## Count proteins
+      targetProts <- unique(remainingTraces[DECOY == 0]$protein_id)
+      targetProteins[i] <- length(targetProts)
+      decoyProts <- unique(remainingTraces[DECOY == 1]$protein_id)
+      decoyProteins[i] <- length(decoyProts)
+      
+      ## Count peptides
+      targetPeptides[i] <- nrow(remainingTraces[DECOY == 0])
+      decoyPeptides[i] <- nrow(remainingTraces[DECOY == 1])
+    }
+  }else if(fdr_type == "protein"){
+    for (i in 1:ncorrTest) {
+      remainingTraces <- trace_annotation[SibPepCorr >= corrTest[i]]
+      ## Count proteins
+      targetProts <- unique(remainingTraces[DECOY == 0]$protein_id)
+      targetProteins[i] <- length(targetProts)
+      decoyProts <- unique(remainingTraces[DECOY == 1]$protein_id)
+      decoyProteins[i] <- length(decoyProts)
+    }
+  }
+## Estimate the FDR
+  if(fdr_type == "peptide"){
     
-    ## Count peptides
-    target_peptides[i] <- nrow(remaining_traces[DECOY == 0])
-    decoy_peptides[i] <- nrow(remaining_traces[DECOY == 1])
+  fdr_protein <- FFT*decoyProteins/(targetProteins)
+  fdr_peptides <- FFT*decoyPeptides/(targetPeptides)
+  true_targetProteins <- as.integer(targetProteins * (1-fdr_protein))
+  true_targetPeptides <- as.integer(targetPeptides * (1-fdr_peptides))
+  resulttable <- as.data.table(cbind(corrTest,
+                                     targetProteins, true_targetProteins, decoyProteins,fdr_protein,
+                                     targetPeptides, true_targetPeptides, decoyPeptides,fdr_peptides))
+  colnames(resulttable) <- c('SibPepCorr_cutoff' ,
+                             'n_targetProteins' , 'n_true_targetProteins','n_decoyProteins' , 'proteinFDR',
+                             'n_targetPeptides' , 'n_true_targetPeptides','n_decoyPeptides' , 'peptideFDR')
+  }else if(fdr_type == "protein"){
+    
+    fdr_protein <- FFT*decoyProteins/(targetProteins)
+    true_targetProteins <- as.integer(targetProteins * (1-fdr_protein))
+    resulttable <- as.data.table(cbind(corrTest,
+                                       targetProteins, true_targetProteins, decoyProteins,fdr_protein))
+    colnames(resulttable) <- c('SibPepCorr_cutoff' ,
+                               'n_targetProteins' , 'n_true_targetProteins','n_decoyProteins' , 'proteinFDR')
     
   }
-  ## Estimate the FDR
-  fdr_protein <- FFT*decoy_proteins/(target_proteins)
-  fdr_peptides <- FFT*decoy_peptides/(target_peptides)
-  true_target_proteins <- as.integer(target_proteins * (1-fdr_protein))
-  true_target_peptides <- as.integer(target_peptides * (1-fdr_peptides))
-  resulttable <- as.data.table(cbind(corr.test,
-                                     target_proteins, true_target_proteins, decoy_proteins,fdr_protein,
-                                     target_peptides, true_target_peptides, decoy_peptides,fdr_peptides))
-  colnames(resulttable) <- c('SibPepCorr_cutoff' ,
-                             'n_target_proteins' , 'n_true_target_proteins','n_decoy_proteins' , 'proteinFDR',
-                             'n_target_peptides' , 'n_true_target_peptides','n_decoy_peptides' , 'peptideFDR')
   ## Only report sensible values
-  resulttable <- resulttable[true_target_proteins >= 0.2*max(true_target_proteins)]
+  resulttable <- resulttable[true_targetProteins >= 0.2*max(true_targetProteins)]
 
   # OUTPUT
   if (CSV == TRUE) {
@@ -75,10 +111,20 @@ rocSibPepCorr <- function(traces,
   }
 
   if(plot){
-    plot(resulttable$FDR, resulttable$n_target_proteins, type = "l", lty = 2,
-       lwd = 2, main = paste("ROC Curve"), xlim = c(0,0.1) ,xlab='FDR',ylab='n',
-       ylim = c(0, 1.02* max(resulttable$n_target_proteins)))
-    lines(resulttable$FDR, resulttable$n_true_target_proteins, lty = 1, lwd = 2)
+    if(fdr_type =="protein"){
+      xaxis <- resulttable$proteinFDR
+      targets <- resulttable$n_targetProteins
+      true_targets <- resulttable$n_true_targetProteins
+    }else if(fdr_type =="peptide"){
+      xaxis <- resulttable$peptideFDR
+      targets <- resulttable$n_targetPeptides
+      true_targets <- resulttable$n_true_targetPeptides
+    }
+    
+    plot(xaxis, targets, type = "l", lty = 2,
+       lwd = 2, main = paste("Precision Recall Curve"), xlim = c(0,0.1) ,xlab='FDR',ylab='n',
+       ylim = c(0, 1.02* max(targets)))
+    lines(xaxis, true_targets, lty = 1, lwd = 2)
     legend("bottomright", lty = c(2,1), legend = c("all target proteins", "true target proteins"))
   }
   if(PDF == TRUE){
