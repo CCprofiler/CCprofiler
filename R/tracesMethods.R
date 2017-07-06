@@ -32,26 +32,27 @@
 #' summary(proteinSubsettedProteinTraces)
 #' @export
 subset.traces <- function(traces,trace_subset_ids=NULL,trace_subset_type="id",fraction_ids=NULL){
-    if (!is.null(trace_subset_ids)) {
-      if (trace_subset_type %in% names(traces$trace_annotation)) {
-        traces$trace_annotation <- subset(traces$trace_annotation, get(trace_subset_type) %in% trace_subset_ids)
-        trace_ids <- traces$trace_annotation$id
-        traces$traces <- subset(traces$traces,id %in% trace_ids)
-        if (nrow(traces$traces) == 0) {
-          stop(paste0("trace_subset_ids (",trace_subset_ids,") do not match trace_subset_type (",trace_subset_type,")."))
-        }
-      } else {
-        stop(paste0(trace_subset_type, "is not a valid trace_subset_type."))
-      }
-    }
-    if (!is.null(fraction_ids)){
-      traces$traces <- subset(traces$traces,select=c(names(traces$traces)[fraction_ids],"id"))
-      traces$fraction_annotation <- subset(traces$fraction_annotation ,id %in% fraction_ids)
+  .tracesTest(traces)
+  if (!is.null(trace_subset_ids)) {
+    if (trace_subset_type %in% names(traces$trace_annotation)) {
+      traces$trace_annotation <- subset(traces$trace_annotation, get(trace_subset_type) %in% trace_subset_ids)
+      trace_ids <- traces$trace_annotation$id
+      traces$traces <- subset(traces$traces,id %in% trace_ids)
       if (nrow(traces$traces) == 0) {
-        stop(paste0("fraction_ids (",fraction_ids,") do not match the available fractions in the traces object."))
+        stop(paste0("trace_subset_ids (",trace_subset_ids,") do not match trace_subset_type (",trace_subset_type,")."))
       }
+    } else {
+      stop(paste0(trace_subset_type, "is not a valid trace_subset_type."))
     }
-    traces
+  }
+  if (!is.null(fraction_ids)){
+    traces$traces <- subset(traces$traces,select=c(names(traces$traces)[fraction_ids],"id"))
+    traces$fraction_annotation <- subset(traces$fraction_annotation ,id %in% fraction_ids)
+    if (nrow(traces$traces) == 0) {
+      stop(paste0("fraction_ids (",fraction_ids,") do not match the available fractions in the traces object."))
+    }
+  }
+  traces
 }
 
 #' Get intensity matrix from traces object
@@ -63,11 +64,12 @@ subset.traces <- function(traces,trace_subset_ids=NULL,trace_subset_type="id",fr
 #' head(intensityMatrix)
 #' @export
 getIntensityMatrix <- function(traces) {
-    ids <- traces$traces$id
-    intensity.mat <- as.matrix(sapply(subset(traces$traces,
-                                      select=-id),as.numeric))
-    rownames(intensity.mat) <- ids
-    intensity.mat
+  .tracesTest(traces)
+  ids <- traces$traces$id
+  intensity.mat <- as.matrix(sapply(subset(traces$traces,
+                                    select=-id),as.numeric))
+  rownames(intensity.mat) <- ids
+  intensity.mat
 }
 
 
@@ -111,6 +113,7 @@ toLongFormat <- function(traces.dt) {
 #' mwTraces <- annotateMolecularWeight(inputTraces, calibration)
 #' @export
 annotateMolecularWeight <- function(traces, calibration){
+  .tracesTest(traces)
   traces$fraction_annotation[,molecular_weight := round(calibration$SECfractionToMW(traces$fraction_annotation$id),digits=3)]
   traces
 }
@@ -133,8 +136,13 @@ annotateMolecularWeight <- function(traces, calibration){
 #' # Perform molecular weight annotation:
 #' mwProteinTraces <- annotateMolecularWeight(proteinTraces, calibration)
 #' plot(mwProteinTraces)
+#' # Plot all peptides of a specific protein across a defined chromatographic region
+#' peptideTraces <- examplePeptideTraces
+#' subsetPeptideTraces <- subset(peptideTraces,trace_subset_ids="Q9UHV9",trace_subset_type="protein_id",fraction_ids=c(30:70))
+#' plot(subsetPeptideTraces,legend=FALSE)
 #' @export
-plot.traces <- function(traces, log=FALSE, ledgend = TRUE, PDF=FALSE, name="Traces") {
+plot.traces <- function(traces, log=FALSE, legend = TRUE, PDF=FALSE, name="Traces") {
+  .tracesTest(traces)
   traces.long <- toLongFormat(traces$traces)
   traces.long <- merge(traces.long,traces$fraction_annotation,by.x="fraction",by.y="id")
   p <- ggplot(traces.long) +
@@ -148,7 +156,7 @@ plot.traces <- function(traces, log=FALSE, ledgend = TRUE, PDF=FALSE, name="Trac
   if (log) {
     p <- p + scale_y_log10('log(intensity)')
   }
-  if (!ledgend) {
+  if (!legend) {
     p <- p + theme(legend.position="none")
   }
 
@@ -223,6 +231,7 @@ plot.traces <- function(traces, log=FALSE, ledgend = TRUE, PDF=FALSE, name="Trac
 #' summary(examplePeptideTracesFiltered)
 #' @export
 summary.traces <- function(traces) {
+  .tracesTest(traces)
   no_traces <- nrow(traces$trace_annotation)
   no_decoys <- length(grep("DECOY", traces$trace_annotation$protein_id))
   no_targets <- no_traces - no_decoys
@@ -239,4 +248,29 @@ summary.traces <- function(traces) {
     summary=list(metrics=res,type=type,annotations=annotation_info,fraction_count=fraction_info)
   }
   summary
+}
+
+#' Test if an object is of class traces.
+#' @param traces Object of class traces.
+#' @param type Character string specifying whether a specific type of traces is required.
+#' The two options are "peptide" or "protein". Default is \code{NULL},
+#' meaning that no specific type is required.
+.tracesTest <- function(traces,type=NULL){
+  if (! class(traces)=="traces") {
+    stop("Object is not of class traces.")
+  }
+  if (! all(names(traces)==c("traces","trace_type","trace_annotation","fraction_annotation"))) {
+    stop("Traces object doesn't contain all necessary items: traces, trace_type, trace_annotation, and fraction_annotation.")
+  }
+  if (!is.null(type)) {
+    if (type != traces$trace_type) {
+      stop("Traces object is of wrong type. Please check your input traces.")
+    }
+  }
+  if (! identical(traces$traces$id,traces$trace_annotation$id)) {
+    stop("IDs in traces and trace_annotation are not identical.")
+  }
+  if (! identical(names(traces$traces),c(traces$fraction_annotation$id,"id"))) {
+    stop("Fractions in traces and fraction_annotation are not identical.")
+  }
 }

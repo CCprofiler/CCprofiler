@@ -8,6 +8,10 @@ test_that("subset.traces",{
   peptideSubsettedPeptideTraces <- subset(examplePeptideTraces,trace_subset_ids=subsetPeptides,fraction_ids=subsetFractions)
   proteinSubsettedPeptideTraces <- subset(examplePeptideTraces,trace_subset_ids=subsetProtein,trace_subset_type="protein_id")
   proteinSubsettedProteinTraces <- subset(exampleProteinTraces,trace_subset_ids=subsetProtein)
+  ## test if subsetting produced valid traces object.
+  testthat::expect_null(.tracesTest(peptideSubsettedPeptideTraces))
+  testthat::expect_null(.tracesTest(proteinSubsettedPeptideTraces))
+  testthat::expect_null(.tracesTest(proteinSubsettedProteinTraces))
   ## test if peptide id subsetting worked fine
   testthat::expect_equal(length(peptideSubsettedPeptideTraces$traces$id), length(subsetPeptides))
   testthat::expect_equal(length(peptideSubsettedPeptideTraces$trace_annotation$id), length(subsetPeptides))
@@ -36,6 +40,7 @@ test_that("toLongFormat",{
 test_that("annotateMolecularWeight",{
   calibration <- calibrateSECMW(exampleCalibrationTable)
   mwTraces <- annotateMolecularWeight(examplePeptideTraces, calibration)
+  testthat::expect_null(.tracesTest(mwTraces))
   testthat::expect_true("molecular_weight" %in% names(mwTraces$fraction_annotation))
   })
 

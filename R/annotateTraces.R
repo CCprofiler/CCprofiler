@@ -38,7 +38,7 @@ annotateTraces <- function(traces,
                            uniprot_mass_format = TRUE,
                            replace_whitespace = TRUE){
 
-
+  .tracesTest(traces)
   ## trace_annotation: If path to file is provided read annotation table, if data.table is provided use it directly.
   if (class(trace_annotation)[1] == "character") {
     if (file.exists(trace_annotation)) {
