@@ -1,8 +1,8 @@
 # Due to: http://stackoverflow.com/questions/24501245/data-table-throws-object-not-found-error
 .datatable.aware=TRUE
 
-#' Subset traces by trace_ids or fraction_ids
-#' @description  Subset a taces object by trace ids and/or fraction ids.
+#' Subset traces or fractions in traces object
+#' @description  Subset a taces object by a specified column in trace_annotation and/or fraction ids.
 #' @param traces Object of class traces.
 #' @param trace_subset_ids Character vector specifying the trace identifiers
 #'        for subsetting traces, e.g. peptide or protein ids.
@@ -13,7 +13,7 @@
 #'        fraction ids starting from 1, co-elution feature finding might thus
 #'        be compromised. Please don't use this option for general
 #'        pre-processing purposes.
-#' @return traces Object of class traces.
+#' @return Object of class traces.
 #' @examples
 #' # Load some example data:
 #' inputPeptideTraces <- examplePeptideTraces
@@ -101,8 +101,8 @@ toLongFormat <- function(traces.dt) {
 #' Annotate traces with molecular weight calibration.
 #' @description Annotate fractions in traces object with calibrated molecular weight.
 #' This only applies to specific fractionation strategies e.g. SEC)
-#' @param traces Object of class traces.
-#' @return traces Object of class traces with moleclar weight annotation of fractions.
+#' @param Object of class traces.
+#' @return Object of class traces with moleclar weight annotation of fractions.
 #' @examples
 #' # Load relevant data:
 #' inputTraces <- examplePeptideTraces
@@ -119,12 +119,14 @@ annotateMolecularWeight <- function(traces, calibration){
 }
 
 #' Plot traces
-#' @description Plot a traces object as chromatograms.
-#' @param traces Object of class traces.
+#' @description Plot all chromatograms in a traces object. Most generic plotting function.
+#' @param Object of class traces.
 #' @param log Logical, whether the intensities should be plotted in log scale. Default is \code{FALSE}.
-#' @param legend Logical, whether a legend of the traces should be plotted. Default is \code{TRUE}.
-#' @param PDF Logical, whether to plot to PDF. Default is \code{FALSE}.
-#' @param name Character string with name of the plot, only used if \code{PDF=TRUE}. Default is "Traces".
+#' @param legend Logical, whether a legend of the traces should be plotted. Should be set to \code{FALSE}
+#' if many chromatograms are plotted. Default is \code{TRUE}.
+#' @param PDF Logical, whether to plot to PDF. PDF file is saved in working directory. Default is \code{FALSE}.
+#' @param name Character string with name of the plot, only used if \code{PDF=TRUE}.
+#' PDF file is saved under name.pdf. Default is "Traces".
 #' @examples
 #' # Protein traces
 #' proteinTraces=exampleProteinTraces
