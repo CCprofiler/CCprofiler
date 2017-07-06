@@ -4,7 +4,7 @@
 \alias{plot.traces}
 \title{Plot traces}
 \usage{
-\method{plot}{traces}(traces, ledgend = TRUE, PDF = FALSE,
+\method{plot}{traces}(traces, log = FALSE, ledgend = TRUE, PDF = FALSE,
   name = "Traces")
 }
 \arguments{

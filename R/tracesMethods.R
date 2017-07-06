@@ -4,8 +4,10 @@
 #' Subset traces by trace_ids or fraction_ids
 #' @description  Subset a taces object by trace ids and/or fraction ids.
 #' @param traces Object of class traces.
-#' @param trace_ids Character vector specifying the trace identifiers
+#' @param trace_subset_ids Character vector specifying the trace identifiers
 #'        for subsetting traces, e.g. peptide or protein ids.
+#' @param trace_subset_type Character string  specifying the column name
+#'        for applying the trace_subset_ids filter, defaults to "id".
 #' @param fraction_ids Numeric vector specifying the fraction identifiers
 #'        for subsetting traces. The resulting traces object will not have
 #'        fraction ids starting from 1, co-elution feature finding might thus
@@ -14,23 +16,40 @@
 #' @return traces Object of class traces.
 #' @examples
 #' # Load some example data:
-#' inputTraces <- examplePeptideTraces
+#' inputPeptideTraces <- examplePeptideTraces
+#' inputProteinTraces <- exampleProteinTraces
 #' subsetPeptides <- c("AIIDEFEQK","AIQLSGAEQLEALK","AKEALIAASETLK")
+#' subsetProtein <- "Q15021"
 #' subsetFractions <- c(5:20)
-#' # Run subsetting:
-#' subsettedTraces <- subset(inputTraces,trace_ids=subsetPeptides,fraction_ids=subsetFractions)
-#' # Inspect subsetting result:
-#' subsettedTraces
-#' summary(subsettedTraces)
+#' # Run subsetting and inspect resulting traces object:
+#' peptideSubsettedPeptideTraces <- subset(inputPeptideTraces,trace_subset_ids=subsetPeptides,fraction_ids=subsetFractions)
+#' summary(peptideSubsettedPeptideTraces)
+#'
+#' proteinSubsettedPeptideTraces <- subset(inputPeptideTraces,trace_subset_ids=subsetProtein,trace_subset_type="protein_id")
+#' summary(proteinSubsettedPeptideTraces)
+#'
+#' proteinSubsettedProteinTraces <- subset(inputProteinTraces,trace_subset_ids=subsetProtein)
+#' summary(proteinSubsettedProteinTraces)
 #' @export
-subset.traces <- function(traces,trace_ids=NULL,fraction_ids=NULL){
-    if (!is.null(trace_ids)) {
-      traces$traces <- subset(traces$traces,id %in% trace_ids)
-      traces$trace_annotation <- subset(traces$trace_annotation, id %in% trace_ids)
+subset.traces <- function(traces,trace_subset_ids=NULL,trace_subset_type="id",fraction_ids=NULL){
+    if (!is.null(trace_subset_ids)) {
+      if (trace_subset_type %in% names(traces$trace_annotation)) {
+        traces$trace_annotation <- subset(traces$trace_annotation, get(trace_subset_type) %in% trace_subset_ids)
+        trace_ids <- traces$trace_annotation$id
+        traces$traces <- subset(traces$traces,id %in% trace_ids)
+        if (nrow(traces$traces) == 0) {
+          stop(paste0("trace_subset_ids (",trace_subset_ids,") do not match trace_subset_type (",trace_subset_type,")."))
+        }
+      } else {
+        stop(paste0(trace_subset_type, "is not a valid trace_subset_type."))
+      }
     }
     if (!is.null(fraction_ids)){
       traces$traces <- subset(traces$traces,select=c(names(traces$traces)[fraction_ids],"id"))
       traces$fraction_annotation <- subset(traces$fraction_annotation ,id %in% fraction_ids)
+      if (nrow(traces$traces) == 0) {
+        stop(paste0("fraction_ids (",fraction_ids,") do not match the available fractions in the traces object."))
+      }
     }
     traces
 }
@@ -77,30 +96,113 @@ toLongFormat <- function(traces.dt) {
   traces.dt.long
 }
 
+#' Annotate traces with molecular weight calibration.
+#' @description Annotate fractions in traces object with calibrated molecular weight.
+#' This only applies to specific fractionation strategies e.g. SEC)
+#' @param traces Object of class traces.
+#' @return traces Object of class traces with moleclar weight annotation of fractions.
+#' @examples
+#' # Load relevant data:
+#' inputTraces <- examplePeptideTraces
+#' calibrationTable <- exampleCalibrationTable
+#' # Perform molecular weight calibration:
+#' calibration = calibrateSECMW(calibrationTable)
+#' # Perform molecular weight annotation:
+#' mwTraces <- annotateMolecularWeight(inputTraces, calibration)
+#' @export
+annotateMolecularWeight <- function(traces, calibration){
+  traces$fraction_annotation[,molecular_weight := round(calibration$SECfractionToMW(traces$fraction_annotation$id),digits=3)]
+  traces
+}
+
 #' Plot traces
 #' @description Plot a traces object as chromatograms.
 #' @param traces Object of class traces.
+#' @param log Logical, whether the intensities should be plotted in log scale. Default is \code{FALSE}.
 #' @param legend Logical, whether a legend of the traces should be plotted. Default is \code{TRUE}.
 #' @param PDF Logical, whether to plot to PDF. Default is \code{FALSE}.
 #' @param name Character string with name of the plot, only used if \code{PDF=TRUE}. Default is "Traces".
 #' @examples
-#' plot(exampleProteinTraces)
+#' # Protein traces
+#' proteinTraces=exampleProteinTraces
+#' plot(proteinTraces)
+#' # Annotate traces with molecular weight to include molecular weight information in plot.
+#' calibrationTable <- exampleCalibrationTable
+#' # Perform molecular weight calibration:
+#' calibration = calibrateSECMW(calibrationTable)
+#' # Perform molecular weight annotation:
+#' mwProteinTraces <- annotateMolecularWeight(proteinTraces, calibration)
+#' plot(mwProteinTraces)
 #' @export
-plot.traces <- function(traces, ledgend = TRUE, PDF=FALSE, name="Traces") {
+plot.traces <- function(traces, log=FALSE, ledgend = TRUE, PDF=FALSE, name="Traces") {
   traces.long <- toLongFormat(traces$traces)
-  pl <- ggplot(traces.long)
-  pl <- pl + ggtitle(paste(traces$trace_type, 'traces'))
-  pl <- pl + xlab('fraction') + ylab('intensity')
-  pl <- pl + geom_line(aes(x=fraction, y=intensity, color=id))
+  traces.long <- merge(traces.long,traces$fraction_annotation,by.x="fraction",by.y="id")
+  p <- ggplot(traces.long) +
+    geom_line(aes_string(x='fraction', y='intensity', color='id')) +
+    xlab('fraction') +
+    ylab('intensity') +
+    theme_bw() +
+    theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
+    theme(plot.margin = unit(c(1,.5,.5,.5),"cm")) #+
+    #theme(plot.title = element_text(vjust=19,size=10))
+  if (log) {
+    p <- p + scale_y_log10('log(intensity)')
+  }
   if (!ledgend) {
-    pl <- pl + theme(legend.position="none")
+    p <- p + theme(legend.position="none")
   }
-  if(PDF){
-    pdf(paste0(name,".pdf"))
-  }
-  plot(pl)
-  if(PDF){
-    dev.off()
+
+  if ("molecular_weight" %in% names(traces$fraction_annotation)) {
+    p2 <- p
+    p <- p + scale_x_continuous(name="fraction",
+                                breaks=seq(min(traces$fraction_annotation$id),
+                                      max(traces$fraction_annotation$id),10),
+                                labels=seq(min(traces$fraction_annotation$id),
+                                      max(traces$fraction_annotation$id),10))
+    p2 <- p2 + scale_x_continuous(name="molecular weight (kDa)",
+                   breaks=seq(min(traces$fraction_annotation$id),max(traces$fraction_annotation$id),10),
+                   labels=round(traces$fraction_annotation$molecular_weight,digits=0)[seq(1,length(traces$fraction_annotation$id),10)]
+                   )
+    ## extract gtable
+    g1 <- ggplot_gtable(ggplot_build(p))
+    g2 <- ggplot_gtable(ggplot_build(p2))
+    ## overlap the panel of the 2nd plot on that of the 1st plot
+    pp <- c(subset(g1$layout, name=="panel", se=t:r))
+
+    g <- gtable_add_grob(g1, g2$grobs[[which(g2$layout$name=="panel")]], pp$t, pp$l, pp$b, pp$l)
+    ## steal axis from second plot and modify
+    ia <- which(g2$layout$name == "axis-b")
+    ga <- g2$grobs[[ia]]
+    ax <- ga$children[[2]]
+    ## switch position of ticks and labels
+    ax$heights <- rev(ax$heights)
+    ax$grobs <- rev(ax$grobs)
+    ## modify existing row to be tall enough for axis
+    g$heights[[2]] <- g$heights[g2$layout[ia,]$t]
+    ## add new axis
+    g <- gtable_add_grob(g, ax, 2, 4, 2, 4)
+    ## add new row for upper axis label
+    g <- gtable_add_rows(g, g2$heights[1], 1)
+    ## steal axis label from second plot
+    ia2 <- which(g2$layout$name == "xlab-b")
+    ga2 <- g2$grobs[[ia2]]
+    g <- gtable_add_grob(g,ga2, 3, 4, 2, 4)
+
+    if(PDF){
+      pdf(paste0(name,".pdf"))
+    }
+    grid.draw(g)
+    if(PDF){
+      dev.off()
+    }
+  }else{
+    if(PDF){
+      pdf(paste0(name,".pdf"))
+    }
+    plot(p)
+    if(PDF){
+      dev.off()
+    }
   }
 }
 
