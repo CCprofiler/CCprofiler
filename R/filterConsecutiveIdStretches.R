@@ -15,12 +15,24 @@
 #' @export
 #' @example
 #' 
-## Load example data
-# tracesRaw <- examplePeptideTraces
-# 
-# tracesFilteredConSec <- filterConsecutiveIdStretches(tracesRaw,
-#                                                      min_stretch_length = 3,
-#                                                      remove_empty = T)
+#'  ## Load example data
+#'  tracesRaw <- examplePeptideTraces
+#'  ## Filter stretches with 3 consecutive ids
+#'  tracesFilteredConSec <- filterConsecutiveIdStretches(tracesRaw,
+#'                                                       min_stretch_length = 3,
+#'                                                       remove_empty = T)
+#'  ## Compare the results
+#'  exampleProtein <- tracesRaw$trace_annotation$protein_id[8]
+#'  plot(subset(tracesRaw,
+#'              trace_subset_type = "protein_id",
+#'              trace_subset_ids = exampleProtein),
+#'       legend= FALSE)
+#'  plot(subset(tracesFilteredConSec,
+#'              trace_subset_type = "protein_id",
+#'              trace_subset_ids = exampleProtein),
+#'       legend= FALSE)
+#'  
+
 filterConsecutiveIdStretches<-function(traces,
                                        min_stretch_length=3,
                                        remove_empty=TRUE) {
