@@ -27,5 +27,16 @@ An object of class Traces containing
     that can be processed with the herein contained functions.
 }
 \description{
-Import peptide profiles from an OpenSWATH experiment.
+This is a convenience function to directly import peptide profiles
+ from an OpenSWATH experiment (after TRIC alignment). The peptide intensities are calculated by summing all charge
+ states. Alternativley the MS1 signal can be used for quantification.
+}
+\examples{
+  input_data <- exampleOpenSWATHinput
+  annotation <- exampleFractionAnnotation
+  traces <- importFromOpenSWATH(data = input_data,
+                                annotation_table = annotation,
+                                rm_requantified = T)
+  summary(traces)
+  
 }
