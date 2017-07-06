@@ -1,8 +1,8 @@
 # Due to: http://stackoverflow.com/questions/24501245/data-table-throws-object-not-found-error
 .datatable.aware=TRUE
 
-#' Subset traces by trace_ids or fraction_ids
-#' @description  Subset a taces object by trace ids and/or fraction ids.
+#' Subset traces or fractions in traces object
+#' @description  Subset a taces object by a specified column in trace_annotation and/or fraction ids.
 #' @param traces Object of class traces.
 #' @param trace_subset_ids Character vector specifying the trace identifiers
 #'        for subsetting traces, e.g. peptide or protein ids.
@@ -13,7 +13,7 @@
 #'        fraction ids starting from 1, co-elution feature finding might thus
 #'        be compromised. Please don't use this option for general
 #'        pre-processing purposes.
-#' @return traces Object of class traces.
+#' @return Object of class traces.
 #' @examples
 #' # Load some example data:
 #' inputPeptideTraces <- examplePeptideTraces
