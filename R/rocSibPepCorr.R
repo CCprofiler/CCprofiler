@@ -32,11 +32,13 @@ rocSibPepCorr <- function(traces,
                           plot = TRUE,
                           PDF = FALSE,
                           CSV = FALSE){
-
-   ## check whether SibPepCorr has been calculated/is contained in trace_annotation
-   if (!("SibPepCorr" %in% names(traces$trace_annotation))){
-     stop("No SibPepCorr has been calculated on this dataset. Use calculateSibPepCorr function.")
-   }
+  ## Test traces
+  .tracesTest(traces, type = "peptide")
+  
+  ## check whether SibPepCorr has been calculated/is contained in trace_annotation
+  if (!("SibPepCorr" %in% names(traces$trace_annotation))){
+    stop("No SibPepCorr has been calculated on this dataset. Use calculateSibPepCorr function.")
+  }
   ##  Make sure that teh right FDR type is specified
   if(!(fdr_type %in% c("protein", "peptide"))) stop("Parameter fdr_type must be 'protein' or 'peptide'")
   

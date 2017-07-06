@@ -27,7 +27,10 @@ calculateSibPepCorr <- function(traces,
                                 PDF = FALSE,
                                 name = "SibPepCorr_densityplot")
   {
-
+  
+  ## Test traces
+  .tracesTest(traces, type = "peptide")
+  
   # Check input type
   if (traces$trace_type != "peptide"){
     stop("Sibling peptide correlation can only be calculated on traces of type peptide")
@@ -76,5 +79,8 @@ calculateSibPepCorr <- function(traces,
       dev.off()
     }
   }
+  ## Test traces
+  .tracesTest(traces, type = "peptide")
+  
   return(traces)
 }

@@ -75,6 +75,8 @@ filterBySibPepCorr <- function(traces,
                                PDF = FALSE,
                                CSV = FALSE) {
   
+  ## Test traces
+  .tracesTest(traces, type = "peptide")
   ## If sibling peptide correlation hass not been calculated yet, do it
   if (!("SibPepCorr" %in% names(traces$trace_annotation))){
     message("Sibling peptide correlation not yet calculated for this dataset\nCalculating SibPepCorr(spc)...")
