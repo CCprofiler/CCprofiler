@@ -14,11 +14,12 @@
 #' @export
 
 rocSibPepCorr <- function(traces,
-                           FFT = 1,
-                           stepsize =0.001,
-                           plot = TRUE,
-                           PDF = FALSE,
-                           CSV = FALSE) {
+                          fdr_type = "protein",
+                          FFT = 1,
+                          stepsize =0.001,
+                          plot = TRUE,
+                          PDF = FALSE,
+                          CSV = FALSE) {
 
    #check whether SibPepCorr has been calculated/is contained in trace_annotation
    if (!("SibPepCorr" %in% names(traces$trace_annotation))){
@@ -34,21 +35,35 @@ rocSibPepCorr <- function(traces,
   target_proteins <- numeric(length = ncorr.test)
   decoy_proteins <- numeric(length = ncorr.test)
   target_protein_ids <- character(length = ncorr.test)
-
+  target_peptides <- numeric(length = ncorr.test)
+  decoy_peptides <- numeric(length = ncorr.test)
+  target_peptide_ids <- character(length = ncorr.test)
+  
   for (i in 1:ncorr.test) {
-
-    targetprots <- unique(trace_annotation[SibPepCorr >= corr.test[i] & DECOY == 0]$protein_id)
-    # target_protein_ids[i] <- paste(targetprots, collapse = ",")
+    remaining_traces <- trace_annotation[SibPepCorr >= corr.test[i]]
+    ## Count proteins
+    targetprots <- unique(remaining_traces[DECOY == 0]$protein_id)
     target_proteins[i] <- length(targetprots)
-    decoyprots <- unique(trace_annotation[SibPepCorr >= corr.test[i] & DECOY == 1]$protein_id)
+    decoyprots <- unique(remaining_traces[DECOY == 1]$protein_id)
     decoy_proteins[i] <- length(decoyprots)
-
+    
+    ## Count peptides
+    target_peptides[i] <- nrow(remaining_traces[DECOY == 0])
+    decoy_peptides[i] <- nrow(remaining_traces[DECOY == 1])
+    
   }
-
-  fdr_protein <- FFT*decoy_proteins/(target_proteins+decoy_proteins)
+  ## Estimate the FDR
+  fdr_protein <- FFT*decoy_proteins/(target_proteins)
+  fdr_peptides <- FFT*decoy_peptides/(target_peptides)
   true_target_proteins <- as.integer(target_proteins * (1-fdr_protein))
-  resulttable <- as.data.table(cbind(corr.test, target_proteins, true_target_proteins, decoy_proteins,fdr_protein))
-  colnames(resulttable) <- c('SibPepCorr_cutoff' , 'n_target_proteins' , 'n_true_target_proteins','n_decoys' , 'FDR')
+  true_target_peptides <- as.integer(target_peptides * (1-fdr_peptides))
+  resulttable <- as.data.table(cbind(corr.test,
+                                     target_proteins, true_target_proteins, decoy_proteins,fdr_protein,
+                                     target_peptides, true_target_peptides, decoy_peptides,fdr_peptides))
+  colnames(resulttable) <- c('SibPepCorr_cutoff' ,
+                             'n_target_proteins' , 'n_true_target_proteins','n_decoy_proteins' , 'proteinFDR',
+                             'n_target_peptides' , 'n_true_target_peptides','n_decoy_peptides' , 'peptideFDR')
+  ## Only report sensible values
   resulttable <- resulttable[true_target_proteins >= 0.2*max(true_target_proteins)]
 
   # OUTPUT
