@@ -2,7 +2,7 @@
 % Please edit documentation in R/tracesMethods.R
 \name{toLongFormat}
 \alias{toLongFormat}
-\title{Convert a data.table containing traces from wide format to long format.}
+\title{Convert traces from wide format to long format}
 \usage{
 toLongFormat(traces.dt)
 }
@@ -19,5 +19,10 @@ A data.table with columns
          }
 }
 \description{
-Convert a data.table containing traces from wide format to long format.
+Convert the data.table traces from a trace object from wide format to long format.
+}
+\examples{
+tracesWide <- examplePeptideTraces$traces
+tracesLong <- toLongFormat(tracesWide)
+tracesLong
 }

@@ -2,22 +2,36 @@
 % Please edit documentation in R/tracesMethods.R
 \name{subset.traces}
 \alias{subset.traces}
-\title{Subset a traces.obj by trace_ids or fraction_ids.}
+\title{Subset traces by trace_ids or fraction_ids}
 \usage{
-subset.traces(traces.obj, trace_ids = NULL, fraction_ids = NULL)
+subset.traces(traces, trace_ids = NULL, fraction_ids = NULL)
 }
 \arguments{
-\item{traces.obj}{An object of type \code{traces.obj}.}
+\item{traces}{Object of class traces.}
 
-\item{trace_ids}{A character vector specifying the trace identifiers
-for subsetting \code{traces.obj}.}
+\item{trace_ids}{Character vector specifying the trace identifiers
+for subsetting traces, e.g. peptide or protein ids.}
 
-\item{fraction_ids}{A numeric vector specifying the fraction identifiers
-for subsetting \code{traces.obj}.}
+\item{fraction_ids}{Numeric vector specifying the fraction identifiers
+for subsetting traces. The resulting traces object will not have
+fraction ids starting from 1, co-elution feature finding might thus
+be compromised. Please don't use this option for general
+pre-processing purposes.}
 }
 \value{
-traces.obj An object of type \code{traces.obj}.
+traces Object of class traces.
 }
 \description{
-Subset a traces.obj by trace_ids or fraction_ids.
+Subset a taces object by trace ids and/or fraction ids.
+}
+\examples{
+# Load some example data:
+inputTraces <- examplePeptideTraces
+subsetPeptides <- c("AIIDEFEQK","AIQLSGAEQLEALK","AKEALIAASETLK")
+subsetFractions <- c(5:20)
+# Run subsetting:
+subsettedTraces <- subset(inputTraces,trace_ids=subsetPeptides,fraction_ids=subsetFractions)
+# Inspect subsetting result:
+subsettedTraces
+summary(subsettedTraces)
 }
