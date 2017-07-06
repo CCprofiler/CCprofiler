@@ -129,11 +129,11 @@ importFromOpenSWATH <- function(data,
 
   ## Assemble and output result "traces" object
   traces_wide <-
-      data_table(dcast(data_s, ProteinName + FullPeptideName ~ fraction_number,
+      data.table(dcast(data_s, ProteinName + FullPeptideName ~ fraction_number,
                        value.var="Intensity",
                        fun.aggregate=sum))
 
-  traces_annotation <- data_table(traces_wide[,c("FullPeptideName", "ProteinName"), with = FALSE])
+  traces_annotation <- data.table(traces_wide[,c("FullPeptideName", "ProteinName"), with = FALSE])
   setcolorder(traces_annotation, c("FullPeptideName", "ProteinName"))
   setnames(traces_annotation,c("FullPeptideName", "ProteinName"),c("id","protein_id"))
 
@@ -143,7 +143,7 @@ importFromOpenSWATH <- function(data,
 
   nfractions <- ncol(traces)-1
   fractions <- as.numeric(c(1:nfractions))
-  fraction_annotation <- data_table(id=fractions)
+  fraction_annotation <- data.table(id=fractions)
 
   traces_type = "peptide"
 
