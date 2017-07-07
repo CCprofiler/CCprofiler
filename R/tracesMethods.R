@@ -108,13 +108,13 @@ toLongFormat <- function(traces.dt) {
 #' inputTraces <- examplePeptideTraces
 #' calibrationTable <- exampleCalibrationTable
 #' # Perform molecular weight calibration:
-#' calibration = calibrateSECMW(calibrationTable)
+#' calibration = calibrateMW(calibrationTable)
 #' # Perform molecular weight annotation:
 #' mwTraces <- annotateMolecularWeight(inputTraces, calibration)
 #' @export
 annotateMolecularWeight <- function(traces, calibration){
   .tracesTest(traces)
-  traces$fraction_annotation[,molecular_weight := round(calibration$SECfractionToMW(traces$fraction_annotation$id),digits=3)]
+  traces$fraction_annotation[,molecular_weight := round(calibration$FractionToMW(traces$fraction_annotation$id),digits=3)]
   traces
 }
 
@@ -134,7 +134,7 @@ annotateMolecularWeight <- function(traces, calibration){
 #' # Annotate traces with molecular weight to include molecular weight information in plot.
 #' calibrationTable <- exampleCalibrationTable
 #' # Perform molecular weight calibration:
-#' calibration = calibrateSECMW(calibrationTable)
+#' calibration = calibrateMW(calibrationTable)
 #' # Perform molecular weight annotation:
 #' mwProteinTraces <- annotateMolecularWeight(proteinTraces, calibration)
 #' plot(mwProteinTraces)
