@@ -1,16 +1,25 @@
 # Due to: http://stackoverflow.com/questions/24501245/data-table-throws-object-not-found-error
 .datatable.aware=TRUE
 
-#' plot.SibPepCorrDensities
-#' @description Plot sibling peptide correlation in traces.object of type peptide.
+#' plot SibPepCorrDensities
+#' @description Plot sibling peptide correlation in traces object of type peptide.
 #' @import data.table
-#' @param traces An object of type \code{traces.obj}.
-#' @param PDF logical TRUE or FALSE
+#' @param traces An object of type traces.
+#' @param PDF logical, wether to print SibPepCorr density plot to a PDF file. Deafaults to \code{FALSE}.
 #' @return Plot.
 #' @export
+#' @example 
+#' ## Load example data
+#' peptideTraces <- examplePeptideTracesFiltered
+#' 
+#' ## Plot the SibPepCorr density plot
+#' plotSibPepCorrDensities(peptideTraces)
 
 plotSibPepCorrDensities <- function(traces, PDF = FALSE){
-
+  
+  ## Test traces
+  .tracesTest(traces, type = "peptide")
+  
   # check whether decoys are present in the input peptide traces object
   trace_annotation <- traces$trace_annotation
   decoys_present = TRUE
@@ -33,7 +42,7 @@ plotSibPepCorrDensities <- function(traces, PDF = FALSE){
   }
 
   plot(dens_targets$x, dens_targets$y*dens_targets$n, lty = 1, lwd = 3,
-       , type = "l", ylab = "scaled frequency", xlab = "SibPepCorr",
+       type = "l", ylab = "scaled frequency", xlab = "SibPepCorr",
        main = "Sibling Peptide Correlation Density")
 
   if (decoys_present){

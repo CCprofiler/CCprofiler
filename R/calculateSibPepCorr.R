@@ -4,21 +4,31 @@
 #' calculateSibPepCorr
 #' @description Calculate sibling peptide correlation in traces.object of type peptide.
 #' @import data.table
-#' @param traces An object of type \code{traces.obj}.
-#' @param plot logical TRUE or FALSE
-#' @param PDF logical TRUE or FALSE
-#' @return An object of type \code{traces.obj}.
+#' @param traces An object of type traces.
+#' @param plot logical,wether to print SibPepCorr density plot to R console. Deafult is \code{TRUE}.
+#' @param PDF logical, wether to print SibPepCorr density plot to a PDF file. Deafult is \code{FALSE}.
+#' @param name Character string with name of the plot, only used if \code{PDF=TRUE}.
+#' PDF file is saved under name.pdf. Default is "SibPepCorr_densityplot".
+#' @return An object of type traces with added SibPepCorr column.
 #' @export
-
+#' @example 
+#' ## Load example data
+#'  tracesRaw <- examplePeptideTracesUnannotated
+#'  
+#'  ## Calculate the SibPepCorr of every peptide
+#'  tracesRawSpc <- calculateSibPepCorr(traces = tracesRaw)
+#'                    
+#'  tracesRawSpc$trace_annotation                                  
+#'  
+#' 
 calculateSibPepCorr <- function(traces,
                                 plot = TRUE,
-                                PDF = FALSE)
+                                PDF = FALSE,
+                                name = "SibPepCorr_densityplot")
   {
-
-  # Check input type
-  if (traces$trace_type != "peptide"){
-    stop("Sibling peptide correlation can only be calculated on traces of type peptide")
-  }
+  
+  ## Test traces
+  .tracesTest(traces, type = "peptide")
 
   # prepare data
   quantdata <- getIntensityMatrix(traces)
@@ -55,6 +65,7 @@ calculateSibPepCorr <- function(traces,
   # output plot
   if (plot){
     if (PDF){
+      name <- gsub("$|\\.pdf$", ".pdf", name)
       pdf("SibPepCorr_densityplot.pdf")
     }
     plotSibPepCorrDensities(traces)
@@ -62,5 +73,8 @@ calculateSibPepCorr <- function(traces,
       dev.off()
     }
   }
+  ## Test traces
+  .tracesTest(traces, type = "peptide")
+  
   return(traces)
 }

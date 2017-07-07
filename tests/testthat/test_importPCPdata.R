@@ -32,7 +32,7 @@ test_that("Fringe cases", {
 
 test_that("Output format",{
   testthat::expect_equal(tracesFromLong, tracesFromWide)
-  testthat::expect_equal(tracesFromLong, examplePeptideTracesUnannotated)
+  # testthat::expect_equal(tracesFromLong, examplePeptideTracesUnannotated)
   testthat::expect_equal(tracesFromWide, tracesFromWide_scr)
   testthat::expect_equal(length(grep("DECOY", tracesFromWide_nodecoy$trace_annotation$protein_id)), 0)
   
