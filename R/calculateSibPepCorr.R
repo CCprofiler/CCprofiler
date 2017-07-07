@@ -5,8 +5,8 @@
 #' @description Calculate sibling peptide correlation in traces.object of type peptide.
 #' @import data.table
 #' @param traces An object of type traces.
-#' @param plot logical,wether to print SibPepCorr density plot to R console.
-#' @param PDF logical, wether to print SibPepCorr density plot to a PDF file.
+#' @param plot logical,wether to print SibPepCorr density plot to R console. Deafult is \code{TRUE}.
+#' @param PDF logical, wether to print SibPepCorr density plot to a PDF file. Deafult is \code{FALSE}.
 #' @param name Character string with name of the plot, only used if \code{PDF=TRUE}.
 #' PDF file is saved under name.pdf. Default is "SibPepCorr_densityplot".
 #' @return An object of type traces with added SibPepCorr column.
@@ -16,10 +16,9 @@
 #'  tracesRaw <- examplePeptideTracesUnannotated
 #'  
 #'  ## Calculate the SibPepCorr of every peptide
-#'  tracesRawSpc <- calculateSibPepCorr(traces = tracesRaw,
-#'                                       plot = TRUE)
+#'  tracesRawSpc <- calculateSibPepCorr(traces = tracesRaw)
 #'                    
-#'  head(tracesRawSpc$trace_annotation)                                     
+#'  tracesRawSpc$trace_annotation                                  
 #'  
 #' 
 calculateSibPepCorr <- function(traces,
@@ -30,11 +29,6 @@ calculateSibPepCorr <- function(traces,
   
   ## Test traces
   .tracesTest(traces, type = "peptide")
-  
-  # Check input type
-  if (traces$trace_type != "peptide"){
-    stop("Sibling peptide correlation can only be calculated on traces of type peptide")
-  }
 
   # prepare data
   quantdata <- getIntensityMatrix(traces)
