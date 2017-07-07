@@ -1,23 +1,44 @@
 # Due to: http://stackoverflow.com/questions/24501245/data-table-throws-object-not-found-error
 .datatable.aware=TRUE
 
-#' proteinQuantification
+#' Protein Quantification
 #' @description Calculate protein quantities basen on the topN peptide intensities.
 #' @import data.table
-#' @param traces An object of type \code{traces.obj}, trace_type is peptide
-#' @param topN numeric specifying the number of peptides to use for protein quantification
-#' @param keep_less logical specifying wheather peptides with less than topN peptides should be kept in the data, default is FALSE
-#' @param rm_decoys logical specifying wheather decoys should be kept. The decoys have only limited use on the protein level, default is TRUE
-#' @return An object of type \code{traces.obj}, trace_type is protein
+#' @param traces An object of type traces, trace_type must be peptide.
+#' @param topN Numeric, specifying the number of peptides to sum for protein quantification.
+#' @param keep_less Logical, specifying whether proteins with less than topN peptides
+#'  should be kept in the data (This may result in some protein intensities being calculated
+#'  as the sum of fewer peptide intensities than others. Only use withh caution.), default is FALSE.
+#' @param rm_decoys Logical, specifying whether decoys should be kept.
+#'  The decoys have only limited use on the protein level, default is TRUE.
+#' @return An object of type traces, trace_type is protein.
 #' @export
-
-proteinQuantification <- function(traces, topN = 2, keep_less = FALSE, rm_decoys = TRUE){
-  # Check if it's a peptide level table
-  if(traces$trace_type != "peptide"){
-    stop("The input object is not a peptide level traces object but", traces$trace_type)
-  }
-
-  #remove decoys
+#' @example
+#' ## Load example data
+#' pepTraces <- examplePeptideTracesFiltered
+#' 
+#' ## Sum the intensities of the top 2 peptides to get protein intensities
+#' protTraces <- proteinQuantification(pepTraces,
+#'                                      topN = 2)
+#' ## Check the result
+#' summary(pepTraces)
+#' summary(protTraces)
+#' 
+#' # ProteinTraces annotation
+#' head(protTraces$trace_annotation)
+#' # The protein_id column from the peptide traces object becomes the new id column of the protein traces object
+#' # The last 2 columns indicate how many peptides could be observed and which were summed for quantification
+#' 
+#' 
+proteinQuantification <- function(traces,
+                                  topN = 2,
+                                  keep_less = FALSE,
+                                  rm_decoys = TRUE){
+  
+  ## Check if it's a peptide level table
+  .tracesTest(traces, "peptide")
+  
+  ## remove decoys
   if (rm_decoys) {
     n_decoys <- length(grep("^DECOY", traces$trace_annotation$protein_id))
     if ( n_decoys > 0){
@@ -29,65 +50,67 @@ proteinQuantification <- function(traces, topN = 2, keep_less = FALSE, rm_decoys
       message("no decoys contained/removed")
     }
   }
-
-  # Extract wide table for calculations
+  
+  ## Extract wide table for calculations
   peptideTracesTable <- data.table(protein_id = traces$trace_annotation$protein_id,
                                    peptide_id = traces$trace_annotation$id,
                                    subset(traces$traces, select =-id))
-
+  
   # Calculations in long format - sum the topN peptides per protein
-  peptideTraces.long <- melt(peptideTracesTable,
-                             id.vars = c("protein_id", "peptide_id"),
-                             variable.name = "fraction_number",
-                             value.name = "intensity")
-  peptideTraces.long[, intensity:=as.numeric(intensity)]
-  peptideTraces.long[, peptide_intensity:=sum(intensity), peptide_id]
-  peptideTraces.long[, n_peptides:=length(unique(peptide_id)), protein_id]
-  # the ties.method makes sure how to deal with peptides of identical intensity: "first" keeps the order of occurence
-  peptideTraces.long[, peptide_rank:=rank(-peptide_intensity[1:n_peptides[1]],ties.method = "first"), protein_id]
-  peptideTraces.long <- peptideTraces.long[peptide_rank <= topN]
-  # collect information which peptides were used for quantification
-  peptideTraces.long[, quant_peptides_used:=paste(unique(peptide_id), collapse = ","), protein_id]
-
-  # if not wanted, kick out those with less than N peptides
+  peptideTracesLong <- melt(peptideTracesTable,
+                            id.vars = c("protein_id", "peptide_id"),
+                            variable.name = "fraction_number",
+                            value.name = "intensity")
+  peptideTracesLong[, intensity:=as.numeric(intensity)]
+  peptideTracesLong[, peptide_intensity:=sum(intensity), peptide_id]
+  peptideTracesLong[, n_peptides:=length(unique(peptide_id)), protein_id]
+  ## the ties.method makes sure how to deal with peptides of identical intensity: "first" keeps the order of occurence
+  peptideTracesLong[, peptide_rank:=rank(-peptide_intensity[1:n_peptides[1]],ties.method = "first"), protein_id]
+  peptideTracesLong <- peptideTracesLong[peptide_rank <= topN]
+  ## collect information which peptides were used for quantification
+  peptideTracesLong[, quant_peptides_used:=paste(unique(peptide_id), collapse = ","), protein_id]
+  
+  ## if not wanted, kick out those with less than N peptides
   if(!keep_less){
-    peptideTraces.long <- peptideTraces.long[n_peptides >= topN]
+    peptideTracesLong <- peptideTracesLong[n_peptides >= topN]
   }
-
-  # Sum peptides to protein level (wide) traces table
-  peptideTraces.topNsum.wide <- as.data.table(cast(peptideTraces.long,
-                                                   protein_id ~ fraction_number,
-                                                   value = "intensity",
-                                                   fun.aggregate = sum))
-
-  # move id column to end to ensure correct quant value index
-  peptideTraces.topNsum.wide[, id:=protein_id]
-  peptideTraces.topNsum.wide <- subset(peptideTraces.topNsum.wide, select=-protein_id)
-  setorder(peptideTraces.topNsum.wide, -id)
-
+  
+  ## Sum peptides to protein level (wide) traces table
+  peptideTracesTopNsumWide <- as.data.table(cast(peptideTracesLong,
+                                                 protein_id ~ fraction_number,
+                                                 value = "intensity",
+                                                 fun.aggregate = sum))
+  
+  ## move id column to end to ensure correct quant value index
+  peptideTracesTopNsumWide[, id:=protein_id]
+  peptideTracesTopNsumWide <- subset(peptideTracesTopNsumWide, select=-protein_id)
+  setorder(peptideTracesTopNsumWide, -id)
+  
   ## assemble updated, protein-level trace_annotation table
-  old_annotation_peptidelevel = subset(traces$trace_annotation, select =-id)
-  # removal of peptide level SibPepCorr necessary after merge.data.table update 2016-11
-  if ("SibPepCorr" %in% names(old_annotation_peptidelevel)){
-    old_annotation_peptidelevel[, SibPepCorr_protein_mean:=mean(SibPepCorr), protein_id]
-	old_annotation_peptidelevel = unique(subset(old_annotation_peptidelevel, select =-SibPepCorr))
-	}
-  new_annotation = unique(peptideTraces.long[,.(protein_id, n_peptides, quant_peptides_used)])
-  peptideTraces.topNsum.wide.annotation <- merge(old_annotation_peptidelevel,
-                                                 new_annotation,
-                                                 by = "protein_id", all.x = FALSE, all.y = TRUE)
-
-  peptideTraces.topNsum.wide.annotation <- unique(peptideTraces.topNsum.wide.annotation)
-  peptideTraces.topNsum.wide.annotation[, id:=protein_id]
-  setorder(peptideTraces.topNsum.wide.annotation, -id)
-
-  if (!all(peptideTraces.topNsum.wide.annotation$id == peptideTraces.topNsum.wide$id)){
-    stop("traces$id != trace_annotation$id")
+  oldAnnotationPeptidelevel = subset(traces$trace_annotation, select =-id)
+  
+  
+  if ("SibPepCorr" %in% names(oldAnnotationPeptidelevel)){
+    oldAnnotationPeptidelevel[, SibPepCorr_protein_mean:=mean(SibPepCorr), protein_id]
+    ## removal of peptide level SibPepCorr necessary after merge.data.table update 2016-11
+    oldAnnotationPeptidelevel = unique(subset(oldAnnotationPeptidelevel, select =-SibPepCorr))
   }
-
-  # assemble result protein level traces object
-  traces$traces <- peptideTraces.topNsum.wide
-  traces$trace_annotation <- peptideTraces.topNsum.wide.annotation
+  new_annotation = unique(peptideTracesLong[,.(protein_id, n_peptides, quant_peptides_used)])
+  peptideTracesTopNsumWideAnnotation <- merge(oldAnnotationPeptidelevel,
+                                              new_annotation,
+                                              by = "protein_id", all.x = FALSE, all.y = TRUE)
+  
+  peptideTracesTopNsumWideAnnotation <- unique(peptideTracesTopNsumWideAnnotation)
+  peptideTracesTopNsumWideAnnotation[, id:=protein_id]
+  ## Order traces alphabetically according to their id and 
+  setorder(peptideTracesTopNsumWideAnnotation, -id)
+  setcolorder(peptideTracesTopNsumWideAnnotation, c("id", names(peptideTracesTopNsumWideAnnotation[,!"id", with = F])))
+  ## assemble result protein level traces object
+  traces$traces <- peptideTracesTopNsumWide
+  traces$trace_annotation <- peptideTracesTopNsumWideAnnotation
   traces$trace_type <- "protein"
+  
+  ## Test and return
+  .tracesTest(traces, type = "protein")
   return(traces)
 }
