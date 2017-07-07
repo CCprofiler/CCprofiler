@@ -7,9 +7,9 @@
 #' @import data.table
 #' @param traces An object of class traces.
 #' @param min_stretch_length Numeric integer, the minimal length a stretch of continuous
-#'     identifications has to have in order not to be removed.
+#'     identifications has to have in order not to be removed. Defaults to 3.
 #' @param remove_empty Logical, whether the entries with rowSum == 0 after
-#'     filtering are removed, defaults to TRUE.
+#'     filtering should be removed, defaults to \code{TRUE}.
 #' @return An object of class traces containing the filtered
 #'     chromatograms.
 #' @export
@@ -20,7 +20,7 @@
 #'  ## Filter stretches with 3 consecutive ids
 #'  tracesFilteredConSec <- filterConsecutiveIdStretches(tracesRaw,
 #'                                                       min_stretch_length = 3,
-#'                                                       remove_empty = T)
+#'                                                       remove_empty = TRUE)
 #'  ## Compare the results
 #'  exampleProtein <- tracesRaw$trace_annotation$protein_id[8]
 #'  plot(subset(tracesRaw,
@@ -60,7 +60,7 @@ filterConsecutiveIdStretches<-function(traces,
       if (intensity[x,i] == 0) {
         ## If the value is = 0, tmp is set to 1
         tmp <- 1
-      }else {# If value not = 0, then:
+      } else { # If value not = 0, then:
         ## Look at next value at row x, col i+1, is it 0? 
         if (intensity[x, i+1] == 0) { #If yes, then:
           ## Do nothing if the count variable is > min_stretch_length
@@ -71,7 +71,7 @@ filterConsecutiveIdStretches<-function(traces,
             }
             tmp <- 1
           }
-        }else {# If next value is not = 0, then count tmp+1
+        } else { # If next value is not = 0, then count tmp+1
           tmp <- tmp + 1
         }
       }
