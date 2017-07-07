@@ -39,7 +39,7 @@ subset.traces <- function(traces,trace_subset_ids=NULL,trace_subset_type="id",fr
       trace_ids <- traces$trace_annotation$id
       traces$traces <- subset(traces$traces,id %in% trace_ids)
       if (nrow(traces$traces) == 0) {
-        stop(paste0("trace_subset_ids (",trace_subset_ids,") do not match trace_subset_type (",trace_subset_type,")."))
+        message("Caution! Subsetting returns empty traces object.")
       }
     } else {
       stop(paste0(trace_subset_type, "is not a valid trace_subset_type."))
