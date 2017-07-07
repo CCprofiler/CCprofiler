@@ -5,12 +5,14 @@
 #' @description Calculate ROC characteristics based on sibling peptide correlation.
 #' @import data.table
 #' @param traces An object of type \code{traces.obj}.
-#' @param FFT numeric specifying the fraction of false targets (FFT). Default is 1.
-#' @param stepsize numeric specifying the number of steps for calculating ROC characteristics.
-#' @param plot logical TRUE or FALSE
-#' @param PDF logical TRUE or FALSE
-#' @param CSV logical TRUE or FALSE
-#' @return An data.table containing ROC characteristics.
+#' @param FFT Numeric specifying the fraction of false targets (FFT). Default is 1.
+#' @param stepsize Numeric specifying the number of steps for calculating ROC characteristics. Default is 0.001.
+#' @param plot Logical, whether to generate a plot. Default is \code{TRUE}.
+#' @param PDF Logical, whether to save plot as PDF. Default is \code{FALSE}.
+#' @param CSV Logical, whether to save ROC characteristics in a CSV file. Default is \code{FALSE}.
+#' @param name Character string with the name of the saved PDF or CSV file. 
+#' Only used if PDF or CSV is set to \code{TRUE}. Default is "SibPepCorr_ROC".
+#' @return A data.table containing ROC characteristics.
 #' @export
 #' @example 
 #' # Load example data
@@ -28,10 +30,11 @@
 rocSibPepCorr <- function(traces,
                           fdr_type = "protein",
                           FFT = 1,
-                          stepsize =0.001,
+                          stepsize = 0.001,
                           plot = TRUE,
                           PDF = FALSE,
-                          CSV = FALSE){
+                          CSV = FALSE,
+                          name = "SibPepCorr_ROC"){
   ## Test traces
   .tracesTest(traces, type = "peptide")
   
@@ -106,10 +109,10 @@ rocSibPepCorr <- function(traces,
 
   # OUTPUT
   if (CSV == TRUE) {
-    write.csv(resulttable,'SibPepCorr_ROC.csv', quote = FALSE, row.names = FALSE)
+    write.csv(resulttable,gsub("$|\\.csv$", ".csv", name), quote = FALSE, row.names = FALSE)
   }
   if (PDF == TRUE) {
-    pdf("SibPepCorr_ROC.pdf")
+    pdf(gsub("$|\\.pdf$", ".pdf", name))
   }
 
   if(plot){
