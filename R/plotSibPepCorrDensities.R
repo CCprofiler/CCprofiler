@@ -5,15 +5,15 @@
 #' @description Plot sibling peptide correlation in traces object of type peptide.
 #' @import data.table
 #' @param traces An object of type traces.
-#' @param PDF logical, wether to print SibPepCorr density plot to a PDF file.
+#' @param PDF logical, wether to print SibPepCorr density plot to a PDF file. Deafaults to \code{FALSE}.
 #' @return Plot.
 #' @export
 #' @example 
 #' ## Load example data
-#' traces_obj <- examplePeptideTracesFiltered
+#' peptideTraces <- examplePeptideTracesFiltered
 #' 
 #' ## Plot the SibPepCorr density plot
-#' plotSibPepCorrDensities(traces_obj)
+#' plotSibPepCorrDensities(peptideTraces)
 
 plotSibPepCorrDensities <- function(traces, PDF = FALSE){
   
