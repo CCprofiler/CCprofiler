@@ -172,6 +172,8 @@ importPCPdata <- function(input_data,
                  "trace_annotation" = traces_annotation,
                  "fraction_annotation" = fraction_annotation)
   class(result) <- "traces"
+  setorder(result$trace_annotation, id)
+  setorder(result$traces, id)
   .tracesTest(result)
   return(result)
 }
