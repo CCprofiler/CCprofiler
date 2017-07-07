@@ -1,6 +1,6 @@
 
 #' calibrate Molecular Weight
-#' @description Establish connectivity between SEC fraction number and apparent
+#' @description Establish connectivity between fraction number and apparent
 #' Molecular Weight(MW) (in kDa). Many fractionation based PCP expeiments will have a set
 #' of standard proteins with known MW spiked in the samples. These reference
 #' proteins can be used in this function to calibrate the corresponding MW of every fraction.
@@ -9,35 +9,36 @@
 #' @details The function uses a standard \code{lm()} of the form \code{log2(MW) ~ fraction}.
 #' Therefore, the fractionation technique is required to have a log-linear relationship between 
 #' fraction and molecular weight (True for e.g. standard SEC methods). 
-#' The estimated slope and intersect of the model are then used for the retrned calibration functions.
+#' The estimated slope and intersect of the model are then used for the returned calibration functions.
 #' @param calibration_table A table with protein standards, file or R data.table.
 #' Columns: 
-#' \item std_weights_kDa = Numeric, the MW of the standard proteins
-#' \item std_elu_fractions = Numeric, the fraction numbers where these standard proteins eluted
-#' @param plot logical, wether to plot calibration curve to console. Defaults to \code{TRUE}
-#' @param PDF logical, wether to produce a PDF file in the working directory.
-#' Defaults to \code{FALSE}
-#' @return List of two functions: MWtoSECfraction and SECfractionToMW.
+#' \item std_weights_kDa = Numeric, the MW of the standard proteins.
+#' \item std_elu_fractions = Numeric, the fraction numbers where these standard proteins eluted.
+#' For an example see \code{exampleCalibrationTable}.
+#' @param plot Logical, whether to plot calibration curve. Defaults to \code{TRUE}.
+#' @param PDF Logical, whether to produce a PDF file in the working directory.
+#' Defaults to \code{FALSE}.
+#' @return List of two functions: MWtoFraction and FractionToMW.
 #' @export
 #' @example 
 #' 
 #' ## Load example data
 #' standardProteinTable <- exampleCalibrationTable
 #' ## Regress the standard proteins against their elution fractions
-#' calibrationFunctions <- calibrateSECMW(standardProteinTable,
-#'                                        plot = T,
+#' calibrationFunctions <- calibrateMW(standardProteinTable,
+#'                                        plot = TRUE,
 #'                                        PDF = FALSE)
 #' # The provided plot can be used for quality assessment. The points represent the
 #' # standard proteins and should agree with the model (solid line))
 #' 
 #' ## The molecular weight (in kDa) of an arbitrary fraction can now be calculated.
-#' calibrationFunctions$SECfractionToMW(14)
+#' calibrationFunctions$FractionToMW(14)
 #' 
 #' ## Arbitrary MWs (in kDa) can also be converted to fraction numbers
-#' calibrationFunctions$MWtoSECfraction(3020) # i.e. 3020 kDa
+#' calibrationFunctions$MWtoFraction(3020) # i.e. 3020 kDa
 #' 
 
-calibrateSECMW <- function(calibration_table,
+calibrateMW <- function(calibration_table,
                            plot=TRUE,
                            PDF=FALSE) {
   # use or if path to file read annotation table and add id column
@@ -68,8 +69,8 @@ calibrateSECMW <- function(calibration_table,
     if(PDF){
       pdf("calibration.pdf")
     }
-    plot(calibrants$fraction, calibrants$logMW, xlab="SEC fraction",
-         ylab="log10(MW)", main="calibration")
+    plot(calibrants$fraction, calibrants$logMW, xlab="Fraction",
+         ylab="log10(MW (kDa))", main="calibration")
     legend(x = min(calibrants$fraction),
            y = min(calibrants$logMW),
            legend = paste("R^2 = ", round(summary(modelMW)$r.squared,2)),
@@ -84,11 +85,11 @@ calibrateSECMW <- function(calibration_table,
   slope <- as.numeric(modelMW$coefficients[2])
 
   # define resulting functions (how to export/update them for use by user?)
-  MWtoSECfraction <- function(MW){
+  MWtoFraction <- function(MW){
     round((log(MW)-intercept)/(slope), digits = 0)
   }
-  SECfractionToMW <- function(SECfraction){
-    exp(slope*SECfraction + intercept)
+  FractionToMW <- function(fraction){
+    exp(slope*fraction + intercept)
   }
-  return(list(MWtoSECfraction=MWtoSECfraction,SECfractionToMW=SECfractionToMW))
+  return(list(MWtoFraction=MWtoFraction,FractionToMW=FractionToMW))
 }
