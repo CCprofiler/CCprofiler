@@ -27,13 +27,13 @@ test_that("Fringe cases", {
   testthat::expect_error(importPCPdata(examplePCPdataLong, exampleFractionAnnotation[-1]),"Number of filenames in fraction_annotation does not match input_data.")
   testthat::expect_error(importPCPdata(rbind(examplePCPdataWide[1], examplePCPdataWide[1]), exampleFractionAnnotation))
   testthat::expect_error(importPCPdata(rbind(exampleDataProtWide[1], exampleDataProtWide[1]), exampleFractionAnnotation))
-  
+
 })
 
 test_that("Output format",{
   testthat::expect_equal(tracesFromLong, tracesFromWide)
-  # testthat::expect_equal(tracesFromLong, examplePeptideTracesUnannotated)
+  testthat::expect_equal(tracesFromLong, examplePeptideTracesUnannotated)
   testthat::expect_equal(tracesFromWide, tracesFromWide_scr)
   testthat::expect_equal(length(grep("DECOY", tracesFromWide_nodecoy$trace_annotation$protein_id)), 0)
-  
+
 })
