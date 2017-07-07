@@ -2,34 +2,83 @@
 % Please edit documentation in R/filterBySibPepCorr.R
 \name{filterBySibPepCorr}
 \alias{filterBySibPepCorr}
-\title{filterBySibPepCorr}
+\title{Filter by sibling peptide correlation}
 \usage{
-filterBySibPepCorr(traces, protein_fdr_cutoff = 0.01, FFT = 1,
-  absolute_spc_cutoff = NULL, rm_decoys = FALSE, plot = TRUE,
+filterBySibPepCorr(traces, fdr_cutoff = 0.01, fdr_type = "protein",
+  FFT = 1, absolute_spcCutoff = NULL, rm_decoys = FALSE, plot = TRUE,
   PDF = FALSE, CSV = FALSE)
 }
 \arguments{
-\item{traces}{An object of type \code{traces.obj}.}
+\item{traces}{An object of class traces (the trace_type must be "peptide").}
 
-\item{protein_fdr_cutoff}{numeric specifying the FDR cutoff to be applied to select a sibling correlation cutoff}
+\item{fdr_cutoff}{Numeric, specifying the FDR cutoff to be applied to select a
+sibling peptide correlation cutoff}
 
-\item{FFT}{numeric specifying the fraction of false targets (FFT). Default is 1.}
+\item{FFT}{Numeric, specifying the fraction of false targets (FFT). Default is 1.}
 
-\item{absolute_spc_cutoff}{numeric specifying an absolute sibling correlation cutoff to be applied instead of FDR based cutoff estimation.
-Only used if protein_fdr_cutoff is not provided. Default is NULL.}
+\item{absolute_spcCutoff}{Numeric, specifying an absolute sibling correlation
+cutoff to be applied. Only used if fdr_cutoff is not provided. Default is NULL.}
 
-\item{rm_decoys}{logical specifying if decoys should be removed. It is strongly recommended to keep the decoys. Default is FALSE.}
+\item{rm_decoys}{Logical, specifying if decoys should be removed.
+It is strongly recommended to keep the decoys, for visual assessment. Default is FALSE.}
 
-\item{plot}{logical TRUE or FALSE}
+\item{plot}{Logical, wether to print Score distribution and precision-recall plots
+to R console.}
 
-\item{PDF}{logical TRUE or FALSE}
+\item{PDF}{Logical, wether to print Score distribution and precision-recall plots
+to "SibPepCorrFilter_IDFDRplot.pdf" in working directory}
 
-\item{CSV}{logical TRUE or FALSE}
+\item{CSV}{Logical, write a table output of the FDR estimation results to the working directory}
 }
 \value{
-An object of type \code{traces.obj}.
+a traces object, only containing peptides passing the specified spc/fdr cutoff. If the
+input traces object does not contain calculated spc values for every peptide a SibPepCorr column
+is added.
 }
 \description{
-Filter protein profiling traces based on
-Sibling Peptide Correlation (SibPepCorr).
+Filter peptides in traces object based on
+Sibling Peptide Correlation (SibPepCorr). Since peptides belonging to the same protein
+should co-elute in a PCP experiment the quality of their signal can be estimated using
+the average correlation to its sibling peptides. Additionally comparing target and decoy peptides
+allows for robust FDR estimation.
+}
+\examples{
+# Load example data
+tracesRaw <- examplePeptideTraces
+
+## Filter the raw traces object to a protein FDR of 1\%
+  tracesFiltered <- filterBySibPepCorr(traces = tracesRaw,
+                                       fdr_cutoff = 0.01,
+                                       fdr_type = "protein",
+                                       FFT = 0.4,
+                                       absolute_spcCutoff = NULL,
+                                       rm_decoys = FALSE,
+                                       plot = TRUE,
+                                       CSV = FALSE)
+  ## Compare the filtered traces to the raw traces
+summary(tracesRaw)
+summary(tracesFiltered)
+##--------------------------------------------------------------------------------
+## Alternatively the Sibling peptide correlation can also be calculated seperately
+##--------------------------------------------------------------------------------
+# Load example data
+tracesRaw <- examplePeptideTraces
+
+## Calculate the SibPepCorr of every peptide
+tracesRawSpc <- calculateSibPepCorr(traces = tracesRaw,
+                                    plot = TRUE)
+
+## Filter the raw traces object to a protein FDR of 1\%
+tracesFiltered <- filterBySibPepCorr(traces = tracesRawSpc,
+                                     fdr_cutoff = 0.01,
+                                     fdr_type = "protein",
+                                     FFT = 0.4,
+                                     absolute_spcCutoff = NULL,
+                                     rm_decoys = FALSE,
+                                     plot = TRUE,
+                                     PDF = FALSE,
+                                     CSV = FALSE)
+summary(tracesRaw)
+summary(tracesFiltered)
+
 }

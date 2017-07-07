@@ -59,8 +59,9 @@ calibration = calibrateSECMW(calibrationTable,
 * write general import functionfor quant matrix (wide and long)
 * improve, extend summary function for traces objects: fraction info, pep/prot info
 ```{r, eval=TRUE, message=FALSE}
-pepTraces <- importFromOpenSWATH(data=pcpData,
-                                 annotation_table=fractionAnnotation)
+pepTraces <- importPCPdata(input_data=pcpData,
+                          fraction_annotation=fractionAnnotation,
+                          rm_decoys = FALSE)
 pepTraces <- annotateTraces(traces=pepTraces,
                             annotation_table=traceAnnotation,
                             traces_id_column = "protein_id",

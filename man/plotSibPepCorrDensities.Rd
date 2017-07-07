@@ -2,18 +2,25 @@
 % Please edit documentation in R/plotSibPepCorrDensities.R
 \name{plotSibPepCorrDensities}
 \alias{plotSibPepCorrDensities}
-\title{plot.SibPepCorrDensities}
+\title{plot SibPepCorrDensities}
 \usage{
 plotSibPepCorrDensities(traces, PDF = FALSE)
 }
 \arguments{
-\item{traces}{An object of type \code{traces.obj}.}
+\item{traces}{An object of type traces.}
 
-\item{PDF}{logical TRUE or FALSE}
+\item{PDF}{logical, wether to print SibPepCorr density plot to a PDF file. Deafaults to \code{FALSE}.}
 }
 \value{
 Plot.
 }
 \description{
-Plot sibling peptide correlation in traces.object of type peptide.
+Plot sibling peptide correlation in traces object of type peptide.
+}
+\examples{
+## Load example data
+peptideTraces <- examplePeptideTracesFiltered
+
+## Plot the SibPepCorr density plot
+plotSibPepCorrDensities(peptideTraces)
 }

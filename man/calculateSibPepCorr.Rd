@@ -4,18 +4,33 @@
 \alias{calculateSibPepCorr}
 \title{calculateSibPepCorr}
 \usage{
-calculateSibPepCorr(traces, plot = TRUE, PDF = FALSE)
+calculateSibPepCorr(traces, plot = TRUE, PDF = FALSE,
+  name = "SibPepCorr_densityplot")
 }
 \arguments{
-\item{traces}{An object of type \code{traces.obj}.}
+\item{traces}{An object of type traces.}
 
-\item{plot}{logical TRUE or FALSE}
+\item{plot}{logical,wether to print SibPepCorr density plot to R console. Deafult is \code{TRUE}.}
 
-\item{PDF}{logical TRUE or FALSE}
+\item{PDF}{logical, wether to print SibPepCorr density plot to a PDF file. Deafult is \code{FALSE}.}
+
+\item{name}{Character string with name of the plot, only used if \code{PDF=TRUE}.
+PDF file is saved under name.pdf. Default is "SibPepCorr_densityplot".}
 }
 \value{
-An object of type \code{traces.obj}.
+An object of type traces with added SibPepCorr column.
 }
 \description{
 Calculate sibling peptide correlation in traces.object of type peptide.
+}
+\examples{
+## Load example data
+ tracesRaw <- examplePeptideTracesUnannotated
+
+ ## Calculate the SibPepCorr of every peptide
+ tracesRawSpc <- calculateSibPepCorr(traces = tracesRaw)
+
+ tracesRawSpc$trace_annotation
+
+
 }

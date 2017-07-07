@@ -84,5 +84,6 @@ annotateTraces <- function(traces,
   # sort both trace_annotation and traces in case merge conducted an auto-sort
   setorder(traces$trace_annotation, id)
   setorder(traces$traces, id)
+  .tracesTest(traces)
   return(traces)
 }

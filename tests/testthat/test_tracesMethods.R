@@ -38,7 +38,7 @@ test_that("toLongFormat",{
   })
 
 test_that("annotateMolecularWeight",{
-  calibration <- calibrateSECMW(exampleCalibrationTable)
+  calibration <- calibrateMW(exampleCalibrationTable)
   mwTraces <- annotateMolecularWeight(examplePeptideTraces, calibration)
   testthat::expect_null(.tracesTest(mwTraces))
   testthat::expect_true("molecular_weight" %in% names(mwTraces$fraction_annotation))

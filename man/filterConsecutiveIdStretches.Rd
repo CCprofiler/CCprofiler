@@ -2,25 +2,45 @@
 % Please edit documentation in R/filterConsecutiveIdStretches.R
 \name{filterConsecutiveIdStretches}
 \alias{filterConsecutiveIdStretches}
-\title{filterConsecutiveIdStretches}
+\title{Filter Consecutive Id Stretches in Chromaograms}
 \usage{
 filterConsecutiveIdStretches(traces, min_stretch_length = 3,
   remove_empty = TRUE)
 }
 \arguments{
-\item{traces}{An object of type \code{traces.obj}.}
+\item{traces}{An object of class traces.}
 
-\item{min_stretch_length}{The minimal length a stretch of contiguous
-identifications has to have in order not to be removed.}
+\item{min_stretch_length}{Numeric integer, the minimal length a stretch of continuous
+identifications has to have in order not to be removed. Defaults to 3.}
 
-\item{remove_empty}{Logical whether the entries with rowSum == 0 after
-filtering are removed, defaults to TRUE.}
+\item{remove_empty}{Logical, whether the entries with rowSum == 0 after
+filtering should be removed, defaults to \code{TRUE}.}
 }
 \value{
 An object of class traces containing the filtered
     chromatograms.
 }
 \description{
-Filter protein profiling traces based on
+Filter PCP traces based on a
 minimal length of consecutive ID stretches.
+}
+\examples{
+
+ ## Load example data
+ tracesRaw <- examplePeptideTraces
+ ## Filter stretches with 3 consecutive ids
+ tracesFilteredConSec <- filterConsecutiveIdStretches(tracesRaw,
+                                                      min_stretch_length = 3,
+                                                      remove_empty = TRUE)
+ ## Compare the results
+ exampleProtein <- tracesRaw$trace_annotation$protein_id[8]
+ plot(subset(tracesRaw,
+             trace_subset_type = "protein_id",
+             trace_subset_ids = exampleProtein),
+      legend= FALSE)
+ plot(subset(tracesFilteredConSec,
+             trace_subset_type = "protein_id",
+             trace_subset_ids = exampleProtein),
+      legend= FALSE)
+
 }

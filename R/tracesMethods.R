@@ -39,7 +39,7 @@ subset.traces <- function(traces,trace_subset_ids=NULL,trace_subset_type="id",fr
       trace_ids <- traces$trace_annotation$id
       traces$traces <- subset(traces$traces,id %in% trace_ids)
       if (nrow(traces$traces) == 0) {
-        stop(paste0("trace_subset_ids (",trace_subset_ids,") do not match trace_subset_type (",trace_subset_type,")."))
+        message("Caution! Subsetting returns empty traces object.")
       }
     } else {
       stop(paste0(trace_subset_type, "is not a valid trace_subset_type."))
@@ -108,13 +108,13 @@ toLongFormat <- function(traces.dt) {
 #' inputTraces <- examplePeptideTraces
 #' calibrationTable <- exampleCalibrationTable
 #' # Perform molecular weight calibration:
-#' calibration = calibrateSECMW(calibrationTable)
+#' calibration = calibrateMW(calibrationTable)
 #' # Perform molecular weight annotation:
 #' mwTraces <- annotateMolecularWeight(inputTraces, calibration)
 #' @export
 annotateMolecularWeight <- function(traces, calibration){
   .tracesTest(traces)
-  traces$fraction_annotation[,molecular_weight := round(calibration$SECfractionToMW(traces$fraction_annotation$id),digits=3)]
+  traces$fraction_annotation[,molecular_weight := round(calibration$FractionToMW(traces$fraction_annotation$id),digits=3)]
   traces
 }
 
@@ -134,7 +134,7 @@ annotateMolecularWeight <- function(traces, calibration){
 #' # Annotate traces with molecular weight to include molecular weight information in plot.
 #' calibrationTable <- exampleCalibrationTable
 #' # Perform molecular weight calibration:
-#' calibration = calibrateSECMW(calibrationTable)
+#' calibration = calibrateMW(calibrationTable)
 #' # Perform molecular weight annotation:
 #' mwProteinTraces <- annotateMolecularWeight(proteinTraces, calibration)
 #' plot(mwProteinTraces)
