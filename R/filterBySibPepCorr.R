@@ -7,7 +7,6 @@
 #' should co-elute in a PCP experiment the quality of their signal can be estimated using
 #' the average correlation to its sibling peptides. Additionally comparing target and decoy peptides
 #' allows for robust FDR estimation.
-#' @details 
 #' @import data.table
 #' @param traces An object of class traces (the trace_type must be "peptide").
 #' @param fdr_cutoff Numeric, specifying the FDR cutoff to be applied to select a
@@ -22,14 +21,14 @@
 #' @param PDF Logical, wether to print Score distribution and precision-recall plots
 #' to "SibPepCorrFilter_IDFDRplot.pdf" in working directory
 #' @param CSV Logical, write a table output of the FDR estimation results to the working directory
-#' @return a traces object, only containing peptides passing the specified spc/fdr cutoff. If the 
-#' input traces object does not contain calculated spc values for every peptide a SibPepCorr column 
+#' @return a traces object, only containing peptides passing the specified spc/fdr cutoff. If the
+#' input traces object does not contain calculated spc values for every peptide a SibPepCorr column
 #' is added.
 #' @export
-#' @example 
+#' @examples
 #' # Load example data
 #' tracesRaw <- examplePeptideTraces
-#' 
+#'
 #' ## Filter the raw traces object to a protein FDR of 1%
 #'   tracesFiltered <- filterBySibPepCorr(traces = tracesRaw,
 #'                                        fdr_cutoff = 0.01,
@@ -47,11 +46,11 @@
 #' ##--------------------------------------------------------------------------------
 #' # Load example data
 #' tracesRaw <- examplePeptideTraces
-#' 
+#'
 #' ## Calculate the SibPepCorr of every peptide
 #' tracesRawSpc <- calculateSibPepCorr(traces = tracesRaw,
 #'                                     plot = TRUE)
-#'                                     
+#'
 #' ## Filter the raw traces object to a protein FDR of 1%
 #' tracesFiltered <- filterBySibPepCorr(traces = tracesRawSpc,
 #'                                      fdr_cutoff = 0.01,
@@ -64,7 +63,7 @@
 #'                                      CSV = FALSE)
 #' summary(tracesRaw)
 #' summary(tracesFiltered)
-#' 
+#'
 filterBySibPepCorr <- function(traces,
                                fdr_cutoff = 0.01,
                                fdr_type = "protein",
@@ -74,7 +73,7 @@ filterBySibPepCorr <- function(traces,
                                plot = TRUE,
                                PDF = FALSE,
                                CSV = FALSE) {
-  
+
   ## Test traces
   .tracesTest(traces, type = "peptide")
   ## If sibling peptide correlation hass not been calculated yet, do it
@@ -88,7 +87,7 @@ filterBySibPepCorr <- function(traces,
     message("Warning: It is strongly recommended to filter with protein FDR when using the complex
             centric workflow. Please proceed with caution.")
   }else if(fdr_type != "protein") stop("Parameter fdr_type must be 'protein' or 'peptide'")
-  
+
   # get spcCutoff from FDR estimation or direct
   decoysContained = length(grep("^DECOY_", traces$trace_annotation$protein_id)) > 0
   if (decoysContained){
@@ -113,12 +112,12 @@ filterBySibPepCorr <- function(traces,
     message("No Decoys found...Using absulte_spcCutoff: ", absolute_spcCutoff)
     spcCutoff <- absolute_spcCutoff
   }
-  
+
   ## subset traces object
   tracesFiltered <- traces
   tracesFiltered$trace_annotation <- traces$trace_annotation[SibPepCorr >= spcCutoff]
   tracesFiltered$traces <- traces$traces[traces$trace_annotation$SibPepCorr >= spcCutoff]
-  
+
   # compare target/decoy numbers before and after
   if (decoysContained){
     ## before
@@ -159,10 +158,10 @@ filterBySibPepCorr <- function(traces,
     decoyPeptidesAfter <- 0
     peptide_fdr_after <- NA
   }
-  
+
   ## OUTPUT
   ##-----------------------------------------------------------
-  
+
   ## Assemble small filter report table
   if(fdr_type == "peptide"){
     SibPepCorrFilterReport <- data.table(cutoff_placeholder = c("pre-filter", "post-filter", "fraction_removed:"),
@@ -174,20 +173,20 @@ filterBySibPepCorr <- function(traces,
                                          peptide_fdr = c(peptideFdrBefore, peptide_fdr_after, ""))
     setnames(SibPepCorrFilterReport, "cutoff_placeholder", paste0("spcCutoff: ", spcCutoff))
   }else if(fdr_type == "protein"){
-    
+
     SibPepCorrFilterReport <- data.table(cutoff_placeholder = c("pre-filter", "post-filter", "fraction_removed:"),
                                          n_targetProteins = c(targetProteinsBefore, targetProteinsAfter, (1- targetProteinsAfter/targetProteinsBefore)),
                                          n_decoyProteins = c(decoyProteinsBefore, decoyProteinsAfter, (1- decoyProteinsAfter/decoyProteinsBefore)),
                                          protein_fdr = c(proteinFdrBefore, protein_fdr_after, ""))
     setnames(SibPepCorrFilterReport, "cutoff_placeholder", paste0("spcCutoff: ", spcCutoff))
-    
+
   }
   ## CSV
   if (CSV){
     write.csv(roctable, file = "SibPepCorrFilter_IDFDRtable.csv", row.names = FALSE, quote = FALSE)
     write.csv(SibPepCorrFilterReport, file = "SibPepCorrFilterReport.csv", row.names = FALSE, quote = FALSE)
   }
-  
+
   # PDF/ROC-like plot
   if (decoysContained){
     if (PDF){
@@ -206,7 +205,7 @@ filterBySibPepCorr <- function(traces,
         true_targets <- roctable$n_true_targetPeptides
         targets_remaining <- targetPeptidesRemaining
       }
-      
+
       plot(xaxis, targets, type = "l", lty = 2,
            lwd = 2,
            main = paste0("ID-FDR Curve\n spcCutoff: ", round(spcCutoff, 4), "\ntarget proteins remaining: ",
@@ -222,7 +221,7 @@ filterBySibPepCorr <- function(traces,
       dev.off()
     }
   }
-  
+
   # remove decoys
   if (rm_decoys) {
     n_decoys <- length(grep("^DECOY", tracesFiltered$trace_annotation$protein_id))
@@ -235,9 +234,9 @@ filterBySibPepCorr <- function(traces,
       message("no decoys contained/removed")
     }
   }
-  
+
   #return the filtered traces data
   message("Proteins remaining in dataset: ", targetProteinsAfter)
   return(tracesFiltered)
-  
+
 }

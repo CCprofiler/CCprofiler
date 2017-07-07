@@ -8,18 +8,18 @@
 #' @param PDF logical, wether to print SibPepCorr density plot to a PDF file. Deafaults to \code{FALSE}.
 #' @return Plot.
 #' @export
-#' @example 
+#' @examples
 #' ## Load example data
 #' peptideTraces <- examplePeptideTracesFiltered
-#' 
+#'
 #' ## Plot the SibPepCorr density plot
 #' plotSibPepCorrDensities(peptideTraces)
 
 plotSibPepCorrDensities <- function(traces, PDF = FALSE){
-  
+
   ## Test traces
   .tracesTest(traces, type = "peptide")
-  
+
   # check whether decoys are present in the input peptide traces object
   trace_annotation <- traces$trace_annotation
   decoys_present = TRUE

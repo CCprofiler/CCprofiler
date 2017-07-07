@@ -21,7 +21,7 @@ This only applies to specific fractionation strategies e.g. SEC)
 inputTraces <- examplePeptideTraces
 calibrationTable <- exampleCalibrationTable
 # Perform molecular weight calibration:
-calibration = calibrateSECMW(calibrationTable)
+calibration = calibrateMW(calibrationTable)
 # Perform molecular weight annotation:
 mwTraces <- annotateMolecularWeight(inputTraces, calibration)
 }

@@ -3,9 +3,9 @@ context("Import from OpenSWATH")
 
 traces <- importFromOpenSWATH(data = exampleOpenSWATHinput,
                               annotation_table = exampleFractionAnnotation,
-                              rm_requantified = T)
+                              rm_requantified = TRUE,verbose=FALSE)
 tracesFromWide <- importPCPdata(input_data = examplePCPdataWide,
-                                annotation_table = exampleFractionAnnotation)
+                                fraction_annotation = exampleFractionAnnotation)
 
 test_that("Data import messages", {
   testthat::expect_error(importFromOpenSWATH(),"Need to specify data in form of OpenSWATH result file or R data.table.")

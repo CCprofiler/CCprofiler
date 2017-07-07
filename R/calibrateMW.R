@@ -7,11 +7,11 @@
 #' While this is not neccesary for downstream analysis, it is recommended if standard proteins
 #' are available, since it facilitates the process of drawing biological conclusions.
 #' @details The function uses a standard \code{lm()} of the form \code{log2(MW) ~ fraction}.
-#' Therefore, the fractionation technique is required to have a log-linear relationship between 
-#' fraction and molecular weight (True for e.g. standard SEC methods). 
+#' Therefore, the fractionation technique is required to have a log-linear relationship between
+#' fraction and molecular weight (True for e.g. standard SEC methods).
 #' The estimated slope and intersect of the model are then used for the returned calibration functions.
 #' @param calibration_table A table with protein standards, file or R data.table.
-#' Columns: 
+#' Columns:
 #' \item std_weights_kDa = Numeric, the MW of the standard proteins.
 #' \item std_elu_fractions = Numeric, the fraction numbers where these standard proteins eluted.
 #' For an example see \code{exampleCalibrationTable}.
@@ -20,8 +20,8 @@
 #' Defaults to \code{FALSE}.
 #' @return List of two functions: MWtoFraction and FractionToMW.
 #' @export
-#' @example 
-#' 
+#' @examples 
+#'
 #' ## Load example data
 #' standardProteinTable <- exampleCalibrationTable
 #' ## Regress the standard proteins against their elution fractions
@@ -30,13 +30,13 @@
 #'                                        PDF = FALSE)
 #' # The provided plot can be used for quality assessment. The points represent the
 #' # standard proteins and should agree with the model (solid line))
-#' 
+#'
 #' ## The molecular weight (in kDa) of an arbitrary fraction can now be calculated.
 #' calibrationFunctions$FractionToMW(14)
-#' 
+#'
 #' ## Arbitrary MWs (in kDa) can also be converted to fraction numbers
 #' calibrationFunctions$MWtoFraction(3020) # i.e. 3020 kDa
-#' 
+#'
 
 calibrateMW <- function(calibration_table,
                            plot=TRUE,

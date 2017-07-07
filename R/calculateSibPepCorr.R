@@ -11,22 +11,22 @@
 #' PDF file is saved under name.pdf. Default is "SibPepCorr_densityplot".
 #' @return An object of type traces with added SibPepCorr column.
 #' @export
-#' @example 
+#' @examples
 #' ## Load example data
 #'  tracesRaw <- examplePeptideTracesUnannotated
-#'  
+#'
 #'  ## Calculate the SibPepCorr of every peptide
 #'  tracesRawSpc <- calculateSibPepCorr(traces = tracesRaw)
-#'                    
-#'  tracesRawSpc$trace_annotation                                  
-#'  
-#' 
+#'
+#'  tracesRawSpc$trace_annotation
+#'
+#'
 calculateSibPepCorr <- function(traces,
                                 plot = TRUE,
                                 PDF = FALSE,
                                 name = "SibPepCorr_densityplot")
   {
-  
+
   ## Test traces
   .tracesTest(traces, type = "peptide")
 
@@ -75,6 +75,6 @@ calculateSibPepCorr <- function(traces,
   }
   ## Test traces
   .tracesTest(traces, type = "peptide")
-  
+
   return(traces)
 }

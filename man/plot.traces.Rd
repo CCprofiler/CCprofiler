@@ -30,7 +30,7 @@ plot(proteinTraces)
 # Annotate traces with molecular weight to include molecular weight information in plot.
 calibrationTable <- exampleCalibrationTable
 # Perform molecular weight calibration:
-calibration = calibrateSECMW(calibrationTable)
+calibration = calibrateMW(calibrationTable)
 # Perform molecular weight annotation:
 mwProteinTraces <- annotateMolecularWeight(proteinTraces, calibration)
 plot(mwProteinTraces)

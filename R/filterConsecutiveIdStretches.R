@@ -13,8 +13,8 @@
 #' @return An object of class traces containing the filtered
 #'     chromatograms.
 #' @export
-#' @example
-#' 
+#' @examples
+#'
 #'  ## Load example data
 #'  tracesRaw <- examplePeptideTraces
 #'  ## Filter stretches with 3 consecutive ids
@@ -31,7 +31,7 @@
 #'              trace_subset_type = "protein_id",
 #'              trace_subset_ids = exampleProtein),
 #'       legend= FALSE)
-#'  
+#'
 
 filterConsecutiveIdStretches<-function(traces,
                                        min_stretch_length=3,
@@ -40,12 +40,12 @@ filterConsecutiveIdStretches<-function(traces,
   .tracesTest(traces)
   ## Get traces from container
   peptideTraces <- getIntensityMatrix(traces)
-  
+
   id <- rownames(peptideTraces)
   intensity <- peptideTraces
   ## Add 0-column
   intensity <- cbind(intensity, dummy=rep(0, nrow(intensity)))
-  
+
   ## Define n as the number of columns
   n <- ncol(intensity)
   ## Set count variable to one
@@ -61,7 +61,7 @@ filterConsecutiveIdStretches<-function(traces,
         ## If the value is = 0, tmp is set to 1
         tmp <- 1
       } else { # If value not = 0, then:
-        ## Look at next value at row x, col i+1, is it 0? 
+        ## Look at next value at row x, col i+1, is it 0?
         if (intensity[x, i+1] == 0) { #If yes, then:
           ## Do nothing if the count variable is > min_stretch_length
           if (tmp <= (min_stretch_length-1)){ # if count variable is min_stretch_length or smaller at x

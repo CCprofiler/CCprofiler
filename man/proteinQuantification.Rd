@@ -2,23 +2,44 @@
 % Please edit documentation in R/proteinQuantification.R
 \name{proteinQuantification}
 \alias{proteinQuantification}
-\title{proteinQuantification}
+\title{Protein Quantification}
 \usage{
 proteinQuantification(traces, topN = 2, keep_less = FALSE,
   rm_decoys = TRUE)
 }
 \arguments{
-\item{traces}{An object of type \code{traces.obj}, trace_type is peptide}
+\item{traces}{An object of type traces, trace_type must be peptide.}
 
-\item{topN}{numeric specifying the number of peptides to use for protein quantification}
+\item{topN}{Numeric integer, specifying the number of peptides to sum for protein quantification. Default is 2.}
 
-\item{keep_less}{logical specifying wheather peptides with less than topN peptides should be kept in the data, default is FALSE}
+\item{keep_less}{Logical, specifying whether proteins with less than topN peptides
+should be kept in the data (This may result in some protein intensities being calculated
+as the sum of fewer peptide intensities than others. Only use withh caution.), default is \code{FALSE}.}
 
-\item{rm_decoys}{logical specifying wheather decoys should be kept. The decoys have only limited use on the protein level, default is TRUE}
+\item{rm_decoys}{Logical, specifying whether decoys should be kept.
+The decoys have only limited use on the protein level, default is \code{TRUE}.}
 }
 \value{
-An object of type \code{traces.obj}, trace_type is protein
+An object of type traces, trace_type is protein.
 }
 \description{
 Calculate protein quantities basen on the topN peptide intensities.
+}
+\examples{
+## Load example data
+pepTraces <- examplePeptideTracesFiltered
+
+## Sum the intensities of the top 2 peptides to get protein intensities
+protTraces <- proteinQuantification(pepTraces,
+                                     topN = 2)
+## Check the result
+summary(pepTraces)
+summary(protTraces)
+
+# ProteinTraces annotation
+head(protTraces$trace_annotation)
+# The protein_id column from the peptide traces object becomes the new id column of the protein traces object.
+# The last 2 columns indicate how many peptides could be observed and which were summed for quantification.
+
+
 }
