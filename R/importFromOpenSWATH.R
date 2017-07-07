@@ -157,6 +157,6 @@ importFromOpenSWATH <- function(data,
   # sort both trace_annotation and traces for consistency (also done in annotateTraces function)
   setorder(result$trace_annotation, id)
   setorder(result$traces, id)
-  .tracesTest(traces)
+  .tracesTest(result)
   return(result)
 }
