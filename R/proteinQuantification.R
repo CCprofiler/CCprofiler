@@ -5,12 +5,12 @@
 #' @description Calculate protein quantities basen on the topN peptide intensities.
 #' @import data.table
 #' @param traces An object of type traces, trace_type must be peptide.
-#' @param topN Numeric, specifying the number of peptides to sum for protein quantification.
+#' @param topN Numeric integer, specifying the number of peptides to sum for protein quantification. Default is 2.
 #' @param keep_less Logical, specifying whether proteins with less than topN peptides
 #'  should be kept in the data (This may result in some protein intensities being calculated
-#'  as the sum of fewer peptide intensities than others. Only use withh caution.), default is FALSE.
+#'  as the sum of fewer peptide intensities than others. Only use withh caution.), default is \code{FALSE}.
 #' @param rm_decoys Logical, specifying whether decoys should be kept.
-#'  The decoys have only limited use on the protein level, default is TRUE.
+#'  The decoys have only limited use on the protein level, default is \code{TRUE}.
 #' @return An object of type traces, trace_type is protein.
 #' @export
 #' @example
@@ -26,8 +26,8 @@
 #' 
 #' # ProteinTraces annotation
 #' head(protTraces$trace_annotation)
-#' # The protein_id column from the peptide traces object becomes the new id column of the protein traces object
-#' # The last 2 columns indicate how many peptides could be observed and which were summed for quantification
+#' # The protein_id column from the peptide traces object becomes the new id column of the protein traces object.
+#' # The last 2 columns indicate how many peptides could be observed and which were summed for quantification.
 #' 
 #' 
 proteinQuantification <- function(traces,
