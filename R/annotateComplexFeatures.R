@@ -148,8 +148,40 @@ annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,com
                       "monomer_mw","monomer_sec","complex_mw_estimated",
                       "complex_sec_estimated","sec_diff","mw_diff"))
 
+  if ("protein_mw" %in% colnames(traces.obj$trace_annotation)) {
+    if (! "molecular_weight" %in% colnames(traces.obj$fraction_annotation)) { # monomer mw info but no calibration
+      features <- subset(features,select=c("complex_id", "complex_name", "subunits_annotated",
+                                           "n_subunits_annotated","subunits_with_signal","n_subunits_with_signal",
+                                           "subunits_detected","n_subunits_detected",
+                                           "completeness","left_sw","right_sw","sw_score",
+                                           "left_pp","right_pp","apex","area","peak_corr",
+                                           "total_intensity","intensity_ratio","stoichiometry_estimated",
+                                           "monomer_mw","complex_mw_estimated",
+                                           "mw_diff"))
+    }
+  } else {
+    if ("molecular_weight" %in% colnames(traces.obj$fraction_annotation)) {  # no monomer mw info but calibration
+      features <- subset(features,select=c("complex_id", "complex_name", "subunits_annotated",
+                                           "n_subunits_annotated","subunits_with_signal","n_subunits_with_signal",
+                                           "subunits_detected","n_subunits_detected",
+                                           "completeness","left_sw","right_sw","sw_score",
+                                           "left_pp","right_pp","apex","apex_mw","area","peak_corr",
+                                           "total_intensity","intensity_ratio","stoichiometry_estimated"))
+    } else { # nither monomer mw info nor calibration
+      features <- subset(features,select=c("complex_id", "complex_name", "subunits_annotated",
+                                           "n_subunits_annotated","subunits_with_signal","n_subunits_with_signal",
+                                           "subunits_detected","n_subunits_detected",
+                                           "completeness","left_sw","right_sw","sw_score",
+                                           "left_pp","right_pp","apex","area","peak_corr",
+                                           "total_intensity","intensity_ratio","stoichiometry_estimated"))
+    }
+  }
+  
+  
+  
+  
   # sort the features by the number of detected subunits, the sliding-windoe correlation, and the peak area
-  features <- features[order(-n_subunits_detected,-sw_score,-area,mw_diff)]
+  features <- features[order(-n_subunits_detected,-sw_score,-area)]
 
   data.table(features)
   res <- list(features=features)
