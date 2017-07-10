@@ -92,20 +92,23 @@ annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,com
     } else {
       subunit_MW <-  0
     }
-    #subunit_SEC <- (log(subunit_MW)-9.682387)/(-0.1043329)
-    #subunit_SEC <- MWSECcalibrationFunctions$MWtoSECfraction(subunit_MW)
-    subunit_SEC <- unlist(lapply(subunit_MW,FUN=function(X){traces.obj$fraction_annotation$id[which.min(abs(traces.obj$fraction_annotation$molecular_weight - X))[1]]}))
+    if ("molecular_weight" %in% colnames(traces.obj$fraction_annotation)) {
+      subunit_SEC <- unlist(lapply(subunit_MW,FUN=function(X){traces.obj$fraction_annotation$id[which.min(abs(traces.obj$fraction_annotation$molecular_weight - X))[1]]}))
+    } else {
+      subunit_SEC <-  0
+    }
     # calculate complex molecular weight
     stoichiometry <- strsplit(feature$stoichiometry, ';')[[1]]
     stoichiometry <- as.integer(stoichiometry)
     complex_mw <- sum(stoichiometry*subunit_MW)
-    #complex_SEC <-  (log(complex_mw)-9.682387)/(-0.1043329)
-    #complex_SEC <- MWSECcalibrationFunctions$MWtoSECfraction(complex_mw)
-    complex_SEC <- traces.obj$fraction_annotation$id[which.min(abs(traces.obj$fraction_annotation$molecular_weight - complex_mw))[1]]
-    # calculate apex molecular weight
-    #apex_MW <-  exp((-0.1043329 * feature$apex) + 9.682387)
-    #apex_MW <- MWSECcalibrationFunctions$SECfractionToMW(feature$apex)
-    apex_MW <- traces.obj$fraction_annotation$molecular_weight[which(traces.obj$fraction_annotation$id == feature$apex)]
+    if ("molecular_weight" %in% colnames(traces.obj$fraction_annotation)) {
+      complex_SEC <- traces.obj$fraction_annotation$id[which.min(abs(traces.obj$fraction_annotation$molecular_weight - complex_mw))[1]]
+      # calculate apex molecular weight
+      apex_MW <- traces.obj$fraction_annotation$molecular_weight[which(traces.obj$fraction_annotation$id == feature$apex)]
+    } else {
+      complex_SEC <- 0
+      apex_MW <- 0
+    }
     # calculate difference between apex of selected peak and the estimated comples sec fraction
     SEC_diff <- abs(feature$apex - complex_SEC)
     MW_diff <- abs(apex_MW - complex_mw)
