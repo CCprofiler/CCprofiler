@@ -15,8 +15,8 @@ vignette: |
 ---
 
 # Overview
-PCprofiler introduction...
-```{r, eval=TRUE, message=FALSE}
+Here we show the basic steps for performing the analysis of PCP-MS datasets with PCprofiler. PCprofiler performs...
+```{r}
 require(devtools)
 install_github("PedrioliLab/SECprofiler",ref="isa")
 library('SECprofiler')
@@ -24,48 +24,51 @@ library('SECprofiler')
 
 # Preparation
 ## Example data
-Quickly describe dataset used in vignette
-* Generate bigger test set ~ 50 complex hypotheses
-* reformat and rename exampleOpenSWATHinput to generalize
+PCprofiler is generally applicable to a variety of PCP-MS techniques. The examplary dataset used in this vignette is a subset of the peptide-level quantifitative matrix generated from HEK293 cell lysates by size-exclusion chromatography (SEC) coupled to SWATH-MS @REF. A total of 81 SEC fractions were sampled in consecutive order and each fraction was separately measured by SWATH-MS. The samples were analyzed employing a workflow consisting of OpenSWATH, pyProphet and TRIC @REF. A subset of the quantitative data matrix in long format is available within this package as ```{r, eval=FALSE}examplePCPdataLong``` and the annotation of which filename corresponds to which SEC fraction is available as ```{r, eval=FALSE}exampleFractionAnnotation```.
 ```{r, eval=TRUE}
-pcpData <- exampleOpenSWATHinput
+pcpData <- examplePCPdataLong
 fractionAnnotation <- exampleFractionAnnotation
-calibrationTable <- exampleCalibrationTable
-traceAnnotation <- exampleTraceAnnotation
 ```
 ## Input data
+There are a variety of computational processing steps upstream of PCprofiler that are necessary to convert raw MS files to a matrix with quantitative values of different peptides or proteins across multiple PCP fractions. The functions available within PCprofiler assume that you have already generated such a quantitative peptide or protein matrix. 
+
 ### Quantitative PCP-MS data
+The main input for PCprofiler is a quantitative peptide- or protein-level matrix in long or wide format. The necessary information are the protein_id and/or peptide_id, filename and intensity. 
 ```{r, eval=TRUE}
 head(pcpData, n=2)
 ```
 ### Fraction annotation table
+In addition to the quantitative PCP-MS data matrix, a mapping of the filenames to the consecutive fractions is necessary to generate elution profiles. It is important that the fractions start at 1 and consecutively increase by 1 unit until reaching the total number of fractions.
 ```{r, eval=TRUE}
 head(fractionAnnotation, n=2)
 ```
-### Trace annotation table
-```{r,eval=TRUE}
-head(traceAnnotation, n=2)
-```
+
 ### Molecular weight calibration
+In some PCP techniques, such as size-exclusion chromatography, it is possible to map a separation fraction to a specific molecular weight. This can be done by standard proteins with known MW spiked in the samples or run separately on the fractionation device. These reference proteins can be used for molecular-weight calibration of the fractions for techniques where a log-linear relationship between fraction and molecular weight exists, for example size-excluson chromatography.
 ```{r, eval=TRUE, fig.show='hold'}
-head(calibrationTable, n=2)
-calibration = calibrateSECMW(calibrationTable, 
+calibrationTable <- exampleCalibrationTable
+calibrationTable
+calibration = calibrateMW(calibrationTable, 
                              PDF=FALSE, 
                              plot=TRUE)
 ```
 
 # Standard analysis workflow
 ## Import of elution profiles to traces object
-* write general import functionfor quant matrix (wide and long)
-* improve, extend summary function for traces objects: fraction info, pep/prot info
+The first step in any analysis with PCprofiler is the import of a quantitative peptide- or protein-level matrix in long or wide format that is converted to an object of class "traces". Levaraging the fraction annotation information, the traces data struncture includes a 
 ```{r, eval=TRUE, message=FALSE}
 pepTraces <- importPCPdata(input_data=pcpData,
                           fraction_annotation=fractionAnnotation,
                           rm_decoys = FALSE)
+
+## Trace annotation table
+traceAnnotation <- exampleTraceAnnotation
+head(traceAnnotation, n=2)
 pepTraces <- annotateTraces(traces=pepTraces,
-                            annotation_table=traceAnnotation,
+                            trace_annotation=traceAnnotation,
                             traces_id_column = "protein_id",
-                            annotation_table_id_column = "Entry",
+                            trace_annotation_id_column = "Entry",
+                            trace_annotation_mass_column = "Mass",
                             uniprot_mass_format = TRUE,
                             replace_whitespace = TRUE)
 
