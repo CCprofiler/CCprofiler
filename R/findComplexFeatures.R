@@ -1,22 +1,45 @@
 #' Complex feature detection
 #' @description Run the sliding window algorithm to find complex features.
-#' @param traces An object of type \code{traces}.
+#' @param traces An object of class traces.
 #' @param complex_hypothesis data.table containing complex hypotheses.
-#' @param corr_cutoff The correlation value for chromatograms above which
+#' Should have the following columns:
+#' \itemize{
+#' \item complex_id: character strings, a unique id for every complex
+#' \item complex_name: character strings, a unique name for every complex
+#' \item protein_id: character strings, the protein id, e.g. Uniprot id
+#' }
+#' @param corr_cutoff Numeric, the correlation value for chromatograms above which
 #'        peptides are considered to be coeluting, default=0.95.
-#' @param window_size numeric size of the window, default=15
-#' @param parallelized logical, if the computation should be done in parallel, default=FALSE
-#' @param n_cores The number of cores to use for parallel processing, default=1
-#' @param collapse_method Method for collapsing multiple features into one feature: "apex_only" or "apex_network", default="apex_only"
-#' @param perturb_cutoff The quantile to use in estimating the perturbation level, default="5%".
+#' @param window_size Integer, size of the window in fractions, default=15
+#' @param parallelized Logical, if the computation should be done in parallel, default=\code{FALSE}.
+#' @param n_cores Integer, the number of cores to use for parallel processing 
+#' (only applies if parallelized is \code{TRUE}), default=1.
+#' @param collapse_method Character, method for collapsing multiple features into one feature:
+#' \itemize{
+#' \item "apex_only": collapses by apex
+#' \item "apex_network": collapses by apex and connected network cluster}
+#' Default="apex_only"
+#' @param perturb_cutoff Numeric, the quantile to use in estimating the perturbation level, default="5%".
 #'        Intensity values that are zero are replaced with random values that are
 #'        below the specified quantile of the input values. Alternatively a
 #'        cutoff value can be specified as an upper limit for perturbation values.
 #'        This is nescessary for correlation calculation.
-#' @param rt_height numeric RT cutoff for collapsing features, default is 5
-#' @param smoothing_length numeric smoothing length of Savitzky-Golay filter, default is 11
+#' @param rt_height Numeric, RT cutoff for collapsing features. Defaults to 5.
+#' @param smoothing_length Numeric, smoothing length of Savitzky-Golay filter. Defaults to 11.
 #' @return A data.table containing protein complex features.
 #' @export
+#' @examples 
+#' ## Load example data
+#' proteinTraces <- exampleProteinTraces
+#' complexHypotheses <- exampleComplexHypotheses
+#' 
+#' ## Perform co-elution signal detection
+#' complexFeatures <- findComplexFeatures(traces=proteinTraces,
+#'                                        complex_hypothesis=complexHypotheses)
+#' 
+#' ## Inspect complex features
+#' summarizeComplexFeatures(complexFeatures)
+#' 
 
 findComplexFeatures <- function(traces,
                                 complex_hypothesis,
