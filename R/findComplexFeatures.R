@@ -2,12 +2,18 @@
 #' @description Run the sliding window algorithm to find complex features.
 #' @param traces An object of class traces.
 #' @param complex_hypothesis data.table containing complex hypotheses.
-#' @param corr_cutoff Numeric, he correlation value for chromatograms above which
+#' Should have the following columns:
+#' \itemize{
+#' \item complex_id: character strings, a unique id for every complex
+#' \item complex_name: character strings, a unique name for every complex
+#' \item protein_id: character strings, the protein id, e.g. Uniprot id
+#' }
+#' @param corr_cutoff Numeric, the correlation value for chromatograms above which
 #'        peptides are considered to be coeluting, default=0.95.
 #' @param window_size Integer, size of the window in fractions, default=15
-#' @param parallelized Logical, if the computation should be done in parallel, default=FALSE
+#' @param parallelized Logical, if the computation should be done in parallel, default=\code{FALSE}.
 #' @param n_cores Integer, the number of cores to use for parallel processing 
-#' (only applies if parallelized is TRUE), default=1
+#' (only applies if parallelized is \code{TRUE}), default=1.
 #' @param collapse_method Character, method for collapsing multiple features into one feature:
 #' \itemize{
 #' \item "apex_only": collapses by apex
@@ -22,6 +28,18 @@
 #' @param smoothing_length Numeric, smoothing length of Savitzky-Golay filter. Defaults to 11.
 #' @return A data.table containing protein complex features.
 #' @export
+#' @examples 
+#' ## Load example data
+#' proteinTraces <- exampleProteinTraces
+#' complexHypotheses <- exampleComplexHypotheses
+#' 
+#' ## Perform co-elution signal detection
+#' complexFeatures <- findComplexFeatures(traces=proteinTraces,
+#'                                        complex_hypothesis=complexHypotheses)
+#' 
+#' ## Inspect complex features
+#' summarizeComplexFeatures(complexFeatures)
+#' 
 
 findComplexFeatures <- function(traces,
                                 complex_hypothesis,
