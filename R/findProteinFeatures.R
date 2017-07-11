@@ -26,6 +26,18 @@
 #' @param useRandomDecoyModel Logical, wether random peptide protein associations should be used as decoy model, default = TRUE
 #' @return A data.table containing protein features.
 #' @export
+#' @examples 
+#' ## Load example data
+#' peptideTraces <- examplePeptideTracesFiltered
+#' ## Subset traces for shorter processing time
+#' testProteins = unique(peptideTraces$trace_annotation$protein_id)[1:5]
+#' peptideTracesSubset = subset(peptideTraces,trace_subset_ids = testProteins, trace_subset_type = "protein_id")
+#' 
+#' ## Perform co-elution signal detection
+#' proteinFeatures <- findProteinFeatures(traces=peptideTracesSubset)
+#' 
+#' ## Inspect complex features
+#' head(proteinFeatures,n=3)
 
 findProteinFeatures <- function(traces,
                                 corr_cutoff=0.95,
