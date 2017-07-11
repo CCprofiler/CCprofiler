@@ -5,8 +5,8 @@
 #' @param complex_hypotheses data.table specifying complex hypotheses.
 #' Must have the following columns:
 #' \itemize{
-#' \item complex_id: character, a unique id for every complex
-#' \item protein_id: character, the protein id, e.g. Uniprot id
+#' \item complex_id: character strings, a unique id for every complex
+#' \item protein_id: character strings, the protein id, e.g. Uniprot id
 #' }
 #' @return data.table with binary interactions between "a" and "b"
 #' @export
@@ -50,11 +50,12 @@ generateBinaryNetwork <- function(complex_hypotheses){
 #' @return data.table with three columns containing all possible combinations of proteins:
 #' \itemize{
 #'   \item x,y: Protein ids of the input proteins (all possible combinations)
-#'   \item dist: distance as determined by the input binary interaction table
+#'   \item dist: distance (shortest path between interactors)
+#'         as determined by the input binary interaction table
 #' }
 #' @export
 #' @examples 
-#' ## Load example Data
+#' ## Load example data
 #' complexHypotheses <- exampleComplexHypotheses
 #' 
 #' ## Generate the binary network
@@ -100,8 +101,8 @@ calculatePathlength <- function(binaryInteractionTable){
 #' @return data.table in the format of complex hypotheses.
 #' Has the following columns:
 #' \itemize{
-#' \item complex_id: character, a unique id for every complex
-#' \item protein_id: character, the protein id, e.g. Uniprot id
+#' \item complex_id: character strings, a unique id for every complex
+#' \item protein_id: character strings, the protein id, e.g. Uniprot id
 #' }
 #' 
 #' @export
@@ -140,7 +141,8 @@ generateComplexTargets <- function(dist_info,
   initial_complexes <- do.call("rbind", initial_complexes)
   
   ## Remove redundant hypotheses
-  complex_table <- .collapseWideHypothesis(initial_complexes)
+  complex_table <- .collapseWideHypothesis(hypothesis = initial_complexes,
+                                           redundancy_cutoff = redundancy_cutoff)
   return(complex_table)
 }
 
@@ -150,9 +152,10 @@ generateComplexTargets <- function(dist_info,
 #' @param hypothesis data.table with complex hypotheses
 #' Must have the following columns:
 #' \itemize{
-#' \item complex_id: character, a unique id for every complex
-#' \item protein_id: character, the protein id, e.g. Uniprot id
+#' \item complex_id: character strings, a unique id for every complex
+#' \item protein_id: character strings, the protein id, e.g. Uniprot id
 #' }
+#' Additionaly a complex_name column is allowed.
 #' @param redundancy_cutoff Numeric, maximum overlap distance between two hypotheses
 #' \itemize{
 #'   \item 0 = identical 
@@ -164,9 +167,9 @@ generateComplexTargets <- function(dist_info,
 #' @return data.table in the format of complex hypotheses
 #' Has the following columns:
 #' \itemize{
-#'   \item complex_id: character, a unique id for every complex
-#'   \item complex_name: character, Name of the complex
-#'   \item protein_id: character, the protein id, e.g. Uniprot id
+#'   \item complex_id: character strings, a unique id for every complex
+#'   \item complex_name: character strings, Name of the complex
+#'   \item protein_id: character strings, the protein id, e.g. Uniprot id
 #' }
 #' @export
 #' @examples 
@@ -184,7 +187,7 @@ collapseHypothesis <- function(hypothesis,
   hypothesis <- unique(hypothesis, by="complex_id")
   hypothesis[,protein_id := NULL]
   
-  hypothesis_unique <- .collapseWideHypothesis(hypothesis)
+  hypothesis_unique <- .collapseWideHypothesis(hypothesis, redundancy_cutoff = redundancy_cutoff)
   return(hypothesis_unique)
 }
 
@@ -199,13 +202,16 @@ collapseHypothesis <- function(hypothesis,
 #' of proteins and their shortest distance.
 #' This is the output from calculatePathlength()
 #' @param min_distance Numeric, minimum distance between to proteins to be
-#' able to be in same complex decoy
-#' @return character with a complex hypothesis, protein ids are separated by ';'
+#' able to be in same complex decoy. Defaults to 1
+#' @param n_tries Numeric integer, Number of attempts to generate a decoy hypothesis until the
+#' algorithm quits and reports an error. Higher values allow for decoy generation with high-connectivity
+#' target networks, but take longer to compute.
+#' @return character string with a complex hypothesis, protein ids are separated by ';'
 #' 
 generateDecoys <- function(size,
                            all_proteins,
                            dist_info,
-                           min_distance = 2,
+                           min_distance = 1,
                            n_tries = 3){
   success <- F
   n <- 1
@@ -243,8 +249,8 @@ generateDecoys <- function(size,
 #' @param target_hypotheses data.table in the format of complex hypotheses
 #' Must have the following columns:
 #' \itemize{
-#' \item complex_id: character, a unique id for every complex
-#' \item protein_id: character, the protein id, e.g. Uniprot id
+#' \item complex_id: character strings, a unique id for every complex
+#' \item protein_id: character strings, the protein id, e.g. Uniprot id
 #' }
 #' @param dist_info data.table with three columns containing all possible combinations of proteins:
 #' \itemize{
@@ -258,12 +264,15 @@ generateDecoys <- function(size,
 #' @param seed Numeric, seed for random number generator.
 #' @param parallelized Logical, if the computation should be done in parallel, default=FALSE.
 #' @param n_cores Numeric, number of cores used for parallelization.
+#' @param n_tries Numeric integer, Number of attempts to generate a decoy hypothesis until the
+#' algorithm quits and reports an error. Higher values allow for decoy generation with high-connectivity
+#' target networks, but take longer to compute.
 #' @return data.table in the form of complex hypotheses.
 #' Has the following columns:
 #' \itemize{
-#' \item complex_id: character, a unique id for every complex
+#' \item complex_id: character strings, a unique id for every complex
 #' \item complex_name: name of the complex (in this case identical with complex id)
-#' \item protein_id: character, the protein id, e.g. Uniprot id
+#' \item protein_id: character string, the protein id, e.g. Uniprot id
 #' }
 #' @export
 #' @examples 
@@ -278,6 +287,8 @@ generateDecoys <- function(size,
 #' decoys <- generateComplexDecoys(target_hypotheses = complexHypotheses,
 #'                                 dist_info = shortestPaths,
 #'                                 min_distance = 2)
+#' ## Inspect the resulting decoys
+#' decoys
 #' 
 
 generateComplexDecoys <- function(target_hypotheses,
