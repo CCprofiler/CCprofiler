@@ -29,9 +29,9 @@ generateBinaryNetwork <- function(complex_hypotheses){
   }))
   ## Keep only unique interactions
   binary_interactions <- t(apply(binary_interactions,1, sort))
+  binary_interactions <- as.data.table(binary_interactions)
   binary_interactions <- unique(binary_interactions)
   
-  binary_interactions <- as.data.table(binary_interactions)
   names(binary_interactions) <- c("a", "b")
   setkey(binary_interactions,NULL)
   
