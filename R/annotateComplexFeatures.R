@@ -28,12 +28,6 @@
 #'         \item \code{complex_name}
 #'         \item \code{protein_id}
 #'        }
-#' @param MWSECcalibrationFunctions A list that stores the functions for converting SEC fractions to molecular weight and vice versa. This
-#'        object is generated from the calibrateSECMW function.
-#'        \itemize{
-#'         \item \code{MWtoSECfraction} Function that needs MW as input and reports according SEC fraction.
-#'         \item \code{SECfractionToMW} Function that needs SEC fraction as input and reports according MW.
-#'        }
 #' @return An object of type \code{complexFeaturesAnnotated} that is a list
 #'        containing the following:
 #'        \itemize{
@@ -66,7 +60,7 @@
 #'          }
 #'        }
 
-annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,complex.annotation,MWSECcalibrationFunctions) {
+annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,complex.annotation) {
 
   setkey(complex.annotation, protein_id)
 
@@ -98,17 +92,23 @@ annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,com
     } else {
       subunit_MW <-  0
     }
-    #subunit_SEC <- (log(subunit_MW)-9.682387)/(-0.1043329)
-    subunit_SEC <- MWSECcalibrationFunctions$MWtoSECfraction(subunit_MW)
+    if ("molecular_weight" %in% colnames(traces.obj$fraction_annotation)) {
+      subunit_SEC <- unlist(lapply(subunit_MW,FUN=function(X){traces.obj$fraction_annotation$id[which.min(abs(traces.obj$fraction_annotation$molecular_weight - X))[1]]}))
+    } else {
+      subunit_SEC <-  0
+    }
     # calculate complex molecular weight
     stoichiometry <- strsplit(feature$stoichiometry, ';')[[1]]
     stoichiometry <- as.integer(stoichiometry)
     complex_mw <- sum(stoichiometry*subunit_MW)
-    #complex_SEC <-  (log(complex_mw)-9.682387)/(-0.1043329)
-    complex_SEC <- MWSECcalibrationFunctions$MWtoSECfraction(complex_mw)
-    # calculate apex molecular weight
-    #apex_MW <-  exp((-0.1043329 * feature$apex) + 9.682387)
-    apex_MW <- MWSECcalibrationFunctions$SECfractionToMW(feature$apex)
+    if ("molecular_weight" %in% colnames(traces.obj$fraction_annotation)) {
+      complex_SEC <- traces.obj$fraction_annotation$id[which.min(abs(traces.obj$fraction_annotation$molecular_weight - complex_mw))[1]]
+      # calculate apex molecular weight
+      apex_MW <- traces.obj$fraction_annotation$molecular_weight[which(traces.obj$fraction_annotation$id == feature$apex)]
+    } else {
+      complex_SEC <- 0
+      apex_MW <- 0
+    }
     # calculate difference between apex of selected peak and the estimated comples sec fraction
     SEC_diff <- abs(feature$apex - complex_SEC)
     MW_diff <- abs(apex_MW - complex_mw)
@@ -148,8 +148,40 @@ annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,com
                       "monomer_mw","monomer_sec","complex_mw_estimated",
                       "complex_sec_estimated","sec_diff","mw_diff"))
 
+  if ("protein_mw" %in% colnames(traces.obj$trace_annotation)) {
+    if (! "molecular_weight" %in% colnames(traces.obj$fraction_annotation)) { # monomer mw info but no calibration
+      features <- subset(features,select=c("complex_id", "complex_name", "subunits_annotated",
+                                           "n_subunits_annotated","subunits_with_signal","n_subunits_with_signal",
+                                           "subunits_detected","n_subunits_detected",
+                                           "completeness","left_sw","right_sw","sw_score",
+                                           "left_pp","right_pp","apex","area","peak_corr",
+                                           "total_intensity","intensity_ratio","stoichiometry_estimated",
+                                           "monomer_mw","complex_mw_estimated",
+                                           "mw_diff"))
+    }
+  } else {
+    if ("molecular_weight" %in% colnames(traces.obj$fraction_annotation)) {  # no monomer mw info but calibration
+      features <- subset(features,select=c("complex_id", "complex_name", "subunits_annotated",
+                                           "n_subunits_annotated","subunits_with_signal","n_subunits_with_signal",
+                                           "subunits_detected","n_subunits_detected",
+                                           "completeness","left_sw","right_sw","sw_score",
+                                           "left_pp","right_pp","apex","apex_mw","area","peak_corr",
+                                           "total_intensity","intensity_ratio","stoichiometry_estimated"))
+    } else { # nither monomer mw info nor calibration
+      features <- subset(features,select=c("complex_id", "complex_name", "subunits_annotated",
+                                           "n_subunits_annotated","subunits_with_signal","n_subunits_with_signal",
+                                           "subunits_detected","n_subunits_detected",
+                                           "completeness","left_sw","right_sw","sw_score",
+                                           "left_pp","right_pp","apex","area","peak_corr",
+                                           "total_intensity","intensity_ratio","stoichiometry_estimated"))
+    }
+  }
+  
+  
+  
+  
   # sort the features by the number of detected subunits, the sliding-windoe correlation, and the peak area
-  features <- features[order(-n_subunits_detected,-sw_score,-area,mw_diff)]
+  features <- features[order(-n_subunits_detected,-sw_score,-area)]
 
   data.table(features)
   res <- list(features=features)
