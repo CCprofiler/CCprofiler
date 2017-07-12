@@ -17,7 +17,10 @@
 #' ## Run summary function on filtered data:
 #' summarizeFeatures(fileteredComplexFeatures)
 #' @export
-summarizeFeatures <- function(feature_table,plot=TRUE,PDF=FALSE,name="feature_summary"){
+summarizeFeatures <- function(feature_table,
+                              plot=TRUE,
+                              PDF=FALSE,
+                              name="feature_summary"){
   features <- copy(feature_table)
   if ("protein_id" %in% names(features)){
     type <- "protein"
@@ -142,17 +145,46 @@ getBestFeatures <- function(feature_table){
 }
 
 
-#' Filter complex feature table
-#' @description Filter result data.table according to desired complex_ids or minimum correlation score.
-#' @param feature_table A data.table with the complex features.
-#' @param complex_ids A character vector containing all desired \code{complex_id} values.
-#' @param min_completeness Numeric between 0 and 1, specifying the required completeness of a feature reltive to the tested hypothesis (keeps all features if at least one is bigger than the cutoff).
-#' @param min_subunits Integer specifying minimum number of subunits in a complex.
-#' @param min_peak_corr Numeric value betwee 0 and 1 specifying minimum peak correlation, default is 0.5
-#' @param min_monomer_distance_factor Numeric value specifying factor to multiply largest monomer MW, default is 1
-#' @return The same data.table format filtered according to the provided parameters.
+#' Filter co-elution feature table
+#' @description Filter co-elution feature table according to desired criteria.
+#' @param feature_table data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}} 
+#' or \code{\link[SECprofiler]{findProteinFeatures}}.
+#' @param complex_ids character vector containing all desired \code{complex_id} values. 
+#' Only applicable to complex feature tables. Defaults to \code{NULL}.
+#' @param protein_ids character vector containing all desired \code{protein_id} values. 
+#' Only applicable to protein feature tables. Defaults to \code{NULL}.
+#' @param min_feature_completeness Numeric between 0 and 1, specifying the required completeness 
+#' of a feature reltive to the tested hypothesis (keeps all features if at least one is bigger than the cutoff).
+#' @param min_hypothesis_completeness Numeric between 0 and 1, specifying the required completeness 
+#' of the most complete feature reltive to the tested hypothesis (keeps all features if at least one feature is bigger than the cutoff).
+#' @param min_subunits Integer specifying minimum number of subunits in a co-elution feature.
+#' @param min_peak_corr Numeric value betwee 0 and 1 specifying minimum peak correlation, defaults to 0.5.
+#' @param min_monomer_distance_factor Numeric value specifying a factor to multiply the largest monomer molecular weight, defaults to \code{NULL}.
+#' This filters out features that have their apex at a smaller molecular weight than the resulting min_monomer_distance_factor*max(monomer_mw) value.
+#' Using this filtering option can, for example, remove complex features that are likely spontaneous co-elutions of the subunits monomers.
+#' @return The same feture table as teh input, but filtered according to the provided parameters.
+#' @examples
+#' ## Load example complex feature finding results:
+#' complexFeatures <- exampleComplexFeatures
+#' ## Run summary function:
+#' summarizeFeatures(complexFeatures)
+#' ## Filter complex features by a peak correlation of 0.5, a minimum hypothesis
+#' ## completeness of 0.5 and a minimum distance to the monomers by a factor of 2:
+#' filteredComplexFeatures <- filterFeatures(complexFeatures, 
+#'                                      min_peak_corr=0.5, 
+#'                                      min_hypothesis_completeness=0.5,
+#'                                      min_monomer_distance_factor=2)
+#' ## Run summary function on filtered data:
+#' summarizeFeatures(filteredComplexFeatures)
 #' @export
-filterFeatures <- function(feature_table,complex_ids=NULL,protein_ids=NULL,min_feature_completeness=NULL,min_hypothesis_completeness=NULL,min_subunits=NULL,min_peak_corr=0.5,min_monomer_distance_factor=NULL){
+filterFeatures <- function(feature_table,
+                           complex_ids=NULL,
+                           protein_ids=NULL,
+                           min_feature_completeness=NULL,
+                           min_hypothesis_completeness=NULL,
+                           min_subunits=NULL,
+                           min_peak_corr=0.5,
+                           min_monomer_distance_factor=NULL){
   if("complex_id" %in% names(feature_table)){
     type="complex"
   } else if ("protein_id" %in% names(feature_table)) {
