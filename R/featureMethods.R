@@ -15,7 +15,7 @@
 #' ## Filter complex features:
 #' filteredComplexFeatures <- filterFeatures(complexFeatures)
 #' ## Run summary function on filtered data:
-#' summarizeFeatures(fileteredComplexFeatures)
+#' summarizeFeatures(filteredComplexFeatures)
 #' @export
 summarizeFeatures <- function(feature_table,
                               plot=TRUE,
@@ -126,7 +126,7 @@ summarizeFeatures <- function(feature_table,
 #' ## Run summary function:
 #' summarizeFeatures(complexFeatures)
 #' ## Filter complex features to only contain one best feature per complex id:
-#' bestComplexFeatures <- getBestFeature(complexFeatures)
+#' bestComplexFeatures <- getBestFeatures(complexFeatures)
 #' ## Run summary function on filtered data:
 #' summarizeFeatures(bestComplexFeatures)
 #' @export
