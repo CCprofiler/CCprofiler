@@ -111,3 +111,104 @@ summarizeFeatures <- function(feature_table,plot=TRUE,PDF=FALSE,name="feature_su
   return(summary)
 }
 
+#' Select best feature for each complex or protein id.
+#' @description Filter feature table to only contain one best feature per complex or protein id.
+#' "Best" is defined as the feature with most subunits, highest peak correlation and largest signal area.
+#' @param feature_table data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}} 
+#' or \code{\link[SECprofiler]{findProteinFeatures}}.
+#' @return data.table Filtered feature table with only one best feature per complex or protein id.
+#' @examples
+#' ## Load example complex feature finding results:
+#' complexFeatures <- exampleComplexFeatures
+#' ## Run summary function:
+#' summarizeFeatures(complexFeatures)
+#' ## Filter complex features to only contain one best feature per complex id:
+#' bestComplexFeatures <- getBestFeature(complexFeatures)
+#' ## Run summary function on filtered data:
+#' summarizeFeatures(bestComplexFeatures)
+#' @export
+getBestFeatures <- function(feature_table){
+  if ("complex_id" %in% names(feature_table)) {
+    feature_table <- feature_table[order(complex_id,-n_subunits_detected,-peak_corr,-area)]
+    res_best <- unique(feature_table,by="complex_id")
+    return(res_best)
+  } else if ("protein_id" %in% names(feature_table)) {
+    feature_table <- feature_table[order(protein_id,-n_subunits_detected,-peak_corr,-area)]
+    res_best <- unique(feature_table,by="protein_id")
+    return(res_best)
+  } else {
+    stop("This is no protein or complex feature table. Please provide features from findComplexFeatures or findProteinFeatures.")
+  }
+}
+
+
+#' Filter complex feature table
+#' @description Filter result data.table according to desired complex_ids or minimum correlation score.
+#' @param feature_table A data.table with the complex features.
+#' @param complex_ids A character vector containing all desired \code{complex_id} values.
+#' @param min_completeness Numeric between 0 and 1, specifying the required completeness of a feature reltive to the tested hypothesis (keeps all features if at least one is bigger than the cutoff).
+#' @param min_subunits Integer specifying minimum number of subunits in a complex.
+#' @param min_peak_corr Numeric value betwee 0 and 1 specifying minimum peak correlation, default is 0.5
+#' @param min_monomer_distance_factor Numeric value specifying factor to multiply largest monomer MW, default is 1
+#' @return The same data.table format filtered according to the provided parameters.
+#' @export
+filterFeatures <- function(feature_table,complex_ids=NULL,protein_ids=NULL,min_feature_completeness=NULL,min_hypothesis_completeness=NULL,min_subunits=NULL,min_peak_corr=0.5,min_monomer_distance_factor=NULL){
+  if("complex_id" %in% names(feature_table)){
+    type="complex"
+  } else if ("protein_id" %in% names(feature_table)) {
+    type="protein"
+  } else {
+    stop("This is neither a complex or a protein feature table. Please check the input data.")
+  }
+  if(!is.null(complex_ids)){
+    if(type=="complex"){
+      feature_table <- subset(feature_table,complex_id %in% as.character(complex_ids))
+    } else {
+      stop("This is not a complex feature table. Please check the input data and your filtering criteria, especially the complex_ids.")
+    }
+  }
+  if(!is.null(protein_ids)){
+    if(type=="protein"){
+      feature_table <- subset(feature_table,protein_id %in% as.character(protein_ids))
+    } else {
+      stop("This is not a protein feature table. Please check the input data and your filtering criteria, especially the protein_ids.")
+    }
+  }
+  if(!is.null(min_feature_completeness)){
+    feature_table <- subset(feature_table,completeness >= min_feature_completeness)
+  }
+  if(!is.null(min_hypothesis_completeness)){
+    if(type=="complex"){
+      allowed_ids <- feature_table[completeness>=min_hypothesis_completeness, unique(complex_id)]
+      feature_table <- feature_table[complex_id %in% allowed_ids]
+    } else if (type=="protein") {
+      allowed_ids <- feature_table[completeness>=min_hypothesis_completeness, unique(protein_id)]
+      feature_table <- feature_table[protein_id %in% allowed_ids]
+    }
+  }
+  if(!is.null(min_subunits)){
+    feature_table <- subset(feature_table,n_subunits_detected >= min_subunits)
+  }
+  if(!is.null(min_peak_corr)){
+    feature_table <- subset(feature_table,peak_corr >= min_peak_corr)
+  }
+  if(!is.null(min_monomer_distance_factor)){
+    if (! "monomer_mw" %in% names(feature_table)){
+      stop("No molecular weight information available. The min_monomer_distance_factor is only a valid 
+           filtering option if molecular weight information of the proteins is available.")
+    }
+    dist = lapply(seq(1:nrow(feature_table)), function(i){
+      feature=feature_table[i]
+      max_monomer_mw <- max(as.numeric(strsplit(feature$monomer_mw, ';')[[1]]))
+      mw_dist <- feature$apex_mw-(min_monomer_distance_factor*max_monomer_mw)
+      mw_dist
+    })
+    dist_vector <- unlist(dist)
+    sel <- which(dist<=0)
+    if(length(sel)>0){
+      feature_table <- feature_table[-sel]
+    }
+  }
+  return(feature_table)
+}
+

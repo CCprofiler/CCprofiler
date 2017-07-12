@@ -33,7 +33,7 @@ plotSummarizedComplexes <- function(complexFeatures,hypotheses,protTraces,PDF=FA
   unique_hypotheses <- unique(hypotheses,by="complex_id")
   unique_hypotheses_50 <- subset(unique_hypotheses,ms_completeness >= 0.5)
 
-  complexFeatures <- getBestComplexFeature(complexFeatures)
+  complexFeatures <- getBestFeatures(complexFeatures)
   complexFeatures_min50 <- subset(complexFeatures,(completeness>=0.5) & (completeness<1))
   complexFeatures_100 <- subset(complexFeatures,completeness==1)
   complexFeatures_lower50 <- subset(complexFeatures,completeness<0.5)
@@ -74,7 +74,7 @@ plotSummarizedComplexes <- function(complexFeatures,hypotheses,protTraces,PDF=FA
 #' plotComplexCompletenessScatter(complexFeatures)
 #' @export
 plotComplexCompletenessScatter <- function(complexFeatures,PDF=FALSE,name="complex_completeness_scatter"){
-  complexFeatures <- getBestComplexFeature(complexFeatures)
+  complexFeatures <- getBestFeatures(complexFeatures)
   complexFeatures <- complexFeatures[grep("DECOY",complexFeatures$complex_id,invert=TRUE)]
   if(PDF){
     pdf(gsub("$|\\.pdf$", ".pdf", name))
