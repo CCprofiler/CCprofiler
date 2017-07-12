@@ -35,27 +35,48 @@ summarizeFeatures <- function(feature_table,plot=TRUE,PDF=FALSE,name="feature_su
   totalHypothesesWithMultipleFeatures <- length(which(feature_count_max>=2))
   summaryCorrelation <- summary(features$peak_corr)
   summaryArea <- summary(features$area)
-  summaryMWdiff <- summary(features$mw_diff)
+  if("mw_diff" %in% names(features)) {
+    summaryMWdiff <- summary(features$mw_diff)
+  }
   summaryNsubunitsAnnotated <- summary(features$n_subunits_annotated)
   summaryNsubunitsWithSignal <- summary(features$n_subunits_with_signal)
   summaryNsubunitsDetected <- summary(features$n_subunits_detected)
   summaryCompleteness <- summary(features$completeness)
-  summary <- list(type = type,
-                 totalFeatures = totalFeatures,
-                 totalConfirmedHypotheses = totalConfirmedHypotheses,
-                 totalHypothesesWithMultipleFeatures = totalHypothesesWithMultipleFeatures,
-                 summaryFeatureCount = summaryFeatureCount,
-                 summaryCorrelation = summaryCorrelation,
-                 summaryArea = summaryArea,
-                 summaryMWdiff = summaryMWdiff,
-                 summaryNsubunitsAnnotated = summaryNsubunitsAnnotated,
-                 summaryNsubunitsWithSignal = summaryNsubunitsWithSignal,
-                 summaryNsubunitsDetected = summaryNsubunitsDetected,
-                 summaryCompleteness = summaryCompleteness
-                 )
+  if("mw_diff" %in% names(features)) {
+    summary <- list(type = type,
+                   totalFeatures = totalFeatures,
+                   totalConfirmedHypotheses = totalConfirmedHypotheses,
+                   totalHypothesesWithMultipleFeatures = totalHypothesesWithMultipleFeatures,
+                   summaryFeatureCount = summaryFeatureCount,
+                   summaryCorrelation = summaryCorrelation,
+                   summaryArea = summaryArea,
+                   summaryMWdiff = summaryMWdiff,
+                   summaryNsubunitsAnnotated = summaryNsubunitsAnnotated,
+                   summaryNsubunitsWithSignal = summaryNsubunitsWithSignal,
+                   summaryNsubunitsDetected = summaryNsubunitsDetected,
+                   summaryCompleteness = summaryCompleteness
+                   )
+  } else {
+    summary <- list(type = type,
+                    totalFeatures = totalFeatures,
+                    totalConfirmedHypotheses = totalConfirmedHypotheses,
+                    totalHypothesesWithMultipleFeatures = totalHypothesesWithMultipleFeatures,
+                    summaryFeatureCount = summaryFeatureCount,
+                    summaryCorrelation = summaryCorrelation,
+                    summaryArea = summaryArea,
+                    summaryNsubunitsAnnotated = summaryNsubunitsAnnotated,
+                    summaryNsubunitsWithSignal = summaryNsubunitsWithSignal,
+                    summaryNsubunitsDetected = summaryNsubunitsDetected,
+                    summaryCompleteness = summaryCompleteness
+    )
+  }
   if (plot) {
     features[,feature_id := .I]
-    plottingFeatures <- subset(features,select=c("feature_id","peak_corr","mw_diff","area","apex","n_subunits_detected","completeness")) 
+    if("mw_diff" %in% names(features)) {
+      plottingFeatures <- subset(features,select=c("feature_id","peak_corr","mw_diff","area","apex","n_subunits_detected","completeness")) 
+    } else {
+      plottingFeatures <- subset(features,select=c("feature_id","peak_corr","area","apex","n_subunits_detected","completeness")) 
+    }
     plottingFeatures$area <- log(plottingFeatures$area)
     setnames(plottingFeatures,"area","log(area)")
     plottingFeatures[, names(plottingFeatures) := lapply(.SD, as.numeric)]
