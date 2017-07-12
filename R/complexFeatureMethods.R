@@ -34,16 +34,17 @@ plotSummarizedComplexes <- function(complexFeatures,hypotheses,protTraces,PDF=FA
   unique_hypotheses_50 <- subset(unique_hypotheses,ms_completeness >= 0.5)
 
   complexFeatures <- getBestComplexFeature(complexFeatures)
-  complexFeatures_min50 <- subset(complexFeatures,completeness>=0.5)
+  complexFeatures_min50 <- subset(complexFeatures,(completeness>=0.5) & (completeness<1))
+  complexFeatures_100 <- subset(complexFeatures,completeness==1)
   complexFeatures_lower50 <- subset(complexFeatures,completeness<0.5)
 
-
   complexFeatures_noDecoys <- complexFeatures[grep("DECOY",complexFeatures$complex_id,invert=TRUE)]
-  complexCompletenessSummary <- data.table(name=c("no co-elution","co-elution\n(< 50% complete)","co-elution\n(>= 50% complete)"),
+  complexCompletenessSummary <- data.table(name=c("no co-elution","co-elution\n(< 50% complete)","co-elution\n(>= 50% complete)","co-elution\n(100% complete)"),
                                         count=c(
                                           sum(!(unique_hypotheses_50$complex_id %in% complexFeatures$complex_id)),
                                           sum(unique_hypotheses_50$complex_id %in% complexFeatures_lower50$complex_id),
-                                          sum(unique_hypotheses_50$complex_id %in% complexFeatures_min50$complex_id)
+                                          sum(unique_hypotheses_50$complex_id %in% complexFeatures_min50$complex_id),
+                                          sum(unique_hypotheses_50$complex_id %in% complexFeatures_100$complex_id)
                                           )
                                         )
 

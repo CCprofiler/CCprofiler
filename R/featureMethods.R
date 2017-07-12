@@ -76,7 +76,7 @@ summarizeFeatures <- function(feature_table,plot=TRUE,PDF=FALSE,name="feature_su
     q <- ggplot(plottingNsubcomplexes,aes(x=n_subcomplexes)) +
       stat_bin(binwidth=1) +
       stat_bin(binwidth=1, geom="text", aes(label=..count..), vjust=-0.5) +
-      labs(x="number of features",y="number of complexes") +
+      labs(x="N co-elution features",y="N complex hypotheses") +
       theme_classic() +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank()) +
