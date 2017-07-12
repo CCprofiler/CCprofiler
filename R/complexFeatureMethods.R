@@ -13,6 +13,13 @@
 #' @param PDF Logical, whether to generate a PDF file with the summary plot. Default is \code{FALSE}.
 #' @param name Character string specifying the name of the PDF file of the pie chart.
 #' Only applicable if PDF=\code{TRUE}. Default is "complex_completeness_pie".
+#' @examples
+#' ## Load example complex feature finding results:
+#' complexFeatures <- exampleComplexFeatures
+#' complexHypotheses <- exampleComplexHypotheses
+#' proteinTraces <- exampleProteinTraces
+#' ## Run plotting function:
+#' plotSummarizedComplexes(complexFeatures=complexFeatures, hypotheses=complexHypotheses, protTraces=proteinTraces)
 #' @export
 plotSummarizedComplexes <- function(complexFeatures,hypotheses,protTraces,PDF=FALSE,name="complex_completeness_pie"){
   proteins_in_hypotheses <- unique(hypotheses$protein_id)
@@ -59,6 +66,11 @@ plotSummarizedComplexes <- function(complexFeatures,hypotheses,protTraces,PDF=FA
 #' @param PDF Logical, whether to generate a PDF file with the summary plot. Default is \code{FALSE}.
 #' @param name Character string specifying the name of the PDF file of the summary plot.
 #' Only applicable if PDF=\code{TRUE}. Default is "feature_summary".
+#' @examples
+#' ## Load example complex feature finding results:
+#' complexFeatures <- exampleComplexFeatures
+#' ## Run plotting function:
+#' plotComplexCompletenessScatter(complexFeatures)
 #' @export
 plotComplexCompletenessScatter <- function(complexFeatures,PDF=FALSE,name="complex_completeness_scatter"){
   complexFeatures <- getBestComplexFeature(complexFeatures)
