@@ -231,7 +231,7 @@ filterFeatures <- function(feature_table,
     }
     dist <- lapply(seq(1:nrow(feature_table)), function(i){
       feature=feature_table[i]
-      max_monomer_mw <- max(as.numeric(strsplit(feature$monomer_mw, ';')[[1]]))
+      max_monomer_mw <- max(as.numeric(strsplit(as.character(feature$monomer_mw), ';')[[1]]))
       mw_dist <- feature$apex_mw-(min_monomer_distance_factor*max_monomer_mw)
       mw_dist
     })
