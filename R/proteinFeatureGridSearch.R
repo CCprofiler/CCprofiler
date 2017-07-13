@@ -18,21 +18,21 @@
 #' @export
 #' @examples  
 #' 
-#' ## Load example data and subset to reduce runtime
-#' peptideTraces <- examplePeptideTraces
-#' peptideTraces <- subset(peptideTraces,
-#'                         trace_subset_ids = unique(peptideTraces$trace_annotation$protein_id)[2:3],
-#'                         trace_subset_type = "protein_id")
-#' 
-#' ## Perform a small grid search for 2 parameter combinations
-#' # Depending on the computational resources this can take several minutes 
-#' gridList <- performProteinGridSearch(traces = peptideTraces,
-#'                                      corrs = c(0.5, 0.9),
-#'                                      windows = 10,
-#'                                      smoothing = 7,
-#'                                      rt_heights = 4,
-#'                                      n_cores = 4)
-#' 
+#'  ## Load example data and subset to reduce runtime
+#'  peptideTraces <- examplePeptideTraces
+#'  peptideTraces <- subset(peptideTraces,
+#'                          trace_subset_ids = unique(peptideTraces$trace_annotation$protein_id)[2:3],
+#'                          trace_subset_type = "protein_id")
+#'  
+#'  ## Perform a small grid search for 2 parameter combinations
+#'  # Depending on the computational resources this can take several minutes
+#'  gridList <- performProteinGridSearch(traces = peptideTraces,
+#'                                       corrs = c(0.5, 0.9),
+#'                                       windows = 12,
+#'                                       smoothing = 9,
+#'                                       rt_heights = 5,
+#'                                       n_cores = 4)
+#'  
 
 performProteinGridSearch <- function(traces,
                                     corrs = c(0.5,0.75,0.9,0.95),
@@ -49,17 +49,17 @@ performProteinGridSearch <- function(traces,
   clusterSetRNGStream(cl,123)
   doSNOW::registerDoSNOW(cl)
   clusterEvalQ(cl,library(SECprofiler,data.table))
-  clusterExport(cl, list("generateRandomPepTraces"))
+  # clusterExport(cl, list("generateRandomPepTraces"))
   data <- list()
   data <- c(data,parRapply(cl,parameter_grid,
                            FUN = .runGridProteinFeatureFinding,
-                           traces = traces))
+                           pepTraces = traces))
   stopCluster(cl)
   data
 }
 
-.runGridProteinFeatureFinding <- function(params,traces) {
-  res = findProteinFeatures(traces=traces,
+.runGridProteinFeatureFinding <- function(params, pepTraces) {
+  res = findProteinFeatures(traces = pepTraces,
                             corr_cutoff = as.numeric(params["corr"]),
                             window_size = as.numeric(params["window"]),
                             parallelized = FALSE,
@@ -69,9 +69,9 @@ performProteinGridSearch <- function(traces,
                             smoothing_length=as.numeric(params["smoothing"]),
                             useRandomDecoyModel=TRUE)
   
-  # res[,corr:=as.numeric(params["corr"])]
-  # res[,window:=as.numeric(params["window"])]
-  # res[,rt_height:=as.numeric(params["rt_height"])]
-  # res[,smoothing_length:=as.numeric(params["smoothing"])]
+  res[,corr:=as.numeric(params["corr"])]
+  res[,window:=as.numeric(params["window"])]
+  res[,rt_height:=as.numeric(params["rt_height"])]
+  res[,smoothing_length:=as.numeric(params["smoothing"])]
   res[]
 }
