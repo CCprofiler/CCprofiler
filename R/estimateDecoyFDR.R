@@ -6,37 +6,37 @@
 #' @export
 #' @examples 
 #' 
-#-----------------------------
-## Complex Features
-#-----------------------------
-
-## Load example data
-exampleHypotheses <- generateComplexDecoys(target_hypotheses = exampleComplexHypotheses,
-                                           dist_info = calculatePathlength(exampleComplexHypotheses),
-                                           min_distance = 2, append =  TRUE)
-## Perform the complex Feature search
-complexFeatures <- findComplexFeatures(traces = exampleProteinTraces,
-                                       complex_hypothesis = exampleHypotheses)
-## estimate the FDR
-estimateDecoyFDR(pf_td, grid_search_list = T, FFT = 1)
-
-#-----------------------------
-## Protein Features
-#-----------------------------
-
-## Load example data
-pepTraces <- examplePeptideTraces
-
-## Generate decoy traces
-PepTracesDecoys <- generateRandomPepTraces(examplePeptideTraces,
-                                           append = TRUE)
-## Perform the complex Feature search
-proteinFeatures <- findProteinFeatures(traces = PepTracesDecoys,
-                                       parallelized = TRUE,
-                                       n_cores = 4)
-## estimate the FDR
-estimateDecoyFDR(complexFeatures, FFT = 1)
-
+#' #-----------------------------
+#' ## Complex Features
+#' #-----------------------------
+#' 
+#' ## Load example data
+#' exampleHypotheses <- generateComplexDecoys(target_hypotheses = exampleComplexHypotheses,
+#'                                            dist_info = calculatePathlength(exampleComplexHypotheses),
+#'                                            min_distance = 2, append =  TRUE)
+#' ## Perform the complex Feature search
+#' complexFeatures <- findComplexFeatures(traces = exampleProteinTraces,
+#'                                        complex_hypothesis = exampleHypotheses)
+#' ## estimate the FDR
+#' estimateDecoyFDR(pf_td, grid_search_list = T, FFT = 1)
+#' 
+#' #-----------------------------
+#' ## Protein Features
+#' #-----------------------------
+#' 
+#' ## Load example data
+#' pepTraces <- examplePeptideTraces
+#' 
+#' ## Generate decoy traces
+#' PepTracesDecoys <- generateRandomPepTraces(examplePeptideTraces,
+#'                                            append = TRUE)
+#' ## Perform the complex Feature search
+#' proteinFeatures <- findProteinFeatures(traces = PepTracesDecoys,
+#'                                        parallelized = TRUE,
+#'                                        n_cores = 4)
+#' ## estimate the FDR
+#' estimateDecoyFDR(complexFeatures, FFT = 1)
+#' 
 
 estimateDecoyFDR <- function(features,
                               FFT = 1){
