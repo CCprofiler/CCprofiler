@@ -51,7 +51,7 @@ plotSummarizedComplexes <- function(complexFeatures,hypotheses,protTraces,PDF=FA
 
   cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
   if(PDF){pdf(gsub("$|\\.pdf$", ".pdf", name))}
-    pie(x=complexCompletenessSummary$count,labels=paste0(complexCompletenessSummary$name,"\n",complexCompletenessSummary$count),col=cbPalette[1:nrow(complexCompletenessSummary)])
+    print(pie(x=complexCompletenessSummary$count,labels=paste0(complexCompletenessSummary$name,"\n",complexCompletenessSummary$count),col=cbPalette[1:nrow(complexCompletenessSummary)]))
   if(PDF){dev.off()}
 }
 
