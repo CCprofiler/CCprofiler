@@ -1,30 +1,71 @@
-#' Estimate statistics based on decoy model.
-#' @description Estimate statistics based on decoy model.
-#' @param complex_features data.table containing filtered complex feature results.
+
+#' Estimate decoy based featureFinding FDR.
+#' @description Estimate FDR statistics based on a decoy model after feature finding.
+#' @param features data.table containing filtered complex feature results.
 #' @return List with stats
 #' @export
-estimateDecoyFDR <- function(complex_features,grid_search_list=FALSE){
-  if("complex_id" %in% names(complex_features)){
-    complexes <- complex_features$complex_id
-  } else if ("protein_id" %in% names(complex_features)) {
-    complexes <- complex_features$protein_id
+#' @examples 
+#' 
+#-----------------------------
+## Complex Features
+#-----------------------------
+
+## Load example data
+exampleHypotheses <- generateComplexDecoys(target_hypotheses = exampleComplexHypotheses,
+                                           dist_info = calculatePathlength(exampleComplexHypotheses),
+                                           min_distance = 2, append =  TRUE)
+## Perform the complex Feature search
+complexFeatures <- findComplexFeatures(traces = exampleProteinTraces,
+                                       complex_hypothesis = exampleHypotheses)
+## estimate the FDR
+estimateDecoyFDR(pf_td, grid_search_list = T, FFT = 1)
+
+#-----------------------------
+## Protein Features
+#-----------------------------
+
+## Load example data
+pepTraces <- examplePeptideTraces
+
+## Generate decoy traces
+PepTracesDecoys <- generateRandomPepTraces(examplePeptideTraces,
+                                           append = TRUE)
+## Perform the complex Feature search
+proteinFeatures <- findProteinFeatures(traces = PepTracesDecoys,
+                                       parallelized = TRUE,
+                                       n_cores = 4)
+## estimate the FDR
+estimateDecoyFDR(complexFeatures, FFT = 1)
+
+
+estimateDecoyFDR <- function(features,
+                              FFT = 1){
+  
+  if("complex_id" %in% names(features)){
+    complexes <- features$complex_id
+  } else if ("protein_id" %in% names(features)) {
+    complexes <- features$protein_id
   } else {
     message("not a valid search result")
   }
-  decoys = complexes[grep("DECOY",complexes)]
-  targets = complexes[!complexes %in% decoys]
+  decoy_ind <- grepl("DECOY",complexes)
+  decoys <- complexes[decoy_ind]
+  targets = complexes[!decoy_ind]
   if(!length(decoys)>0){
     message("No decoy features found. Please check if decoys were available in the complex hypotheses.")
     FDR = 0
   } else {
     # estimate FDR based on detected decoys
-    FDR = length(decoys)/length(targets)
+    FDR = (FFT *length(decoys)) / length(targets)
   }
   # estimate number of true positive complexes by correcting with the estimated FDR
   P = length(targets)
   TP = length(targets)*(1-FDR)
-  if(grid_search_list){
-    list(FDR=FDR,TP=TP,P=P,corr=unique(complex_features$corr),window=unique(complex_features$window),rt_height=unique(complex_features$rt_height),smoothing_length=unique(complex_features$smoothing_length),peak_corr_cutoff=unique(complex_features$peak_corr_cutoff),completeness_cutoff=unique(complex_features$completeness_cutoff),n_subunits_cutoff=unique(complex_features$n_subunits_cutoff))
+  
+  #output
+  cols <- names(features)
+  if("corr" %in% cols & "window" %in% cols){
+    list(FDR=FDR,TP=TP,P=P,corr=unique(features$corr),window=unique(features$window),rt_height=unique(features$rt_height),smoothing_length=unique(features$smoothing_length),peak_corr_cutoff=unique(features$peak_corr_cutoff),completeness_cutoff=unique(features$completeness_cutoff),n_subunits_cutoff=unique(features$n_subunits_cutoff))
   } else {
     list(FDR=FDR,TP=TP,P=P)
   }
@@ -33,63 +74,83 @@ estimateDecoyFDR <- function(complex_features,grid_search_list=FALSE){
 #' Perform complex feature grid search
 #' @description Perform complex feature grid search.
 #' @param traces traces object of type protein
-#' @param calibration list of two functions for calibration
-#' @param corrs numeric vector
-#' @param windows numeric vector
-#' @param smoothing numeric vector
-#' @param rt_heights numeric vector
-#' @param parallelized logical default=TRUE
-#' @param n_cores numeric number of cores to use if parallelized (default=1)
+#' @param corrs Numeric, vector of correlation_cutoff values to test
+#' @param windows Numeric, vector of window_size values to test
+#' @param smoothing Numeric, vector of smoothing_length values to test
+#' @param rt_heights Numeric, vector of rt_height values to test
+#' Default=\code{TRUE}
+#' @param n_cores Numeric, number of cores to use
+#' (if parallelized is \code{TRUE}) (default=1)
 #' @return List with stats
 #' @export
+#' @examples 
+#' 
+## Load example data
+#' exampleTraces <- exampleProteinTraces
+#' complexHypotheses <- exampleComplexHypotheses
+#' ## Perform a small grid search for 2 parameter combinations
+#' gridList <- performComplexGridSearch(traces = exampleTraces,
+#'                          complex_hypothesis = complexHypotheses,
+#'                          corrs = c(0.5, 0.9),
+#'                          windows = 10,
+#'                          smoothing = 7,
+#'                          rt_heights = 4,
+#'                          n_cores = 4)
+#' 
+
 performComplexGridSearch <- function(traces,
                                     complex_hypothesis,
-                                    calibration,
                                     corrs = c(0.5,0.75,0.9,0.95),
                                     windows = c(8,10,12),
                                     smoothing = c(7,9,11),
                                     rt_heights = c(3,4,5),
-                                    parallelized = TRUE,
-                                    n_cores=1
-                                    ){
-  parameter_grid <- expand.grid(corrs,windows,smoothing,rt_heights)
+                                    n_cores=1){
+  
+  parameter_grid <- as.data.table(expand.grid(corrs,windows,smoothing,rt_heights))
   names(parameter_grid) <- c("corr","window","smoothing","rt_height")
+  
   cl <- snow::makeCluster(n_cores)
-  # setting a seed is absolutely crutial to ensure reproducible results!!!!!!!!!!!!!!!!!!!
+  # setting a seed is absolutely crutial to ensure reproducible results!
   clusterSetRNGStream(cl,123)
   doSNOW::registerDoSNOW(cl)
   clusterEvalQ(cl,library(SECprofiler,data.table))
-  data <- list()
-  data <- c(data,parRapply(cl,parameter_grid,FUN=runGridComplexFeatureFinding,protTraces=traces,calibration=calibration,complex_hypothesis=complex_hypothesis))
+  data <- parRapply(cl,parameter_grid,
+                           FUN = .runGridComplexFeatureFinding,
+                           protTraces = traces,
+                           complex_hypothesis = complex_hypothesis)
   stopCluster(cl)
-  data
+
+  return(data)
 }
 
-runGridComplexFeatureFinding <- function(params,protTraces,calibration,complex_hypothesis) {
-  res = findComplexFeatures(traces=protTraces,
-                            complex_hypothesis = complex_hypothesis,
-                            calibration = calibration,
-                            corr_cutoff = as.numeric(params["corr"]),
-                            window_size = as.numeric(params["window"]),
-                            parallelized = FALSE,
-                            collapse_method="apex_network",
-                            perturb_cutoff="1%",
-                            rt_height=as.numeric(params["rt_height"]),
-                            smoothing_length=as.numeric(params["smoothing"])
-                            )
-  res[,corr:=as.numeric(params["corr"])]
-  res[,window:=as.numeric(params["window"])]
-  res[,rt_height:=as.numeric(params["rt_height"])]
-  res[,smoothing_length:=as.numeric(params["smoothing"])]
+.runGridComplexFeatureFinding <- function(params,
+                                         protTraces,
+                                         complex_hypothesis) {
+  res <- findComplexFeatures(traces=protTraces,
+                             complex_hypothesis = complex_hypothesis,
+                             corr_cutoff = as.numeric(params["corr"]),
+                             window_size = as.numeric(params["window"]),
+                             parallelized = FALSE,
+                             collapse_method="apex_network",
+                             perturb_cutoff="1%",
+                             rt_height=as.numeric(params["rt_height"]),
+                             smoothing_length=as.numeric(params["smoothing"]))
+  
+  res$corr <- as.numeric(params["corr"])
+  res$window <- as.numeric(params["window"])
+  res$rt_height <- as.numeric(params["rt_height"])
+  res$smoothing_length <- as.numeric(params["smoothing"])
   #saveRDS(res,file=paste0("complexFeatures/complexFeatures_",name,".rda"))
   res[]
 }
 
 #' Perform complex feature grid search filter
 #' @description Perform complex feature grid search filter.
-#' @param complex_features data.table containing filtered complex feature results.
+#' @param grid_search_results data.table containing filtered complex feature results.
 #' @return List with stats
 #' @export
+#' 
+
 filterGridSearchResults <- function(grid_search_results,
                                     peak_corr_cutoffs = c(0.5,0.75,0.9),
                                     completeness_cutoffs = c(0,0.5,1),
@@ -99,7 +160,9 @@ filterGridSearchResults <- function(grid_search_results,
   parameter_grid <- expand.grid(peak_corr_cutoffs,completeness_cutoffs,n_subunits_cutoffs)
   names(parameter_grid) <- c("peak_corr_cutoffs","completeness_cutoffs","n_subunits_cutoffs")
   data <- list()
-  data <- c(data,unlist(lapply(grid_search_results,helperFilterByParams,params=parameter_grid,remove_decoys=remove_decoys),recursive=FALSE))
+  data <- c(data,unlist(lapply(grid_search_results,helperFilterByParams,
+                               params = parameter_grid,
+                               remove_decoys = remove_decoys),recursive=FALSE))
   data
 }
 
