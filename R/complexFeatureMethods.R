@@ -1,5 +1,6 @@
 #' Plot pie chart with complex hypothesis completeness
 #' @description Plot pie chart showing the number of complex hypotheses with co-elution features of certain completenes.
+#' This is only taking into account targets. If decoys are present they are removed using "DECOY" as a flag.
 #' @import data.table
 #' @param complexFeatures data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}} 
 #' or \code{\link[SECprofiler]{findProteinFeatures}}.
@@ -22,29 +23,33 @@
 #' plotSummarizedComplexes(complexFeatures=complexFeatures, hypotheses=complexHypotheses, protTraces=proteinTraces)
 #' @export
 plotSummarizedComplexes <- function(complexFeatures,hypotheses,protTraces,PDF=FALSE,name="complex_completeness_pie"){
-  proteins_in_hypotheses <- unique(hypotheses$protein_id)
+  targetFeatures <- copy(complexFeatures)
+  targetHypotheses <- copy(hypotheses)
+  targetFeatures <- targetFeatures[grep("DECOY",targetFeatures$complex_id,invert=TRUE)]
+  targetHypotheses <- targetHypotheses[grep("DECOY",targetHypotheses$complex_id,invert=TRUE)]
+  proteins_in_targetHypotheses <- unique(targetHypotheses$protein_id)
   proteins_in_traces <- unique(protTraces$traces$id)
-  hypotheses[,annotated:=1]
-  hypotheses[,detected:=ifelse(protein_id %in% proteins_in_traces, 1, 0)]
-  #hypotheses[,protein_collapsed := paste(protein_id,collapse=";"),by=complex_id]
-  hypotheses[,annotated_collapsed := sum(annotated),by=complex_id]
-  hypotheses[,detected_collapsed := sum(detected),by=complex_id]
-  hypotheses[,ms_completeness := detected_collapsed/annotated_collapsed,by=complex_id]
-  unique_hypotheses <- unique(hypotheses,by="complex_id")
-  unique_hypotheses_50 <- subset(unique_hypotheses,ms_completeness >= 0.5)
+  targetHypotheses[,annotated:=1]
+  targetHypotheses[,detected:=ifelse(protein_id %in% proteins_in_traces, 1, 0)]
+  #targetHypotheses[,protein_collapsed := paste(protein_id,collapse=";"),by=complex_id]
+  targetHypotheses[,annotated_collapsed := sum(annotated),by=complex_id]
+  targetHypotheses[,detected_collapsed := sum(detected),by=complex_id]
+  targetHypotheses[,ms_completeness := detected_collapsed/annotated_collapsed,by=complex_id]
+  unique_targetHypotheses <- unique(targetHypotheses,by="complex_id")
+  unique_targetHypotheses_50 <- subset(unique_targetHypotheses,ms_completeness >= 0.5)
 
-  complexFeatures <- getBestFeatures(complexFeatures)
-  complexFeatures_min50 <- subset(complexFeatures,(completeness>=0.5) & (completeness<1))
-  complexFeatures_100 <- subset(complexFeatures,completeness==1)
-  complexFeatures_lower50 <- subset(complexFeatures,completeness<0.5)
+  targetFeatures <- getBestFeatures(targetFeatures)
+  targetFeatures_min50 <- subset(targetFeatures,(completeness>=0.5) & (completeness<1))
+  targetFeatures_100 <- subset(targetFeatures,completeness==1)
+  targetFeatures_lower50 <- subset(targetFeatures,completeness<0.5)
 
-  complexFeatures_noDecoys <- complexFeatures[grep("DECOY",complexFeatures$complex_id,invert=TRUE)]
+  #complexFeatures_noDecoys <- complexFeatures[grep("DECOY",complexFeatures$complex_id,invert=TRUE)]
   complexCompletenessSummary <- data.table(name=c("no co-elution","co-elution\n(< 50% complete)","co-elution\n(>= 50% complete)","co-elution\n(100% complete)"),
                                         count=c(
-                                          sum(!(unique_hypotheses_50$complex_id %in% complexFeatures$complex_id)),
-                                          sum(unique_hypotheses_50$complex_id %in% complexFeatures_lower50$complex_id),
-                                          sum(unique_hypotheses_50$complex_id %in% complexFeatures_min50$complex_id),
-                                          sum(unique_hypotheses_50$complex_id %in% complexFeatures_100$complex_id)
+                                          sum(!(unique_targetHypotheses_50$complex_id %in% targetFeatures$complex_id)),
+                                          sum(unique_targetHypotheses_50$complex_id %in% targetFeatures_lower50$complex_id),
+                                          sum(unique_targetHypotheses_50$complex_id %in% targetFeatures_min50$complex_id),
+                                          sum(unique_targetHypotheses_50$complex_id %in% targetFeatures_100$complex_id)
                                           )
                                         )
 
@@ -59,7 +64,8 @@ plotSummarizedComplexes <- function(complexFeatures,hypotheses,protTraces,PDF=FA
 
 #' Scatter plot of complex completeness
 #' @description Plot the number of observed co-eluting subunits over the number of subunits 
-#' in the hypothesis, colour-coded by the completeness.
+#' in the hypothesis, colour-coded by the completeness. This is only taking into account targets. 
+#' If decoys are present they are removed using "DECOY" as a flag.
 #' @import data.table
 #' @import ggplot2
 #' @param complexFeatures data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}} 
@@ -74,12 +80,13 @@ plotSummarizedComplexes <- function(complexFeatures,hypotheses,protTraces,PDF=FA
 #' plotComplexCompletenessScatter(complexFeatures)
 #' @export
 plotComplexCompletenessScatter <- function(complexFeatures,PDF=FALSE,name="complex_completeness_scatter"){
-  complexFeatures <- getBestFeatures(complexFeatures)
-  complexFeatures <- complexFeatures[grep("DECOY",complexFeatures$complex_id,invert=TRUE)]
+  targetFeatures <- copy(complexFeatures)
+  targetFeatures <- getBestFeatures(targetFeatures)
+  targetFeatures <- targetFeatures[grep("DECOY",targetFeatures$complex_id,invert=TRUE)]
   if(PDF){
     pdf(gsub("$|\\.pdf$", ".pdf", name))
   }
-  p <- ggplot(data=complexFeatures,aes(x=n_subunits_annotated,y=n_subunits_detected,colour=completeness)) +
+  p <- ggplot(data=targetFeatures,aes(x=n_subunits_annotated,y=n_subunits_detected,colour=completeness)) +
     geom_point() +
     geom_abline(intercept=0,slope=1) +
     geom_abline(intercept=0,slope=0.5, linetype=2) +

@@ -1,5 +1,6 @@
 #' Summarize co-elution features
 #' @description Summarize co-elution features
+#' This is only taking into account targets. If decoys are present they are removed using "DECOY" as a flag.
 #' @param feature_table data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}} 
 #' or \code{\link[SECprofiler]{findProteinFeatures}}.
 #' @param plot Logical, whether to generate a feature summary plot. Default is \code{TRUE}.
@@ -30,6 +31,7 @@ summarizeFeatures <- function(feature_table,
   } else {
     stop("This is no protein or complex feature table. Please provide features from findComplexFeatures or findProteinFeatures.")
   }
+  features <- features[grep("DECOY",features$complex_id,invert=TRUE)]
   totalConfirmedHypotheses <- length(unique(features$complex_id))
   totalFeatures <- nrow(features)
   features[ , `:=`( COUNT = .N , IDX = 1:.N ) , by = complex_id ]

@@ -1,7 +1,5 @@
 context("proteinQuantification")
 
-
-
 ## Sum the intensities of the top 2 peptides to get protein intensities
 protTracesFilt <- proteinQuantification(examplePeptideTracesFiltered,
                                     topN = 2)
@@ -26,8 +24,9 @@ test_that("Output format",{
   testthat::expect_identical(protTracesSpc$trace_annotation[, !"SibPepCorr_protein_mean", with = FALSE],
                              protTraces$trace_annotation)
   ## Test if mean SibPepCorr was correctly calculated
-  testthat::expect_equal(examplePeptideTracesSpc$trace_annotation[protein_id == "Q9Y316", mean(SibPepCorr)],
-                         protTracesSpc$trace_annotation[protein_id == "Q9Y316", SibPepCorr_protein_mean])
+  testProt <- examplePeptideTracesSpc$trace_annotation$protein_id[1]
+  testthat::expect_equal(examplePeptideTracesSpc$trace_annotation[protein_id == testProt, mean(SibPepCorr)],
+                         protTracesSpc$trace_annotation[protein_id == testProt, SibPepCorr_protein_mean])
   ## Test against example data
   testthat::expect_equal(protTracesFilt, exampleProteinTraces)
 })
