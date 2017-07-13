@@ -33,6 +33,7 @@
 #'                                      rt_heights = 4,
 #'                                      n_cores = 4)
 #' 
+
 performProteinGridSearch <- function(traces,
                                     corrs = c(0.5,0.75,0.9,0.95),
                                     windows = c(8,10,12),
@@ -68,9 +69,9 @@ performProteinGridSearch <- function(traces,
                             smoothing_length=as.numeric(params["smoothing"]),
                             useRandomDecoyModel=TRUE)
   
-  res[,corr:=as.numeric(params["corr"])]
-  res[,window:=as.numeric(params["window"])]
-  res[,rt_height:=as.numeric(params["rt_height"])]
-  res[,smoothing_length:=as.numeric(params["smoothing"])]
+  # res[,corr:=as.numeric(params["corr"])]
+  # res[,window:=as.numeric(params["window"])]
+  # res[,rt_height:=as.numeric(params["rt_height"])]
+  # res[,smoothing_length:=as.numeric(params["smoothing"])]
   res[]
 }

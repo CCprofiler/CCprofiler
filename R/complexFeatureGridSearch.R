@@ -12,18 +12,18 @@
 #' @export
 #' @examples 
 #' 
-# ## Load example data
-# proteinTraces <- exampleProteinTraces
-# complexHypotheses <- exampleComplexHypotheses
-# ## Perform a small grid search for 2 parameter combinations
-# gridList <- performComplexGridSearch(traces = proteinTraces,
-#                          complex_hypothesis = complexHypotheses,
-#                          corrs = c(0.5, 0.9),
-#                          windows = 10,
-#                          smoothing = 7,
-#                          rt_heights = 4,
-#                          n_cores = 4)
-
+#' # ## Load example data
+#' proteinTraces <- exampleProteinTraces
+#' complexHypotheses <- exampleComplexHypotheses
+#' ## Perform a small grid search for 2 parameter combinations
+#' gridList <- performComplexGridSearch(traces = proteinTraces,
+#'                          complex_hypothesis = complexHypotheses,
+#'                          corrs = c(0.5, 0.9),
+#'                          windows = 10,
+#'                          smoothing = 7,
+#'                          rt_heights = 4,
+#'                          n_cores = 4)
+#' 
 
 performComplexGridSearch <- function(traces,
                                      complex_hypothesis,
