@@ -18,21 +18,21 @@
 #' @export
 #' @examples  
 #' 
-#'  ## Load example data and subset to reduce runtime
-#'  peptideTraces <- examplePeptideTraces
-#'  peptideTraces <- subset(peptideTraces,
-#'                          trace_subset_ids = unique(peptideTraces$trace_annotation$protein_id)[2:3],
-#'                          trace_subset_type = "protein_id")
-#'  
-#'  ## Perform a small grid search for 2 parameter combinations
-#'  # Depending on the computational resources this can take several minutes
-#'  gridList <- performProteinGridSearch(traces = peptideTraces,
-#'                                       corrs = c(0.5, 0.9),
-#'                                       windows = 12,
-#'                                       smoothing = 9,
-#'                                       rt_heights = 5,
-#'                                       n_cores = 4)
-#'  
+#' ## Load example data and subset to reduce runtime
+#' peptideTraces <- examplePeptideTraces
+#' peptideTraces <- subset(peptideTraces,
+#'                         trace_subset_ids = unique(peptideTraces$trace_annotation$protein_id)[2:3],
+#'                         trace_subset_type = "protein_id")
+#' 
+#' ## Perform a small grid search for 2 parameter combinations
+#' # Depending on the computational resources this can take several minutes
+#' gridList <- performProteinGridSearch(traces = peptideTraces,
+#'                                      corrs = c(0.5, 0.9),
+#'                                      windows = 12,
+#'                                      smoothing = 9,
+#'                                      rt_heights = 5,
+#'                                      n_cores = 2)
+#' 
 
 performProteinGridSearch <- function(traces,
                                     corrs = c(0.5,0.75,0.9,0.95),
@@ -44,6 +44,10 @@ performProteinGridSearch <- function(traces,
                                     ){
   parameter_grid <- expand.grid(corrs,windows,smoothing,rt_heights)
   names(parameter_grid) <- c("corr","window","smoothing","rt_height")
+  if(n_cores > nrow(parameter_grid)){
+    n_cores <- nrow(parameter_grid)
+    message(paste0("Only ",n_cores," required for parallelization. Using ",n_cores," cores."))
+  }
   cl <- snow::makeCluster(n_cores)
   # setting a seed is absolutely crutial to ensure reproducible results!
   clusterSetRNGStream(cl,123)

@@ -22,7 +22,7 @@
 #'                          windows = 10,
 #'                          smoothing = 7,
 #'                          rt_heights = 4,
-#'                          n_cores = 4)
+#'                          n_cores = 2)
 #' 
 
 performComplexGridSearch <- function(traces,
@@ -35,6 +35,10 @@ performComplexGridSearch <- function(traces,
   
   parameter_grid <- as.data.table(expand.grid(corrs,windows,smoothing,rt_heights))
   names(parameter_grid) <- c("corr","window","smoothing","rt_height")
+  if(n_cores > nrow(parameter_grid)){
+    n_cores <- nrow(parameter_grid)
+    message(paste0("Only ",n_cores," required for parallelization. Using ",n_cores," cores."))
+  }
   
   cl <- snow::makeCluster(n_cores)
   # setting a seed is absolutely crutial to ensure reproducible results!
