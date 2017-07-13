@@ -24,6 +24,7 @@ summarizeFeatures <- function(feature_table,
   features <- copy(feature_table)
   if ("protein_id" %in% names(features)){
     type <- "protein"
+    setnames(features,"protein_id","complex_id")
   } else if ("complex_id" %in% names(features)){
     type <- "complex"
   } else {
@@ -32,8 +33,8 @@ summarizeFeatures <- function(feature_table,
   totalConfirmedHypotheses <- length(unique(features$complex_id))
   totalFeatures <- nrow(features)
   features[ , `:=`( COUNT = .N , IDX = 1:.N ) , by = complex_id ]
-  setkey(features, "complex_id")
-  feature_count_max <- unique(features)$COUNT
+  # setkey(features, "complex_id")
+  feature_count_max <- unique(features, by = "complex_id")$COUNT
   summaryFeatureCount <- summary(feature_count_max) 
   totalHypothesesWithMultipleFeatures <- length(which(feature_count_max>=2))
   summaryCorrelation <- summary(features$peak_corr)
@@ -280,12 +281,21 @@ filterByStepwiseCompleteness <- function(feature_table,
   if (length(completeness_vector) != 2) {
     stop("The completeness vector should contain m=2 values.")
   }
-  subset_small <- subset(feature_table, n_subunits_annotated <= min_subunits_annotated)
-  subset_big <- subset(feature_table, n_subunits_annotated > min_subunits_annotated)
+  features <- copy(feature_table)
+  if ("protein_id" %in% names(features)){
+    type <- "protein"
+    setnames(features,"protein_id","complex_id")
+  } else if ("complex_id" %in% names(features)){
+    type <- "complex"
+  } else {
+    stop("This is no protein or complex feature table. Please provide features from findComplexFeatures or findProteinFeatures.")
+  }
+  subset_small <- subset(features, n_subunits_annotated <= min_subunits_annotated)
+  subset_big <- subset(features, n_subunits_annotated > min_subunits_annotated)
   if (level=="hypothesis") {
     allowed_ids_small <- subset_small[completeness>=completeness_vector[1],unique(complex_id)]
     allowed_ids_big <- subset_big[completeness>=completeness_vector[2],unique(complex_id)]
-    features_filtered <- subset(feature_table,complex_id %in% c(allowed_ids_small,allowed_ids_big))
+    features_filtered <- subset(features,complex_id %in% c(allowed_ids_small,allowed_ids_big))
     return(features_filtered)
   } else if (level=="feature") {
     subset_small <- subset(subset_small,completeness>=completeness_vector[1])
