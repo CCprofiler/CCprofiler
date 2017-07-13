@@ -4,14 +4,12 @@
 \alias{performProteinGridSearch}
 \title{Perform Protein feature grid search}
 \usage{
-performProteinGridSearch(traces, calibration, corrs = c(0.5, 0.75, 0.9, 0.95),
+performProteinGridSearch(traces, corrs = c(0.5, 0.75, 0.9, 0.95),
   windows = c(8, 10, 12), smoothing = c(7, 9, 11), rt_heights = c(3, 4,
   5), parallelized = TRUE, n_cores = 1)
 }
 \arguments{
 \item{traces}{traces object of type peptide}
-
-\item{calibration}{list of two functions for calibration}
 
 \item{corrs}{numeric vector}
 
@@ -24,10 +22,37 @@ performProteinGridSearch(traces, calibration, corrs = c(0.5, 0.75, 0.9, 0.95),
 \item{parallelized}{logical default=TRUE}
 
 \item{n_cores}{numeric number of cores to use if parallelized (default=1)}
+
+\item{calibration}{list of two functions for calibration}
 }
 \value{
 List with stats
 }
 \description{
-Perform Protein feature grid search.
+Perform Protein feature finding (calls \code{\link{findProteinFeatures}})
+with all possible combinations of the specified parameters (grid search).
+}
+\details{
+The runtime of this function scales with the binomial coefficient of the total 
+number of parameters specified, and can therefore take a long time. If many parameter combinations
+are searched parallelization is strongly recommended.
+}
+\examples{
+ 
+
+ ## Load example data and subset to reduce runtime
+ peptideTraces <- examplePeptideTraces
+ peptideTraces <- subset(peptideTraces,
+                         trace_subset_ids = unique(peptideTraces$trace_annotation$protein_id)[2:3],
+                         trace_subset_type = "protein_id")
+ 
+ ## Perform a small grid search for 2 parameter combinations
+ # Depending on the computational resources this can take several minutes
+ gridList <- performProteinGridSearch(traces = peptideTraces,
+                                      corrs = c(0.5, 0.9),
+                                      windows = 12,
+                                      smoothing = 9,
+                                      rt_heights = 5,
+                                      n_cores = 4)
+ 
 }

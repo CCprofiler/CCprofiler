@@ -5,7 +5,7 @@
 \title{Import peptide profiles from an OpenSWATH experiment.}
 \usage{
 importFromOpenSWATH(data, annotation_table, rm_requantified = TRUE,
-  rm_decoys = FALSE, MS1Quant = FALSE)
+  rm_decoys = FALSE, MS1Quant = FALSE, verbose = TRUE)
 }
 \arguments{
 \item{data}{Quantitative MS data in form of OpenSWATH result file or R data.table.}
@@ -14,12 +14,14 @@ importFromOpenSWATH(data, annotation_table, rm_requantified = TRUE,
 `fraction_number` that map the file names (occuring in input table filename column)
 `to a SEC elution fraction.}
 
-\item{rm_requantified}{Whether requantified (noise) peak group quantities
-(as indicated by m_score = 2) should be removed, defaults to TRUE.}
+\item{rm_requantified}{Logical, whether requantified (noise) peak group quantities
+(as indicated by m_score = 2) should be removed, defaults to \code{TRUE}.}
 
-\item{rm_decoys}{Whether decoys should be removed, defaults to FALSE.}
+\item{rm_decoys}{Logical, whether decoys should be removed, defaults to \code{FALSE}.}
 
-\item{MS1Quant}{Wheather MS1 quantification should be used, defaults to FALSE.}
+\item{MS1Quant}{Logical, whether MS1 quantification should be used, defaults to \code{FALSE}.}
+
+\item{verbose}{Logical, whether to print progress message into console, defaults to \code{TRUE}.}
 }
 \value{
 An object of class Traces containing
@@ -36,7 +38,7 @@ This is a convenience function to directly import peptide profiles
   annotation <- exampleFractionAnnotation
   traces <- importFromOpenSWATH(data = input_data,
                                 annotation_table = annotation,
-                                rm_requantified = T)
+                                rm_requantified = TRUE)
   summary(traces)
-  
+
 }

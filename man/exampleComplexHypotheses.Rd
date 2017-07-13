@@ -4,7 +4,7 @@
 \name{exampleComplexHypotheses}
 \alias{exampleComplexHypotheses}
 \title{A sample data.table that holds information on example protein complex hypotheses.}
-\format{An object of class \code{data.table} (inherits from \code{data.frame}) with 105 rows and 3 columns.}
+\format{An object of class \code{data.table} (inherits from \code{data.frame}) with 228 rows and 3 columns.}
 \usage{
 exampleComplexHypotheses
 }

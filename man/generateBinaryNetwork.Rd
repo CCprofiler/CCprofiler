@@ -2,16 +2,32 @@
 % Please edit documentation in R/generateHypotheses.R
 \name{generateBinaryNetwork}
 \alias{generateBinaryNetwork}
-\title{generateBinaryNetwork}
+\title{Generate a binary network from complexes.}
 \usage{
-generateBinaryNetwork(complex_hypothesis)
+generateBinaryNetwork(complex_hypotheses)
 }
 \arguments{
-\item{complex_hypothesis}{data.table in the format of complex hypotheses}
+\item{complex_hypotheses}{data.table specifying complex hypotheses.
+Must have the following columns:
+\itemize{
+\item complex_id: character strings, a unique id for every complex
+\item protein_id: character strings, the protein id, e.g. Uniprot id
+}}
 }
 \value{
 data.table with binary interactions between "a" and "b"
 }
 \description{
 Generate binary network from concrete complex hypotheses (e.g. CORUM).
+}
+\examples{
+## Load example Data
+complexHypotheses <- exampleComplexHypotheses
+
+## Generate the binary network
+binaryInteractions <- generateBinaryNetwork(complex_hypotheses = complexHypotheses)
+##Inspect the result
+binaryInteractions
+
+
 }
