@@ -31,10 +31,10 @@
 #'
 #' ## Filter the raw traces object to a protein FDR of 1%
 #'   tracesFiltered <- filterBySibPepCorr(traces = tracesRaw,
-#'                                        fdr_cutoff = 0.01,
+#'                                        fdr_cutoff = NULL,
 #'                                        fdr_type = "protein",
-#'                                        FFT = 0.4,
-#'                                        absolute_spcCutoff = NULL,
+#'                                        FFT = 1,
+#'                                        absolute_spcCutoff = 0.2,
 #'                                        rm_decoys = FALSE,
 #'                                        plot = TRUE,
 #'                                        CSV = FALSE)
@@ -53,10 +53,10 @@
 #'
 #' ## Filter the raw traces object to a protein FDR of 1%
 #' tracesFiltered <- filterBySibPepCorr(traces = tracesRawSpc,
-#'                                      fdr_cutoff = 0.01,
+#'                                      fdr_cutoff = NULL,
 #'                                      fdr_type = "protein",
-#'                                      FFT = 0.4,
-#'                                      absolute_spcCutoff = NULL,
+#'                                      FFT = 1,
+#'                                      absolute_spcCutoff = 0.2,
 #'                                      rm_decoys = FALSE,
 #'                                      plot = TRUE,
 #'                                      PDF = FALSE,
@@ -90,26 +90,33 @@ filterBySibPepCorr <- function(traces,
 
   # get spcCutoff from FDR estimation or direct
   decoysContained = length(grep("^DECOY_", traces$trace_annotation$protein_id)) > 0
-  if (decoysContained){
-    message("Decoys found...\nEstimating FDR...")
-    roctable <- rocSibPepCorr(traces, fdr_type = fdr_type, FFT = FFT, plot = FALSE)
-    if(fdr_type == "protein"){
-      cutoffForFdr <- roctable[proteinFDR <= fdr_cutoff, min(SibPepCorr_cutoff)]
-      fdrReached <- roctable[proteinFDR <= fdr_cutoff, max(proteinFDR)]
-      targetProteinsRemaining <- roctable[proteinFDR <= fdr_cutoff, max(n_targetProteins)]
-      message("Using SibCorrCutoff of ", round(cutoffForFdr, 4), "\nestimated protein FDR reached: ", round(fdrReached, 4))
-    }else if(fdr_type == "peptide"){
-      cutoffForFdr <- roctable[peptideFDR <= fdr_cutoff, min(SibPepCorr_cutoff)]
-      fdrReached <- roctable[peptideFDR <= fdr_cutoff, max(peptideFDR)]
-      targetProteinsRemaining <- roctable[peptideFDR <= fdr_cutoff, max(n_targetProteins)]
-      targetPeptidesRemaining <- roctable[peptideFDR <= fdr_cutoff, max(n_targetPeptides)]
-      message("Using SibCorrCutoff of ", round(cutoffForFdr, 4), "\nestimated FDR reached: ", round(fdrReached, 4))
+  if (!is.null(fdr_cutoff)){
+    if (decoysContained){
+      message("Decoys found...\nEstimating FDR...")
+      roctable <- rocSibPepCorr(traces, fdr_type = fdr_type, FFT = FFT, plot = FALSE)
+      if(fdr_type == "protein"){
+        cutoffForFdr <- roctable[proteinFDR <= fdr_cutoff, min(SibPepCorr_cutoff)]
+        fdrReached <- roctable[proteinFDR <= fdr_cutoff, max(proteinFDR)]
+        targetProteinsRemaining <- roctable[proteinFDR <= fdr_cutoff, max(n_targetProteins)]
+        message("Using SibCorrCutoff of ", round(cutoffForFdr, 4), "\nestimated protein FDR reached: ", round(fdrReached, 4))
+      }else if(fdr_type == "peptide"){
+        cutoffForFdr <- roctable[peptideFDR <= fdr_cutoff, min(SibPepCorr_cutoff)]
+        fdrReached <- roctable[peptideFDR <= fdr_cutoff, max(peptideFDR)]
+        targetProteinsRemaining <- roctable[peptideFDR <= fdr_cutoff, max(n_targetProteins)]
+        targetPeptidesRemaining <- roctable[peptideFDR <= fdr_cutoff, max(n_targetPeptides)]
+        message("Using SibCorrCutoff of ", round(cutoffForFdr, 4), "\nestimated FDR reached: ", round(fdrReached, 4))
+      }
+      spcCutoff <- cutoffForFdr
+    } else if (is.null(absolute_spcCutoff)){
+      message("No decoys found...\nPlease supply argument absolute_spcCutoff or label decoy protein_ids with DECOY_ prefix")
+    } else{
+      message("No Decoys found...Using absulte_spcCutoff: ", absolute_spcCutoff)
+      spcCutoff <- absolute_spcCutoff
     }
-    spcCutoff <- cutoffForFdr
   } else if (is.null(absolute_spcCutoff)){
-    message("No decoys found...\nPlease supply argument absolute_spcCutoff or label decoy protein_ids with DECOY_ prefix")
+    message("No fdr_cutoff or absolute_spcCutoff provided.")
   } else{
-    message("No Decoys found...Using absulte_spcCutoff: ", absolute_spcCutoff)
+    message("No fdr_cutoff provided...Using absulte_spcCutoff: ", absolute_spcCutoff)
     spcCutoff <- absolute_spcCutoff
   }
 
@@ -183,12 +190,14 @@ filterBySibPepCorr <- function(traces,
   }
   ## CSV
   if (CSV){
-    write.csv(roctable, file = "SibPepCorrFilter_IDFDRtable.csv", row.names = FALSE, quote = FALSE)
+    if (!is.null(fdr_cutoff)) {
+      write.csv(roctable, file = "SibPepCorrFilter_IDFDRtable.csv", row.names = FALSE, quote = FALSE)
+    }
     write.csv(SibPepCorrFilterReport, file = "SibPepCorrFilterReport.csv", row.names = FALSE, quote = FALSE)
   }
 
   # PDF/ROC-like plot
-  if (decoysContained){
+  if (decoysContained & !is.null(fdr_cutoff)){
     if (PDF){
       pdf("SibPepCorrFilter_IDFDRplot.pdf")
     }
