@@ -2,8 +2,8 @@ context("tracesMethods")
 
 test_that("subset.traces",{
   ## get data for tests
-  subsetPeptides <- c("AIIDEFEQK","AIQLSGAEQLEALK","AKEALIAASETLK")
-  subsetProtein <- "Q9UHV9"
+  subsetPeptides <- examplePeptideTraces$traces$id[1:3]
+  subsetProtein <- examplePeptideTraces$trace_annotation$protein_id[1]
   subsetFractions <- c(5:20)
   peptideSubsettedPeptideTraces <- subset(examplePeptideTraces,trace_subset_ids=subsetPeptides,fraction_ids=subsetFractions)
   proteinSubsettedPeptideTraces <- subset(examplePeptideTraces,trace_subset_ids=subsetProtein,trace_subset_type="protein_id")
@@ -18,8 +18,8 @@ test_that("subset.traces",{
   testthat::expect_equal(length(proteinSubsettedProteinTraces$traces$id), length(subsetProtein))
   testthat::expect_equal(length(proteinSubsettedProteinTraces$trace_annotation$id), length(subsetProtein))
   ## test if subsetting by thomething other than "id" works
-  testthat::expect_equal(length(proteinSubsettedPeptideTraces$traces$id), 11)
-  testthat::expect_equal(length(proteinSubsettedPeptideTraces$trace_annotation$id), 11)
+  testthat::expect_equal(length(proteinSubsettedPeptideTraces$traces$id), 62)
+  testthat::expect_equal(length(proteinSubsettedPeptideTraces$trace_annotation$id), 62)
   ## test if traces and trace_annotation are identical (no shift in order etc)
   testthat::expect_identical(proteinSubsettedPeptideTraces$trace_annotation$id,proteinSubsettedPeptideTraces$traces$id)
   })
@@ -46,5 +46,5 @@ test_that("summary.traces",{
   testthat::expect_equal(tracesSummary$fraction_count,81)
   testthat::expect_identical(tracesSummary$annotations,
     c("protein_id","id","Entry_name","Status","Protein_names","Gene_names","Organism","Length","Mass","protein_mw"))
-  testthat::expect_equal(as.numeric(tracesSummary$metrics),c(1743,1506,237,14))
+  testthat::expect_equal(as.numeric(tracesSummary$metrics),c(1889,1612,277,15))
   })
