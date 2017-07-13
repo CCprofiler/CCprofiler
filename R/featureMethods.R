@@ -212,10 +212,10 @@ filterFeatures <- function(feature_table,
   if(!is.null(min_hypothesis_completeness)){
     if(type=="complex"){
       allowed_ids <- feature_table[completeness>=min_hypothesis_completeness, unique(complex_id)]
-      feature_table <- feature_table[complex_id %in% allowed_ids]
+      feature_table <- subset(feature_table,complex_id %in% allowed_ids)
     } else if (type=="protein") {
       allowed_ids <- feature_table[completeness>=min_hypothesis_completeness, unique(protein_id)]
-      feature_table <- feature_table[protein_id %in% allowed_ids]
+      feature_table <- subset(feature_table,protein_id %in% allowed_ids)
     }
   }
   if(!is.null(min_subunits)){
@@ -229,7 +229,7 @@ filterFeatures <- function(feature_table,
       stop("No molecular weight information available. The min_monomer_distance_factor is only a valid 
            filtering option if molecular weight information of the proteins is available.")
     }
-    dist = lapply(seq(1:nrow(feature_table)), function(i){
+    dist <- lapply(seq(1:nrow(feature_table)), function(i){
       feature=feature_table[i]
       max_monomer_mw <- max(as.numeric(strsplit(feature$monomer_mw, ';')[[1]]))
       mw_dist <- feature$apex_mw-(min_monomer_distance_factor*max_monomer_mw)
