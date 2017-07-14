@@ -1,20 +1,24 @@
 #' Perform complex feature grid search
-#' @description Perform complex feature grid search.
-#' @param traces traces object of type protein
-#' @param corrs Numeric, vector of correlation_cutoff values to test
-#' @param windows Numeric, vector of window_size values to test
-#' @param smoothing Numeric, vector of smoothing_length values to test
-#' @param rt_heights Numeric, vector of rt_height values to test
-#' Default=\code{TRUE}
-#' @param n_cores Numeric, number of cores to use
-#' (if parallelized is \code{TRUE}) (default=1)
-#' @return List with stats
+#' @description Perform complex feature finding (calls \code{\link{findComplexFeatures}})
+#' with all possible combinations of the specified parameters (grid search).
+#' @details The runtime of this function scales with the binomial coefficient of the total 
+#' number of parameters specified, and can therefore take a long time. If many parameter combinations
+#' are searched parallelization is strongly recommended.
+#' @param traces traces object of type protein.
+#' @param corrs Numeric, vector of correlation_cutoff values to test.
+#' @param windows Numeric, vector of window_size values to test.
+#' @param smoothing Numeric, vector of smoothing_length values to test.
+#' @param rt_heights Numeric, vector of rt_height values to test.
+#' @param n_cores Numeric, number of cores to use (default=1).
+#' @return List of search result tables for every possible parameter combination.
+#' The result tables contain additional columns specifying the parameters.
 #' @export
 #' @examples 
 #' 
-#' # ## Load example data
+#' ## Load example data
 #' proteinTraces <- exampleProteinTraces
 #' complexHypotheses <- exampleComplexHypotheses
+#' 
 #' ## Perform a small grid search for 2 parameter combinations
 #' gridList <- performComplexGridSearch(traces = proteinTraces,
 #'                          complex_hypothesis = complexHypotheses,
@@ -23,7 +27,8 @@
 #'                          smoothing = 7,
 #'                          rt_heights = 4,
 #'                          n_cores = 2)
-#' 
+#'                          
+#' lapply(gridList, head, n = 2)
 
 performComplexGridSearch <- function(traces,
                                      complex_hypothesis,
@@ -33,6 +38,7 @@ performComplexGridSearch <- function(traces,
                                      rt_heights = c(3,4,5),
                                      n_cores=1){
   
+  .tracesTest(traces, type = "protein")
   parameter_grid <- as.data.table(expand.grid(corrs,windows,smoothing,rt_heights))
   names(parameter_grid) <- c("corr","window","smoothing","rt_height")
   if(n_cores > nrow(parameter_grid)){

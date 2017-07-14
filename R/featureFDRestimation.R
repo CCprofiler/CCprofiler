@@ -1,6 +1,12 @@
 #' Estimate decoy based featureFinding FDR.
 #' @description Estimate FDR statistics based on a decoy model after feature finding.
 #' @param features data.table containing filtered complex feature results.
+#' @param FFT Numeric, fraction of false targets. Only useful in special cases, should not
+#' be altered in a generic workflow. Defaults to \code{1}.
+#' @param grid_search_params Character vector of columns to report with the statistics for the dataset.
+#' Usually only useful for a grid search. Otherwhise the default should not be altered.
+#' Default = \code{NULL}.
+#' @param verbose Logical, wether to print messages. Default = \code{TRUE}.
 #' @return List with stats
 #' @export
 #' @examples 
@@ -26,7 +32,9 @@
 #' 
 
 estimateDecoyFDR <- function(features,
-                             FFT = 1){
+                             FFT = 1,
+                             grid_search_params = NULL,
+                             verbose = TRUE){
   
   if("complex_id" %in% names(features)){
     complexes <- features$complex_id
@@ -39,7 +47,9 @@ estimateDecoyFDR <- function(features,
   decoys <- complexes[decoy_ind]
   targets <- complexes[!decoy_ind]
   if(!length(decoys)>0){
-    message("No decoy features found. Please check if decoys were available in the complex hypotheses.")
+    if(verbose){
+      message("No decoy features found. Please check if decoys were available in the complex hypotheses.")
+    }
     FDR <- 0
   } else {
     # estimate FDR based on detected decoys
@@ -49,17 +59,13 @@ estimateDecoyFDR <- function(features,
   P <- length(targets)
   TP <- length(targets)*(1-FDR)
   D <- length(decoys)
-  #output
-  cols <- names(features)
-  if("corr" %in% cols & "window" %in% cols & "rt_height" %in% cols & "smoothing_length" %in% cols& "peak_corr_cutoff" %in% cols& "completeness_cutoff" %in% cols& "n_subunits_cutoff" %in% cols){
-    list(FDR = FDR, TP = TP, P = P, D = D,
-         corr = unique(features$corr),
-         window = unique(features$window),
-         rt_height = unique(features$rt_height),
-         smoothing_length = unique(features$smoothing_length),
-         peak_corr_cutoff = unique(features$peak_corr_cutoff),
-         completeness_cutoff = unique(features$completeness_cutoff),
-         n_subunits_cutoff = unique(features$n_subunits_cutoff))
+  
+  # output
+  if(!is.null(grid_search_params)){
+    fdr_list <- list(FDR = FDR, TP = TP, P = P, D = D)
+    param_list <- lapply(grid_search_params, function(x) as.numeric(unique(features[, x, with = F])))
+    names(param_list) <- grid_search_params
+    c(fdr_list, param_list)
   } else {
     list(FDR = FDR, TP = TP, P = P, D = D)
   }

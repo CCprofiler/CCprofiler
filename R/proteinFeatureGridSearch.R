@@ -6,15 +6,14 @@
 #' number of parameters specified, and can therefore take a long time. If many parameter combinations
 #' are searched parallelization is strongly recommended.
 #' @import data.table
-#' @param traces traces object of type peptide
-#' @param calibration list of two functions for calibration
-#' @param corrs numeric vector
-#' @param windows numeric vector
-#' @param smoothing numeric vector
-#' @param rt_heights numeric vector
-#' @param parallelized logical default=TRUE
-#' @param n_cores numeric number of cores to use if parallelized (default=1)
-#' @return List with stats
+#' @param traces traces object of type protein.
+#' @param corrs Numeric, vector of correlation_cutoff values to test.
+#' @param windows Numeric, vector of window_size values to test.
+#' @param smoothing Numeric, vector of smoothing_length values to test.
+#' @param rt_heights Numeric, vector of rt_height values to test.
+#' @param n_cores Numeric, number of cores to use (default=1).
+#' @return List of search result tables for every possible parameter combination.
+#' The result tables contain additional columns specifying the parameters.
 #' @export
 #' @examples  
 #' 
@@ -32,16 +31,19 @@
 #'                                      smoothing = 9,
 #'                                      rt_heights = 5,
 #'                                      n_cores = 2)
-#' 
+#'  
+#' lapply(gridList, head, n = 2)
+
 
 performProteinGridSearch <- function(traces,
-                                    corrs = c(0.5,0.75,0.9,0.95),
-                                    windows = c(8,10,12),
-                                    smoothing = c(7,9,11),
-                                    rt_heights = c(3,4,5),
-                                    parallelized = TRUE,
-                                    n_cores=1
-                                    ){
+                                     corrs = c(0.5,0.75,0.9,0.95),
+                                     windows = c(8,10,12),
+                                     smoothing = c(7,9,11),
+                                     rt_heights = c(3,4,5),
+                                     parallelized = TRUE,
+                                     n_cores=1){
+  
+  .tracesTest(traces, type = "peptide")
   parameter_grid <- expand.grid(corrs,windows,smoothing,rt_heights)
   names(parameter_grid) <- c("corr","window","smoothing","rt_height")
   if(n_cores > nrow(parameter_grid)){
@@ -54,10 +56,10 @@ performProteinGridSearch <- function(traces,
   doSNOW::registerDoSNOW(cl)
   clusterEvalQ(cl,library(SECprofiler,data.table))
   # clusterExport(cl, list("generateRandomPepTraces"))
-  data <- list()
-  data <- c(data,parRapply(cl,parameter_grid,
-                           FUN = .runGridProteinFeatureFinding,
-                           pepTraces = traces))
+  
+  data <- parRapply(cl,parameter_grid,
+                    FUN = .runGridProteinFeatureFinding,
+                    pepTraces = traces)
   stopCluster(cl)
   data
 }
