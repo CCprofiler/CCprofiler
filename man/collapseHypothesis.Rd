@@ -2,18 +2,45 @@
 % Please edit documentation in R/generateHypotheses.R
 \name{collapseHypothesis}
 \alias{collapseHypothesis}
-\title{collapseHypothesis}
+\title{Collapse redundant hypotheses}
 \usage{
 collapseHypothesis(hypothesis, redundancy_cutoff = 1)
 }
 \arguments{
-\item{hypothesis}{data.table with complex hypotheses}
+\item{hypothesis}{data.table with complex hypotheses
+Must have the following columns:
+\itemize{
+\item complex_id: character strings, a unique id for every complex
+\item protein_id: character strings, the protein id, e.g. Uniprot id
+}
+Additionaly a complex_name column is allowed.}
 
-\item{redundancy_cutoff}{numeric maximum overlap distance between two hypotheses (0=identical,1=subset,between 1 and 2=some shared subunits, 2=no shared subunits), default=1}
+\item{redundancy_cutoff}{Numeric, maximum overlap distance between two hypotheses
+\itemize{
+  \item 0 = identical 
+  \item 1 = subset
+  \item between 1 and 2 = some shared subunits
+  \item 2 = no shared subunits 
+}
+Defaults to 1.}
 }
 \value{
 data.table in the format of complex hypotheses
+Has the following columns:
+\itemize{
+  \item complex_id: character strings, a unique id for every complex
+  \item complex_name: character strings, Name of the complex
+  \item protein_id: character strings, the protein id, e.g. Uniprot id
+}
 }
 \description{
 Remove redundancy in existing complex hypotheses
+}
+\examples{
+## load example data
+complexHypotheses <- exampleComplexHypotheses
+## Collapse redundancies
+complexHypothesesCollapsed <- collapseHypothesis(complexHypotheses)
+
+
 }

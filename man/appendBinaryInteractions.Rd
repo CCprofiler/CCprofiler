@@ -2,7 +2,7 @@
 % Please edit documentation in R/generateHypotheses.R
 \name{appendBinaryInteractions}
 \alias{appendBinaryInteractions}
-\title{appendBinaryInteractions}
+\title{appendBinaryInteractions (deprecated)}
 \usage{
 appendBinaryInteractions(complex, hypothesis, binary_interactions)
 }
@@ -11,7 +11,7 @@ appendBinaryInteractions(complex, hypothesis, binary_interactions)
 
 \item{hypothesis}{data.table in the format of complex hypotheses}
 
-\item{data.table}{with binary interactions between "a" and "b"}
+\item{binary_interactions}{with binary interactions between "a" and "b"}
 }
 \value{
 data.table with binary interactions between "a" and "b" appended by current complex interactions

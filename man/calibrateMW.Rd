@@ -9,8 +9,10 @@ calibrateMW(calibration_table, plot = TRUE, PDF = FALSE)
 \arguments{
 \item{calibration_table}{A table with protein standards, file or R data.table.
 Columns:
-\item std_weights_kDa = Numeric, the MW of the standard proteins.
-\item std_elu_fractions = Numeric, the fraction numbers where these standard proteins eluted.
+\itemize{
+ \item \code{std_weights_kDa} Numeric, the MW of the standard proteins.
+ \item \code{std_elu_fractions} Numeric, the fraction numbers where these standard proteins eluted.
+}
 For an example see \code{exampleCalibrationTable}.}
 
 \item{plot}{Logical, whether to plot calibration curve. Defaults to \code{TRUE}.}
