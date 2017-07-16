@@ -4,9 +4,9 @@
 #' @import grid
 #' @import gridExtra
 #' @import gtable
-#' @param res data.table
+#' @param feature_table data.table
 #' @param proteinTraces traces object of type protein
-#' @param complexID character string specifying complex_id
+#' @param feature_id character string specifying complex_id
 #' @param annotationID character string specifying column name in trace annotation to use for trace labeling, default is protein_id (uniprot id)
 #' @param peak_area logical if selected peak area should be highlighted
 #' @param sliding_window_are logical if original sliding_window area should be highlighted
@@ -14,10 +14,12 @@
 #' @param monomer_MW logical if monomer MWs should be indicated
 #' @param log logical if intensities should be log transformed
 #' @export
-plotComplexFeatures <- function(res,
+plotComplexFeatures <- function(feature_table,
                                traces,
-                               complexID,
+                               feature_id,
+                               calibration = NULL,
                                annotationID="protein_id",
+                               onlyBest = TRUE,
                                apex=TRUE,
                                peak_area=FALSE,
                                sliding_window_area=FALSE,
@@ -27,25 +29,84 @@ plotComplexFeatures <- function(res,
                                legend = TRUE,
                                PDF=FALSE) {
   .tracesTest(traces)
-  features <- subset(res, complex_id == complexID)
-  proteins <- unique(unlist(strsplit(features$subunits_annotated, split = ";")))
-  traces <- subset(traces, trace_subset_ids = proteins)
+  features <- copy(feature_table)
+  if (traces$trace_type == "protein") {
+    features <- subset(features, complex_id == feature_id)
+    proteins <- unique(unlist(strsplit(features$subunits_with_signal, split = ";")))
+    traces <- subset(traces, trace_subset_ids = proteins)
+    complexName = unique(features$complex_name)[1]
+    n_annotatedSubunits = features$n_subunits_annotated[1]
+    n_signalSubunits = features$n_subunits_with_signal[1]
+    n_detectedSubunits = features$n_subunits_detected[1]
+    complexCompleteness = round(features$completeness[1],digits=2)
+    title <- paste0(complexName,
+                    "\nAnnotated subunits: ",n_annotatedSubunits,
+                    "   Subunits with signal: ",n_signalSubunits,
+                    "\nMax. coeluting subunits: ",n_detectedSubunits,
+                    "   Max. completeness: ",complexCompleteness)
+  } else {
+    features <- subset(features, protein_id == feature_id)
+    proteins <- unique(unlist(strsplit(features$subunits_annotated, split = ";")))
+    traces <- subset(traces, trace_subset_ids = proteins)
+    if (annotationID %in% names(traces$trace_annotation)) {
+      complexName = traces$trace_annotation[,get(annotationID)][1]
+    } else {
+      complexName = traces$trace_annotation$protein_id[1]
+    }
+    n_annotatedSubunits = features$n_subunits_annotated[1]
+    n_detectedSubunits = features$n_subunits_detected[1]
+    complexCompleteness = round(features$completeness[1],digits=2)
+    title <- paste0(complexName,
+                    "\nAnnotated subunits: ",n_annotatedSubunits,
+                    "\nMax. coeluting subunits: ",n_detectedSubunits,
+                    "   Max. completeness: ",complexCompleteness)
+  }
+  if (onlyBest) {
+    features <- getBestFeatures(features)
+  }
   traces.long <- toLongFormat(traces$traces)
   traces.long <- merge(traces.long,traces$fraction_annotation,by.x="fraction",by.y="id")
-  detectedSubunits = strsplit(features$subunits_detected, ';')[[1]]
-  sel_inComplex <- which(traces.long$id %in% detectedSubunits)
-  traces.long$inComplex <- "FALSE"
-  traces.long$inComplex[sel_inComplex] <- "TRUE"
-  traces.long$inComplex = factor(traces.long$inComplex,levels=c("TRUE","FALSE"))
-  # add monomer MW
-  subunitMW = as.numeric(strsplit(features$monomer_sec, ';')[[1]])
-  subunitMW.dt = data.table(id=detectedSubunits,mw=subunitMW)
   
-  complexName = unique(features$complex_name, by="inComplex")[1]
-  n_annotatedSubunits = features$n_subunits_annotated[1]
-  n_signalSubunits = features$n_subunits_with_signal[1]
-  n_detectedSubunits = features$n_subunits_detected[1]
-  complexCompleteness = round(features$completeness[1],digits=2)
+  if (annotationID %in% names(traces$trace_annotation)) {
+    traces.long <- merge(traces.long,traces$trace_annotation,by="id",all.x=TRUE,all.y=FALSE)
+    if (traces$trace_type == "protein") {
+      traces.long[,id := get(annotationID)]
+      proteins <- traces$trace_annotation[match(proteins,traces$trace_annotation$id)][,get(annotationID)]
+    }
+    if ("protein_mw" %in% names(traces$trace_annotation)) {
+      if (!is.null(calibration)) {
+        subunitMW.dt <- data.table(id=traces$trace_annotation[,get(annotationID)],mw=traces$trace_annotation$protein_mw)
+        subunitMW.dt$fraction <- calibration$MWtoFraction(subunitMW.dt$mw)
+      } else {
+        if (monomer_MW){
+          message("No calibration. Cannot plot monomer molecular weight.")
+          monomer_MW <- FALSE
+        }
+      }
+    } else {
+      message("No molecular weight annotation of the traces. Cannot plot monomer molecular weight.")
+      monomer_MW <- FALSE
+    }
+  } else {
+    message(paste0(annotationID, " is not present in trace annotation. ID value is used instead."))
+    if ("protein_mw" %in% names(traces$trace_annotation)) {
+      if (!is.null(calibration)) {
+        subunitMW.dt <- data.table(id=traces$trace_annotation$id,mw=traces$trace_annotation$protein_mw)
+        subunitMW.dt$fraction <- calibration$MWtoFraction(subunitMW.dt$mw)
+      } else {
+        if (monomer_MW){
+          message("No calibration. Cannot plot monomer molecular weight.")
+          monomer_MW <- FALSE
+        }
+      }
+    } else {
+      message("No molecular weight annotation of the traces. Cannot plot monomer molecular weight.")
+      monomer_MW <- FALSE
+    }
+  } 
+  
+  
+ 
   p <- ggplot(traces.long) +
     geom_line(aes_string(x='fraction', y='intensity', color='id')) +
     xlab('fraction') +
@@ -53,28 +114,26 @@ plotComplexFeatures <- function(res,
     theme_bw() +
     theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
     theme(plot.margin = unit(c(1.5,.5,.5,.5),"cm")) +
-    ggtitle(paste0(complexName,
-                   "\nAnnotated subunits: ",n_annotatedSubunits,
-                   "   Subunits with signal: ",n_signalSubunits,
-                   "\nCoeluting subunits: ",n_detectedSubunits,
-                   "   Completeness: ",complexCompleteness)) +
+    ggtitle(title) +
     theme(plot.title = element_text(vjust=19,size=10, face="bold")) +
     guides(fill=FALSE)
   if (log) {
     p <- p + scale_y_log10('log(intensity)')
   }
   if(peak_area==TRUE){
-    p <- p + geom_rect(data=features,aes(xmin = left_pp, xmax = right_pp, ymin = -Inf, ymax = Inf, fill=subunits_detected),alpha = 0.25)
+    p <- p + geom_rect(data=features,aes(xmin = left_pp, xmax = right_pp, ymin = -Inf, ymax = Inf), fill="grey", alpha = 0.25)
+    p <- p + geom_vline(data=features,aes(xintercept=left_pp), colour="grey",linetype="longdash", alpha=0.4)
+    p <- p + geom_vline(data=features,aes(xintercept=right_pp), colour="grey",linetype="longdash", alpha=0.4)
   }
   if(sliding_window_area==TRUE){
-    p <- p + geom_vline(data=features,aes(xintercept=left_sw), colour="grey",linetype="longdash")
-    p <- p + geom_vline(data=features,aes(xintercept=right_sw), colour="grey",linetype="longdash")
+    p <- p + geom_vline(data=features,aes(xintercept=left_sw), colour="grey",linetype="longdash", alpha=0.4)
+    p <- p + geom_vline(data=features,aes(xintercept=right_sw), colour="grey",linetype="longdash", alpha=0.4)
   }
   if(estimated_complex_MW==TRUE){
     p <- p + geom_vline(data=features,aes(xintercept=complex_sec_estimated), colour="black",linetype="longdash")
   }
   if (monomer_MW==TRUE){
-    p <- p + geom_point(data = subunitMW.dt, mapping = aes(x = subunitMW, y = Inf, colour=id),shape=18,size=5,alpha=.5)
+    p <- p + geom_point(data = subunitMW.dt, mapping = aes(x = fraction, y = Inf, colour=id),shape=18,size=5,alpha=.5)
   }
   if (apex==TRUE){
     p <- p + geom_vline(data=features,aes(xintercept=apex), colour="black",linetype="solid")
@@ -84,6 +143,7 @@ plotComplexFeatures <- function(res,
   }
   
   if ("molecular_weight" %in% names(traces$fraction_annotation)) {
+    grid.newpage()
     p2 <- p
     p <- p + scale_x_continuous(name="fraction",
                                 breaks=seq(min(traces$fraction_annotation$id),
