@@ -10,32 +10,27 @@
 #' ## Complex Features
 #' #-----------------------------
 #' 
-#' ## Load example data
-#' exampleHypotheses <- generateComplexDecoys(target_hypotheses = exampleComplexHypotheses,
-#'                                            dist_info = calculatePathlength(exampleComplexHypotheses),
-#'                                            min_distance = 2, append =  TRUE)
-#' ## Perform the complex Feature search
-#' complexFeatures <- findComplexFeatures(traces = exampleProteinTraces,
-#'                                        complex_hypothesis = exampleHypotheses)
+#' ## Get example data
+#' complexFeatures <- exampleComplexFeatures
+#' complexFeaturesFiltered <- filterFeatures(complexFeatures,
+#'                                           min_peak_corr= 0.5,
+#'                                           min_feature_completeness= 0.5)
+#'                                           
+#' 
 #' ## estimate the FDR
-#' estimateDecoyFDR(pf_td, grid_search_list = T, FFT = 1)
+#' estimateDecoyFDR(complexFeaturesFiltered)
 #' 
 #' #-----------------------------
 #' ## Protein Features
 #' #-----------------------------
 #' 
-#' ## Load example data
-#' pepTraces <- examplePeptideTraces
-#' 
-#' ## Generate decoy traces
-#' PepTracesDecoys <- generateRandomPepTraces(examplePeptideTraces,
-#'                                            append = TRUE)
 #' ## Perform the complex Feature search
-#' proteinFeatures <- findProteinFeatures(traces = PepTracesDecoys,
-#'                                        parallelized = TRUE,
-#'                                        n_cores = 4)
+#' proteinFeatures <- exampleProteinFeatures
+#' proteinFeaturesFiltered <- filterFeatures(proteinFeatures,
+#'                                           min_peak_corr= 0.5,
+#'                                           min_feature_completeness= 0.5)
 #' ## estimate the FDR
-#' estimateDecoyFDR(complexFeatures, FFT = 1)
+#' estimateDecoyFDR(proteinFeaturesFiltered)
 #' 
 
 estimateDecoyFDR <- function(features,
@@ -73,15 +68,13 @@ estimateDecoyFDR <- function(features,
 
 #' Perform complex feature grid search
 #' @description Perform complex feature grid search.
-#' @param traces traces object of type protein
-#' @param corrs Numeric, vector of correlation_cutoff values to test
-#' @param windows Numeric, vector of window_size values to test
-#' @param smoothing Numeric, vector of smoothing_length values to test
-#' @param rt_heights Numeric, vector of rt_height values to test
-#' Default=\code{TRUE}
-#' @param n_cores Numeric, number of cores to use
-#' (if parallelized is \code{TRUE}) (default=1)
-#' @return List with stats
+#' @param traces An object of class traces (type "protein").
+#' @param corrs Numeric, vector of correlation_cutoff values to test.
+#' @param windows Numeric, vector of window_size values to test.
+#' @param smoothing Numeric, vector of smoothing_length values to test.
+#' @param rt_heights Numeric, vector of rt_height values to test.
+#' @param n_cores Numeric, number of cores to use, default is 1.
+#' @return List with complex feature fnding results for each parameter set.
 #' @export
 #' @examples 
 #' 
@@ -95,7 +88,7 @@ estimateDecoyFDR <- function(features,
 #'                          windows = 10,
 #'                          smoothing = 7,
 #'                          rt_heights = 4,
-#'                          n_cores = 4)
+#'                          n_cores = 2)
 #' 
 
 performComplexGridSearch <- function(traces,
