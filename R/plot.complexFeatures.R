@@ -1,4 +1,4 @@
-#' Plot the result of the sliding window algorithm.
+#' #' Plot the result of the sliding window algorithm.
 #' @description Chomatographic visualization
 #' @import data.table
 #' @import grid
@@ -14,6 +14,41 @@
 #' @param monomer_MW logical if monomer MWs should be indicated
 #' @param log logical if intensities should be log transformed
 #' @export
+#' @examples
+#' 
+#' #------------------------
+#' ## Complex level plotting
+#' #------------------------
+#' 
+#' ## Load example data
+#' featureTable = exampleComplexFeatures
+#' peptideTraces = exampleProteinTraces
+#' complexId = "2174-1" # Complex of interest
+#' 
+#' ## Plot all features found for this Protein
+#' plotComplexFeatures(feature_table = featureTable,
+#'                     traces = peptideTraces,
+#'                     feature_id = complexId,
+#'                     peak_area = T,
+#'                     onlyBest = F)
+#' 
+#' #------------------------
+#' ## Protein level plotting
+#' #------------------------
+#'  
+#' ## Load example data
+#' featureTable = exampleProteinFeatures
+#' peptideTraces = examplePeptideTraces
+#' proteinId = "P61201" # Protein of interest
+#' 
+#' ## Plot all features found for this Protein
+#' plotComplexFeatures(feature_table = featureTable,
+#'                     traces = peptideTraces,
+#'                     feature_id = proteinId,
+#'                     peak_area = T,
+#'                     onlyBest = F)
+#' 
+
 plotComplexFeatures <- function(feature_table,
                                traces,
                                feature_id,
