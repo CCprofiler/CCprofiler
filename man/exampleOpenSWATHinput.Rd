@@ -4,7 +4,7 @@
 \name{exampleOpenSWATHinput}
 \alias{exampleOpenSWATHinput}
 \title{A sample data.table representing the output format of the OpenSWATH workflow.}
-\format{An object of class \code{data.table} (inherits from \code{data.frame}) with 42904 rows and 66 columns.}
+\format{An object of class \code{data.table} (inherits from \code{data.frame}) with 51385 rows and 66 columns.}
 \usage{
 exampleOpenSWATHinput
 }

@@ -48,10 +48,10 @@ tracesRaw <- examplePeptideTraces
 
 ## Filter the raw traces object to a protein FDR of 1\%
   tracesFiltered <- filterBySibPepCorr(traces = tracesRaw,
-                                       fdr_cutoff = 0.01,
+                                       fdr_cutoff = NULL,
                                        fdr_type = "protein",
-                                       FFT = 0.4,
-                                       absolute_spcCutoff = NULL,
+                                       FFT = 1,
+                                       absolute_spcCutoff = 0.2,
                                        rm_decoys = FALSE,
                                        plot = TRUE,
                                        CSV = FALSE)
@@ -70,10 +70,10 @@ tracesRawSpc <- calculateSibPepCorr(traces = tracesRaw,
 
 ## Filter the raw traces object to a protein FDR of 1\%
 tracesFiltered <- filterBySibPepCorr(traces = tracesRawSpc,
-                                     fdr_cutoff = 0.01,
+                                     fdr_cutoff = NULL,
                                      fdr_type = "protein",
-                                     FFT = 0.4,
-                                     absolute_spcCutoff = NULL,
+                                     FFT = 1,
+                                     absolute_spcCutoff = 0.2,
                                      rm_decoys = FALSE,
                                      plot = TRUE,
                                      PDF = FALSE,
