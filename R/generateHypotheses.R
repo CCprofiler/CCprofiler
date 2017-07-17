@@ -355,20 +355,3 @@ generateComplexDecoys <- function(target_hypotheses,
     stop("Invalid parameter for append. Please select TRUE or FALSE.")
   }
 }
-
-#' appendBinaryInteractions (deprecated)
-#' @description Append binary interaction table with additional complexes
-#' @import data.table
-#' @param complex character string with complex_id
-#' @param hypothesis data.table in the format of complex hypotheses
-#' @param binary_interactions with binary interactions between "a" and "b"
-#' @return data.table with binary interactions between "a" and "b" appended by current complex interactions
-appendBinaryInteractions <- function(complex,hypothesis,binary_interactions){
-  complex_proteins <- unique(hypothesis$protein_id[which(hypothesis$complex_id == complex)]) # get all proteins within complex
-  binaries <- as.list(data.table(combn(complex_proteins,2))) # create all binary combinations of the proteins in complex
-  binaries_sort <- lapply(binaries,FUN=sort) # sort alphanumerically to make it possible to remove duplicates at the end
-  binaries_sort_table <- data.table(t(as.data.table(binaries_sort)))
-  colnames(binaries_sort_table) <- c("a","b")
-  binary_interactions <- rbind(binary_interactions,binaries_sort_table)
-  binary_interactions
-}
