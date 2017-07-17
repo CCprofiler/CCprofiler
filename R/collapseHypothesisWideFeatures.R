@@ -2,11 +2,11 @@
 #' @description Determine unique feature groups based on the apex distances in the fraction dimension 
 #' as well as the overlap between co-eluting subunits.
 #' @param feature_table data.table containing filtered complex feature results.
-#' @param rt_height Numeric rt difference for clustering along the fractionation dimension, default = 2.
-#' @param distance_cutoff Numeric distnce of detected subunit overlap (0=identical, 1=subcomplexes, 2=no shared subunits), default = 1.
-#' @param distance_cutoff Numeric distnce of detected subunit overlap (0=identical, 1=subcomplexes, 2=no shared subunits), default = 1.
-#' @param plot Logical whether to plot the fraction dimenson apex distance histogram, default = \code{FALSE}.
-#' @return data.table containing filtered complex feature results with an extra column with a unique_feature_identifier.
+#' @param rt_height Numeric, rt difference for clustering along the fractionation dimension, default = 2.
+#' @param distance_cutoff Numeric, distance of detected subunit overlap 
+#' (0=identical, 1=subcomplexes, 2=no shared subunits), default = 1.
+#' @param plot Logical, whether to plot the fraction dimenson apex distance histogram, default = \code{FALSE}.
+#' @return data.table containing complex feature results with an extra column with a unique_feature_identifier.
 #' @export
 #' @examples 
 #' ## run unique feature annotation
@@ -56,7 +56,7 @@ getUniqueFeatureGroups <- function(feature_table,
 #' Collapse features by unique feature groups
 #' @description Collapse features with the same unique_feature_identifier as determined by \code{\link{getUniqueFeatureGroups}}.
 #' @param feature_table data.table containing filtered complex feature results with an extra column with a unique_feature_identifier.
-#' @param rm_decoys Logical whether to remove decoys before collapsing, default = \code{TRUE}.
+#' @param rm_decoys Logical, whether to remove decoys before collapsing, default = \code{TRUE}.
 #' @return data.table containing collapsed complex features.
 #' @export
 #' @examples 
