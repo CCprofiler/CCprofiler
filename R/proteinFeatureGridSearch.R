@@ -67,8 +67,6 @@ performProteinGridSearch <- function(traces,
   res = findProteinFeatures(traces = pepTraces,
                             corr_cutoff = as.numeric(params["corr"]),
                             window_size = as.numeric(params["window"]),
-                            
-                            = FALSE,
                             collapse_method="apex_only",
                             perturb_cutoff="1%",
                             rt_height=as.numeric(params["rt_height"]),
