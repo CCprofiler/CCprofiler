@@ -44,6 +44,11 @@ performProteinGridSearch <- function(traces,
                                      n_cores=1){
   
   .tracesTest(traces, type = "peptide")
+  .testGridParameter(corrs, "corrs")
+  .testGridParameter(windows, "windows")
+  .testGridParameter(smoothing, "smoothing")
+  .testGridParameter(rt_heights, "rt_heights")
+  
   parameter_grid <- expand.grid(corrs,windows,smoothing,rt_heights)
   names(parameter_grid) <- c("corr","window","smoothing","rt_height")
   if(n_cores > nrow(parameter_grid)){
@@ -80,4 +85,12 @@ performProteinGridSearch <- function(traces,
   res[,rt_height:=as.numeric(params["rt_height"])]
   res[,smoothing_length:=as.numeric(params["smoothing"])]
   res[]
+}
+
+.testGridParameter <- function(parameter, name){
+  if(class(parameter) != "numeric"){
+    stop(paste(name, "needs to be a numeric vector"))
+  }else if(length(parameter) < 1){
+    stop(paste(name, "has to contain at least one value"))
+  }
 }

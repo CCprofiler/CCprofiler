@@ -39,6 +39,11 @@ performComplexGridSearch <- function(traces,
                                      n_cores=1){
   
   .tracesTest(traces, type = "protein")
+  .testGridParameter(corrs, "corrs")
+  .testGridParameter(windows, "windows")
+  .testGridParameter(smoothing, "smoothing")
+  .testGridParameter(rt_heights, "rt_heights")
+  
   parameter_grid <- as.data.table(expand.grid(corrs,windows,smoothing,rt_heights))
   names(parameter_grid) <- c("corr","window","smoothing","rt_height")
   if(n_cores > nrow(parameter_grid)){

@@ -59,6 +59,12 @@ filterGridSearchResults <- function(grid_search_results,
                                     monomer_distance_cutoffs = c(1,2),
                                     remove_decoys=FALSE){
   
+  .testGridParameter(peak_corr_cutoffs, "peak_corr_cutoffs")
+  .testGridParameter(feature_completeness_cutoffs, "feature_completeness_cutoffs")
+  .testGridParameter(hypothesis_completeness_cutoffs, "hypothesis_completeness_cutoffs")
+  .testGridParameter(n_subunits_cutoffs, "n_subunits_cutoffs")
+  .testGridParameter(monomer_distance_cutoffs, "monomer_distance_cutoffs")
+  
   parameter_grid <- expand.grid(peak_corr_cutoffs, feature_completeness_cutoffs,
                                 hypothesis_completeness_cutoffs, n_subunits_cutoffs,
                                 monomer_distance_cutoffs)
