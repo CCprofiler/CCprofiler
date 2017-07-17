@@ -6,7 +6,7 @@
 #' number of parameters specified, and can therefore take a long time. If many parameter combinations
 #' are searched the use of multiple cores for parallel computation is strongly recommended.
 #' @import data.table
-#' @param traces traces object of type protein.
+#' @param traces An object of class traces (type "peptide").
 #' @param corrs Numeric vector with correlation_cutoff values between 0 and 1. Default is c(0.5,0.75,0.9,0.95).
 #' @param windows Positive integer vector of window_size values to test. Default is c(8,10,12).
 #' @param smoothing Positive odd integer vector of smoothing_length values to test. Default is c(7,9,11).
