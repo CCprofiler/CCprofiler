@@ -80,7 +80,8 @@ estimateDecoyFDR <- function(features,
 #' 
 ## Load example data
 #' exampleTraces <- exampleProteinTraces
-#' complexHypotheses <- exampleComplexHypotheses
+#' complexHypotheses <- 
+#' 
 #' ## Perform a small grid search for 2 parameter combinations
 #' gridList <- performComplexGridSearch(traces = exampleTraces,
 #'                          complex_hypothesis = complexHypotheses,
@@ -89,6 +90,8 @@ estimateDecoyFDR <- function(features,
 #'                          smoothing = 7,
 #'                          rt_heights = 4,
 #'                          n_cores = 2)
+#' 
+#' lapply(gridList, head, n = 2)
 #' 
 
 performComplexGridSearch <- function(traces,
@@ -137,10 +140,10 @@ performComplexGridSearch <- function(traces,
   res[]
 }
 
-#' Perform complex feature grid search filter
-#' @description Perform complex feature grid search filter.
-#' @param grid_search_results data.table containing filtered complex feature results.
-#' @return List with stats
+#' Perform complex feature grid search filtering
+#' @description Filter the list of complex feature finding results from a grid search.
+#' @param grid_search_results List containing complex feature results for each parameter combination from the grid search.
+#' @return List containing filtered complex feature results for each parameter combination from the grid search.
 #' @export
 #' 
 
