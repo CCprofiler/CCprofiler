@@ -181,13 +181,13 @@ generateComplexTargets <- function(dist_info,
 #' 
 collapseHypothesis <- function(hypothesis,
                                redundancy_cutoff=1){
+  hyp <- copy(hypothesis)
+  hyp[,n_subunits := length(protein_id), by="complex_id"]
+  hyp[,subunits_detected := paste(protein_id,collapse=";"),by="complex_id"]
+  hyp <- unique(hyp, by="complex_id")
+  hyp[,protein_id := NULL]
   
-  hypothesis[,n_subunits := length(protein_id), by="complex_id"]
-  hypothesis[,subunits_detected := paste(protein_id,collapse=";"),by="complex_id"]
-  hypothesis <- unique(hypothesis, by="complex_id")
-  hypothesis[,protein_id := NULL]
-  
-  hypothesis_unique <- .collapseWideHypothesis(hypothesis, redundancy_cutoff = redundancy_cutoff)
+  hypothesis_unique <- .collapseWideHypothesis(hyp, redundancy_cutoff = redundancy_cutoff)
   return(hypothesis_unique)
 }
 
