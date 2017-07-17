@@ -17,8 +17,13 @@
 #' 
 #' ## Load example data
 #' complexFeatures <- exampleComplexFeatures
+#' ## Filter feature table 
+#' complexFeaturesFiltered <- filterFeatures(complexFeatures,
+#'                                           min_peak_corr= 0.5,
+#'                                           min_feature_completeness= 0.5) 
+#'
 #' ## estimate the FDR
-#' estimateDecoyFDR(complexFeatures, FFT = 1)
+#' estimateDecoyFDR(complexFeaturesFiltered)
 #' 
 #' #-----------------------------
 #' ## Protein Features
@@ -26,9 +31,13 @@
 #' 
 #' ## Load example data
 #' proteinFeatures <-exampleProteinFeatures
+#' ## Filter feature table 
+#' proteinFeaturesFiltered <- filterFeatures(proteinFeatures,
+#'                                           min_peak_corr= 0.5,
+#'                                           min_feature_completeness= 0.5) 
 #' 
 #' ## estimate the FDR
-#' estimateDecoyFDR(proteinFeatures, FFT = 1)
+#' estimateDecoyFDR(proteinFeaturesFiltered)
 #' 
 
 estimateDecoyFDR <- function(features,
@@ -85,6 +94,7 @@ estimateDecoyFDR <- function(features,
 #' 
 #' ## Generate the decoy traces object
 #' decoyTraces <- generateRandomPepTraces(exampleTraces)
+#'                    
 #' # Inspect the result
 #' summary(decoyTraces)
 #' #--------------------
@@ -94,7 +104,6 @@ estimateDecoyFDR <- function(features,
 #' # Inspect the result
 #' summary(tracesWithDecoys)
 #' 
-
 generateRandomPepTraces <- function(traces,
                                     append = FALSE,
                                     rm_orig_decoys = TRUE){

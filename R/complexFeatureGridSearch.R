@@ -3,13 +3,14 @@
 #' with all possible combinations of the specified parameters (grid search).
 #' @details The runtime of this function scales with the binomial coefficient of the total 
 #' number of parameters specified, and can therefore take a long time. If many parameter combinations
-#' are searched parallelization is strongly recommended.
-#' @param traces traces object of type protein.
-#' @param corrs Numeric, vector of correlation_cutoff values to test.
-#' @param windows Numeric, vector of window_size values to test.
-#' @param smoothing Numeric, vector of smoothing_length values to test.
-#' @param rt_heights Numeric, vector of rt_height values to test.
-#' @param n_cores Numeric, number of cores to use (default=1).
+#' are searched the use of multiple cores for parallel computation is strongly recommended.
+#' @import data.table
+#' @param traces An object of class traces (type "protein").
+#' @param corrs Numeric vector with correlation_cutoff values between 0 and 1. Default is c(0.5,0.75,0.9,0.95).
+#' @param windows Positive integer vector of window_size values to test. Default is c(8,10,12).
+#' @param smoothing Positive odd integer vector of smoothing_length values to test. Default is c(7,9,11).
+#' @param rt_heights Positive integer vector of rt_height values to test. Default is c(3,4,5).
+#' @param n_cores Positive integer specifying the number of cores to use. Default is 1.
 #' @return List of search result tables for every possible parameter combination.
 #' The result tables contain additional columns specifying the parameters.
 #' @export
