@@ -22,12 +22,12 @@
 #' 
 #' ## Load example data
 #' featureTable = exampleComplexFeatures
-#' peptideTraces = exampleProteinTraces
+#' proteinTraces = exampleProteinTraces
 #' complexId = "2174-1" # Complex of interest
 #' 
 #' ## Plot all features found for this Protein
 #' plotComplexFeatures(feature_table = featureTable,
-#'                     traces = peptideTraces,
+#'                     traces = proteinTraces,
 #'                     feature_id = complexId,
 #'                     peak_area = T,
 #'                     onlyBest = F)
@@ -59,6 +59,8 @@ plotComplexFeatures <- function(feature_table,
                                peak_area=FALSE,
                                sliding_window_area=FALSE,
                                estimated_complex_MW=FALSE,
+                               highlight=NULL,
+                               highlight_col=NULL,
                                monomer_MW=FALSE,
                                log=FALSE,
                                legend = TRUE,
@@ -101,6 +103,11 @@ plotComplexFeatures <- function(feature_table,
   }
   traces.long <- toLongFormat(traces$traces)
   traces.long <- merge(traces.long,traces$fraction_annotation,by.x="fraction",by.y="id")
+  
+  ## Get traces to highlight
+  if(!is.null(highlight)){
+    traces.long$outlier <- gsub("\\(.*?\\)","",traces.long$id) %in% gsub("\\(.*?\\)","",highlight)
+  }
   
   if (annotationID %in% names(traces$trace_annotation)) {
     traces.long <- merge(traces.long,traces$trace_annotation,by="id",all.x=TRUE,all.y=FALSE)
@@ -152,6 +159,20 @@ plotComplexFeatures <- function(feature_table,
     ggtitle(title) +
     theme(plot.title = element_text(vjust=19,size=10, face="bold")) +
     guides(fill=FALSE)
+  
+  if(!is.null(highlight)){
+    legend_peps <- unique(traces.long[outlier == TRUE, id])
+    if(is.null(highlight_col)){
+      p <- p + 
+        geom_line(data = traces.long[outlier == TRUE], aes_string(x='fraction', y='intensity', color='id'), lwd=2) +
+        scale_color_discrete(breaks = legend_peps)
+    }else{
+      p <- p + 
+        geom_line(data = traces.long[outlier == TRUE], aes_string(x='fraction', y='intensity', group = 'id'), color = highlight_col, lwd=2)
+      # scale_color_discrete(breaks = legend_peps)
+    }
+  }
+  
   if (log) {
     p <- p + scale_y_log10('log(intensity)')
   }
