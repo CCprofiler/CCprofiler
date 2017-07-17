@@ -4,7 +4,7 @@
 #' @details The runtime of this function scales with the binomial coefficient of the total 
 #' number of parameters specified, and can therefore take a long time. If many parameter combinations
 #' are searched parallelization is strongly recommended.
-#' @param traces traces object of type protein.
+#' @param traces An object of class traces (type "protein").
 #' @param corrs Numeric, vector of correlation_cutoff values to test.
 #' @param windows Numeric, vector of window_size values to test.
 #' @param smoothing Numeric, vector of smoothing_length values to test.
