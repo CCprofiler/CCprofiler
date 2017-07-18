@@ -178,79 +178,96 @@ plot(protTraces,
 ```
 ## plotFeatures
 ```{r, eval=TRUE, fig.show='hold'}
-plotComplexFeatures(feature_table = complexFeaturesFiltered,
+plotFeatures(feature_table = complexFeaturesFiltered,
                        traces = protTraces,
                        feature_id = "1187",
+                       annotation_label="Entry_name",
                        calibration = calibration,
                        peak_area = TRUE)
 
-plotComplexFeatures(feature_table = proteinFeaturesFiltered,
+plotFeatures(feature_table = proteinFeaturesFiltered,
                        traces = pepTraces_cons_sib,
-                       feature_id = "Q86VN1",
+                       feature_id = "P61201",
+                       annotation_label="Entry_name",
                        calibration = calibration,
-                       peak_area = TRUE)
+                       peak_area = TRUE,
+                       legend = FALSE)
 ```
 
 ## plot summarized MS coverage of complex hypotheses
 * maybe rename function
 ```{r, eval=TRUE, fig.show='hold'}
-plotSummarizedMScoverage(hypotheses=corumNetworkHypotheses,protTraces=protTraces)
+plotSummarizedMScoverage(hypotheses=complexHypotheses,protTraces=protTraces)
 ```
-## plot complex subfeature summary
+## plot complex summaries
 ```{r, eval=TRUE, fig.show='hold'}
-plotComplexSubfeatureSummary(complexFeatures_bestParameterData)
+plotSummarizedComplexes(complexFeatures=complexFeaturesFiltered, 
+                        hypotheses=complexHypotheses, 
+                        protTraces=protTraces)
+
+plotComplexCompletenessScatter(complexFeatures=complexFeaturesFiltered)
 ```
 
 # Parameter optimization
 ## Protein-level grid search
 ```{r, eval=FALSE}
 proteinFeatures_grid <- performProteinGridSearch(traces=pepTraces_cons_sib,
-                                                  calibration= calibration,
-                                                  corrs = c(0.9,0.95),
-                                                  windows = c(8),
+                                                  corrs = c(0.5,0.9),
+                                                  windows = c(10),
                                                   smoothing = c(7),
-                                                  rt_heights = c(3),
-                                                  parallelized = TRUE,
+                                                  rt_heights = c(4),
                                                   n_cores=2)
 
-proteinFeatures_grid_filtered <- filterGridSearchResults(proteinFeatures_grid,
+proteinFeatures_gridFiltered <- filterGridSearchResults(proteinFeatures_grid,
                                                         peak_corr_cutoffs = c(0.5,0.75,0.9),
-                                                        completeness_cutoffs = c(0,0.25,0.5,0.75),
+                                                        feature_completeness_cutoffs = c(0,0.5,1),
                                                         n_subunits_cutoffs =c(2,3,4),
                                                         remove_decoys=FALSE
                                                         )
 
-proteinFeatures_grid_filtered_stats <- estimateGridSearchDecoyFDR(proteinFeatures_grid_filtered)
+proteinFeatures_gridFilteredStats <- estimateGridSearchDecoyFDR(proteinFeatures_gridFiltered)
 
-proteinFeatures_bestParameterStats <- getBestParameterStats(stats=proteinFeatures_grid_filtered_stats,FDR=0.1)
-proteinFeatures_bestParameterData <- getBestParameterData(proteinFeatures_grid_filtered)
+proteinFeatures_bestParameterStats <- getBestParameterStats(proteinFeatures_gridFilteredStats,
+                                                            FDR=0.1)
+proteinFeatures_bestParameterData <- getBestParameterData(proteinFeatures_gridFiltered,
+                                                          FDR=0.1)
+plotIdFDRspace(proteinFeatures_gridFilteredStats,
+               level = "complex",
+               id_level = "TP",
+               FDR_cutoff = 0.1,
+               colour_parameter = "min_feature_completeness")
 ```
 
 ## Complex-level grid search
 ```{r, eval=FALSE}
 complexFeatures_grid <- performComplexGridSearch(traces=protTraces,
                                                 complex_hypothesis=complexHypotheses,
-                                                calibration=calibration,
                                                 corrs = c(0.9,0.95),
-                                                windows = c(8),
+                                                windows = c(10),
                                                 smoothing = c(7),
-                                                rt_heights = c(3),
-                                                parallelized = TRUE,
+                                                rt_heights = c(4),
                                                 n_cores=2
                                                 )
 
-complexFeatures_grid_filtered <- filterGridSearchResults(complexFeatures_grid,
+complexFeatures_gridFiltered <- filterGridSearchResults(complexFeatures_grid,
                                                         peak_corr_cutoffs = c(0.5,0.75,0.9),
-                                                        completeness_cutoffs = c(0,0.25,0.5,0.75),
+                                                        feature_completeness_cutoffs = c(0,0.5,1),
                                                         n_subunits_cutoffs =c(2,3,4),
                                                         remove_decoys=FALSE
                                                         )
 
-complexFeatures_grid_filtered_stats <- estimateGridSearchDecoyFDR(complexFeatures_grid_filtered)
+complexFeatures_gridFilteredStats <- estimateGridSearchDecoyFDR(complexFeatures_gridFiltered)
 
-complexFeatures_bestParameterStats <- getBestParameterStats(stats=complexFeatures_grid_filtered_stats,FDR=0.1)
-complexFeatures_bestParameterData <- getBestParameterData(complexFeatures_grid_filtered,FDR=0.1)
+complexFeatures_bestParameterStats <- getBestParameterStats(complexFeatures_gridFilteredStats,
+                                                            FDR=0.1)
+complexFeatures_bestParameterData <- getBestParameterData(complexFeatures_gridFiltered,
+                                                          FDR=0.1)
 
+plotIdFDRspace(complexFeatures_gridFilteredStats,
+               level = "complex",
+               id_level = "TP",
+               FDR_cutoff = 0.1,
+               colour_parameter = "min_feature_completeness")
 ```
 
 

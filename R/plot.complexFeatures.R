@@ -6,13 +6,13 @@
 #' @import gtable
 #' @param feature_table data.table
 #' @param proteinTraces traces object of type protein
-#' @param feature_id character string specifying complex_id
-#' @param annotationID character string specifying column name in trace annotation to use for trace labeling, default is protein_id (uniprot id)
-#' @param peak_area logical if selected peak area should be highlighted
-#' @param sliding_window_are logical if original sliding_window area should be highlighted
-#' @param estimated_complex_MW logical if estimated complex MW should be indicated
-#' @param monomer_MW logical if monomer MWs should be indicated
-#' @param log logical if intensities should be log transformed
+#' @param feature_id Character string specifying complex_id
+#' @param annotation_label Character string specifying column name in trace annotation to use for trace labeling, default is protein_id (uniprot id).
+#' @param peak_area Logical if selected peak area should be highlighted.
+#' @param sliding_window_are Logical if original sliding_window area should be highlighted
+#' @param estimated_complex_MW Logical if estimated complex MW should be indicated
+#' @param monomer_MW Logical if monomer MWs should be indicated
+#' @param log Logical if intensities should be log transformed, default is \code{fFALSE}.
 #' @export
 #' @examples
 #' 
@@ -26,34 +26,35 @@
 #' complexId = "2174-1" # Complex of interest
 #' 
 #' ## Plot all features found for this Protein
-#' plotComplexFeatures(feature_table = featureTable,
+#' plotFeatures(feature_table = featureTable,
 #'                     traces = proteinTraces,
 #'                     feature_id = complexId,
-#'                     peak_area = T,
-#'                     onlyBest = F)
+#'                     peak_area = TRUE,
+#'                     onlyBest = FALSE)
 #' 
 #' #------------------------
 #' ## Protein level plotting
 #' #------------------------
 #'  
 #' ## Load example data
-#' featureTable = exampleProteinFeatures
-#' peptideTraces = examplePeptideTraces
-#' proteinId = "P61201" # Protein of interest
-#' 
-#' ## Plot all features found for this Protein
-#' plotComplexFeatures(feature_table = featureTable,
-#'                     traces = peptideTraces,
-#'                     feature_id = proteinId,
-#'                     peak_area = T,
-#'                     onlyBest = F)
+#'  featureTable = exampleProteinFeatures
+#'  peptideTraces = examplePeptideTraces
+#'  proteinId = "P61201" # Protein of interest
+#'  
+#'  ## Plot all features found for this Protein
+#'  plotFeatures(feature_table = featureTable,
+#'                      traces = peptideTraces,
+#'                      feature_id = proteinId,
+#'                      peak_area = TRUE,
+#'                      onlyBest = FALSE,
+#'                      legend = FALSE)
 #' 
 
-plotComplexFeatures <- function(feature_table,
+plotFeatures <- function(feature_table,
                                traces,
                                feature_id,
                                calibration = NULL,
-                               annotationID="protein_id",
+                               annotation_label="protein_id",
                                onlyBest = TRUE,
                                apex=TRUE,
                                peak_area=FALSE,
@@ -85,8 +86,8 @@ plotComplexFeatures <- function(feature_table,
     features <- subset(features, protein_id == feature_id)
     proteins <- unique(unlist(strsplit(features$subunits_annotated, split = ";")))
     traces <- subset(traces, trace_subset_ids = proteins)
-    if (annotationID %in% names(traces$trace_annotation)) {
-      complexName = traces$trace_annotation[,get(annotationID)][1]
+    if (annotation_label %in% names(traces$trace_annotation)) {
+      complexName = traces$trace_annotation[,get(annotation_label)][1]
     } else {
       complexName = traces$trace_annotation$protein_id[1]
     }
@@ -109,15 +110,15 @@ plotComplexFeatures <- function(feature_table,
     traces.long$outlier <- gsub("\\(.*?\\)","",traces.long$id) %in% gsub("\\(.*?\\)","",highlight)
   }
   
-  if (annotationID %in% names(traces$trace_annotation)) {
+  if (annotation_label %in% names(traces$trace_annotation)) {
     traces.long <- merge(traces.long,traces$trace_annotation,by="id",all.x=TRUE,all.y=FALSE)
     if (traces$trace_type == "protein") {
-      traces.long[,id := get(annotationID)]
-      proteins <- traces$trace_annotation[match(proteins,traces$trace_annotation$id)][,get(annotationID)]
+      traces.long[,id := get(annotation_label)]
+      proteins <- traces$trace_annotation[match(proteins,traces$trace_annotation$id)][,get(annotation_label)]
     }
     if ("protein_mw" %in% names(traces$trace_annotation)) {
       if (!is.null(calibration)) {
-        subunitMW.dt <- data.table(id=traces$trace_annotation[,get(annotationID)],mw=traces$trace_annotation$protein_mw)
+        subunitMW.dt <- data.table(id=traces$trace_annotation[,get(annotation_label)],mw=traces$trace_annotation$protein_mw)
         subunitMW.dt$fraction <- calibration$MWtoFraction(subunitMW.dt$mw)
       } else {
         if (monomer_MW){
@@ -130,7 +131,7 @@ plotComplexFeatures <- function(feature_table,
       monomer_MW <- FALSE
     }
   } else {
-    message(paste0(annotationID, " is not present in trace annotation. ID value is used instead."))
+    message(paste0(annotation_label, " is not present in trace annotation. ID value is used instead."))
     if ("protein_mw" %in% names(traces$trace_annotation)) {
       if (!is.null(calibration)) {
         subunitMW.dt <- data.table(id=traces$trace_annotation$id,mw=traces$trace_annotation$protein_mw)

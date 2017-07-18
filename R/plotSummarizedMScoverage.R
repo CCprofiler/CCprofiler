@@ -1,13 +1,20 @@
-#' plotSummarizedMScoverage.
-#' @description plotSummarizedMScoverage
+#' Plot MS coverage of the hypotheses in the PCP data
+#' @description Generate plots that describe the coverage of the complex hypotheses in the PCP data.
 #' @import data.table
 #' @import ggplot2
-#' @param hypotheses data.table with complex hypotheses
-#' @param protTraces traces object of type protein
-#' @param PDF logical default = TRUE
-#' @return multiple plots summarizing the MS coverage
+#' @param hypotheses data.table containing complex hypotheses.
+#' Should have the following columns:
+#' \itemize{
+#' \item complex_id: character strings, a unique id for every complex
+#' \item complex_name: character strings, a unique name for every complex
+#' \item protein_id: character strings, the protein id, e.g. Uniprot id
+#' }
+#' @param protTraces An object of class traces, type="protein".
+#' @param PDF Logical whether to save plots in PDF, default = \code{FALSE}.
+#' @return Multiple plots summarizing the MS coverage.
 #' @export
-plotSummarizedMScoverage <- function(hypotheses,protTraces,PDF=TRUE){
+plotSummarizedMScoverage <- function(hypotheses,protTraces,PDF=FALSE){
+  .tracesTest(protTraces, type="protein")
   hypotheses <- hypotheses[grep("DECOY",hypotheses$complex_id,invert=TRUE)]
   proteins_in_hypotheses <- unique(hypotheses$protein_id)
   proteins_in_traces <- unique(protTraces$traces$id)
@@ -37,12 +44,15 @@ plotSummarizedMScoverage <- function(hypotheses,protTraces,PDF=TRUE){
 #' @param proteinMScoverageSummary data.table with summary
 #' @param PDF logical default = TRUE
 #' @return plots summarizing the MS coverage
-plotProteinMScoveragePie <- function(proteinMScoverageSummary,PDF=TRUE){
+plotProteinMScoveragePie <- function(proteinMScoverageSummary,PDF=FALSE){
   cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
   if(PDF){
     pdf("proteinMScoveragePie.pdf")
   }
-  print(pie(x=proteinMScoverageSummary$count,labels=paste0(proteinMScoverageSummary$name,"\n",proteinMScoverageSummary$count),col=cbPalette[1:nrow(proteinMScoverageSummary)]))
+  print(pie(x=proteinMScoverageSummary$count,
+            labels=paste0(proteinMScoverageSummary$name,"\n",proteinMScoverageSummary$count),
+            col=cbPalette[1:nrow(proteinMScoverageSummary)],
+            main = "Protein coverage"))
   if(PDF){
     dev.off()
   }
@@ -60,7 +70,10 @@ plotComplexMScoveragePie <- function(complexMScoverageSummary,PDF=TRUE){
   if(PDF){
     pdf("complexMScoveragePie.pdf")
   }
-  print(pie(x=complexMScoverageSummary$count,labels=paste0(complexMScoverageSummary$name,"\n",complexMScoverageSummary$count),col=cbPalette[1:nrow(complexMScoverageSummary)]))
+  print(pie(x=complexMScoverageSummary$count,
+            labels=paste0(complexMScoverageSummary$name,"\n",complexMScoverageSummary$count),
+            col=cbPalette[1:nrow(complexMScoverageSummary)],
+            main = "Hypothesis coverage"))
   if(PDF){
     dev.off()
   }
@@ -73,7 +86,7 @@ plotComplexMScoveragePie <- function(complexMScoverageSummary,PDF=TRUE){
 #' @param complexMScoverage data.table with summary
 #' @param PDF logical default = TRUE
 #' @return plots summarizing the MS coverage
-plotComplexMScoverageScatter <- function(complexMScoverage,PDF=TRUE){
+plotComplexMScoverageScatter <- function(complexMScoverage,PDF=FALSE){
   if(PDF){
     pdf("complexMScoverageScatter.pdf")
   }
@@ -85,11 +98,13 @@ plotComplexMScoverageScatter <- function(complexMScoverage,PDF=TRUE){
     annotate("text",x=70,y=9.5, label="50%", angle = 23) +
     scale_x_log10(name = "N subunits in hypothesis", breaks = c(1,10,100), limits = c(1,200)) +
     scale_y_log10(name = "N subunits observed by MS", breaks = c(1,10,100), limits = c(1,200)) +
-    theme_bw() +
+    theme_classic() +
     theme(panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank()) +
+          panel.grid.minor = element_blank()) +
     labs(colour = "MS completeness\n") +
-    theme(legend.justification=c(0,1), legend.position=c(0.05,0.75))
+    theme(legend.justification=c(0,1), legend.position=c(0.05,0.75)) +
+    ggtitle("Hypothesis coverage") + 
+    theme(plot.title = element_text(size=14, face="bold"))
   print(p)
   if(PDF){
     dev.off()
