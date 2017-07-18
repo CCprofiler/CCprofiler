@@ -69,7 +69,7 @@ performComplexGridSearch <- function(traces,
                              window_size = as.numeric(params["window"]),
                              parallelized = FALSE,
                              collapse_method="apex_network",
-                             perturb_cutoff="1%",
+                             perturb_cutoff="5%",
                              rt_height=as.numeric(params["rt_height"]),
                              smoothing_length=as.numeric(params["smoothing"]))
   

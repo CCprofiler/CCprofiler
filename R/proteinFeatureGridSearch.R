@@ -70,7 +70,7 @@ performProteinGridSearch <- function(traces,
                             window_size = as.numeric(params["window"]),
                             parallelized = FALSE,
                             collapse_method="apex_only",
-                            perturb_cutoff="1%",
+                            perturb_cutoff="5%",
                             rt_height=as.numeric(params["rt_height"]),
                             smoothing_length=as.numeric(params["smoothing"]),
                             useRandomDecoyModel=TRUE)
