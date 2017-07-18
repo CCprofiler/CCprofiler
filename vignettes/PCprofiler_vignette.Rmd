@@ -211,7 +211,7 @@ plotComplexCompletenessScatter(complexFeatures=complexFeaturesFiltered)
 # Parameter optimization
 ## Protein-level grid search
 ```{r, eval=FALSE}
-proteinFeatures_grid <- performProteinGridSearch(traces=pepTraces_cons_sib,
+proteinFeatures_grid <- performProteinGridSearch(traces=peptideTracesSubset,
                                                   corrs = c(0.5,0.9),
                                                   windows = c(10),
                                                   smoothing = c(7),
@@ -225,6 +225,7 @@ proteinFeatures_gridFiltered <- filterGridSearchResults(proteinFeatures_grid,
                                                         remove_decoys=FALSE
                                                         )
 
+# test if FDR is done on bestFeature only
 proteinFeatures_gridFilteredStats <- estimateGridSearchDecoyFDR(proteinFeatures_gridFiltered)
 
 proteinFeatures_bestParameterStats <- getBestParameterStats(proteinFeatures_gridFilteredStats,
@@ -256,6 +257,7 @@ complexFeatures_gridFiltered <- filterGridSearchResults(complexFeatures_grid,
                                                         remove_decoys=FALSE
                                                         )
 
+# test if FDR is done on bestFeature only
 complexFeatures_gridFilteredStats <- estimateGridSearchDecoyFDR(complexFeatures_gridFiltered)
 
 complexFeatures_bestParameterStats <- getBestParameterStats(complexFeatures_gridFilteredStats,

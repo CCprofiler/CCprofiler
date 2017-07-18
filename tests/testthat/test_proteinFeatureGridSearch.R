@@ -1,23 +1,23 @@
 context("proteinFeatureGridSearch")
 
+peptideTraces <- subset(examplePeptideTracesFiltered,
+                        trace_subset_ids = unique(examplePeptideTraces$trace_annotation$protein_id)[3],
+                        trace_subset_type = "protein_id")
+
+## Perform a small grid search for 1 parameter combinations
+# Depending on the computational resources this can take several minutes
+gridList <- performProteinGridSearch(traces = peptideTraces,
+                                     corrs = c(0.5, 0.95),
+                                     windows = 12,
+                                     smoothing = 9,
+                                     rt_heights = 5,
+                                     n_cores = 2)
+
+singleSearch <- findProteinFeatures(peptideTraces, perturb_cutoff = "5%")
+
 test_that("performProteinGridSearch",{
   
   testthat::expect_error(performProteinGridSearch(c()), "Object is not of class traces.")
-  
-  peptideTraces <- subset(examplePeptideTracesFiltered,
-                          trace_subset_ids = unique(examplePeptideTraces$trace_annotation$protein_id)[3],
-                          trace_subset_type = "protein_id")
-  
-  ## Perform a small grid search for 1 parameter combinations
-  # Depending on the computational resources this can take several minutes
-  gridList <- performProteinGridSearch(traces = peptideTraces,
-                                       corrs = c(0.5, 0.95),
-                                       windows = 12,
-                                       smoothing = 9,
-                                       rt_heights = 5,
-                                       n_cores = 2)
-  
-  singleSearch <- findProteinFeatures(peptideTraces, perturb_cutoff = "5%")
   
   testthat::expect_equal(length(gridList), 2)
   testthat::expect_identical(names(gridList[[1]]), names(gridList[[2]]))
