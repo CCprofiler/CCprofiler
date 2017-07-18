@@ -27,7 +27,7 @@ peptides are considered to be coeluting, default=0.95.}
 
 \item{parallelized}{Logical, if the computation should be done in parallel, default=\code{FALSE}.}
 
-\item{n_cores}{Integer, the number of cores to use for parallel processing 
+\item{n_cores}{Integer, the number of cores to use for parallel processing
 (only applies if parallelized is \code{TRUE}), default=1.}
 
 \item{collapse_method}{Character, method for collapsing multiple features into one feature:

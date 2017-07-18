@@ -143,7 +143,11 @@ annotateMolecularWeight <- function(traces, calibration){
 #' subsetPeptideTraces <- subset(peptideTraces,trace_subset_ids="Q9UHV9",trace_subset_type="protein_id",fraction_ids=c(30:70))
 #' plot(subsetPeptideTraces,legend=FALSE)
 #' @export
-plot.traces <- function(traces, log=FALSE, legend = TRUE, PDF=FALSE, name="Traces") {
+plot.traces <- function(traces,
+                        log=FALSE,
+                        legend = TRUE,
+                        PDF=FALSE,
+                        name="Traces") {
   .tracesTest(traces)
   traces.long <- toLongFormat(traces$traces)
   traces.long <- merge(traces.long,traces$fraction_annotation,by.x="fraction",by.y="id")

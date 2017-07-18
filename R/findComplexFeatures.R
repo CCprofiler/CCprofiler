@@ -12,7 +12,7 @@
 #'        peptides are considered to be coeluting, default=0.95.
 #' @param window_size Integer, size of the window in fractions, default=15
 #' @param parallelized Logical, if the computation should be done in parallel, default=\code{FALSE}.
-#' @param n_cores Integer, the number of cores to use for parallel processing 
+#' @param n_cores Integer, the number of cores to use for parallel processing
 #' (only applies if parallelized is \code{TRUE}), default=1.
 #' @param collapse_method Character, method for collapsing multiple features into one feature:
 #' \itemize{
@@ -28,18 +28,18 @@
 #' @param smoothing_length Numeric, smoothing length of Savitzky-Golay filter. Defaults to 11.
 #' @return A data.table containing protein complex features.
 #' @export
-#' @examples 
+#' @examples
 #' ## Load example data
 #' proteinTraces <- exampleProteinTraces
 #' complexHypotheses <- exampleComplexHypotheses
-#' 
+#'
 #' ## Perform co-elution signal detection
 #' complexFeatures <- findComplexFeatures(traces=proteinTraces,
 #'                                        complex_hypothesis=complexHypotheses)
-#' 
+#'
 #' ## Inspect complex features
 #' summarizeComplexFeatures(complexFeatures)
-#' 
+#'
 
 findComplexFeatures <- function(traces,
                                 complex_hypothesis,
@@ -157,7 +157,29 @@ findComplexFeatures <- function(traces,
   #res
 
   # only report table to make things easier
-  complexRes <- resultsToTable(res)
+  complexRes <- .resultsToTable(res)
   complexRes
 
+}
+
+#' Reformat ComplexFeature object to data.table
+#' @description Reformat complex feature object to a data.table.
+#' @param complexFeatures A list containing various results.
+#'         \itemize{
+#'          \item \code{sw.results} A list of results of the function
+#'                \code{findComplexFeatures}. One for each query complex.
+#'          \item \code{input.complexes} A character vector of all query
+#'                 complexes.
+#'          \item \code{corr.cutoff} The correlation cutoff used.
+#'          \item \code{window.size} The window size used.
+#'          }
+#' @return A data.table with all detected complex features of all query complexes
+.resultsToTable <- function(complexFeatures){
+  res <- complexFeatures$sw.results
+  res.list <- lapply(seq(1:length(res)), function(i){
+    features <- res[[i]]$features
+    features
+  })
+  res <- do.call("rbind", res.list)
+  res
 }
