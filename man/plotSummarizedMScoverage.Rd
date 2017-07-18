@@ -2,20 +2,26 @@
 % Please edit documentation in R/plotSummarizedMScoverage.R
 \name{plotSummarizedMScoverage}
 \alias{plotSummarizedMScoverage}
-\title{plotSummarizedMScoverage.}
+\title{Plot MS coverage of the hypotheses in the PCP data}
 \usage{
-plotSummarizedMScoverage(hypotheses, protTraces, PDF = TRUE)
+plotSummarizedMScoverage(hypotheses, protTraces, PDF = FALSE)
 }
 \arguments{
-\item{hypotheses}{data.table with complex hypotheses}
+\item{hypotheses}{data.table containing complex hypotheses.
+Should have the following columns:
+\itemize{
+\item complex_id: character strings, a unique id for every complex
+\item complex_name: character strings, a unique name for every complex
+\item protein_id: character strings, the protein id, e.g. Uniprot id
+}}
 
-\item{protTraces}{traces object of type protein}
+\item{protTraces}{An object of class traces, type="protein".}
 
-\item{PDF}{logical default = TRUE}
+\item{PDF}{Logical whether to save plots in PDF, default = \code{FALSE}.}
 }
 \value{
-multiple plots summarizing the MS coverage
+Multiple plots summarizing the MS coverage.
 }
 \description{
-plotSummarizedMScoverage
+Generate plots that describe the coverage of the complex hypotheses in the PCP data.
 }
