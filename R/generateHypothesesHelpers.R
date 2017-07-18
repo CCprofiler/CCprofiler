@@ -5,7 +5,8 @@
 #' @param all_A Numeric, length of chracter vector A.
 #' @param all_B Numeric, length of chracter vector B.
 #' @return Numeric, distance of subunit overlap.
-#' @export
+
+
 getDistance <- function(A,B, all_A, all_B){
   # all_A <- length(A)
   # all_B <- length(B)
@@ -97,8 +98,11 @@ complexClustering <- function(complexFeatures,dist_mat){
     hypothesis[,complex_name := paste(complex_id,collapse="_"),by="unique_feature_identifier"]
   }
   hypothesis_unique <- unique(hypothesis,by="unique_feature_identifier")
+  hypothesis_unique[, subunits_detected := hypothesis[, 
+                                                      paste0(subunits_detected, collapse = ";"),
+                                                      by = unique_feature_identifier]$V1]
   hypothesis_unique <- subset(hypothesis_unique,select=c("complex_id","complex_name","subunits_detected"))
-  hypothesis_unique <- hypothesis_unique[,list(protein_id = unlist(strsplit(subunits_detected, ";"))), by=c("complex_id","complex_name")]
+  hypothesis_unique <- hypothesis_unique[,list(protein_id = unique(unlist(strsplit(subunits_detected, ";")))), by=c("complex_id","complex_name")]
   return(hypothesis_unique)
 }
 
