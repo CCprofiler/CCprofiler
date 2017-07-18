@@ -3,12 +3,12 @@ title: "Introduction to the PCprofiler package"
 author: "Isabell Bludau, Max Frank"
 date: '`r Sys.Date()`'
 output:
+  pdf_document:
+    toc: yes
   html_document:
     depth: 3
     number_sections: yes
     theme: united
-    toc: yes
-  pdf_document:
     toc: yes
 vignette: |
   %\VignetteIndexEntry{Introduction to the PCprofiler package} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
@@ -16,9 +16,10 @@ vignette: |
 
 # Overview
 Here we show the basic steps for performing the analysis of PCP-MS datasets with PCprofiler. PCprofiler performs...
+
 ```{r}
-require(devtools)
-install_github("PedrioliLab/SECprofiler",ref="isa")
+# require(devtools)
+# install_github("PedrioliLab/SECprofiler",ref="submission")
 library('SECprofiler')
 ```
 
@@ -276,7 +277,7 @@ plotIdFDRspace(complexFeatures_gridFilteredStats,
 
 # Session information
 ```{r, val=TRUE, echo=FALSE}
-session_info()
+sessionInfo()
 ```
 
 # References
