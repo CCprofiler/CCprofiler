@@ -3,13 +3,13 @@
 \docType{data}
 \name{exampleTraceAnnotation}
 \alias{exampleTraceAnnotation}
-\title{A sample data.table that holds information on proteins or peptides.}
+\title{Examplary trace annotation table mapping ids in the proteomic data to Uniprot annotations}
 \format{An object of class \code{data.table} (inherits from \code{data.frame}) with 20114 rows and 8 columns.}
 \usage{
 exampleTraceAnnotation
 }
 \description{
 Each row in this data.table corresponds to an association between a protein/peptide
-and any specific information, for example annotations from Uniprot.
+and any specific information, for example annotations downloaded from Uniprot.
 }
 \keyword{datasets}

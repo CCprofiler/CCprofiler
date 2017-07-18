@@ -4,16 +4,15 @@
 #' @param grid_search_results List containing result tables from a feature finding grid search.
 #' @import data.table
 #' @param peak_corr_cutoffs Numeric, vector of within peak correlation_cutoff values to test.
-#' Between -1 and 1.
+#' Between -1 and 1. Default is c(0.5,0.75,0.9).
 #' @param feature_completeness_cutoffs Numeric, vector of feature completeness cutoffs to test.
-#' Between 0 and 1.
+#' Between 0 and 1. Default is c(0,0.5,1).
 #' @param hypothesis_completeness_cutoffs Numeric, vector of hypothesis completeness cutoffs to test.
-#' Between 0 and 1.
-#' @param n_subunits_cutoffs Numeric, vector of minimum number of subunits per hypothesis cutoffs to test.
-#' @param monomer_distance_cutoffs Numeric, factor of allowed distance to monomer weight to test.
+#' Between 0 and 1. Default is c(0.5,1).
+#' @param n_subunits_cutoffs Positive integer vector of minimum number of subunits per hypothesis cutoffs to test. Default is c(2,3,4).
+#' @param monomer_distance_cutoffs Positive numeric, factor of allowed distance to monomer weight to test. Default is c(1,2).
 #' @param remove_decoys Logical, whether to remove the decoys from the result.
 #' Default=\code{FALSE}.
-#' @param n_cores Numeric, number of cores to use (default=1).
 #' @return List of search result tables for every possible parameter combination.
 #' The result tables contain additional columns specifying the parameters.
 #' @return List with stats
@@ -23,7 +22,7 @@
 #' ## Complex level
 #' #------------------------
 #' 
-#' ## Load example data into lis to simulate grid search results
+#' ## Load example data into list to simulate grid search results
 #' complexFeaturesGrid <- list(exampleComplexFeatures)
 #' 
 #' ## Perform the filter grid search
@@ -31,14 +30,14 @@
 #'                                                        peak_corr_cutoffs = c(0.5,0.75,0.9),
 #'                                                        feature_completeness_cutoffs = c(0,0.5,1),
 #'                                                        hypothesis_completeness_cutoffs = c(0.5,1),
-#'                                                        n_subunits_cutoffs =c(2,3,4),
+#'                                                        n_subunits_cutoffs = c(2,3,4),
 #'                                                        monomer_distance_cutoffs = c(1,2),
 #'                                                        remove_decoys=FALSE)
 #' #------------------------
 #' ## Protein level
 #' #------------------------
 #' 
-#' ## Load example data into lis to simulate grid search results
+#' ## Load example data into list to simulate grid search results
 #' proteinFeaturesGrid <- list(exampleProteinFeatures)
 #' 
 #' ## Perform the filter grid search
@@ -58,6 +57,12 @@ filterGridSearchResults <- function(grid_search_results,
                                     n_subunits_cutoffs =c(2,3,4),
                                     monomer_distance_cutoffs = c(1,2),
                                     remove_decoys=FALSE){
+  
+  .testGridParameter(peak_corr_cutoffs, "peak_corr_cutoffs")
+  .testGridParameter(feature_completeness_cutoffs, "feature_completeness_cutoffs")
+  .testGridParameter(hypothesis_completeness_cutoffs, "hypothesis_completeness_cutoffs")
+  .testGridParameter(n_subunits_cutoffs, "n_subunits_cutoffs")
+  .testGridParameter(monomer_distance_cutoffs, "monomer_distance_cutoffs")
   
   parameter_grid <- expand.grid(peak_corr_cutoffs, feature_completeness_cutoffs,
                                 hypothesis_completeness_cutoffs, n_subunits_cutoffs,
@@ -176,7 +181,7 @@ estimateGridSearchDecoyFDR<- function(complex_features_list,
 #' best in terms of identifications while staying within a specified FDR cutoff.
 #' @param grid_search_stats Table of grid search statistics.
 #' (obtained from \code{\link{estimateGridSearchDecoyFDR}}).
-#' @param FDR Numeric, maximum FDR tat should be considered. Default = \code{0.1}.
+#' @param FDR Numeric, maximum FDR that should be considered. Default = \code{0.1}.
 #' @return data.table one row with best stats across grid search.
 #' @export
 #' @examples
@@ -280,7 +285,7 @@ plotIdFDRspace <- function(grid_search_stats,
 #' @description Pick the feature-finding result with the parameter set in a grid search output
 #' that performs best in terms of identifications while staying within a specified FDR cutoff.
 #' @param complex_features_list data.table containing filtered complex feature results.
-#' @param FDR Numeric, maximum FDR tat should be considered, default = 0.1.
+#' @param FDR Numeric, maximum FDR that should be considered, default = 0.1.
 #' @param grid_search_params Character vector of column names to report with the statistics 
 #' for the dataset. Should contain all parameters that are of interest in the grid search.
 #' @return data.table with features for best parameter set.

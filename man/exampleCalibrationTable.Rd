@@ -3,19 +3,19 @@
 \docType{data}
 \name{exampleCalibrationTable}
 \alias{exampleCalibrationTable}
-\title{A sample data.table that holds information on the connectivity between SEC fraction number and apparent
-molecular weight (in kDa).}
+\title{Examplary calibration table that maps molecular weights to elution fractions}
 \format{An object of class \code{data.table} (inherits from \code{data.frame}) with 6 rows and 2 columns.}
 \usage{
 exampleCalibrationTable
 }
 \description{
-Each row in this data.table corresponds to an association between SEC fraction number and apparent
-molecular weight (in kDa).
+Each row in this data.table corresponds to an association between a molecular weight (kDa)
+and a chromatographic fraction. These associations can be generated from standard proteins 
+that are separated with the applied chromatographic separation technique.
 The structure of this data.table is as follows:
 \itemize{
- \item \code{std_weights_kDa} The molecular weights of the standard proteins.
- \item \code{std_elu_fractions} The fraction numbers where these standard proteins eluted.
+ \item \code{std_weights_kDa} Integer with the molecular weight in kDa of the standard proteins.
+ \item \code{std_elu_fractions} Integer fraction number of the apex of the associated standard protein elution.
 }
 }
 \keyword{datasets}

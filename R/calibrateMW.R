@@ -13,8 +13,8 @@
 #' @param calibration_table A table with protein standards, file or R data.table.
 #' Columns:
 #' \itemize{
-#' \item std_weights_kDa = Numeric, the MW of the standard proteins.
-#' \item std_elu_fractions = Numeric, the fraction numbers where these standard proteins eluted.
+#'  \item \code{std_weights_kDa} Numeric, the MW of the standard proteins.
+#'  \item \code{std_elu_fractions} Numeric, the fraction numbers where these standard proteins eluted.
 #' }
 #' For an example see \code{exampleCalibrationTable}.
 #' @param plot Logical, whether to plot calibration curve. Defaults to \code{TRUE}.

@@ -3,18 +3,19 @@
 \docType{data}
 \name{exampleComplexHypotheses}
 \alias{exampleComplexHypotheses}
-\title{A sample data.table that holds information on example protein complex hypotheses.}
+\title{Example complex hypotheses}
 \format{An object of class \code{data.table} (inherits from \code{data.frame}) with 228 rows and 3 columns.}
 \usage{
 exampleComplexHypotheses
 }
 \description{
 Each row in this data.table corresponds to an association between a CORUM
-complex and a protein subunit.
+complex id/name and a protein subunit. This is a reduced set of the 
+\code{corumComplexHypotheses} data.table used for examples and testing. 
 The structure of this data.table is as follows:
 \itemize{
- \item \code{complex_id} The numeric id of a complex.
- \item \code{complex_name} A character string of the complex' name.
+ \item \code{complex_id} The numeric id of a CORUM complex.
+ \item \code{complex_name} A character string of the complex name.
  \item \code{protein_id} The Uniprot identifier of the protein.
 }
 }

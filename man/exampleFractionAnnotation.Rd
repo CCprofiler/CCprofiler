@@ -3,19 +3,19 @@
 \docType{data}
 \name{exampleFractionAnnotation}
 \alias{exampleFractionAnnotation}
-\title{A sample data.table that holds information on example protein complex hypotheses.}
+\title{Examplary annotation table that maps filenames to chromatographic fractions}
 \format{An object of class \code{data.table} (inherits from \code{data.frame}) with 81 rows and 2 columns.}
 \usage{
 exampleFractionAnnotation
 }
 \description{
 Each row in this data.table corresponds to an association between a filename
-and the SEC fraction. The fraction_numbers should span a range from 1 to
+and a chromatographic fraction. The fraction_numbers should span a range from 1 to
 the total number of fractions, without duplicates.
 The structure of this data.table is as follows:
 \itemize{
- \item \code{filename} Filename as in the input proteomic data.
- \item \code{fraction_number} Fraction number assotiated to the filename.
+ \item \code{filename} Character string with the filename as in the input proteomic data.
+ \item \code{fraction_number} Integer fraction number assotiated to the filename.
 }
 }
 \keyword{datasets}
