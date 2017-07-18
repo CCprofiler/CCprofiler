@@ -65,12 +65,13 @@ test_that("filterGridSearchResults",{
     testthat::expect_identical(names(proteinFeaturesGridFiltered[[i]]), 
                                names(proteinFeaturesGridFiltered[[1]]))
   }
-  colnames <- names(singleFilterP)
+  colnamesP <- names(singleFilterP)
   testthat::expect_identical(proteinFeaturesGridFiltered[[1]][,colnamesP, with = F],
                              singleFilterP[,colnamesP, with = F])
 })
 
 test_that("estimateGridSearchDecoyFDR",{
+  
   grid_search_params =c("min_feature_completeness",
                         "min_hypothesis_completeness",
                         "min_subunits",
@@ -84,7 +85,10 @@ test_that("estimateGridSearchDecoyFDR",{
   
   testthat::expect_equal(ncol(gridStatsC), length(grid_search_params) + 4)
   testthat::expect_equal(ncol(gridStatsP), length(grid_search_params) + 4)
-  testthat::expect_equal(gridStatsC[1,1], estimateDecoyFDR(complexFeaturesGridFiltered[[1]])[[1]])
+  testthat::expect_equal(as.numeric(gridStatsC[1,1, drop = T]),
+                         estimateDecoyFDR(complexFeaturesGridFiltered[[1]])[[1]])
+  testthat::expect_equal(as.numeric(gridStatsP[1,1, drop = T]),
+                         estimateDecoyFDR(proteinFeaturesGridFiltered[[1]])[[1]])
   
 })
 

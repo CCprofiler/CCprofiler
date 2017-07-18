@@ -1,24 +1,25 @@
 context("proteinFeatureGridSearch")
 
+complexHypotheses <- subset(exampleComplexHypotheses, 
+                            complex_id == exampleComplexHypotheses$complex_id[5])
+
+## Perform a small grid search for 2 parameter combinations
+gridList <- performComplexGridSearch(traces = exampleProteinTraces,
+                                     complex_hypothesis = complexHypotheses,
+                                     corrs = c(0.5, 0.95),
+                                     windows = 15,
+                                     smoothing = 11,
+                                     rt_heights = 5,
+                                     n_cores = 2)
+
+singleSearch <- findComplexFeatures(exampleProteinTraces, complexHypotheses,
+                                    corr_cutoff = 0.95, perturb_cutoff="5%", n_cores = 1,
+                                    window_size = 15, smoothing_length = 11,
+                                    rt_height = 5)
+
+
 test_that("performProteinGridSearch",{
 
-  complexHypotheses <- subset(exampleComplexHypotheses, 
-                              complex_id == exampleComplexHypotheses$complex_id[5])
-
-  ## Perform a small grid search for 2 parameter combinations
-  gridList <- performComplexGridSearch(traces = exampleProteinTraces,
-                           complex_hypothesis = complexHypotheses,
-                           corrs = c(0.5, 0.95),
-                           windows = 15,
-                           smoothing = 11,
-                           rt_heights = 5,
-                           n_cores = 2)
-  
-  singleSearch <- findComplexFeatures(exampleProteinTraces, complexHypotheses,
-                                      corr_cutoff = 0.95, perturb_cutoff="5%", n_cores = 1,
-                                      window_size = 15, smoothing_length = 11,
-                                      rt_height = 5)
-  
   testthat::expect_error(performComplexGridSearch(c()), 'Object is not of class traces.')
   testthat::expect_error(performComplexGridSearch(c(), c()), "Object is not of class traces.")
 
