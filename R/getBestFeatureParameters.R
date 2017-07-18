@@ -342,7 +342,7 @@ getBestParameterData <- function(complex_features_list,
 #' @param FDR_cutoff Numeric, maximum FDR that should be considered, default = 0.1.
 #' @return data.table one row with best stats across grid search.
 #' @export
-#' @example 
+#' @examples 
 #' ## Generate example data
 #' complexFeaturesGrid <- list(exampleComplexFeatures)
 #' complexHypotheses <- exampleComplexHypotheses
