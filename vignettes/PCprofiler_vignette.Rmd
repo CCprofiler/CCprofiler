@@ -57,6 +57,7 @@ calibration = calibrateMW(calibrationTable,
 ## Import of elution profiles to traces object
 The first step in any analysis with PCprofiler is the import of a quantitative peptide- or protein-level matrix in long or wide format that is converted to an object of class "traces". Levaraging the fraction annotation information, the traces data struncture includes a 
 ```{r, eval=TRUE, message=FALSE}
+## Import quantitative PCP data into a traces object
 pepTraces <- importPCPdata(input_data=pcpData,
                           fraction_annotation=fractionAnnotation,
                           rm_decoys = FALSE)
@@ -64,6 +65,8 @@ pepTraces <- importPCPdata(input_data=pcpData,
 ## Trace annotation table
 traceAnnotation <- exampleTraceAnnotation
 head(traceAnnotation, n=2)
+
+## Annotate traces with information from uniprot
 pepTraces <- annotateTraces(traces=pepTraces,
                             trace_annotation=traceAnnotation,
                             traces_id_column = "protein_id",
@@ -72,38 +75,51 @@ pepTraces <- annotateTraces(traces=pepTraces,
                             uniprot_mass_format = TRUE,
                             replace_whitespace = TRUE)
 
+## Annotate traces with molecular weight calibration (if applicable)
+pepTraces <- annotateMolecularWeight(examplePeptideTraces,calibration)
+
+## Inspect resulting annotated traces object
 summary(pepTraces)
 ```
 ## Quality control and filtering
-* correct FDR estimation function
 ```{r, eval=TRUE, fig.show='hold'}
-pepTraces_cons <- filterConsecutiveIdStretches(traces=pepTraces)
+## Filter by 3 consecutive ids
+pepTraces_cons <- filterConsecutiveIdStretches(traces=pepTraces, 
+                                               min_stretch_length = 3)
+## Filter by 0.2 sibling peptide correlation
+## Note that instead of a fixed "absolute_spcCutoff" an fdr cutoff can be specified. 
+## The sibling peptide correlation cutoff will theb be chosen to result in the specified 
+## FDR as estimated by decoy counting. 
 pepTraces_cons_sib <- filterBySibPepCorr(traces=pepTraces_cons,
-                                         PDF=FALSE,
+                                         fdr_cutoff = NULL, 
+                                         absolute_spcCutoff = 0.2, 
                                          plot=TRUE)
+
 summary(pepTraces_cons_sib)
 ```
 ## Protein quantification
 ```{r, eval=TRUE}
-protTraces <- proteinQuantification(pepTraces_cons_sib)
+protTraces <- proteinQuantification(pepTraces_cons_sib, 
+                                    topN = 2,
+                                    keep_less = FALSE,
+                                    rm_decoys = TRUE)
 summary(protTraces)
 ```
 ## Protein feature finding
 ### Co-elution signal detection
-* check improve write summary function for features
 ```{r, eval=TRUE, message=FALSE}
-proteinFeatures <- findProteinFeatures(traces=pepTraces_cons_sib,
-                                       calibration=calibration,
-                                       parallelized=FALSE,
-                                       useRandomDecoyModel=TRUE)
-proteinFeatures_filtered <- subsetProteinFeatures(res=proteinFeatures,
-                                                  min_subunits=3,
-                                                  min_peak_corr=0.8)
-head(proteinFeatures_filtered)
+testProteins = unique(pepTraces_cons_sib$trace_annotation$protein_id)[1:10]
+peptideTracesSubset = subset(pepTraces_cons_sib,trace_subset_ids = testProteins, trace_subset_type = "protein_id")
+proteinFeatures <- findProteinFeatures(traces = peptideTracesSubset,
+                                       useRandomDecoyModel = TRUE)
+proteinFeaturesFiltered <- filterFeatures(feature_table = proteinFeatures,
+                                          min_feature_completeness = 0.5,
+                                          min_peak_corr = 0.5)
+summarizeFeatures(proteinFeaturesFiltered)
 ```
 ### FDR estimation
 ```{r,eval=TRUE}
-proteinFeatures_stats <- estimateDecoyFDR(proteinFeatures_filtered)
+estimateDecoyFDR(proteinFeaturesFiltered)
 ```
 ## Complex feature finding
 ### Complex hypothesis generation
@@ -122,102 +138,138 @@ networkTargets <- generateComplexTargets(pathLength)
 ```
 
 #### Decoys
-* make sure the correct version of the decoy genertr is loaded & check decoy generation again (make faster?)
 ```{r,eval=FALSE}
-networkHypotheses <- generateComplexDecoys(target_hypothesis=networkTargets,
-                                           dist_info=pathLength,
-                                           append=TRUE)
+## Generate decoys for complex hypotheses as provided in CORUM DB
+## Small sample complex sets as used in previous examples are too small for decoy generation.
+corumTargetsPlusDecoys <- generateComplexDecoys(target_hypotheses=corumComplexHypotheses,
+                                                  dist_info=pathLength,
+                                                  min_distance = 2,
+                                                  append=TRUE)
 ```
 ### Co-elution signal detection
 ```{r,eval=TRUE}
 complexFeatures <- findComplexFeatures(traces=protTraces,
-                                       complex_hypothesis = networkTargets,
-                                       calibration = calibration,
-                                       parallelized=FALSE)
+                                       complex_hypothesis = complexHypotheses)
+complexFeaturesFiltered <- filterFeatures(feature_table = complexFeatures,
+                                          min_feature_completeness = 0.5,
+                                          min_peak_corr = 0.5)
+summarizeFeatures(complexFeaturesFiltered)
 
-complexFeatures_filtered <- subsetComplexFeatures(complexFeatures,min_peak_corr=0.5)
-complexFeatures_filtered_best <- getBestComplexFeature(complexFeatures_filtered)
+bestComplexFeaturesFiltered <- getBestFeatures(complexFeaturesFiltered)
+summarizeFeatures(bestComplexFeaturesFiltered)
 ```
 ### FDR estimation
+```{r,eval=TRUE}
+estimateDecoyFDR(bestComplexFeaturesFiltered)
+```
 ### Complex feature collapsing
-
+```{r,eval=TRUE}
+complexFeaturesUnique <- getUniqueFeatureGroups(complexFeaturesFiltered,
+                                                rt_height=2,
+                                                distance_cutoff=1)
+complexFeaturesCollapsed <- callapseByUniqueFeatureGroups(complexFeaturesUnique,
+                                                            rm_decoys=TRUE)
+```
 # Visualization
 ## plotTraces
-* include PDF option, include group by option
 ```{r, eval=TRUE, fig.show='hold'}
-plot(protTraces)
+plot(protTraces,
+     legend = FALSE)
 ```
 ## plotFeatures
-* check for plotting function that takes any type of traces (pep and prot)
-* plot once for peps and once for prots
 ```{r, eval=TRUE, fig.show='hold'}
-plotComplexFeatures(res=complexFeatures_filtered,
-                       proteinTraces=protTraces,
-                       complexID = "1187",
+plotFeatures(feature_table = complexFeaturesFiltered,
+                       traces = protTraces,
+                       feature_id = "1187",
+                       annotation_label="Entry_name",
                        calibration = calibration,
-                       peak_area=TRUE)
+                       peak_area = TRUE)
+
+plotFeatures(feature_table = proteinFeaturesFiltered,
+                       traces = pepTraces_cons_sib,
+                       feature_id = "P61201",
+                       annotation_label="Entry_name",
+                       calibration = calibration,
+                       peak_area = TRUE,
+                       legend = FALSE)
 ```
 
 ## plot summarized MS coverage of complex hypotheses
 * maybe rename function
 ```{r, eval=TRUE, fig.show='hold'}
-plotSummarizedMScoverage(hypotheses=corumNetworkHypotheses,protTraces=protTraces)
+plotSummarizedMScoverage(hypotheses=complexHypotheses,protTraces=protTraces)
 ```
-## plot complex subfeature summary
+## plot complex summaries
 ```{r, eval=TRUE, fig.show='hold'}
-plotComplexSubfeatureSummary(complexFeatures_bestParameterData)
+plotSummarizedComplexes(complexFeatures=complexFeaturesFiltered, 
+                        hypotheses=complexHypotheses, 
+                        protTraces=protTraces)
+
+plotComplexCompletenessScatter(complexFeatures=complexFeaturesFiltered)
 ```
 
 # Parameter optimization
 ## Protein-level grid search
 ```{r, eval=FALSE}
-proteinFeatures_grid <- performProteinGridSearch(traces=pepTraces_cons_sib,
-                                                  calibration= calibration,
-                                                  corrs = c(0.9,0.95),
-                                                  windows = c(8),
+proteinFeatures_grid <- performProteinGridSearch(traces=peptideTracesSubset,
+                                                  corrs = c(0.5,0.9),
+                                                  windows = c(10),
                                                   smoothing = c(7),
-                                                  rt_heights = c(3),
-                                                  parallelized = TRUE,
+                                                  rt_heights = c(4),
                                                   n_cores=2)
 
-proteinFeatures_grid_filtered <- filterGridSearchResults(proteinFeatures_grid,
+proteinFeatures_gridFiltered <- filterGridSearchResults(proteinFeatures_grid,
                                                         peak_corr_cutoffs = c(0.5,0.75,0.9),
-                                                        completeness_cutoffs = c(0,0.25,0.5,0.75),
+                                                        feature_completeness_cutoffs = c(0,0.5,1),
                                                         n_subunits_cutoffs =c(2,3,4),
                                                         remove_decoys=FALSE
                                                         )
 
-proteinFeatures_grid_filtered_stats <- estimateGridSearchDecoyFDR(proteinFeatures_grid_filtered)
+# test if FDR is done on bestFeature only
+proteinFeatures_gridFilteredStats <- estimateGridSearchDecoyFDR(proteinFeatures_gridFiltered)
 
-proteinFeatures_bestParameterStats <- getBestParameterStats(stats=proteinFeatures_grid_filtered_stats,FDR=0.1)
-proteinFeatures_bestParameterData <- getBestParameterData(proteinFeatures_grid_filtered)
+proteinFeatures_bestParameterStats <- getBestParameterStats(proteinFeatures_gridFilteredStats,
+                                                            FDR=0.1)
+proteinFeatures_bestParameterData <- getBestParameterData(proteinFeatures_gridFiltered,
+                                                          FDR=0.1)
+plotIdFDRspace(proteinFeatures_gridFilteredStats,
+               level = "complex",
+               id_level = "TP",
+               FDR_cutoff = 0.1,
+               colour_parameter = "min_feature_completeness")
 ```
 
 ## Complex-level grid search
 ```{r, eval=FALSE}
 complexFeatures_grid <- performComplexGridSearch(traces=protTraces,
                                                 complex_hypothesis=complexHypotheses,
-                                                calibration=calibration,
                                                 corrs = c(0.9,0.95),
-                                                windows = c(8),
+                                                windows = c(10),
                                                 smoothing = c(7),
-                                                rt_heights = c(3),
-                                                parallelized = TRUE,
+                                                rt_heights = c(4),
                                                 n_cores=2
                                                 )
 
-complexFeatures_grid_filtered <- filterGridSearchResults(complexFeatures_grid,
+complexFeatures_gridFiltered <- filterGridSearchResults(complexFeatures_grid,
                                                         peak_corr_cutoffs = c(0.5,0.75,0.9),
-                                                        completeness_cutoffs = c(0,0.25,0.5,0.75),
+                                                        feature_completeness_cutoffs = c(0,0.5,1),
                                                         n_subunits_cutoffs =c(2,3,4),
                                                         remove_decoys=FALSE
                                                         )
 
-complexFeatures_grid_filtered_stats <- estimateGridSearchDecoyFDR(complexFeatures_grid_filtered)
+# test if FDR is done on bestFeature only
+complexFeatures_gridFilteredStats <- estimateGridSearchDecoyFDR(complexFeatures_gridFiltered)
 
-complexFeatures_bestParameterStats <- getBestParameterStats(stats=complexFeatures_grid_filtered_stats,FDR=0.1)
-complexFeatures_bestParameterData <- getBestParameterData(complexFeatures_grid_filtered,FDR=0.1)
+complexFeatures_bestParameterStats <- getBestParameterStats(complexFeatures_gridFilteredStats,
+                                                            FDR=0.1)
+complexFeatures_bestParameterData <- getBestParameterData(complexFeatures_gridFiltered,
+                                                          FDR=0.1)
 
+plotIdFDRspace(complexFeatures_gridFilteredStats,
+               level = "complex",
+               id_level = "TP",
+               FDR_cutoff = 0.1,
+               colour_parameter = "min_feature_completeness")
 ```
 
 

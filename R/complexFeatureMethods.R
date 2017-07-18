@@ -20,7 +20,9 @@
 #' complexHypotheses <- exampleComplexHypotheses
 #' proteinTraces <- exampleProteinTraces
 #' ## Run plotting function:
-#' plotSummarizedComplexes(complexFeatures=complexFeatures, hypotheses=complexHypotheses, protTraces=proteinTraces)
+#' plotSummarizedComplexes(complexFeatures=complexFeatures, 
+#'                         hypotheses=complexHypotheses, 
+#'                         protTraces=proteinTraces)
 #' @export
 plotSummarizedComplexes <- function(complexFeatures,hypotheses,protTraces,PDF=FALSE,name="complex_completeness_pie"){
   targetFeatures <- copy(complexFeatures)

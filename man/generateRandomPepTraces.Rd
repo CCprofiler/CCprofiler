@@ -26,6 +26,7 @@ exampleTraces <- examplePeptideTraces
 
 ## Generate the decoy traces object
 decoyTraces <- generateRandomPepTraces(exampleTraces)
+                   
 # Inspect the result
 summary(decoyTraces)
 #--------------------

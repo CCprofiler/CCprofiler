@@ -34,5 +34,7 @@ complexFeatures <- exampleComplexFeatures
 complexHypotheses <- exampleComplexHypotheses
 proteinTraces <- exampleProteinTraces
 ## Run plotting function:
-plotSummarizedComplexes(complexFeatures=complexFeatures, hypotheses=complexHypotheses, protTraces=proteinTraces)
+plotSummarizedComplexes(complexFeatures=complexFeatures, 
+                        hypotheses=complexHypotheses, 
+                        protTraces=proteinTraces)
 }
