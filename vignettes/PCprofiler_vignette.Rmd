@@ -4,6 +4,7 @@ author: "Isabell Bludau, Max Frank"
 date: '`r Sys.Date()`'
 output:
   pdf_document:
+    keep_tex: yes
     toc: yes
   html_document:
     depth: 3
@@ -110,12 +111,18 @@ summary(protTraces)
 ### Co-elution signal detection
 ```{r, eval=TRUE, message=FALSE}
 testProteins = unique(pepTraces_cons_sib$trace_annotation$protein_id)[1:10]
-peptideTracesSubset = subset(pepTraces_cons_sib,trace_subset_ids = testProteins, trace_subset_type = "protein_id")
+
+peptideTracesSubset = subset(pepTraces_cons_sib,
+                             trace_subset_ids = testProteins, 
+                             trace_subset_type = "protein_id")
+
 proteinFeatures <- findProteinFeatures(traces = peptideTracesSubset,
                                        useRandomDecoyModel = TRUE)
+
 proteinFeaturesFiltered <- filterFeatures(feature_table = proteinFeatures,
                                           min_feature_completeness = 0.5,
                                           min_peak_corr = 0.5)
+
 summarizeFeatures(proteinFeaturesFiltered)
 ```
 ### FDR estimation
@@ -141,7 +148,8 @@ networkTargets <- generateComplexTargets(pathLength)
 #### Decoys
 ```{r,eval=FALSE}
 ## Generate decoys for complex hypotheses as provided in CORUM DB
-## Small sample complex sets as used in previous examples are too small for decoy generation.
+## Small sample complex sets as used in previous 
+## examples are too small for decoy generation.
 corumTargetsPlusDecoys <- generateComplexDecoys(target_hypotheses=corumComplexHypotheses,
                                                   dist_info=pathLength,
                                                   min_distance = 2,
@@ -198,7 +206,8 @@ plotFeatures(feature_table = proteinFeaturesFiltered,
 ## plot summarized MS coverage of complex hypotheses
 * maybe rename function
 ```{r, eval=TRUE, fig.show='hold'}
-plotSummarizedMScoverage(hypotheses=complexHypotheses,protTraces=protTraces)
+plotSummarizedMScoverage(hypotheses=complexHypotheses,
+                         protTraces=protTraces)
 ```
 ## plot complex summaries
 ```{r, eval=TRUE, fig.show='hold'}
@@ -219,7 +228,7 @@ proteinFeatures_grid <- performProteinGridSearch(traces=peptideTracesSubset,
                                                   rt_heights = c(4),
                                                   n_cores=2)
 
-proteinFeatures_gridFiltered <- filterGridSearchResults(proteinFeatures_grid,
+proteinFeaturesFiltered <- filterGridSearchResults(proteinFeatures_grid,
                                                         peak_corr_cutoffs = c(0.5,0.75,0.9),
                                                         feature_completeness_cutoffs = c(0,0.5,1),
                                                         n_subunits_cutoffs =c(2,3,4),
@@ -227,13 +236,13 @@ proteinFeatures_gridFiltered <- filterGridSearchResults(proteinFeatures_grid,
                                                         )
 
 # test if FDR is done on bestFeature only
-proteinFeatures_gridFilteredStats <- estimateGridSearchDecoyFDR(proteinFeatures_gridFiltered)
+proteinFeaturesFilteredStats <- estimateGridSearchDecoyFDR(proteinFeaturesFiltered)
 
-proteinFeatures_bestParameterStats <- getBestParameterStats(proteinFeatures_gridFilteredStats,
+proteinFeatures_bestParameterStats <- getBestParameterStats(proteinFeaturesFilteredStats,
                                                             FDR=0.1)
-proteinFeatures_bestParameterData <- getBestParameterData(proteinFeatures_gridFiltered,
+proteinFeatures_bestParameterData <- getBestParameterData(proteinFeaturesFiltered,
                                                           FDR=0.1)
-plotIdFDRspace(proteinFeatures_gridFilteredStats,
+plotIdFDRspace(proteinFeaturesFilteredStats,
                level = "complex",
                id_level = "TP",
                FDR_cutoff = 0.1,
@@ -251,7 +260,7 @@ complexFeatures_grid <- performComplexGridSearch(traces=protTraces,
                                                 n_cores=2
                                                 )
 
-complexFeatures_gridFiltered <- filterGridSearchResults(complexFeatures_grid,
+complexFeaturesFiltered <- filterGridSearchResults(complexFeatures_grid,
                                                         peak_corr_cutoffs = c(0.5,0.75,0.9),
                                                         feature_completeness_cutoffs = c(0,0.5,1),
                                                         n_subunits_cutoffs =c(2,3,4),
@@ -259,14 +268,14 @@ complexFeatures_gridFiltered <- filterGridSearchResults(complexFeatures_grid,
                                                         )
 
 # test if FDR is done on bestFeature only
-complexFeatures_gridFilteredStats <- estimateGridSearchDecoyFDR(complexFeatures_gridFiltered)
+complexFeaturesFilteredStats <- estimateGridSearchDecoyFDR(complexFeaturesFiltered)
 
-complexFeatures_bestParameterStats <- getBestParameterStats(complexFeatures_gridFilteredStats,
+complexFeatures_bestParameterStats <- getBestParameterStats(complexFeaturesFilteredStats,
                                                             FDR=0.1)
-complexFeatures_bestParameterData <- getBestParameterData(complexFeatures_gridFiltered,
+complexFeatures_bestParameterData <- getBestParameterData(complexFeaturesFiltered,
                                                           FDR=0.1)
 
-plotIdFDRspace(complexFeatures_gridFilteredStats,
+plotIdFDRspace(complexFeaturesFilteredStats,
                level = "complex",
                id_level = "TP",
                FDR_cutoff = 0.1,
