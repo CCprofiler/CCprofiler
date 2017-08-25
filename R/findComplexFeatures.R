@@ -135,7 +135,7 @@ runSlidingWindow <- function(complex.id,
       complexFeaturesSW <- findComplexFeaturesSW(trace.mat=traces.imputed.subs,
                                                  corr.cutoff=corr_cutoff,
                                                  window.size=window_size)
-      if((dim(complexFeaturesSW$features)[1] == 0) & (dim(complexFeaturesSW$features)[2] == 0)){
+      if((dim(complexFeaturesSW)[1] == 0) & (dim(complexFeaturesSW)[2] == 0)){
         return(list())
       }
       complexFeaturesPP <- findComplexFeaturesPP(traces.obj=traces.subs,

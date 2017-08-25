@@ -142,13 +142,7 @@ findComplexFeaturesSW <- function(trace.mat,
   } else {
     groups.feats <- data.frame()
   }
-  # TODO: Include traces object as character string
-  # and then get object form environment when plotting.
-  result <- list(features=groups.feats,
-                 window.size=window.size,
-                 corr.cutoff=corr.cutoff)
-  class(result) <- 'complexFeaturesSW'
-  result
+  groups.feats
 }
 
 
