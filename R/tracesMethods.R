@@ -63,11 +63,11 @@ subset.traces <- function(traces,trace_subset_ids=NULL,trace_subset_type="id",fr
 #' intensityMatrix <- getIntensityMatrix(examplePeptideTraces)
 #' head(intensityMatrix)
 #' @export
-getIntensityMatrix <- function(traces) {
+getIntensityMatrix <- function(traces){
   .tracesTest(traces)
-  ids <- traces$traces$id
-  intensity.mat <- as.matrix(sapply(subset(traces$traces,
-                                    select=-id),as.numeric))
+  tr <- copy(traces$traces)
+  ids <- tr$id
+  intensity.mat <- data.matrix(tr[,id := NULL])
   rownames(intensity.mat) <- ids
   intensity.mat
 }
