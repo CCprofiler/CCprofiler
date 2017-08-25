@@ -46,7 +46,11 @@ subset.traces <- function(traces,trace_subset_ids=NULL,trace_subset_type="id",fr
     }
   }
   if (!is.null(fraction_ids)){
-    traces$traces <- subset(traces$traces,select=c(names(traces$traces)[fraction_ids],"id"))
+    if(class(fraction_ids) == "numeric"){
+      fraction_ids <- as.character(fraction_ids)
+    }
+    fraction_ids <- intersect(names(traces$traces), fraction_ids)
+    traces$traces <- subset(traces$traces,select=c(fraction_ids,"id"))
     traces$fraction_annotation <- subset(traces$fraction_annotation ,id %in% fraction_ids)
     if (nrow(traces$traces) == 0) {
       stop(paste0("fraction_ids (",fraction_ids,") do not match the available fractions in the traces object."))
@@ -147,10 +151,17 @@ plot.traces <- function(traces,
                         log=FALSE,
                         legend = TRUE,
                         PDF=FALSE,
-                        name="Traces") {
+                        name="Traces",
+                        highlight=NULL,
+                        highlight_col=NULL) {
   .tracesTest(traces)
   traces.long <- toLongFormat(traces$traces)
   traces.long <- merge(traces.long,traces$fraction_annotation,by.x="fraction",by.y="id")
+  if(!is.null(highlight)){
+    traces.long$outlier <- gsub("\\(.*?\\)","",traces.long$id) %in% gsub("\\(.*?\\)","",highlight)
+    if(!any(traces.long$outlier)) highlight <- NULL
+  }
+  
   p <- ggplot(traces.long) +
     geom_line(aes_string(x='fraction', y='intensity', color='id')) +
     xlab('fraction') +
@@ -165,6 +176,27 @@ plot.traces <- function(traces,
   if (!legend) {
     p <- p + theme(legend.position="none")
   }
+  if(!is.null(highlight)){
+    legend_peps <- unique(traces.long[outlier == TRUE, id])
+    if(is.null(highlight_col)){
+      p <- p + 
+        geom_line(data = traces.long[outlier == TRUE], aes_string(x='fraction', y='intensity', color='id'), lwd=2) +
+        scale_color_discrete(breaks = legend_peps)
+    }else{
+        legend_map <- unique(ggplot_build(p)$data[[1]]$colour)
+        names(legend_map) <- unique(p$data$id)
+        legend_map[legend_peps] <- highlight_col
+        legend_vals <- rep(highlight_col, ceiling(length(legend_peps)/ length(highlight_col)))[1:length(legend_peps)]
+        p <- p + 
+          geom_line(data = traces.long[outlier == TRUE], aes_string(x='fraction', y='intensity', lty = 'id'), color = highlight_col, lwd=2) +
+          # scale_color_discrete(guide = F)
+          scale_color_manual(values = legend_map, limits = legend_peps) 
+          # guides(lty = FALSE)
+          # scale_color_manual(limits = legend_peps, values = rep(highlight_col, length(legend_peps))) +
+          # geom_line(aes_string(x='fraction', y='intensity', color='id'))
+    }
+  }
+  
 
   if ("molecular_weight" %in% names(traces$fraction_annotation)) {
     p2 <- p
