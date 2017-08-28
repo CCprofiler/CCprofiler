@@ -1,7 +1,7 @@
 
 
 test_that("imputeMissingValues",{
-  tracesMatrix <- getIntensityMatrix(traces)
+  tracesMatrix <- getIntensityMatrix(exampleProteinTraces)
   tracesImputed_5p <- imputeMissingValues(tracesMatrix,"5%")
   tracesImputed_val <- imputeMissingValues(tracesMatrix,1587)
   testthat::expect_equal(tracesImputed_5p,tracesImputed_val)
@@ -121,3 +121,24 @@ test_that("collapseComplexFeatures",{
   testthat::expect_equal(collapse0_diff_apex,test_collapse0_diff_apex)
   testthat::expect_equal(collapse5_diff_network,test_collapse5_diff_network)
 })
+
+test_that("calculateFeatureCorrelation",{
+  testData <- data.table(
+    subgroup = c("Q13330;Q09028;Q14839","Q92769;Q13547;O60341","Q14839;Q13330;Q09028","Q92769;Q13547"),
+    left_sw = c(2,16,2,1),
+    right_sw = c(21,31,21,39),
+    score = c(0.9750086,0.9613223,0.9750086,0.9833626),
+    n_subunits = c(3,3,3,2),
+    apex = c(17,17,7,9),
+    left_pp = c(11,14,1,1),
+    right_pp = c(22,22,11,12),
+    area = NA
+  )
+  tracesMatrix <- getIntensityMatrix(exampleProteinTraces)
+  imputedMatrix <- imputeMissingValues(tracesMatrix,"5%")
+  testDataCorr <- calculateFeatureCorrelation(imputedMatrix, testData, toTable = FALSE)
+  testthat::expect_equal(testData[,c(1:8)],testDataCorr[,c(1:8)])
+  testthat::expect_equal(testDataCorr$area,c(1415864,808581,409433,499226))
+  testthat::expect_equal(testDataCorr$peak_corr,c(0.9547027,0.9573859,0.7322601,0.9796383), tolerance = .0000001)
+})
+  
