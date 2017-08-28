@@ -123,11 +123,11 @@ runSlidingWindow <- function(complex.id,
                              complex_hypothesis,
                              traces, 
                              traces.imputed,
-                             corr_cutoff=0.95,
-                             window_size=15,
-                             collapse_method="apex_only",
-                             rt_height=5,
-                             smoothing_length=11) {
+                             corr_cutoff,
+                             window_size,
+                             collapse_method,
+                             rt_height,
+                             smoothing_length) {
   #complex.id <- inputComplexes[i]
   #cat(sprintf('CHECKING RUN:  %d / %d', i, length(inputComplexes)), '\n')
   # Extract the protein traces belonging to the current complex
