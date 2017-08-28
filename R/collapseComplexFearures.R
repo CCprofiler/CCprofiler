@@ -65,9 +65,6 @@ collapseComplexFeatures <- function(complexFeature=complexFeaturesPP,rt_height=5
           rm(c_data)
         }
       } else {
-        #data[,n_primary_features := nrow(data)]
-        #data[,n_collapsed_subunits := n_subunits_detected]
-        #data[,collapsed_subunits := subunits_detected]
         data <- data[order(-n_subunits,-score,-area)]
         if (exists("new_complexFeature")) {
           new_complexFeature <- rbind(new_complexFeature,data[1])
