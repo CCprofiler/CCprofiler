@@ -99,12 +99,7 @@ findComplexFeatures <- function(traces,
     sw.results[[error_idx]] <- list()
   }
 
-  res <- sw.results
-  res.list <- lapply(seq(1:length(res)), function(i){
-    features <- res[[i]]$features
-    features
-  })
-  complexRes <- do.call("rbind", res.list)
+  complexRes <- do.call("rbind", sw.results)
   complexRes
 }
 
@@ -143,7 +138,7 @@ runSlidingWindow <- function(complex.id,
                                                  smoothing_length=smoothing_length,
                                                  rt_height=rt_height)
       complexFeaturesCollapsed <- collapseComplexFeatures(complexFeature=complexFeaturesPP,rt_height=rt_height,collapse_method=collapse_method)
-      if(dim(complexFeaturesCollapsed$features)[1] == 0){
+      if(dim(complexFeaturesCollapsed)[1] == 0){
         return(list())
       }
       # Calculate within peak boundary correlation

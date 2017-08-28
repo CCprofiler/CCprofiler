@@ -15,7 +15,6 @@
 #'        }
 
 collapseComplexFeatures <- function(complexFeature=complexFeaturesPP,rt_height=5,collapse_method="apex_only"){
-  complexFeature = complexFeature$features
   complexFeature <- subset(complexFeature,apex != "NA")
   if (nrow(complexFeature) > 1) {
     apex_dist <- dist(complexFeature$apex)
@@ -79,12 +78,7 @@ collapseComplexFeatures <- function(complexFeature=complexFeaturesPP,rt_height=5
       rm(data)
     }
   } else {
-    #complexFeature[,n_primary_features := 1]
-    #complexFeature[,n_collapsed_subunits := n_subunits_detected]
-    #complexFeature[,collapsed_subunits := subunits_detected]
     new_complexFeature <- complexFeature
   }
-  res <- list(features=new_complexFeature)
-  class(res) = 'complexFeaturesCollapsed'
-  res
+  return(new_complexFeature[])
 }

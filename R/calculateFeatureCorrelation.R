@@ -12,8 +12,7 @@
 
 calculateFeatureCorrelation <- function(trace.mat, features.obj,
                                           toTable = FALSE){
-
-    mean.corr <- apply(features.obj$features,1, function(x){
+    mean.corr <- apply(features.obj,1, function(x){
       bound_left <- x["left_pp"]
       bound_right <- x["right_pp"]
       subunits <- strsplit(x["subgroup"], split = ";")
@@ -25,9 +24,7 @@ calculateFeatureCorrelation <- function(trace.mat, features.obj,
       c(mean(corr.x,na.rm = TRUE),
       sum(traces.feature))
     })
-    features.obj$features$peak_corr <- mean.corr[1,]
-    features.obj$features$area <- mean.corr[2,]
-
-    return(features.obj)
-
+    features.obj$peak_corr <- mean.corr[1,]
+    features.obj$area <- mean.corr[2,]
+    return(features.obj[])
 }

@@ -73,7 +73,7 @@ findComplexFeaturesPP <- function(traces.obj,complexFeaturesSW,smoothing_length=
        }
 
        # select peaks within boundaries of correlation based window
-       ## sel_peaks <- which((complex.peaks$left_pp>=feature$left_sw) & (complex.peaks$right_pp<=feature$right_sw)) # peak boundaries within SW window = problem becaus eof trunkated peaks
+       ## sel_peaks <- which((complex.peaks$left_pp>=feature$left_sw) & (complex.peaks$right_pp<=feature$right_sw)) # peak boundaries within SW window = problem because of trunkated peaks
         sel_peaks <- which((complex.peaks$apex>=feature$left_sw) & (complex.peaks$apex<=feature$right_sw)) # only apex within SW boundaries
        ##sel_peaks <- which(((complex.peaks$apex>=feature$left_sw) & (complex.peaks$apex<=feature$right_sw)) |
        ##((complex.peaks$left_pp>=feature$left_sw) & (complex.peaks$left_pp<feature$right_sw)) |
@@ -85,11 +85,6 @@ findComplexFeaturesPP <- function(traces.obj,complexFeaturesSW,smoothing_length=
          #complex.peak$area <- sum(complex.trace[complex.peak$left_pp:complex.peak$right_pp])
          complex.peak <- complex.peaks[,area:=NA]
        } else { #no peak was detected within SW
-         #apex=feature$left_sw+((feature$right_sw - feature$left_sw)/2)
-         #apex=unique(c(floor(apex),ceiling(apex)))
-         #intensity=mean(complex.trace.mat[apex])
-         #complex.peak <- data.table(intensity=intensity,apex=mean(apex),left_pp=feature$left_sw,right_pp=feature$right_sw)
-         #complex.peak$area <- sum(complex.trace.mat[1,complex.peak$left_pp:complex.peak$right_pp])
          complex.peak <- data.table(intensity=NA,apex=NA,left_pp=NA,right_pp=NA,area=NA)
        }
        complex.peak[,intensity:=NULL]
@@ -102,9 +97,5 @@ findComplexFeaturesPP <- function(traces.obj,complexFeaturesSW,smoothing_length=
       features[, right_pp := unlist(lapply(features.new, function(x) x$right_pp))]
       features[, area := unlist(lapply(features.new, function(x) x$area))]
       data.table(features)
-
-      res <- list(features=features)
-      class(res) = 'complexFeaturesPP'
-
-     res
+      return(features[])
 }
