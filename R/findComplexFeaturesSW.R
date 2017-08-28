@@ -37,8 +37,8 @@
 #' # sw.res <- findComplexFeaturesSW(traces, protein.ids, protein.mw.conc)
 
 findComplexFeaturesSW <- function(trace.mat,
-                                  corr.cutoff=0.95,
-                                  window.size=15,
+                                  corr.cutoff,
+                                  window.size,
                                   with.plot=F,
                                   min.sec=1){
   # trace.mat = getIntensityMatrix(traces.obj)

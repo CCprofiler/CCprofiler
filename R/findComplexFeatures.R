@@ -72,7 +72,10 @@ findComplexFeatures <- function(traces,
     sw.results <- foreach(i=seq_along(inputComplexes),
                           .packages=c('data.table', 'SECprofiler'),.options.snow = opts) %dopar% {
                             query_complex_id <- inputComplexes[i]
-                            runSlidingWindow(query_complex_id, traces=traces,traces.imputed = trace_mat_imputed,
+                            runSlidingWindow(query_complex_id, 
+                                             complex_hypothesis=complex_hypothesis,
+                                             traces=traces,
+                                             traces.imputed = trace_mat_imputed,
                                              corr_cutoff=corr_cutoff,
                                              window_size=window_size,
                                              collapse_method=collapse_method,
@@ -87,7 +90,15 @@ findComplexFeatures <- function(traces,
       setTxtProgressBar(pb, i)
       query_complex_id <- inputComplexes[i]
       #cat(sprintf('CHECKING RUN:  %d / %d', i, length(inputComplexes)), '\n')
-      runSlidingWindow(query_complex_id, traces=traces, traces.imputed = trace_mat_imputed)
+      runSlidingWindow(query_complex_id,
+                       complex_hypothesis=complex_hypothesis,
+                       traces=traces,
+                       traces.imputed = trace_mat_imputed,
+                       corr_cutoff=corr_cutoff,
+                       window_size=window_size,
+                       collapse_method=collapse_method,
+                       rt_height=rt_height,
+                       smoothing_length=smoothing_length)
     }
     close(pb)
   }
@@ -100,7 +111,7 @@ findComplexFeatures <- function(traces,
   }
 
   complexRes <- do.call("rbind", sw.results)
-  complexRes
+  return(complexRes[])
 }
 
 #' runSlidingWindow function
@@ -109,6 +120,7 @@ findComplexFeatures <- function(traces,
 #' @param traces original traces object
 #' @param traces.imputed imputed traces object
 runSlidingWindow <- function(complex.id, 
+                             complex_hypothesis,
                              traces, 
                              traces.imputed,
                              corr_cutoff=0.95,

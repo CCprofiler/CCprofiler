@@ -41,13 +41,13 @@
 #' proteinFeaturesGrid <- list(exampleProteinFeatures)
 #' 
 #' ## Perform the filter grid search
-#' proteinFeaturesGridFiltered <- filterGridSearchResults(proteinFeaturesGrid,
-#'                                                        peak_corr_cutoffs = c(0.5,0.75,0.9),
-#'                                                        feature_completeness_cutoffs = c(0,0.5,1),
-#'                                                        hypothesis_completeness_cutoffs = c(0.5,1),
-#'                                                        n_subunits_cutoffs =c(2,3,4),
-#'                                                        monomer_distance_cutoffs = c(0,1),
-#'                                                        remove_decoys=FALSE)
+#'  proteinFeaturesGridFiltered <- filterGridSearchResults(proteinFeaturesGrid,
+#'                                                         peak_corr_cutoffs = c(0.5,0.75,0.9),
+#'                                                         feature_completeness_cutoffs = c(0,0.5,1),
+#'                                                         hypothesis_completeness_cutoffs = c(0.5,1),
+#'                                                         n_subunits_cutoffs =c(2,3,4),
+#'                                                         monomer_distance_cutoffs = c(0,1),
+#'                                                         remove_decoys=FALSE)
 #' 
 
 filterGridSearchResults <- function(grid_search_results,

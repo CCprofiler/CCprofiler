@@ -14,7 +14,7 @@
 #'           }
 #'        }
 
-collapseComplexFeatures <- function(complexFeature=complexFeaturesPP,rt_height=5,collapse_method="apex_only"){
+collapseComplexFeatures <- function(complexFeature=complexFeaturesPP,rt_height,collapse_method){
   complexFeature <- subset(complexFeature,apex != "NA")
   if (nrow(complexFeature) > 1) {
     apex_dist <- dist(complexFeature$apex)

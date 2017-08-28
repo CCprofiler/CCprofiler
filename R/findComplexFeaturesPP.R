@@ -35,7 +35,7 @@
 #'           }
 #'        }
 
-findComplexFeaturesPP <- function(traces.obj,complexFeaturesSW,smoothing_length=11,rt_height=5) {
+findComplexFeaturesPP <- function(traces.obj,complexFeaturesSW,smoothing_length,rt_height) {
     features <- copy(complexFeaturesSW)
     # Compute the number of subunits in each complex feature
     features[, n_subunits := length(strsplit(as.character(subgroup), ';')[[1]]),by=subgroup]

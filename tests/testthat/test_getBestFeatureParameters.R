@@ -1,4 +1,4 @@
-context("getBeatFeatureParameters")
+context("getBestFeatureParameters")
 
 #------------------------
 ## Complex level
@@ -117,3 +117,4 @@ test_that("filterByStepwiseCompleteness",{
   testthat::expect_gte(min(sub_small_feature$completeness),0.8)
   testthat::expect_gte(min(sub_big_feature$completeness),0.3)
 })
+
