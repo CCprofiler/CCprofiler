@@ -14,6 +14,7 @@ Depends:
     doSNOW,
     foreach,
     parallel,
+    igraph,
     pracma
 RoxygenNote: 6.0.1
 Imports: igraph

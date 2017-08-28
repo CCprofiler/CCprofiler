@@ -2,6 +2,8 @@
 #'
 #' @param complexFeature Object of class ComplexFeaturePP
 #' @param rt_height Height at which to cur apex clustering tree.
+#' @importFrom igraph graph.data.frame
+#' @importFrom igraph clusters
 #' @return An object of type \code{collapsedComplexFeatures} that is a list
 #'        containing the following:
 #'        \itemize{
@@ -40,8 +42,8 @@ collapseComplexFeatures <- function(complexFeature=complexFeaturesPP,rt_height,c
           bi_list.tt <- lapply(bi_list.t,as.data.table)
           binary_interactions <- rbindlist(bi_list.tt)
           binary_interactions <- unique(binary_interactions)
-          g <- graph.data.frame(binary_interactions)
-          c <- clusters(g)
+          g <- igraph::graph.data.frame(binary_interactions)
+          c <- igraph::clusters(g)
           c_proteins <- names(c$members)
           c_groups <- as.vector(c$membership)
         }
