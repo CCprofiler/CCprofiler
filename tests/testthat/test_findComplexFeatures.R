@@ -8,7 +8,6 @@ test_that("imputeMissingValues",{
   testthat::expect_equal(sum(tracesImputed_5p==0),0)
 })
 
-
 test_that("collapseComplexFeatures",{
   testDataCollapsing <- data.table(
     subgroup = c("Q15021;Q15003","Q15021;Q15003",
