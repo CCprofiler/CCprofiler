@@ -210,6 +210,7 @@ getBestParameterStats <- function(grid_search_stats,
 #' @description Plot the result of a grid search depending on a specified parameter.
 #' @param grid_search_stats Table of grid search statistics 
 #' (obtained from \code{\link{estimateGridSearchDecoyFDR}}).
+#' @param best_parameters data.table with one row containing the selected parameter set.
 #' @param level Character string, either 'complex' or 'protein'.
 #' Specifies which feature finding was performed. Defaults to 'complex'.
 #' @param id_level Character string, either 'TP' or 'P'. 
@@ -232,6 +233,7 @@ getBestParameterStats <- function(grid_search_stats,
 #'
 
 plotIdFDRspace <- function(grid_search_stats,
+                           best_parameters,
                            level = "complex",
                            id_level = "TP",
                            FDR_cutoff = 0.1,
@@ -244,9 +246,10 @@ plotIdFDRspace <- function(grid_search_stats,
   } else if (level=="protein"){
     sep=1000
   }
-  bestStats <- getBestParameterStats(grid_search_stats,FDR=FDR_cutoff)
   
-  sel_best <- which(sapply(1:nrow(grid_search_stats), function(i) identical(grid_search_stats[i,], bestStats)))
+  bestStats <- subset(best_parameters, select = names(best_parameters)[which((names(best_parameters) %in% names(grid_search_stats)) & (!names(best_parameters) %in% c("FDR","TP","P","D")))])
+  
+  sel_best <- which(sapply(1:nrow(grid_search_stats), function(i) identical(subset(grid_search_stats,select=names(bestStats))[i,], bestStats)))
   
   grid_search_stats[,best:=1]
   grid_search_stats$best[sel_best] = 1.5
@@ -285,35 +288,39 @@ plotIdFDRspace <- function(grid_search_stats,
 #' @description Pick the feature-finding result with the parameter set in a grid search output
 #' that performs best in terms of identifications while staying within a specified FDR cutoff.
 #' @param complex_features_list data.table containing filtered complex feature results.
-#' @param FDR Numeric, maximum FDR that should be considered, default = 0.1.
+#' @param best_parameters data.table with one row containing the selected parameter set.
 #' @param grid_search_params Character vector of column names to report with the statistics 
 #' for the dataset. Should contain all parameters that are of interest in the grid search.
 #' @return data.table with features for best parameter set.
 #' @export
 #' @examples
 #' ## Generate example data
-#' complexFeaturesGrid <- list(exampleComplexFeatures)
+#'  complexFeaturesGrid <- list(exampleComplexFeatures)
+#'  
+#'  complexFeaturesGridFiltered <- filterGridSearchResults(complexFeaturesGrid,
+#'                                                         peak_corr_cutoffs = c(0.5,0.75,0.9),
+#'                                                         feature_completeness_cutoffs = c(0,0.5,1),
+#'                                                         hypothesis_completeness_cutoffs = c(0.5,1),
+#'                                                         n_subunits_cutoffs =c(2,3,4),
+#'                                                         monomer_distance_cutoffs = c(1,2),
+#'                                                         remove_decoys=FALSE)
+#'  
+#'  complexFeatures_bestParameterStats <- getBestParameterStats_constraintFDR(complexFeaturesGridFiltered,
+#'                                                                            complex_hypotheses=exampleComplexHypotheses,
+#'                                                                            n_subsets=3,
+#'                                                                            FDR=0.1)
+#'  ## Extract the result table with the best parameter set
+#'  bestComplexFeatures <- getBestParameterData(complexFeaturesGridFiltered,
+#'                                              best_parameters = @TODO,
+#'                                              grid_search_params = c("min_feature_completeness",
+#'                                                                     "min_hypothesis_completeness",
+#'                                                                     "min_subunits",
+#'                                                                     "min_peak_corr",
+#'                                                                     "min_monomer_distance_factor"))
+#'  head(bestComplexFeatures, n = 2)
 #' 
-#' complexFeaturesGridFiltered <- filterGridSearchResults(complexFeaturesGrid,
-#'                                                        peak_corr_cutoffs = c(0.5,0.75,0.9),
-#'                                                        feature_completeness_cutoffs = c(0,0.5,1),
-#'                                                        hypothesis_completeness_cutoffs = c(0.5,1),
-#'                                                        n_subunits_cutoffs =c(2,3,4),
-#'                                                        monomer_distance_cutoffs = c(1,2),
-#'                                                        remove_decoys=FALSE)
-#' 
-#' ## Extract the result table with the best parameter set
-#' bestComplexFeatures <- getBestParameterData(complexFeaturesGridFiltered,
-#'                                             grid_search_params = c("min_feature_completeness",
-#'                                                                    "min_hypothesis_completeness",
-#'                                                                    "min_subunits",
-#'                                                                    "min_peak_corr",
-#'                                                                    "min_monomer_distance_factor"))
-#' head(bestComplexFeatures, n = 2)
-#' 
-
 getBestParameterData <- function(complex_features_list,
-                                 FDR = 0.1,
+                                 best_parameters,
                                  grid_search_params =c("corr", "window",
                                                        "rt_height", "smoothing_length",
                                                        "min_feature_completeness",
@@ -321,15 +328,9 @@ getBestParameterData <- function(complex_features_list,
                                                        "min_subunits",
                                                        "min_peak_corr", 
                                                        "min_monomer_distance_factor")){
-  
-  grid_stats <- estimateGridSearchDecoyFDR(complex_features_list, 
-                                           grid_search_params = grid_search_params)
-  
-  bestStats <- getBestParameterStats(grid_stats,FDR=FDR)
-  
-  sel_params <- which(sapply(1:nrow(grid_stats), function(i) identical(grid_stats[i,], bestStats)))
-  
-  complex_features_list[[sel_params]]
+  bestStats <- subset(best_parameters, select = grid_search_params)
+  sel_index <- which(unlist(lapply(complex_features_list, function(x){identical(subset(x, select = grid_search_params)[1], bestStats)})))
+  complex_features_list[[sel_index]]
 }
 
 
