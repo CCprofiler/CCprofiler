@@ -17,10 +17,10 @@ Additionaly a complex_name column is allowed.}
 
 \item{redundancy_cutoff}{Numeric, maximum overlap distance between two hypotheses
 \itemize{
-  \item 0 = identical 
+  \item 0 = identical
   \item 1 = subset
   \item between 1 and 2 = some shared subunits
-  \item 2 = no shared subunits 
+  \item 2 = no shared subunits
 }
 Defaults to 1.}
 }
