@@ -24,7 +24,8 @@ collapseComplexFeatures <- function(complexFeature=complexFeaturesPP,rt_height,c
     #pdf(paste0("cluster_apex_",gsub("/","",complexFeature$complex_name),".pdf"))
     #  plot(apex_clust)
     #dev.off()
-    apex_groups <- cutree(apex_clust, h=rt_height)
+    apex_groups <- cutree(apex_clust, h=rt_height+0.01)
+    # add 0.01 to rt_height to cut tree right above cutoff (2 features with exact dist rt_height are merged)
     unique_apex_groups <- unique(apex_groups)
     for (apex_group in unique_apex_groups) {
       data <- complexFeature[which(apex_groups == apex_group)]
