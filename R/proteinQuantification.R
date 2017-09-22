@@ -29,8 +29,16 @@
 #' # The protein_id column from the peptide traces object becomes the new id column of the protein traces object.
 #' # The last 2 columns indicate how many peptides could be observed and which were summed for quantification.
 #'
-#'
+
 proteinQuantification <- function(traces,
+                                  topN = 2,
+                                  keep_less = FALSE,
+                                  rm_decoys = TRUE){
+  UseMethod("proteinQuantification", traces)
+}
+
+#' @describeIn proteinQuantification Protein Quantification for single traces object
+proteinQuantification.traces <- function(traces,
                                   topN = 2,
                                   keep_less = FALSE,
                                   rm_decoys = TRUE){
@@ -88,13 +96,39 @@ proteinQuantification <- function(traces,
 
   ## assemble updated, protein-level trace_annotation table
   oldAnnotationPeptidelevel = subset(traces$trace_annotation, select =-id)
+  oldAnnotationPeptidelevel <- oldAnnotationPeptidelevel[, lapply(.SD, function(col){
+    if(length(unique(col)) != 1){
+      if(class(col) == "numeric"){
+        mean(col)
+      }else { #if(class(col) == "character")
+        warning(paste0("muliple entries for protein_id ", protein_id, ": ", ". Picking the first", collapse = ""))
+        col[1]
+      }
+    }else{
+      col[1]
+    }
+  }),by = protein_id]
 
-
-  if ("SibPepCorr" %in% names(oldAnnotationPeptidelevel)){
-    oldAnnotationPeptidelevel[, SibPepCorr_protein_mean:=mean(SibPepCorr), protein_id]
-    ## removal of peptide level SibPepCorr necessary after merge.data.table update 2016-11
-    oldAnnotationPeptidelevel = unique(subset(oldAnnotationPeptidelevel, select =-SibPepCorr))
-  }
+  # if ("SibPepCorr" %in% names(oldAnnotationPeptidelevel)){
+  #   oldAnnotationPeptidelevel[, SibPepCorr_protein_mean:=mean(SibPepCorr), protein_id]
+  #   ## removal of peptide level SibPepCorr necessary after merge.data.table update 2016-11
+  #   oldAnnotationPeptidelevel = unique(subset(oldAnnotationPeptidelevel, select =-SibPepCorr))
+  # }
+  # if ("RepPepCorr" %in% names(oldAnnotationPeptidelevel)){
+  #   oldAnnotationPeptidelevel[, RepPepCorr_protein_mean:=mean(RepPepCorr), protein_id]
+  #   ## removal of peptide level RepPepCorr necessary after merge.data.table update 2016-11
+  #   oldAnnotationPeptidelevel = unique(subset(oldAnnotationPeptidelevel, select =-RepPepCorr))
+  # }
+  # if ("meanSibPepCorr" %in% names(oldAnnotationPeptidelevel)){
+  #   oldAnnotationPeptidelevel[, meanRepPepCorr_protein_mean:=mean(meanSibPepCorr), protein_id]
+  #   ## removal of peptide level RepPepCorr necessary after merge.data.table update 2016-11
+  #   oldAnnotationPeptidelevel = unique(subset(oldAnnotationPeptidelevel, select =-meanSibPepCorr))
+  # }
+  # if ("meanRepPepCorr" %in% names(oldAnnotationPeptidelevel)){
+  #   oldAnnotationPeptidelevel[, meanRepPepCorr_protein_mean:=mean(meanRepPepCorr), protein_id]
+  #   ## removal of peptide level RepPepCorr necessary after merge.data.table update 2016-11
+  #   oldAnnotationPeptidelevel = unique(subset(oldAnnotationPeptidelevel, select =-meanRepPepCorr))
+  # }
   new_annotation = unique(peptideTracesLong[,.(protein_id, n_peptides, quant_peptides_used)])
   peptideTracesTopNsumWideAnnotation <- merge(oldAnnotationPeptidelevel,
                                               new_annotation,
@@ -114,3 +148,45 @@ proteinQuantification <- function(traces,
   .tracesTest(traces, type = "protein")
   return(traces)
 }
+
+
+#' @describeIn proteinQuantification Protein Quantification multiple traces ojects.
+#' Uses only peptides present in all traces objects for quantification.
+
+proteinQuantification.tracesList <- function(traces,
+                                         topN = 2,
+                                         keep_less = FALSE,
+                                         rm_decoys = TRUE){
+  .tracesListTest(traces, type = "peptide")
+  intersection_peptides <- .intersect2(lapply(traces, function(x) x$traces$id))
+  traces_subs <- subset(traces, trace_subset_ids = intersection_peptides)
+  # traces_subs <- lapply(traces_subs, function(x){
+  #   x$trace_annotation[,detectedIn := NULL][detected_in := NULL]
+  #   x
+  # })
+  # class(traces_subs) <- "tracesList"
+  res <- lapply(traces_subs, proteinQuantification.traces,                                         
+                topN = topN,
+                keep_less = keep_less,
+                rm_decoys = rm_decoys)
+  class(res) <- "tracesList"
+  .tracesListTest(res)
+  return(res)
+}
+
+.intersect2 <- function(...) {
+  args <- list(...)
+  nargs <- length(args)
+  if(nargs <= 1) {
+    if(nargs == 1 && is.list(args[[1]])) {
+      do.call(".intersect2", args[[1]])
+    } else {
+      stop("cannot evaluate intersection fewer than 2 arguments")
+    }
+  } else if(nargs == 2) {
+    intersect(args[[1]], args[[2]])
+  } else {
+    intersect(args[[1]], .intersect2(args[-1]))
+  }
+}
+

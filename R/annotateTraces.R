@@ -29,8 +29,18 @@
 #' annotatedTraces$trace_annotation
 #' @export
 
-
 annotateTraces <- function(traces,
+                           trace_annotation,
+                           traces_id_column = "protein_id",
+                           trace_annotation_id_column = "Entry",
+                           trace_annotation_mass_column = "Mass",
+                           uniprot_mass_format = TRUE,
+                           replace_whitespace = TRUE){
+  UseMethod("annotateTraces", traces)
+}
+
+#' @describeIn annotateTraces Annotate single traces object
+annotateTraces.traces <- function(traces,
                            trace_annotation,
                            traces_id_column = "protein_id",
                            trace_annotation_id_column = "Entry",
@@ -87,3 +97,28 @@ annotateTraces <- function(traces,
   .tracesTest(traces)
   return(traces)
 }
+
+
+
+#' @describeIn annotateTraces Annotate single traces object
+annotateTraces.tracesList <- function(traces,
+                           trace_annotation,
+                           traces_id_column = "protein_id",
+                           trace_annotation_id_column = "Entry",
+                           trace_annotation_mass_column = "Mass",
+                           uniprot_mass_format = TRUE,
+                           replace_whitespace = TRUE){
+  
+  .tracesListTest(traces)
+  res <- lapply(traces, annotateTraces.traces,                                         
+                trace_annotation = trace_annotation,
+                traces_id_column = traces_id_column,
+                trace_annotation_id_column = trace_annotation_id_column,
+                trace_annotation_mass_column = trace_annotation_mass_column,
+                uniprot_mass_format = uniprot_mass_format,
+                replace_whitespace = replace_whitespace)
+  class(res) <- "tracesList"
+  .tracesListTest(res)
+  return(res)
+}
+  

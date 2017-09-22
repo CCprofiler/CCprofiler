@@ -86,7 +86,8 @@ filterConsecutiveIdStretches<-function(traces,
   peptideTracesFiltered[,id := rownames(intensity)]
 
   tracesAnnotation <- traces$trace_annotation
-
+  tracesAnnotation$id <- as.character(tracesAnnotation$id)
+  
   if (remove_empty) {
     idx <- which(rowSums(intensity) != 0)
     peptideTracesFiltered <- peptideTracesFiltered[idx]

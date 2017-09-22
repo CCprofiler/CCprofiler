@@ -31,6 +31,8 @@
 #' proteinSubsettedProteinTraces <- subset(inputProteinTraces,trace_subset_ids=subsetProtein)
 #' summary(proteinSubsettedProteinTraces)
 #' @export
+#' 
+
 subset.traces <- function(traces,trace_subset_ids=NULL,trace_subset_type="id",fraction_ids=NULL){
   .tracesTest(traces)
   if (!is.null(trace_subset_ids)) {
@@ -53,6 +55,22 @@ subset.traces <- function(traces,trace_subset_ids=NULL,trace_subset_type="id",fr
     }
   }
   traces
+}
+
+#' @describeIn subset.traces Subset traces or fractions in multiple traces objects 
+
+subset.tracesList <- function(tracesList,
+                              trace_subset_ids=NULL,
+                              trace_subset_type="id",
+                              fraction_ids=NULL){
+  .tracesListTest(tracesList)
+  res <- lapply(tracesList, subset.traces,
+                trace_subset_ids=trace_subset_ids,
+                trace_subset_type=trace_subset_type,
+                fraction_ids=fraction_ids)
+  class(res) <- "tracesList"
+  .tracesListTest(res)
+  return(res)
 }
 
 #' Get intensity matrix from traces object
@@ -147,7 +165,8 @@ plot.traces <- function(traces,
                         log=FALSE,
                         legend = TRUE,
                         PDF=FALSE,
-                        name="Traces") {
+                        name="Traces",
+                        plot = TRUE) {
   .tracesTest(traces)
   traces.long <- toLongFormat(traces$traces)
   traces.long <- merge(traces.long,traces$fraction_annotation,by.x="fraction",by.y="id")
@@ -157,7 +176,8 @@ plot.traces <- function(traces,
     ylab('intensity') +
     theme_bw() +
     theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
-    theme(plot.margin = unit(c(1,.5,.5,.5),"cm")) #+
+    theme(plot.margin = unit(c(1,.5,.5,.5),"cm")) +
+    ggtitle(name)#+
     #theme(plot.title = element_text(vjust=19,size=10))
   if (log) {
     p <- p + scale_y_log10('log(intensity)')
@@ -205,7 +225,12 @@ plot.traces <- function(traces,
     if(PDF){
       pdf(paste0(name,".pdf"))
     }
-    grid.draw(g)
+    if(plot){
+      grid.draw(g)
+    }else{
+      return(g)
+    }
+    
     if(PDF){
       dev.off()
     }
@@ -213,13 +238,83 @@ plot.traces <- function(traces,
     if(PDF){
       pdf(paste0(name,".pdf"))
     }
-    plot(p)
+    if(plot){
+      plot(p)
+    }else{
+      return(ggplot_gtable(ggplot_build(p)))
+    }
+    
     if(PDF){
       dev.off()
     }
   }
 }
 
+#' @describeIn plot.traces Plot multiple traces objects
+#' @importFrom grid.newpage, grid
+plot.tracesList <- function(traces,
+                            design_matrix = NULL,
+                            collapse_conditions = FALSE,
+                            log=FALSE,
+                            legend = TRUE,
+                            PDF=FALSE,
+                            name="Traces",
+                            plot = TRUE) {
+  .tracesListTest(traces)
+  if(!is.null(design_matrix)){
+    if(!all(design_matrix$Sample_name %in% names(traces))){
+      stop("Invalid design matrix")
+    }
+  }else{
+      design_matrix <- data.table(Sample_name = names(traces),
+                                  Condition = "", 
+                                  Replicate = 1:length(traces))
+    }
+  tracesList <- lapply(names(traces), function(tr){
+    res <- toLongFormat(traces[[tr]]$traces)
+    res$Condition <- design_matrix[Sample_name == tr, Condition]
+    res$Replicate <- design_matrix[Sample_name == tr, Replicate]
+    res
+  })
+  traces_long <- do.call("rbind", tracesList)
+  traces_frac <- unique(do.call("rbind", lapply(traces, "[[", "fraction_annotation")))
+  traces_long <- merge(traces_long,traces_frac,by.x="fraction",by.y="id")
+  
+  p <- ggplot(traces_long) +
+    xlab('fraction') +
+    ylab('intensity') +
+    theme_bw() +
+    theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
+    theme(plot.margin = unit(c(1,.5,.5,.5),"cm")) +
+    ggtitle(name) +
+    theme(plot.title = element_text(vjust=19,size=10))
+  if(collapse_conditions){
+    p <- p + facet_grid(~ Replicate) +
+      geom_line(aes_string(x='fraction', y='intensity', color='id', lty = 'Condition'))
+  }else{
+    p <- p + facet_grid(Condition ~ Replicate) +
+      geom_line(aes_string(x='fraction', y='intensity', color='id'))
+    
+  }
+     
+  if (log) {
+    p <- p + scale_y_log10('log(intensity)')
+  }
+  if (!legend) {
+    p <- p + theme(legend.position="none")
+  }
+  if(PDF){
+    pdf(paste0(name,".pdf"))
+  }
+  if(plot){
+    plot(p)
+  }else{
+    return(p)
+  }
+  if(PDF){
+    dev.off()
+  }
+}
 
 #' Summarize a traces object
 #' @description Summarize a traces object to get an overview.
@@ -280,3 +375,32 @@ summary.traces <- function(traces) {
     stop("Fractions in traces and fraction_annotation are not identical.")
   }
 }
+
+#' Test if an object is of class tracesList.
+#' @param traces Object of class tracesList.
+#' @param type Character string specifying whether a specific type of traces is required.
+#' The two options are "peptide" or "protein". Default is \code{NULL},
+#' meaning that no specific type is required.
+.tracesListTest <- function(tracesList,type=NULL){
+  if (! class(tracesList)=="tracesList") {
+    stop("Object is not of class tracesList")
+  }
+  res <- lapply(tracesList, function(traces){
+    if (! all(names(traces)==c("traces","trace_type","trace_annotation","fraction_annotation"))) {
+      stop("At least one traces object doesn't contain all necessary items: traces, trace_type, trace_annotation, and fraction_annotation.")
+    }
+    if (!is.null(type)) {
+      if (type != traces$trace_type) {
+        stop("At least one traces object is of wrong type. Please check your input traces.")
+      }
+    }
+    if (! identical(traces$traces$id,traces$trace_annotation$id)) {
+      stop("In at least one traces object: IDs in traces and trace_annotation are not identical.")
+    }
+    if (! identical(names(traces$traces),c(traces$fraction_annotation$id,"id"))) {
+      stop("In at least one traces object: Fractions in traces and fraction_annotation are not identical.")
+    }
+    
+  })
+}
+
