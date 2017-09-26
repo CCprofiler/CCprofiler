@@ -97,7 +97,8 @@ calculatePathlength <- function(binaryInteractionTable){
 #' @param redundancy_cutoff Numeric, maximum overlap distance between two hypotheses
 #' (0=identical,1=subset,between 1 and 2=some shared subunits, 2=no shared subunits).
 #' Defaults to 1.
-#' 
+#' @param clust_method character string, Which method to use for clustering (see function hclust for more info).
+#' Defaults to "complete".
 #' @return data.table in the format of complex hypotheses.
 #' Has the following columns:
 #' \itemize{
@@ -124,7 +125,8 @@ calculatePathlength <- function(binaryInteractionTable){
 
 generateComplexTargets <- function(dist_info,
                                    max_distance=1,
-                                   redundancy_cutoff=1){
+                                   redundancy_cutoff=1,
+                                   clust_method = "complete"){
   
   all_proteins <- unique(c(dist_info$x,dist_info$y))
   
@@ -142,7 +144,8 @@ generateComplexTargets <- function(dist_info,
   
   ## Remove redundant hypotheses
   complex_table <- .collapseWideHypothesis(hypothesis = initial_complexes,
-                                           redundancy_cutoff = redundancy_cutoff)
+                                           redundancy_cutoff = redundancy_cutoff,
+                                           clust_method = clust_method)
   return(complex_table)
 }
 
@@ -150,6 +153,8 @@ generateComplexTargets <- function(dist_info,
 #' @description Remove redundancy in existing complex hypotheses
 #' @import data.table
 #' @param hypothesis data.table with complex hypotheses
+#' @param clust_method character string, Which method to use for clustering (see function hclust for more info).
+#' Defaults to "complete".
 #' Must have the following columns:
 #' \itemize{
 #' \item complex_id: character strings, a unique id for every complex
@@ -180,14 +185,16 @@ generateComplexTargets <- function(dist_info,
 #' 
 #' 
 collapseHypothesis <- function(hypothesis,
-                               redundancy_cutoff=1){
+                               redundancy_cutoff=1,
+                               clust_method = "complete"){
   hyp <- copy(hypothesis)
   hyp[,n_subunits := length(protein_id), by="complex_id"]
   hyp[,subunits_detected := paste(protein_id,collapse=";"),by="complex_id"]
   hyp <- unique(hyp, by="complex_id")
   hyp[,protein_id := NULL]
   
-  hypothesis_unique <- .collapseWideHypothesis(hyp, redundancy_cutoff = redundancy_cutoff)
+  hypothesis_unique <- .collapseWideHypothesis(hyp, redundancy_cutoff = redundancy_cutoff,
+                                               clust_method = clust_method)
   return(hypothesis_unique)
 }
 
