@@ -59,10 +59,12 @@ getDistanceMatrix <- function(complexFeatures){
 #' @description complexClustering.
 #' @param complexFeature data.table containing filtered complex feature results.
 #' @param dist_mat distance matrix from getDistanceMatrix
+#' @param clust_method character string, Which method to use for clustering (see function hclust for more info).
+#' Defaults to "complete".
 #' @return cluster object
 #' @export
-complexClustering <- function(complexFeatures,dist_mat){
-  hc <- hclust(dist_mat)
+complexClustering <- function(complexFeatures,dist_mat, clust_method = "complete"){
+  hc <- hclust(dist_mat, method = clust_method)
   hc$labels = complexFeatures$consecutive_feature_identifier
   hc
 }
@@ -73,13 +75,16 @@ complexClustering <- function(complexFeatures,dist_mat){
 #' @import data.table
 #' @param hypothesis data.table with complex hypotheses
 #' @param redundancy_cutoff numeric maximum overlap distance between two hypotheses (0=identical,1=subset,between 1 and 2=some shared subunits, 2=no shared subunits), default=1
+#' @param clust_method character string, Which method to use for clustering (see function hclust for more info).
+#' Defaults to "complete".
 #' @return data.table in the format of complex hypotheses
 
 .collapseWideHypothesis <- function(hypothesis,
-                               redundancy_cutoff=1){
+                               redundancy_cutoff=1,
+                                   clust_method = "complete"){
   
   dist_hyp <- getDistanceMatrix(hypothesis)
-  clust_hyp <- complexClustering(hypothesis,dist_hyp)
+  clust_hyp <- complexClustering(hypothesis,dist_hyp, clust_method)
   tree_cut=cutree(clust_hyp,h=redundancy_cutoff)
   hypothesis[,consecutive_feature_identifier := .I]
   hypothesis[,unique_feature_identifier := 0]
