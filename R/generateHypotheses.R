@@ -1,4 +1,4 @@
-#' 
+#'
 #' Generate a binary network from complexes.
 #' @description Generate binary network from concrete complex hypotheses (e.g. CORUM).
 #' @import data.table
@@ -10,16 +10,16 @@
 #' }
 #' @return data.table with binary interactions between "a" and "b"
 #' @export
-#' @examples 
+#' @examples
 #' ## Load example Data
 #' complexHypotheses <- exampleComplexHypotheses
-#' 
+#'
 #' ## Generate the binary network
 #' binaryInteractions <- generateBinaryNetwork(complex_hypotheses = complexHypotheses)
 #' ##Inspect the result
 #' binaryInteractions
-#' 
-#' 
+#'
+#'
 generateBinaryNetwork <- function(complex_hypotheses){
   setkey(complex_hypotheses, "complex_id")
   complexes <- unique(complex_hypotheses$complex_id)
@@ -31,10 +31,10 @@ generateBinaryNetwork <- function(complex_hypotheses){
   binary_interactions <- t(apply(binary_interactions,1, sort))
   binary_interactions <- as.data.table(binary_interactions)
   binary_interactions <- unique(binary_interactions)
-  
+
   names(binary_interactions) <- c("a", "b")
   setkey(binary_interactions,NULL)
-  
+
   return(binary_interactions)
 }
 
@@ -54,31 +54,31 @@ generateBinaryNetwork <- function(complex_hypotheses){
 #'         as determined by the input binary interaction table
 #' }
 #' @export
-#' @examples 
+#' @examples
 #' ## Load example data
 #' complexHypotheses <- exampleComplexHypotheses
-#' 
+#'
 #' ## Generate the binary network
 #' binaryInteractions <- generateBinaryNetwork(complex_hypotheses = complexHypotheses)
-#' 
+#'
 #' ## Calculate the path lengths
 #' shortestPaths <- calculatePathlength(binaryInteractions)
-#' 
+#'
 
 calculatePathlength <- function(binaryInteractionTable){
   ## get all protein ids in interaction table
-  proteins <- unique(c(binaryInteractionTable$a,binaryInteractionTable$b)) 
+  proteins <- unique(c(binaryInteractionTable$a,binaryInteractionTable$b))
   ## create undirected graph using the igraph package
   g <- graph_from_data_frame(binaryInteractionTable, directed = FALSE)
   ## calculate shortest path between all vertices
-  distMatrix <- distances(g) 
+  distMatrix <- distances(g)
   ## Output as a long format data.table
   combinations <- melt(distMatrix)
   combinations <- as.data.table(combinations)
   names(combinations) = c("x","y","dist")
   combinations$x <- as.character(combinations$x)
   combinations$y <- as.character(combinations$y)
-  
+
   return(combinations)
 }
 
@@ -97,40 +97,40 @@ calculatePathlength <- function(binaryInteractionTable){
 #' @param redundancy_cutoff Numeric, maximum overlap distance between two hypotheses
 #' (0=identical,1=subset,between 1 and 2=some shared subunits, 2=no shared subunits).
 #' Defaults to 1.
-#' 
+#'
 #' @return data.table in the format of complex hypotheses.
 #' Has the following columns:
 #' \itemize{
 #' \item complex_id: character strings, a unique id for every complex
 #' \item protein_id: character strings, the protein id, e.g. Uniprot id
 #' }
-#' 
+#'
 #' @export
 #' @examples
 #' ## Load example Data
 #' complexHypotheses <- exampleComplexHypotheses
-#' 
+#'
 #' ## Generate the binary network
 #' binaryInteractions <- generateBinaryNetwork(complex_hypotheses = complexHypotheses)
-#' 
+#'
 #' ## Calculate the path lengths
 #' shortestPaths <- calculatePathlength(binaryInteractions)
-#' 
+#'
 #' ## Generate a set of target hypotheses from the binary interactions
 #' targetHypotheses_ <- generateComplexTargets(dist_info = shortestPaths,
 #'                                             max_distance = 1,
 #'                                             redundancy_cutoff = 1)
-#' 
+#'
 
 generateComplexTargets <- function(dist_info,
                                    max_distance=1,
                                    redundancy_cutoff=1){
-  
+
   all_proteins <- unique(c(dist_info$x,dist_info$y))
-  
+
   ## Extract one complex hypotheis for every protein contained
   initial_complexes <- lapply(all_proteins, function(protein){
-    
+
     combi_sub <- subset(dist_info,(((x == protein) | (y == protein)) & (dist<=max_distance)))
     interactors <- sort(unique(c(combi_sub$x,combi_sub$y)))
     interactorString <- paste(interactors,collapse =";")
@@ -139,7 +139,7 @@ generateComplexTargets <- function(dist_info,
                n_subunits=length(interactors))
   })
   initial_complexes <- do.call("rbind", initial_complexes)
-  
+
   ## Remove redundant hypotheses
   complex_table <- .collapseWideHypothesis(hypothesis = initial_complexes,
                                            redundancy_cutoff = redundancy_cutoff)
@@ -158,10 +158,10 @@ generateComplexTargets <- function(dist_info,
 #' Additionaly a complex_name column is allowed.
 #' @param redundancy_cutoff Numeric, maximum overlap distance between two hypotheses
 #' \itemize{
-#'   \item 0 = identical 
+#'   \item 0 = identical
 #'   \item 1 = subset
 #'   \item between 1 and 2 = some shared subunits
-#'   \item 2 = no shared subunits 
+#'   \item 2 = no shared subunits
 #' }
 #' Defaults to 1.
 #' @return data.table in the format of complex hypotheses
@@ -172,13 +172,13 @@ generateComplexTargets <- function(dist_info,
 #'   \item protein_id: character strings, the protein id, e.g. Uniprot id
 #' }
 #' @export
-#' @examples 
+#' @examples
 #' ## load example data
 #' complexHypotheses <- exampleComplexHypotheses
 #' ## Collapse redundancies
 #' complexHypothesesCollapsed <- collapseHypothesis(complexHypotheses)
-#' 
-#' 
+#'
+#'
 collapseHypothesis <- function(hypothesis,
                                redundancy_cutoff=1){
   hyp <- copy(hypothesis)
@@ -186,7 +186,7 @@ collapseHypothesis <- function(hypothesis,
   hyp[,subunits_detected := paste(protein_id,collapse=";"),by="complex_id"]
   hyp <- unique(hyp, by="complex_id")
   hyp[,protein_id := NULL]
-  
+
   hypothesis_unique <- .collapseWideHypothesis(hyp, redundancy_cutoff = redundancy_cutoff)
   return(hypothesis_unique)
 }
@@ -207,7 +207,8 @@ collapseHypothesis <- function(hypothesis,
 #' algorithm quits and reports an error. Higher values allow for decoy generation with high-connectivity
 #' target networks, but take longer to compute.
 #' @return character string with a complex hypothesis, protein ids are separated by ';'
-#' 
+#' @export
+#'
 generateDecoys <- function(size,
                            all_proteins,
                            dist_info,
@@ -217,7 +218,7 @@ generateDecoys <- function(size,
   n <- 1
   while(success == F & n <= n_tries){
     complex_proteins <- vector(mode="character",length=size)
-    
+
     for(j in c(1:size)){
       combi_sub <- dist_info[(x %in% complex_proteins) | (y %in% complex_proteins)]
       impossible_proteins <- unique(c(combi_sub$x,combi_sub$y))
@@ -239,7 +240,7 @@ generateDecoys <- function(size,
     stop(paste0("Network connectivity is too high for decoy generation at a min_distance of ",
                 min_distance, ". Please select a lower min_distance cutoff."))
   }
-  
+
 }
 
 #' Generate comlpex decoy-hypotheses
@@ -275,21 +276,21 @@ generateDecoys <- function(size,
 #' \item protein_id: character string, the protein id, e.g. Uniprot id
 #' }
 #' @export
-#' @examples 
+#' @examples
 #' ## Load example Data
 #' complexHypotheses <- exampleComplexHypotheses
 #' ## Generate the binary network
 #' binaryInteractions <- generateBinaryNetwork(complex_hypotheses = complexHypotheses)
 #' ## Calculate the path lengths
 #' shortestPaths <- calculatePathlength(binaryInteractions)
-#' 
+#'
 #' ## Generate the Decoys
 #' decoys <- generateComplexDecoys(target_hypotheses = complexHypotheses,
 #'                                 dist_info = shortestPaths,
 #'                                 min_distance = 2)
 #' ## Inspect the resulting decoys
 #' decoys
-#' 
+#'
 
 generateComplexDecoys <- function(target_hypotheses,
                                   dist_info,
@@ -299,7 +300,7 @@ generateComplexDecoys <- function(target_hypotheses,
                                   parallelized=FALSE,
                                   n_cores=1,
                                   n_tries = 3){
-  
+
   input <- copy(target_hypotheses)
   proteins <- unique(target_hypotheses$protein_id)
   target_hypotheses <- target_hypotheses[,.(protein_count=length(complex_id)),

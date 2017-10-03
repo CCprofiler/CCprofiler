@@ -37,8 +37,8 @@
 #' # sw.res <- findComplexFeaturesSW(traces, protein.ids, protein.mw.conc)
 
 findComplexFeaturesSW <- function(trace.mat,
-                                  corr.cutoff=0.95,
-                                  window.size=15,
+                                  corr.cutoff,
+                                  window.size,
                                   with.plot=F,
                                   min.sec=1){
   # trace.mat = getIntensityMatrix(traces.obj)
@@ -142,13 +142,7 @@ findComplexFeaturesSW <- function(trace.mat,
   } else {
     groups.feats <- data.frame()
   }
-  # TODO: Include traces object as character string
-  # and then get object form environment when plotting.
-  result <- list(features=groups.feats,
-                 window.size=window.size,
-                 corr.cutoff=corr.cutoff)
-  class(result) <- 'complexFeaturesSW'
-  result
+  groups.feats
 }
 
 

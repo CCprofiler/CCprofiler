@@ -39,17 +39,7 @@
 #'        }
 
 estimateComplexFeatureStoichiometry <- function(traces.obj,complexFeaturesPP) {
-
-  features <- complexFeaturesPP$features
-  # remove sliding-window features where no peak was detected (these have an NA in the features$apex)
-  sel_na <- which(is.na(features$apex))
-  if (length(sel_na) > 0) {
-    if (length(sel_na) < nrow(features)) {
-      features <- features[-sel_na,]
-    } else {
-      features <- data.frame()
-    }
-  }
+  features <- complexFeaturesPP
 
   # estimate the stoichiometry of each detected feature with a picked peak
   stoichiometry <- lapply(seq(1:nrow(features)), function(i){
@@ -85,7 +75,5 @@ estimateComplexFeatureStoichiometry <- function(traces.obj,complexFeaturesPP) {
   features[,subgroup:=NULL]
 
   data.table(features)
-  res <- list(features=features)
-  class(res) = 'complexFeatureStoichiometry'
-  res
+  return(features[])
 }

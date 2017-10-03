@@ -37,3 +37,4 @@ test_that("Output format",{
   testthat::expect_equal(length(grep("DECOY", tracesFromWide_nodecoy$trace_annotation$protein_id)), 0)
 
 })
+

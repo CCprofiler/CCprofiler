@@ -99,5 +99,5 @@ findProteinFeatures <- function(traces,
       ProteinFeatures <- subset(ProteinFeatures,select=c("protein_id","protein_name","subunits_annotated","n_subunits_annotated","subunits_detected","n_subunits_detected","completeness","left_pp","right_pp","apex","area","peak_corr"))
     }
   }
-  ProteinFeatures
+  return(ProteinFeatures[])
 }

@@ -55,65 +55,10 @@ findComplexFeatures <- function(traces,
   ## All complexes used for input
   inputComplexes <- unique(complex_hypothesis$complex_id)
 
-  ## A helper function to execute the sliding window algorithm for a
-  ## specific query complex.
-  runSlidingWindow <- function(complex.id, traces, traces.imputed) {
-    #complex.id <- inputComplexes[i]
-    #cat(sprintf('CHECKING RUN:  %d / %d', i, length(inputComplexes)), '\n')
-    # Extract the protein traces belonging to the current complex
-    complex.subunits <- complex_hypothesis[complex_id == complex.id,
-                                              protein_id]
-    traces.subs <- subset(traces=traces,trace_subset_ids=complex.subunits)
-    traces.imputed.subs <- traces.imputed[rownames(traces.imputed) %in% complex.subunits,,drop=F]
-    complex.annotation <- subset(complex_hypothesis,complex_id == complex.id)
-    # Run the algorithm
-    try({
-      if (nrow(traces.imputed.subs) >= 2) {
-        complexFeaturesSW <- findComplexFeaturesSW(trace.mat=traces.imputed.subs,
-                                                            corr.cutoff=corr_cutoff,
-                                                            window.size=window_size)
-        if((dim(complexFeaturesSW$features)[1] == 0) & (dim(complexFeaturesSW$features)[2] == 0)){
-          return(list())
-        }
-        complexFeaturesPP <- findComplexFeaturesPP(traces.obj=traces.subs,
-                                                   complexFeaturesSW=complexFeaturesSW,
-                                                   smoothing_length=smoothing_length,
-                                                   rt_height=rt_height)
-        complexFeaturesCollapsed <- collapseComplexFeatures(complexFeature=complexFeaturesPP,rt_height=rt_height,collapse_method=collapse_method)
-        if(dim(complexFeaturesCollapsed$features)[1] == 0){
-          return(list())
-        }
-        # Calculate within peak boundary correlation
-        complexFeaturesCollapsed.corr <- calculateFeatureCorrelation(traces.imputed.subs, complexFeaturesCollapsed)
-
-        complexFeatureStoichiometries <- estimateComplexFeatureStoichiometry(traces.obj=traces.subs,
-                                                                             complexFeaturesPP=complexFeaturesCollapsed.corr)
-        complexFeatureAnnotated <- annotateComplexFeatures(traces,complexFeatureStoichiometries,complex.annotation)
-        complexFeatureAnnotated
-      } else {
-        list()
-      }
-    })
-  }
-
-
-  #MOD calculate traces_matrix with imputed noise here and save it
-
-  ## Impute noise for missing intensity measurements globally for all traces alternative
-  trace.mat.imputed <- getIntensityMatrix(traces)
-  n.zero.entries <- sum(trace.mat.imputed == 0) # number of ZERO values in matrix
-  measure.vals <- trace.mat.imputed[trace.mat.imputed != 0]
-  if(class(perturb_cutoff) == "character"){
-    qt <- as.numeric(gsub("%","",perturb_cutoff))/100
-    perturb_cutoff <- quantile(measure.vals, qt)
-  }
-  set.seed(123) # set seed to always get same results
-  trace.mat.imputed[trace.mat.imputed == 0] <- sample(1:perturb_cutoff,size = n.zero.entries,
-                                                      replace = TRUE)
-
-  ##################################
-
-
+  ## Impute noise for missing intensity measurements globally for all traces
+  tracesMatrix <- getIntensityMatrix(traces)
+  trace_mat_imputed <- imputeMissingValues(tracesMatrix,perturb_cutoff)
+  
   ## Execute the sliding window algorithm for each query complex.
   ## This computation can optionally be parstr(swf_ allelized.
   if (parallelized) {
@@ -126,8 +71,16 @@ findComplexFeatures <- function(traces,
     opts <- list(progress = progress)
     sw.results <- foreach(i=seq_along(inputComplexes),
                           .packages=c('data.table', 'SECprofiler'),.options.snow = opts) %dopar% {
-                            query.complex.id <- inputComplexes[i]
-                            runSlidingWindow(query.complex.id, traces=traces,traces.imputed = trace.mat.imputed)
+                            query_complex_id <- inputComplexes[i]
+                            runSlidingWindow(query_complex_id, 
+                                             complex_hypothesis=complex_hypothesis,
+                                             traces=traces,
+                                             traces.imputed = trace_mat_imputed,
+                                             corr_cutoff=corr_cutoff,
+                                             window_size=window_size,
+                                             collapse_method=collapse_method,
+                                             rt_height=rt_height,
+                                             smoothing_length=smoothing_length)
                           }
     close(pb)
     parallel::stopCluster(cl)
@@ -135,9 +88,17 @@ findComplexFeatures <- function(traces,
     pb <- txtProgressBar(max = length(inputComplexes), style = 3)
     sw.results <- foreach(i=seq_along(inputComplexes)) %do% {
       setTxtProgressBar(pb, i)
-      query.complex.id <- inputComplexes[i]
+      query_complex_id <- inputComplexes[i]
       #cat(sprintf('CHECKING RUN:  %d / %d', i, length(inputComplexes)), '\n')
-      runSlidingWindow(query.complex.id, traces=traces, traces.imputed = trace.mat.imputed)
+      runSlidingWindow(query_complex_id,
+                       complex_hypothesis=complex_hypothesis,
+                       traces=traces,
+                       traces.imputed = trace_mat_imputed,
+                       corr_cutoff=corr_cutoff,
+                       window_size=window_size,
+                       collapse_method=collapse_method,
+                       rt_height=rt_height,
+                       smoothing_length=smoothing_length)
     }
     close(pb)
   }
@@ -149,37 +110,80 @@ findComplexFeatures <- function(traces,
     sw.results[[error_idx]] <- list()
   }
 
-  res <- list(sw.results=sw.results,
-              inputComplexes=inputComplexes,
-              corr.cutoff=corr_cutoff,
-              window.size=window_size)
-  class(res) <- 'complexFeatures'
-  #res
-
-  # only report table to make things easier
-  complexRes <- .resultsToTable(res)
-  complexRes
-
+  complexRes <- do.call("rbind", sw.results)
+  return(complexRes[])
 }
 
-#' Reformat ComplexFeature object to data.table
-#' @description Reformat complex feature object to a data.table.
-#' @param complexFeatures A list containing various results.
-#'         \itemize{
-#'          \item \code{sw.results} A list of results of the function
-#'                \code{findComplexFeatures}. One for each query complex.
-#'          \item \code{input.complexes} A character vector of all query
-#'                 complexes.
-#'          \item \code{corr.cutoff} The correlation cutoff used.
-#'          \item \code{window.size} The window size used.
-#'          }
-#' @return A data.table with all detected complex features of all query complexes
-.resultsToTable <- function(complexFeatures){
-  res <- complexFeatures$sw.results
-  res.list <- lapply(seq(1:length(res)), function(i){
-    features <- res[[i]]$features
-    features
+#' runSlidingWindow function
+#' @description A helper function to execute the sliding window algorithm for a specific query complex.
+#' @param complex.id chracter string
+#' @param traces original traces object
+#' @param traces.imputed imputed traces object
+runSlidingWindow <- function(complex.id, 
+                             complex_hypothesis,
+                             traces, 
+                             traces.imputed,
+                             corr_cutoff,
+                             window_size,
+                             collapse_method,
+                             rt_height,
+                             smoothing_length) {
+  #complex.id <- inputComplexes[i]
+  #cat(sprintf('CHECKING RUN:  %d / %d', i, length(inputComplexes)), '\n')
+  # Extract the protein traces belonging to the current complex
+  complex.subunits <- complex_hypothesis[complex_id == complex.id,
+                                         protein_id]
+  traces.subs <- subset(traces=traces,trace_subset_ids=complex.subunits)
+  traces.imputed.subs <- traces.imputed[rownames(traces.imputed) %in% complex.subunits,,drop=F]
+  complex.annotation <- subset(complex_hypothesis,complex_id == complex.id)
+  # Run the algorithm
+  try({
+    if (nrow(traces.imputed.subs) >= 2) {
+      complexFeaturesSW <- findComplexFeaturesSW(trace.mat=traces.imputed.subs,
+                                                 corr.cutoff=corr_cutoff,
+                                                 window.size=window_size)
+      if((dim(complexFeaturesSW)[1] == 0) & (dim(complexFeaturesSW)[2] == 0)){
+        return(list())
+      }
+      complexFeaturesPP <- findComplexFeaturesPP(traces.obj=traces.subs,
+                                                 complexFeaturesSW=complexFeaturesSW,
+                                                 smoothing_length=smoothing_length,
+                                                 rt_height=rt_height)
+      complexFeaturesCollapsed <- collapseComplexFeatures(complexFeature=complexFeaturesPP,rt_height=rt_height,collapse_method=collapse_method)
+      if(dim(complexFeaturesCollapsed)[1] == 0){
+        return(list())
+      }
+      # Calculate within peak boundary correlation
+      complexFeaturesCollapsed.corr <- calculateFeatureCorrelation(traces.imputed.subs, complexFeaturesCollapsed)
+      
+      complexFeatureStoichiometries <- estimateComplexFeatureStoichiometry(traces.obj=traces.subs,
+                                                                           complexFeaturesPP=complexFeaturesCollapsed.corr)
+      complexFeatureAnnotated <- annotateComplexFeatures(traces,complexFeatureStoichiometries,complex.annotation)
+      complexFeatureAnnotated
+    } else {
+      list()
+    }
   })
-  res <- do.call("rbind", res.list)
-  res
+}
+
+#' imputeMissingValues
+#' @description A helper function to compute a value for all missing values 
+#' to be able to calculate correlations.
+#' @param intensityMatrix matrix with intensties coming from \code{getIntensityMatrix(traces)}.
+#' @param perturbation_cutoff Numeric, the quantile to use in estimating the perturbation level, default="5%".
+#'        Intensity values that are zero are replaced with random values that are
+#'        below the specified quantile of the input values. Alternatively a
+#'        cutoff value can be specified as an upper limit for perturbation values.
+#'        This is nescessary for correlation calculation.
+imputeMissingValues <- function(intensityMatrix ,perturbation_cutoff){
+  n_zero_entries <- sum(intensityMatrix  == 0) # number of ZERO values in matrix
+  measure_vals <- intensityMatrix [intensityMatrix  != 0]
+  if(class(perturbation_cutoff) == "character"){
+    qt <- as.numeric(gsub("%","",perturbation_cutoff))/100
+    perturbation_cutoff <- quantile(measure_vals, qt)
+  }
+  set.seed(123) # set seed to always get same results
+  intensityMatrix [intensityMatrix  == 0] <- sample(1:perturbation_cutoff,size = n_zero_entries,
+                                                      replace = TRUE)
+  return(intensityMatrix)
 }

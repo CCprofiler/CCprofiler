@@ -65,7 +65,7 @@ annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,com
   setkey(complex.annotation, protein_id)
 
   # annotate feature data.table with known complex information
-  features <- complexFeatureStoichiometries$features
+  features <- complexFeatureStoichiometries
   features[,complex_id := complex.annotation$complex_id[1]]
   features[,complex_name := complex.annotation$complex_name[1]]
   features[,n_subunits_annotated := nrow(complex.annotation)]
@@ -182,9 +182,6 @@ annotateComplexFeatures <- function(traces.obj,complexFeatureStoichiometries,com
   
   # sort the features by the number of detected subunits, the sliding-windoe correlation, and the peak area
   features <- features[order(-n_subunits_detected,-sw_score,-area)]
-
   data.table(features)
-  res <- list(features=features)
-  class(res) = 'complexFeaturesAnnotated'
-  res
+  return(features[])
 }
