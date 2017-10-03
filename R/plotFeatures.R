@@ -65,7 +65,8 @@ plotFeatures <- function(feature_table,
                                monomer_MW=FALSE,
                                log=FALSE,
                                legend = TRUE,
-                               PDF=FALSE) {
+                               PDF=FALSE,
+                               name = "Traces") {
   .tracesTest(traces)
   features <- copy(feature_table)
   if (traces$trace_type == "protein") {
