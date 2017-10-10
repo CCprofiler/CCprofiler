@@ -101,7 +101,13 @@ qvaluePositivesPlot <- function(features,plot=TRUE,PDF=FALSE,name="qvaluePositiv
 plotScoreDistribution <- function(features,PDF=TRUE,name="scoreDistribution"){
   pdf(paste0(name,".pdf"))
    features[,decoy:=0]
-   features$decoy[grep("DECOY",features$complex_id)] = 1
+   if ("complex_id" %in% names(features)) {
+     features$decoy[grep("DECOY",features$complex_id)] = 1
+   } else if ("protein_id" %in% names(features)) {
+     features$decoy[grep("DECOY",features$protein_id)] = 1
+   } else {
+     stop("Not a complex of protein feature table.")
+   }
     pl <- ggplot(data=features,aes(x=coelution_score,fill=factor(decoy))) + geom_histogram(position="dodge",binwidth=0.05)+
     scale_x_continuous(breaks=seq(0,1,0.1),limits=c(0,1),minor_breaks=NULL)
     print(pl)
