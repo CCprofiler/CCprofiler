@@ -5,7 +5,7 @@
 \title{Plot traces}
 \usage{
 \method{plot}{traces}(traces, log = FALSE, legend = TRUE, PDF = FALSE,
-  name = "Traces")
+  name = "Traces", highlight = NULL, highlight_col = NULL)
 }
 \arguments{
 \item{log}{Logical, whether the intensities should be plotted in log scale. Default is \code{FALSE}.}

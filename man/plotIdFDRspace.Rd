@@ -10,7 +10,7 @@ plotIdFDRspace(grid_search_stats, best_parameters, level = "complex",
   name = "ID_FDR_plot.pdf")
 }
 \arguments{
-\item{grid_search_stats}{Table of grid search statistics 
+\item{grid_search_stats}{Table of grid search statistics
 (obtained from \code{\link{estimateGridSearchDecoyFDR}}).}
 
 \item{best_parameters}{data.table with one row containing the selected parameter set.}
@@ -18,7 +18,7 @@ plotIdFDRspace(grid_search_stats, best_parameters, level = "complex",
 \item{level}{Character string, either 'complex' or 'protein'.
 Specifies which feature finding was performed. Defaults to 'complex'.}
 
-\item{id_level}{Character string, either 'TP' or 'P'. 
+\item{id_level}{Character string, either 'TP' or 'P'.
 Plot with true-positive numbers or all positives as y axis. Defaults to 'TP'}
 
 \item{FDR_cutoff}{Numeric, the cutoff for the FDR (indicated by a vertical line in the plot).

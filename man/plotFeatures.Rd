@@ -8,7 +8,8 @@ plotFeatures(feature_table, traces, feature_id, calibration = NULL,
   annotation_label = "protein_id", onlyBest = TRUE, apex = TRUE,
   peak_area = FALSE, sliding_window_area = FALSE,
   estimated_complex_MW = FALSE, highlight = NULL, highlight_col = NULL,
-  monomer_MW = FALSE, log = FALSE, legend = TRUE, PDF = FALSE)
+  monomer_MW = FALSE, log = FALSE, legend = TRUE, PDF = FALSE,
+  name = "Traces")
 }
 \arguments{
 \item{feature_table}{data.table}

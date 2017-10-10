@@ -43,6 +43,6 @@ gridStats <- estimateGridSearchDecoyFDR(complexFeaturesGridFiltered,
                                                               "min_subunits",
                                                               "min_peak_corr",
                                                               "min_monomer_distance_factor"))
-## Inspect the oputput                                                              
+## Inspect the oputput
 gridStats
 }
