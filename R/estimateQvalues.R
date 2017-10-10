@@ -36,7 +36,13 @@ calculateCoelutionScore <- function(features){
 #' @export
 calculateQvalue <- function(features,lambda=0.5,plot=TRUE,PDF=FALSE,name="q_value_stats"){
   features[,decoy:=0]
-  features$decoy[grep("DECOY",features$complex_id)] = 1
+  if ("complex_id" %in% names(features)) {
+    features$decoy[grep("DECOY",features$complex_id)] = 1
+  } else if ("protein_id" %in% names(features)) {
+    features$decoy[grep("DECOY",features$protein_id)] = 1
+  } else {
+    stop("Not a complex of protein feature table.")
+  }
   targets=features[decoy==0,coelution_score]
   decoys=features[decoy==1,coelution_score]
   pvalues <- empPvals(stat=targets,stat0=decoys,pool=TRUE)
