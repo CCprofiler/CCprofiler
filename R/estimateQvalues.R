@@ -3,13 +3,20 @@
 #' @return data.table with complex or protein features including an extra coelution_score column
 #' @export
 calculateCoelutionScore <- function(features){
-  #features[peak_corr < 0]$peak_corr = 0
-  minCorr <- min(features$peak_corr)
-  features[,peak_corr_scaled := (peak_corr-minCorr)]
-  maxCorr <- abs(max(features$peak_corr_scaled))
-  features[,peak_corr_scaled := peak_corr_scaled/maxCorr]
+  #minCorr <- quantile(features[peak_corr>0,peak_corr],0.05)
+  minPosCorr <- min(features[peak_corr>0,peak_corr])
+  minNegCorr <- min(features[peak_corr<=0,peak_corr])
+  corrNegScores <- (features[peak_corr<=0,peak_corr] - minNegCorr) * minPosCorr
+  #nZero <- nrow(features[peak_corr<0])
+  #random <- runif(nZero, min = 0, max = minCorr)
+  features[peak_corr <= 0]$peak_corr = corrNegScores
+  #features[peak_corr < 0]$peak_corr = 0.000000000000000000000000000001
+  #minCorr <- min(features$peak_corr)
+  #features[,peak_corr_scaled := (peak_corr-minCorr)]
+  #maxCorr <- abs(max(features$peak_corr_scaled))
+  #features[,peak_corr_scaled := peak_corr_scaled/maxCorr]
   features$coelution_score <- apply(features,1,function(x){
-  peak_corr=as.numeric(x["peak_corr_scaled"])
+  peak_corr=as.numeric(x["peak_corr"])
   n_subunits_detected=as.numeric(x["n_subunits_detected"])
   n_subunits_annotated=as.numeric(x["n_subunits_annotated"])
   1-min(1,sum(((1-peak_corr)^((n_subunits_detected:n_subunits_annotated)-1))*((peak_corr)^(n_subunits_annotated-(n_subunits_detected:n_subunits_annotated)))*choose(n_subunits_annotated-1,(n_subunits_detected:n_subunits_annotated)-1)))
@@ -111,7 +118,7 @@ plotScoreDistribution <- function(features,PDF=TRUE,name="scoreDistribution"){
    } else {
      stop("Not a complex of protein feature table.")
    }
-    pl <- ggplot(data=features,aes(x=coelution_score,fill=factor(decoy))) + geom_histogram(position="dodge",binwidth=0.05)+
+    pl <- ggplot(data=features,aes(x=coelution_score,fill=factor(decoy))) + geom_histogram(position="dodge",binwidth=0.02)+
     scale_x_continuous(breaks=seq(0,1,0.1),limits=c(0,1),minor_breaks=NULL)
     print(pl)
   dev.off()
