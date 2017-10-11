@@ -29,9 +29,6 @@ chooseBig <- function(nn,kk){
   pmin(small,.Machine$double.xmax)
 }
 
-
-sapply(((1-peak_corr)^((n_subunits_detected:n_subunits_annotated)-1))*((peak_corr)^(n_subunits_annotated-(n_subunits_detected:n_subunits_annotated)))*chooseBig(n_subunits_annotated-1,(n_subunits_detected:n_subunits_annotated)-1),"+")
-
 #' Calculate q-values from coelution score for all detected features.
 #' @param features data.table with complex or protein features
 #' @param lambda numeric value between 0 and 1, default = 0.5
