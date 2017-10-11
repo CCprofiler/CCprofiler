@@ -3,10 +3,13 @@
 #' @return data.table with complex or protein features including an extra coelution_score column
 #' @export
 calculateCoelutionScore <- function(features){
-  features[peak_corr < 0]$peak_corr = 0
-  #features <- subset(features,peak_corr > 0)
+  #features[peak_corr < 0]$peak_corr = 0
+  minCorr <- min(features$peak_corr)
+  features[,peak_corr_scaled := (peak_corr-minCorr)]
+  maxCorr <- abs(max(features$peak_corr_scaled))
+  features[,peak_corr_scaled := peak_corr_scaled/maxCorr]
   features$coelution_score <- apply(features,1,function(x){
-  peak_corr=as.numeric(x["peak_corr"])
+  peak_corr=as.numeric(x["peak_corr_scaled"])
   n_subunits_detected=as.numeric(x["n_subunits_detected"])
   n_subunits_annotated=as.numeric(x["n_subunits_annotated"])
   1-min(1,sum(((1-peak_corr)^((n_subunits_detected:n_subunits_annotated)-1))*((peak_corr)^(n_subunits_annotated-(n_subunits_detected:n_subunits_annotated)))*choose(n_subunits_annotated-1,(n_subunits_detected:n_subunits_annotated)-1)))
