@@ -19,10 +19,18 @@ calculateCoelutionScore <- function(features){
   peak_corr=as.numeric(x["peak_corr"])
   n_subunits_detected=as.numeric(x["n_subunits_detected"])
   n_subunits_annotated=as.numeric(x["n_subunits_annotated"])
-  1-min(1,sum(((1-peak_corr)^((n_subunits_detected:n_subunits_annotated)-1))*((peak_corr)^(n_subunits_annotated-(n_subunits_detected:n_subunits_annotated)))*choose(n_subunits_annotated-1,(n_subunits_detected:n_subunits_annotated)-1)))
+  1-min(1,sum(((1-peak_corr)^((n_subunits_detected:n_subunits_annotated)-1))*((peak_corr)^(n_subunits_annotated-(n_subunits_detected:n_subunits_annotated)))*chooseBig(n_subunits_annotated-1,(n_subunits_detected:n_subunits_annotated)-1)))
   })
   return(features[])
 }
+
+chooseBig <- function(nn,kk){
+  small <- choose(n=nn,k=kk)
+  pmin(small,.Machine$double.xmax)
+}
+
+
+sapply(((1-peak_corr)^((n_subunits_detected:n_subunits_annotated)-1))*((peak_corr)^(n_subunits_annotated-(n_subunits_detected:n_subunits_annotated)))*chooseBig(n_subunits_annotated-1,(n_subunits_detected:n_subunits_annotated)-1),"+")
 
 #' Calculate q-values from coelution score for all detected features.
 #' @param features data.table with complex or protein features
