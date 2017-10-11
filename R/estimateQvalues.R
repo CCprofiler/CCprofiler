@@ -1,7 +1,6 @@
 #' Calculate coelution score for all detected features.
 #' @param features data.table with complex or protein features
 #' @return data.table with complex or protein features including an extra coelution_score column
-#' @importFrom Pmpfr mpfr
 #' @export
 calculateCoelutionScore <- function(features){
   #minCorr <- quantile(features[peak_corr>0,peak_corr],0.05)
@@ -17,11 +16,10 @@ calculateCoelutionScore <- function(features){
   #maxCorr <- abs(max(features$peak_corr_scaled))
   #features[,peak_corr_scaled := peak_corr_scaled/maxCorr]
   features$coelution_score <- apply(features,1,function(x){
-    peak_corr=as.numeric(x["peak_corr"])
-    n_subunits_detected=as.numeric(x["n_subunits_detected"])
-    n_subunits_annotated=as.numeric(x["n_subunits_annotated"])
-    precVec <- mpfr(((1-peak_corr)^((n_subunits_detected:n_subunits_annotated)-1))*((peak_corr)^(n_subunits_annotated-(n_subunits_detected:n_subunits_annotated)))*chooseBig(n_subunits_annotated-1,(n_subunits_detected:n_subunits_annotated)-1), 100)
-    1-sum(sapply(precVec, as.numeric))
+  peak_corr=as.numeric(x["peak_corr"])
+  n_subunits_detected=as.numeric(x["n_subunits_detected"])
+  n_subunits_annotated=as.numeric(x["n_subunits_annotated"])
+  1-min(1,sum(((1-peak_corr)^((n_subunits_detected:n_subunits_annotated)-1))*((peak_corr)^(n_subunits_annotated-(n_subunits_detected:n_subunits_annotated)))*chooseBig(n_subunits_annotated-1,(n_subunits_detected:n_subunits_annotated)-1)))
   })
   return(features[])
 }
@@ -68,9 +66,9 @@ calculateQvalue <- function(features,lambda=0.5,plot=TRUE,PDF=FALSE,name="q_valu
     if(PDF){
       pdf(paste0(name,".pdf"))
     }
-    hist(pvalues,nclass=20)
-    plot(qobj)
-    print(hist(qobj))
+      hist(pvalues,nclass=20)
+      plot(qobj)
+      print(hist(qobj))
     if(PDF){
       dev.off()
     }
@@ -97,12 +95,12 @@ qvaluePositivesPlot <- function(features,plot=TRUE,PDF=FALSE,name="qvaluePositiv
     if(PDF){
       pdf(paste0(name,".pdf"))
     }
-    p <- ggplot(data=stats,aes(x=qvalue_cutoff,y=positives)) +
-      geom_point()
-    print(p)
-    tp <- ggplot(data=stats,aes(x=qvalue_cutoff,y=true_positives)) +
-      geom_point()
-    print(tp)
+      p <- ggplot(data=stats,aes(x=qvalue_cutoff,y=positives)) +
+        geom_point()
+      print(p)
+      tp <- ggplot(data=stats,aes(x=qvalue_cutoff,y=true_positives)) +
+        geom_point()
+      print(tp)
     if(PDF){
       dev.off()
     }
@@ -117,17 +115,17 @@ qvaluePositivesPlot <- function(features,plot=TRUE,PDF=FALSE,name="qvaluePositiv
 #' @export
 plotScoreDistribution <- function(features,PDF=TRUE,name="scoreDistribution"){
   pdf(paste0(name,".pdf"))
-  features[,decoy:=0]
-  if ("complex_id" %in% names(features)) {
-    features$decoy[grep("DECOY",features$complex_id)] = 1
-  } else if ("protein_id" %in% names(features)) {
-    features$decoy[grep("DECOY",features$protein_id)] = 1
-  } else {
-    stop("Not a complex of protein feature table.")
-  }
-  pl <- ggplot(data=features,aes(x=coelution_score,fill=factor(decoy))) + geom_histogram(position="dodge",binwidth=0.02)+
+   features[,decoy:=0]
+   if ("complex_id" %in% names(features)) {
+     features$decoy[grep("DECOY",features$complex_id)] = 1
+   } else if ("protein_id" %in% names(features)) {
+     features$decoy[grep("DECOY",features$protein_id)] = 1
+   } else {
+     stop("Not a complex of protein feature table.")
+   }
+    pl <- ggplot(data=features,aes(x=coelution_score,fill=factor(decoy))) + geom_histogram(position="dodge",binwidth=0.02)+
     scale_x_continuous(breaks=seq(0,1,0.1),limits=c(-0.05,1.05),minor_breaks=NULL)
-  print(pl)
+    print(pl)
   dev.off()
 }
 
@@ -155,12 +153,12 @@ qvaluePositivesPlotGrid <- function(featuresGrid,plot=TRUE,PDF=FALSE,name="qvalu
     if(PDF){
       pdf(paste0(name,".pdf"))
     }
-    p <- ggplot(data=stats_all,aes(x=qvalue_cutoff,y=positives,colour=factor(corr))) +
-      geom_point()
-    print(p)
-    tp <- ggplot(data=stats_all,aes(x=qvalue_cutoff,y=true_positives,colour=factor(corr))) +
-      geom_point()
-    print(tp)
+      p <- ggplot(data=stats_all,aes(x=qvalue_cutoff,y=positives,colour=factor(corr))) +
+        geom_point()
+      print(p)
+      tp <- ggplot(data=stats_all,aes(x=qvalue_cutoff,y=true_positives,colour=factor(corr))) +
+        geom_point()
+      print(tp)
     if(PDF){
       dev.off()
     }
