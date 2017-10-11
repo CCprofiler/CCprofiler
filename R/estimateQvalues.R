@@ -119,7 +119,7 @@ plotScoreDistribution <- function(features,PDF=TRUE,name="scoreDistribution"){
      stop("Not a complex of protein feature table.")
    }
     pl <- ggplot(data=features,aes(x=coelution_score,fill=factor(decoy))) + geom_histogram(position="dodge",binwidth=0.02)+
-    scale_x_continuous(breaks=seq(0,1,0.1),limits=c(0,1),minor_breaks=NULL)
+    scale_x_continuous(breaks=seq(0,1,0.1),limits=c(-0.05,1.05),minor_breaks=NULL)
     print(pl)
   dev.off()
 }
