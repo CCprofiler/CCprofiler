@@ -1,7 +1,7 @@
 #' Calculate coelution score for all detected features.
 #' @param features data.table with complex or protein features
 #' @return data.table with complex or protein features including an extra coelution_score column
-#' @importFrom Rmpfr mpfr
+#' @importFrom Pmpfr mpfr
 #' @export
 calculateCoelutionScore <- function(features){
   #minCorr <- quantile(features[peak_corr>0,peak_corr],0.05)
