@@ -116,7 +116,9 @@ qvaluePositivesPlot <- function(features,plot=TRUE,PDF=FALSE,name="qvaluePositiv
 #' @param name character strimg specifying pdf name, default = "scoreDistribution"
 #' @export
 plotScoreDistribution <- function(features,PDF=TRUE,name="scoreDistribution"){
-  pdf(paste0(name,".pdf"))
+  if(PDF){
+    pdf(paste0(name,".pdf"))
+  }
   features[,decoy:=0]
   if ("complex_id" %in% names(features)) {
     features$decoy[grep("DECOY",features$complex_id)] = 1
@@ -128,7 +130,9 @@ plotScoreDistribution <- function(features,PDF=TRUE,name="scoreDistribution"){
   pl <- ggplot(data=features,aes(x=coelution_score,fill=factor(decoy))) + geom_histogram(position="dodge",binwidth=0.02)+
     scale_x_continuous(breaks=seq(0,1,0.1),limits=c(-0.05,1.05),minor_breaks=NULL)
   print(pl)
-  dev.off()
+  if(PDF){
+    dev.off()
+  }
 }
 
 #' qvaluePositivesPlotGrid
