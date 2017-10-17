@@ -37,15 +37,15 @@ complexFeaturesGridFiltered <- filterGridSearchResults(complexFeaturesGrid,
                                                        n_subunits_cutoffs =c(2,3,4),
                                                        monomer_distance_cutoffs = c(1,2),
                                                        remove_decoys=FALSE)
- 
-## Pick the best parameter set with a cross checked FDR constraint of 0.1                                                                                                            
-getBestParameterStats_constraintFDR(complexFeaturesGridFiltered, 
+
+## Pick the best parameter set with a cross checked FDR constraint of 0.1
+getBestParameterStats_constraintFDR(complexFeaturesGridFiltered,
                                     complexHypotheses,
                                     FDR = 0.1,
                                     grid_search_params =c("min_feature_completeness",
                                                           "min_hypothesis_completeness",
                                                           "min_subunits",
-                                                          "min_peak_corr", 
+                                                          "min_peak_corr",
                                                           "min_monomer_distance_factor"))
-                                    
+
 }

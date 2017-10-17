@@ -14,7 +14,7 @@ getBestParameterData(complex_features_list, best_parameters,
 
 \item{best_parameters}{data.table with one row containing the selected parameter set.}
 
-\item{grid_search_params}{Character vector of column names to report with the statistics 
+\item{grid_search_params}{Character vector of column names to report with the statistics
 for the dataset. Should contain all parameters that are of interest in the grid search.}
 }
 \value{
@@ -27,7 +27,7 @@ that performs best in terms of identifications while staying within a specified 
 \examples{
 ## Generate example data
  complexFeaturesGrid <- list(exampleComplexFeatures)
- 
+
  complexFeaturesGridFiltered <- filterGridSearchResults(complexFeaturesGrid,
                                                         peak_corr_cutoffs = c(0.5,0.75,0.9),
                                                         feature_completeness_cutoffs = c(0,0.5,1),
@@ -35,7 +35,7 @@ that performs best in terms of identifications while staying within a specified 
                                                         n_subunits_cutoffs =c(2,3,4),
                                                         monomer_distance_cutoffs = c(1,2),
                                                         remove_decoys=FALSE)
- 
+
  complexFeatures_bestParameterStats <- getBestParameterStats_constraintFDR(complexFeaturesGridFiltered,
                                                                            complex_hypotheses=exampleComplexHypotheses,
                                                                            n_subsets=3,
