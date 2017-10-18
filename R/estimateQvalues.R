@@ -63,6 +63,7 @@ calculateQvalue <- function(features,lambda=0.5,plot=TRUE,PDF=FALSE,name="q_valu
   targets=features[decoy==0,coelution_score]
   decoys=features[decoy==1,coelution_score]
   pvalues <- empPvals(stat=targets,stat0=decoys,pool=TRUE)
+  if (max(pvalues) <= lambda) {return("NA")}
   qobj <- qvalue(pvalues,lambda=lambda)
   if(plot){
     if(PDF){
