@@ -99,10 +99,14 @@ qvaluePositivesPlot <- function(features,plot=TRUE,PDF=FALSE,name="qvaluePositiv
       pdf(paste0(name,".pdf"))
     }
     p <- ggplot(data=stats,aes(x=qvalue_cutoff,y=positives)) +
-      geom_point()
+      geom_point()+
+      geom_line() +
+      theme_classic()
     print(p)
     tp <- ggplot(data=stats,aes(x=qvalue_cutoff,y=true_positives)) +
-      geom_point()
+      geom_point()+
+      geom_line() +
+      theme_classic()
     print(tp)
     if(PDF){
       dev.off()

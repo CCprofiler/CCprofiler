@@ -1,7 +1,7 @@
 #' Summarize co-elution features
 #' @description Summarize co-elution features
 #' This is only taking into account targets. If decoys are present they are removed using "DECOY" as a flag.
-#' @param feature_table data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}} 
+#' @param feature_table data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}}
 #' or \code{\link[SECprofiler]{findProteinFeatures}}.
 #' @param plot Logical, whether to generate a feature summary plot. Default is \code{TRUE}.
 #' @param PDF Logical, whether to generate a PDF file with the summary plot. Default is \code{FALSE}.
@@ -37,7 +37,7 @@ summarizeFeatures <- function(feature_table,
   features[ , `:=`( COUNT = .N , IDX = 1:.N ) , by = complex_id ]
   # setkey(features, "complex_id")
   feature_count_max <- unique(features, by = "complex_id")$COUNT
-  summaryFeatureCount <- summary(feature_count_max) 
+  summaryFeatureCount <- summary(feature_count_max)
   totalHypothesesWithMultipleFeatures <- length(which(feature_count_max>=2))
   summaryCorrelation <- summary(features$peak_corr)
   summaryArea <- summary(features$area)
@@ -79,9 +79,9 @@ summarizeFeatures <- function(feature_table,
   if (plot) {
     features[,feature_id := .I]
     if("mw_diff" %in% names(features)) {
-      plottingFeatures <- subset(features,select=c("feature_id","peak_corr","mw_diff","area","apex","n_subunits_detected","completeness")) 
+      plottingFeatures <- subset(features,select=c("feature_id","peak_corr","mw_diff","area","apex","n_subunits_detected","completeness"))
     } else {
-      plottingFeatures <- subset(features,select=c("feature_id","peak_corr","area","apex","n_subunits_detected","completeness")) 
+      plottingFeatures <- subset(features,select=c("feature_id","peak_corr","area","apex","n_subunits_detected","completeness"))
     }
     plottingFeatures$area <- log(plottingFeatures$area)
     setnames(plottingFeatures,"area","log(area)")
@@ -90,24 +90,24 @@ summarizeFeatures <- function(feature_table,
     if (PDF) {
       pdf(gsub("$|\\.pdf$", ".pdf", name))
     }
-    p <- ggplot(plottingFeaturesMelt, aes(x=value,fill=variable)) + 
-      geom_histogram(bins = 50) + 
-      facet_wrap(~variable, scales="free", ncol = 2) + 
+    p <- ggplot(plottingFeaturesMelt, aes(x=value,fill=variable)) +
+      geom_histogram(bins = 50) +
+      facet_wrap(~variable, scales="free", ncol = 2) +
       theme_bw() +
-      theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) + 
+      theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
       guides(fill=FALSE) +
-      ggtitle(paste0(type," feature summary")) + 
+      ggtitle(paste0(type," feature summary")) +
       theme(plot.title = element_text(size=14, face="bold"))
     print(p)
     plottingNsubcomplexes <- data.table(n_subcomplexes=feature_count_max)
     q <- ggplot(plottingNsubcomplexes,aes(x=n_subcomplexes)) +
       stat_bin(binwidth=1) +
       stat_bin(binwidth=1, geom="text", aes(label=..count..), vjust=-0.5) +
-      labs(x="N co-elution features",y="N complex hypotheses") +
+      labs(x="N co-elution features",y="N hypotheses") +
       theme_classic() +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank()) +
-      ggtitle(paste0(type," sub-feature summary")) + 
+      ggtitle(paste0(type," sub-feature summary")) +
       theme(plot.title = element_text(size=14, face="bold"))
     print(q)
     if (PDF) {
@@ -120,7 +120,7 @@ summarizeFeatures <- function(feature_table,
 #' Select best feature for each complex or protein id.
 #' @description Filter feature table to only contain one best feature per complex or protein id.
 #' "Best" is defined as the feature with most subunits, highest peak correlation and largest signal area.
-#' @param feature_table data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}} 
+#' @param feature_table data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}}
 #' or \code{\link[SECprofiler]{findProteinFeatures}}.
 #' @return data.table Filtered feature table with only one best feature per complex or protein id.
 #' @examples
@@ -150,15 +150,15 @@ getBestFeatures <- function(feature_table){
 
 #' Filter co-elution feature table
 #' @description Filter co-elution feature table according to desired criteria.
-#' @param feature_table data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}} 
+#' @param feature_table data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}}
 #' or \code{\link[SECprofiler]{findProteinFeatures}}.
-#' @param complex_ids character vector containing all desired \code{complex_id} values. 
+#' @param complex_ids character vector containing all desired \code{complex_id} values.
 #' Only applicable to complex feature tables. Defaults to \code{NULL}.
-#' @param protein_ids character vector containing all desired \code{protein_id} values. 
+#' @param protein_ids character vector containing all desired \code{protein_id} values.
 #' Only applicable to protein feature tables. Defaults to \code{NULL}.
-#' @param min_feature_completeness Numeric between 0 and 1, specifying the required completeness 
+#' @param min_feature_completeness Numeric between 0 and 1, specifying the required completeness
 #' of a feature reltive to the tested hypothesis (keeps all features if at least one is bigger than the cutoff).
-#' @param min_hypothesis_completeness Numeric between 0 and 1, specifying the required completeness 
+#' @param min_hypothesis_completeness Numeric between 0 and 1, specifying the required completeness
 #' of the most complete feature reltive to the tested hypothesis (keeps all features if at least one feature is bigger than the cutoff).
 #' @param min_subunits Integer specifying minimum number of subunits in a co-elution feature.
 #' @param min_peak_corr Numeric value betwee 0 and 1 specifying minimum peak correlation, defaults to 0.5.
@@ -173,8 +173,8 @@ getBestFeatures <- function(feature_table){
 #' summarizeFeatures(complexFeatures)
 #' ## Filter complex features by a peak correlation of 0.5, a minimum hypothesis
 #' ## completeness of 0.5 and a minimum distance to the monomers by a factor of 2:
-#' filteredComplexFeatures <- filterFeatures(complexFeatures, 
-#'                                      min_peak_corr=0.5, 
+#' filteredComplexFeatures <- filterFeatures(complexFeatures,
+#'                                      min_peak_corr=0.5,
 #'                                      min_hypothesis_completeness=0.5,
 #'                                      min_monomer_distance_factor=2)
 #' ## Run summary function on filtered data:
@@ -229,7 +229,7 @@ filterFeatures <- function(feature_table,
   }
   if(!is.null(min_monomer_distance_factor)){
     if (! "monomer_mw" %in% names(feature_table)){
-      stop("No molecular weight information available. The min_monomer_distance_factor is only a valid 
+      stop("No molecular weight information available. The min_monomer_distance_factor is only a valid
            filtering option if molecular weight information of the proteins is available.")
     }
     dist <- lapply(seq(1:nrow(feature_table)), function(i){
@@ -249,17 +249,17 @@ filterFeatures <- function(feature_table,
 
 
 #' Filter co-elution feature table by stepwise completeness cutoffs
-#' @description Filter co-elution feature table by two consecutive completeness cutoffs 
+#' @description Filter co-elution feature table by two consecutive completeness cutoffs
 #' to treat small and large complexes differenetly.
-#' @param feature_table data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}} 
+#' @param feature_table data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}}
 #' or \code{\link[SECprofiler]{findProteinFeatures}}.
 #' @param min_subunits_annotated Integer specifying the number of annotated hypothesis components (peptides / proteins).
 #' This is the cutoff for using the two different completeness cutoffs as provided by the \code{completeness_vector}. Default is \code{4}.
 #' @param completeness_vector Numeric vector of length 2. The first value is the completeness cutoff apllied to all hypotheses
-#' with <= \code{min_subunits_annotated} subunits and the secind value is applied to all hypotheses 
+#' with <= \code{min_subunits_annotated} subunits and the secind value is applied to all hypotheses
 #' with more than \code{min_subunits_annotated} subunits. Default is \code{c(0.75,0.5)}
-#' @param level Character string defining level of filterng, allowed values are "feature" or "hypothesis". 
-#' "feature" filters all features by their completeness. "hypothesis" filters by the completeness of the 
+#' @param level Character string defining level of filterng, allowed values are "feature" or "hypothesis".
+#' "feature" filters all features by their completeness. "hypothesis" filters by the completeness of the
 #' of the largest feature within one hypothesis. Default is "hypothesis".
 #' @return The same feture table as teh input, but filtered according to the provided parameters.
 #' @examples
@@ -308,5 +308,3 @@ filterByStepwiseCompleteness <- function(feature_table,
     stop("No valid level provided. The oly valid levels are \"hypothesis\" or \"feature\".")
   }
 }
-
-
