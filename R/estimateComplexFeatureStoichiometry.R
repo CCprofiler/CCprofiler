@@ -37,20 +37,9 @@
 #'           \item \code{stoichiometry} The rounded \code{intensity_ratio} of all protein_ids of the feature separated by semi-colons.
 #'           }
 #'        }
-#' @export
 
 estimateComplexFeatureStoichiometry <- function(traces.obj,complexFeaturesPP) {
-
-  features <- complexFeaturesPP$features
-  # remove sliding-window features where no peak was detected (these have an NA in the features$apex)
-  sel_na <- which(is.na(features$apex))
-  if (length(sel_na) > 0) {
-    if (length(sel_na) < nrow(features)) {
-      features <- features[-sel_na,]
-    } else {
-      features <- data.frame()
-    }
-  }
+  features <- complexFeaturesPP
 
   # estimate the stoichiometry of each detected feature with a picked peak
   stoichiometry <- lapply(seq(1:nrow(features)), function(i){
@@ -58,7 +47,7 @@ estimateComplexFeatureStoichiometry <- function(traces.obj,complexFeaturesPP) {
     subunits <- strsplit(feature$subgroup, ';')[[1]]
     # select sec fractions whithin the boundaries of the picked peak and subset the traces.obj
     fractions <- feature$left_pp:feature$right_pp
-    traces_sub <- subset(traces.obj,trace_ids=subunits,fraction_ids=fractions)
+    traces_sub <- subset(traces.obj,trace_subset_ids=subunits,fraction_ids=fractions)
     traces_sub.long <- toLongFormat(traces_sub$traces) #long format is easier for processing
     # make sure intensity is numeric
     traces_sub.long$intensity <- as.numeric(traces_sub.long$intensity)
@@ -86,7 +75,5 @@ estimateComplexFeatureStoichiometry <- function(traces.obj,complexFeaturesPP) {
   features[,subgroup:=NULL]
 
   data.table(features)
-  res <- list(features=features)
-  class(res) = 'complexFeatureStoichiometry'
-  res
+  return(features[])
 }

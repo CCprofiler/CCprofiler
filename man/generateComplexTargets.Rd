@@ -2,23 +2,50 @@
 % Please edit documentation in R/generateHypotheses.R
 \name{generateComplexTargets}
 \alias{generateComplexTargets}
-\title{Generate target hypotheses from distance table. This is done by choosing all
-max_distance (e.g. 1st) degree interactors for each protein in a distance table.}
+\title{Generate complex target-hypotheses}
 \usage{
-generateComplexTargets(dist_info, max_distance = 1)
+generateComplexTargets(dist_info, max_distance = 1, redundancy_cutoff = 1)
 }
 \arguments{
-\item{dist_info}{data.table with three columns (x,y,dist) containing all possible combinations
-of proteins and their shortest distance.
-This is the output from calculatePathlength()}
+\item{dist_info}{data.table with three columns containing all possible combinations of proteins:
+\itemize{
+  \item x,y: Protein ids of the input proteins (all possible combinations)
+  \item dist: distance as determined by the input binary interaction table
+}
+This is the output from \code{\link[SECprofiler]{calculatePathlength}}}
 
-\item{max_distance}{numeric maximum distance between to proteins to be considered as being in one complex}
+\item{max_distance}{Numeric, maximum distance between to proteins to be considered
+as being in one complex. Defaults to 1.}
+
+\item{redundancy_cutoff}{Numeric, maximum overlap distance between two hypotheses
+(0=identical,1=subset,between 1 and 2=some shared subunits, 2=no shared subunits).
+Defaults to 1.}
 }
 \value{
-data.table in the format of complex hypotheses
+data.table in the format of complex hypotheses.
+Has the following columns:
+\itemize{
+\item complex_id: character strings, a unique id for every complex
+\item protein_id: character strings, the protein id, e.g. Uniprot id
+}
 }
 \description{
 Generate target hypotheses from distance table. This is done by choosing all
 max_distance (e.g. 1st) degree interactors for each protein in a distance table.
 }
+\examples{
+## Load example Data
+complexHypotheses <- exampleComplexHypotheses
 
+## Generate the binary network
+binaryInteractions <- generateBinaryNetwork(complex_hypotheses = complexHypotheses)
+
+## Calculate the path lengths
+shortestPaths <- calculatePathlength(binaryInteractions)
+
+## Generate a set of target hypotheses from the binary interactions
+targetHypotheses_ <- generateComplexTargets(dist_info = shortestPaths,
+                                            max_distance = 1,
+                                            redundancy_cutoff = 1)
+
+}

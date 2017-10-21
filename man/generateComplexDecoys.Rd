@@ -2,30 +2,68 @@
 % Please edit documentation in R/generateHypotheses.R
 \name{generateComplexDecoys}
 \alias{generateComplexDecoys}
-\title{Generate complex decoy hypotheses from target hypotheses and distance table.
-Selects proteins by min_distance in the network.}
+\title{Generate comlpex decoy-hypotheses}
 \usage{
-generateComplexDecoys(target_hypothesis, dist_info, min_distance = 2,
-  seed = 123, n.cores = 1)
+generateComplexDecoys(target_hypotheses, dist_info, min_distance = 2,
+  append = FALSE, seed = 123, parallelized = FALSE, n_cores = 1,
+  n_tries = 3)
 }
 \arguments{
-\item{target_hypothesis}{data.table in the format of complex hypotheses}
+\item{target_hypotheses}{data.table in the format of complex hypotheses
+Must have the following columns:
+\itemize{
+\item complex_id: character strings, a unique id for every complex
+\item protein_id: character strings, the protein id, e.g. Uniprot id
+}}
 
-\item{dist_info}{data.table with three columns (x,y,dist) containing all possible combinations
-of proteins and their shortest distance.
-This is the output from calculatePathlength()}
+\item{dist_info}{data.table with three columns containing all possible combinations of proteins:
+\itemize{
+  \item x,y: Protein ids of the input proteins (all possible combinations)
+  \item dist: distance as determined by the input binary interaction table
+}
+This is the output from \code{\link[SECprofiler]{calculatePathlength}}}
 
-\item{min_distance}{numeric minimum distance between to proteins to be able to be in same complex decoy}
+\item{min_distance}{Numeric, minimum distance between to proteins to be
+able to be in same complex decoy.}
 
-\item{seed}{numeric seed for random number generator}
+\item{append}{Logical, wether to append decoys to the input target hypotheses, default is FALSE.}
 
-\item{n.cores}{numeric number of cores used for parallelization}
+\item{seed}{Numeric, seed for random number generator.}
+
+\item{parallelized}{Logical, if the computation should be done in parallel, default=FALSE.}
+
+\item{n_cores}{Numeric, number of cores used for parallelization.}
+
+\item{n_tries}{Numeric integer, Number of attempts to generate a decoy hypothesis until the
+algorithm quits and reports an error. Higher values allow for decoy generation with high-connectivity
+target networks, but take longer to compute.}
 }
 \value{
-data.table with binary interactions between "a" and "b"
+data.table in the form of complex hypotheses.
+Has the following columns:
+\itemize{
+\item complex_id: character strings, a unique id for every complex
+\item complex_name: name of the complex (in this case identical with complex id)
+\item protein_id: character string, the protein id, e.g. Uniprot id
+}
 }
 \description{
 Generate complex decoy hypotheses from target hypotheses and distance table.
 Selects proteins by min_distance in the network.
 }
+\examples{
+## Load example Data
+complexHypotheses <- exampleComplexHypotheses
+## Generate the binary network
+binaryInteractions <- generateBinaryNetwork(complex_hypotheses = complexHypotheses)
+## Calculate the path lengths
+shortestPaths <- calculatePathlength(binaryInteractions)
 
+## Generate the Decoys
+decoys <- generateComplexDecoys(target_hypotheses = complexHypotheses,
+                                dist_info = shortestPaths,
+                                min_distance = 2)
+## Inspect the resulting decoys
+decoys
+
+}

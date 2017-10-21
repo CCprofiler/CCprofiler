@@ -2,14 +2,27 @@
 % Please edit documentation in R/tracesMethods.R
 \name{summary.traces}
 \alias{summary.traces}
-\title{Summarize a \code{traces.obj}}
+\title{Summarize a traces object}
 \usage{
-\method{summary}{traces}(traces.obj)
+\method{summary}{traces}(traces)
 }
 \arguments{
-\item{traces.obj}{An object of type \code{traces.obj}.}
+\item{traces}{Object of class traces.}
+}
+\value{
+A summary list with following entries:
+         \itemize{
+          \item \code{metrics} Summary of traces counts including decoy statistics.
+          \item \code{type} Type of traces: peptides or proteins.
+          \item \code{annotations} Names of trace annotations.
+          \item \code{fraction_count} Number of fractions in traces object.
+          \item \code{SibPepCorr} Summary of sibling peptide correlation.
+          Only reported if sibling peptide correlations were previously calculated.
+         }
 }
 \description{
-Summarize a \code{traces.obj}
+Summarize a traces object to get an overview.
 }
-
+\examples{
+summary(examplePeptideTracesFiltered)
+}

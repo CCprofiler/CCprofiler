@@ -6,7 +6,7 @@
 information.}
 \usage{
 annotateComplexFeatures(traces.obj, complexFeatureStoichiometries,
-  complex.annotation, MWSECcalibrationFunctions)
+  complex.annotation)
 }
 \arguments{
 \item{traces.obj}{An object of type \code{traces.obj}.}
@@ -36,13 +36,6 @@ containing the following:
  \item \code{complex_id}
  \item \code{complex_name}
  \item \code{protein_id}
-}}
-
-\item{MWSECcalibrationFunctions}{A list that stores the functions for converting SEC fractions to molecular weight and vice versa. This
-object is generated from the calibrateSECMW function.
-\itemize{
- \item \code{MWtoSECfraction} Function that needs MW as input and reports according SEC fraction.
- \item \code{SECfractionToMW} Function that needs SEC fraction as input and reports according MW.
 }}
 }
 \value{
@@ -82,4 +75,3 @@ An object of type \code{complexFeaturesAnnotated} that is a list
 A helper function to extend a list of complex features with additional
 information.
 }
-

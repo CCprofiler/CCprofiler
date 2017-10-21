@@ -1,23 +1,38 @@
-#' Calculate sibling peptide correlation in traces.object of type peptide.
-#' @param traces.obj An object of type \code{traces.obj}.
-#' @param plot logical TRUE or FALSE
-#' @param PDF logical TRUE or FALSE
-#' @return traces.obj An object of type \code{traces.obj}.
-#' @export
+# Due to: http://stackoverflow.com/questions/24501245/data-table-throws-object-not-found-error
+.datatable.aware=TRUE
 
-calculateSibPepCorr <- function(Traces,
+#' calculateSibPepCorr
+#' @description Calculate sibling peptide correlation in traces.object of type peptide.
+#' @import data.table
+#' @param traces An object of type traces.
+#' @param plot logical,wether to print SibPepCorr density plot to R console. Deafult is \code{TRUE}.
+#' @param PDF logical, wether to print SibPepCorr density plot to a PDF file. Deafult is \code{FALSE}.
+#' @param name Character string with name of the plot, only used if \code{PDF=TRUE}.
+#' PDF file is saved under name.pdf. Default is "SibPepCorr_densityplot".
+#' @return An object of type traces with added SibPepCorr column.
+#' @export
+#' @examples
+#' ## Load example data
+#'  tracesRaw <- examplePeptideTracesUnannotated
+#'
+#'  ## Calculate the SibPepCorr of every peptide
+#'  tracesRawSpc <- calculateSibPepCorr(traces = tracesRaw)
+#'
+#'  tracesRawSpc$trace_annotation
+#'
+#'
+calculateSibPepCorr <- function(traces,
                                 plot = TRUE,
-                                PDF = FALSE)
+                                PDF = FALSE,
+                                name = "SibPepCorr_densityplot")
   {
 
-  # Check input type
-  if (Traces$trace_type != "peptide"){
-    stop("Sibling peptide correlation can only be calculated on traces of type peptide")
-  }
+  ## Test traces
+  .tracesTest(traces, type = "peptide")
 
   # prepare data
-  quantdata <- getIntensityMatrix(Traces)
-  proteins <- unique(Traces$trace_annotation$protein_id)
+  quantdata <- getIntensityMatrix(traces)
+  proteins <- unique(traces$trace_annotation$protein_id)
   nproteins <- length(proteins)
 
   # calculation of SibPepCorr
@@ -27,7 +42,7 @@ calculateSibPepCorr <- function(Traces,
 
     #message(paste("PROCESSED", i, "of", nproteins, "proteins"))
     #indexpos <- proteins[i] == data$protein_id
-    indexpos <- proteins[i] == Traces$trace_annotation$protein_id
+    indexpos <- proteins[i] == traces$trace_annotation$protein_id
     df <- quantdata[indexpos,]
     class(df) <- 'numeric'
     df_cor <- cor(t(df))
@@ -45,17 +60,21 @@ calculateSibPepCorr <- function(Traces,
     }
   }
 
-  Traces$trace_annotation$SibPepCorr <- SibPepCorr
+  traces$trace_annotation$SibPepCorr <- SibPepCorr
 
   # output plot
   if (plot){
     if (PDF){
+      name <- gsub("$|\\.pdf$", ".pdf", name)
       pdf("SibPepCorr_densityplot.pdf")
     }
-    plot.SibPepCorrDensities(Traces)
+    plotSibPepCorrDensities(traces)
     if (PDF){
       dev.off()
     }
   }
-  return(Traces)
+  ## Test traces
+  .tracesTest(traces, type = "peptide")
+
+  return(traces)
 }

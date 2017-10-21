@@ -2,17 +2,20 @@
 % Please edit documentation in R/tracesMethods.R
 \name{getIntensityMatrix}
 \alias{getIntensityMatrix}
-\title{Get a matrix of intensity values from a traces object.}
+\title{Get intensity matrix from traces object}
 \usage{
-getIntensityMatrix(traces.obj)
+getIntensityMatrix(traces)
 }
 \arguments{
-\item{traces.obj}{An object of type \code{traces.obj}.}
+\item{traces}{Object of class traces.}
 }
 \value{
-A matrix with intensity values.
+Numeric matrix with intensity values.
 }
 \description{
 Get a matrix of intensity values from a traces object.
 }
-
+\examples{
+intensityMatrix <- getIntensityMatrix(examplePeptideTraces)
+head(intensityMatrix)
+}

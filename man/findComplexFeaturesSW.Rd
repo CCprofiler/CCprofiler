@@ -6,8 +6,8 @@
 sliding a window across the SEC dimension. Within each window proteins
 with traces that correlate well are clustered together.}
 \usage{
-findComplexFeaturesSW(trace.mat, corr.cutoff = 0.95, window.size = 15,
-  with.plot = F, min.sec = 1)
+findComplexFeaturesSW(trace.mat, corr.cutoff, window.size, with.plot = F,
+  min.sec = 1)
 }
 \arguments{
 \item{trace.mat}{A matrix of all traces in a complex hypothesis with small perturbations
@@ -55,4 +55,3 @@ with traces that correlate well are clustered together.
 #                  select=-protein_id)
 # sw.res <- findComplexFeaturesSW(traces, protein.ids, protein.mw.conc)
 }
-

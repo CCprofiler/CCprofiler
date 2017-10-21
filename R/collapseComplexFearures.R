@@ -2,6 +2,8 @@
 #'
 #' @param complexFeature Object of class ComplexFeaturePP
 #' @param rt_height Height at which to cur apex clustering tree.
+#' @importFrom igraph graph.data.frame
+#' @importFrom igraph clusters
 #' @return An object of type \code{collapsedComplexFeatures} that is a list
 #'        containing the following:
 #'        \itemize{
@@ -13,10 +15,8 @@
 #'           \item \code{score} The intra-sliding-window-feature correlation.
 #'           }
 #'        }
-#' @export
 
-collapseComplexFeatures <- function(complexFeature=complexFeaturesPP,rt_height=5,collapse_method="apex_only"){
-  complexFeature = complexFeature$features
+collapseComplexFeatures <- function(complexFeature=complexFeaturesPP,rt_height,collapse_method){
   complexFeature <- subset(complexFeature,apex != "NA")
   if (nrow(complexFeature) > 1) {
     apex_dist <- dist(complexFeature$apex)
@@ -24,7 +24,8 @@ collapseComplexFeatures <- function(complexFeature=complexFeaturesPP,rt_height=5
     #pdf(paste0("cluster_apex_",gsub("/","",complexFeature$complex_name),".pdf"))
     #  plot(apex_clust)
     #dev.off()
-    apex_groups <- cutree(apex_clust, h=rt_height)
+    apex_groups <- cutree(apex_clust, h=rt_height+0.01)
+    # add 0.01 to rt_height to cut tree right above cutoff (2 features with exact dist rt_height are merged)
     unique_apex_groups <- unique(apex_groups)
     for (apex_group in unique_apex_groups) {
       data <- complexFeature[which(apex_groups == apex_group)]
@@ -42,8 +43,8 @@ collapseComplexFeatures <- function(complexFeature=complexFeaturesPP,rt_height=5
           bi_list.tt <- lapply(bi_list.t,as.data.table)
           binary_interactions <- rbindlist(bi_list.tt)
           binary_interactions <- unique(binary_interactions)
-          g <- graph.data.frame(binary_interactions)
-          c <- clusters(g)
+          g <- igraph::graph.data.frame(binary_interactions)
+          c <- igraph::clusters(g)
           c_proteins <- names(c$members)
           c_groups <- as.vector(c$membership)
         }
@@ -67,9 +68,6 @@ collapseComplexFeatures <- function(complexFeature=complexFeaturesPP,rt_height=5
           rm(c_data)
         }
       } else {
-        #data[,n_primary_features := nrow(data)]
-        #data[,n_collapsed_subunits := n_subunits_detected]
-        #data[,collapsed_subunits := subunits_detected]
         data <- data[order(-n_subunits,-score,-area)]
         if (exists("new_complexFeature")) {
           new_complexFeature <- rbind(new_complexFeature,data[1])
@@ -80,12 +78,7 @@ collapseComplexFeatures <- function(complexFeature=complexFeaturesPP,rt_height=5
       rm(data)
     }
   } else {
-    #complexFeature[,n_primary_features := 1]
-    #complexFeature[,n_collapsed_subunits := n_subunits_detected]
-    #complexFeature[,collapsed_subunits := subunits_detected]
     new_complexFeature <- complexFeature
   }
-  res <- list(features=new_complexFeature)
-  class(res) = 'complexFeaturesCollapsed'
-  res
+  return(new_complexFeature[])
 }

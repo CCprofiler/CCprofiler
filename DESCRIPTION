@@ -14,6 +14,11 @@ Depends:
     doSNOW,
     foreach,
     parallel,
+    igraph,
     pracma
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
 Imports: igraph
+Suggests: testthat,
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr

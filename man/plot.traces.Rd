@@ -2,15 +2,40 @@
 % Please edit documentation in R/tracesMethods.R
 \name{plot.traces}
 \alias{plot.traces}
-\title{Plot a traces.obj.}
+\title{Plot traces}
 \usage{
-\method{plot}{traces}(traces.obj, plot = TRUE, ledgend = TRUE,
-  title = NULL)
+\method{plot}{traces}(traces, log = FALSE, legend = TRUE, PDF = FALSE,
+  name = "Traces", highlight = NULL, highlight_col = NULL)
 }
 \arguments{
-\item{traces.obj}{An object of type \code{traces.obj}.}
+\item{log}{Logical, whether the intensities should be plotted in log scale. Default is \code{FALSE}.}
+
+\item{legend}{Logical, whether a legend of the traces should be plotted. Should be set to \code{FALSE}
+if many chromatograms are plotted. Default is \code{TRUE}.}
+
+\item{PDF}{Logical, whether to plot to PDF. PDF file is saved in working directory. Default is \code{FALSE}.}
+
+\item{name}{Character string with name of the plot, only used if \code{PDF=TRUE}.
+PDF file is saved under name.pdf. Default is "Traces".}
+
+\item{Object}{of class traces.}
 }
 \description{
-Plot a traces.obj.
+Plot all chromatograms in a traces object. Most generic plotting function.
 }
-
+\examples{
+# Protein traces
+proteinTraces=exampleProteinTraces
+plot(proteinTraces)
+# Annotate traces with molecular weight to include molecular weight information in plot.
+calibrationTable <- exampleCalibrationTable
+# Perform molecular weight calibration:
+calibration = calibrateMW(calibrationTable)
+# Perform molecular weight annotation:
+mwProteinTraces <- annotateMolecularWeight(proteinTraces, calibration)
+plot(mwProteinTraces)
+# Plot all peptides of a specific protein across a defined chromatographic region
+peptideTraces <- examplePeptideTraces
+subsetPeptideTraces <- subset(peptideTraces,trace_subset_ids="Q9UHV9",trace_subset_type="protein_id",fraction_ids=c(30:70))
+plot(subsetPeptideTraces,legend=FALSE)
+}

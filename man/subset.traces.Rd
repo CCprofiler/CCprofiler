@@ -2,23 +2,46 @@
 % Please edit documentation in R/tracesMethods.R
 \name{subset.traces}
 \alias{subset.traces}
-\title{Subset a traces.obj by trace_ids or fraction_ids.}
+\title{Subset traces or fractions in traces object}
 \usage{
-\method{subset}{traces}(traces.obj, trace_ids = NULL, fraction_ids = NULL)
+\method{subset}{traces}(traces, trace_subset_ids = NULL,
+  trace_subset_type = "id", fraction_ids = NULL)
 }
 \arguments{
-\item{traces.obj}{An object of type \code{traces.obj}.}
+\item{traces}{Object of class traces.}
 
-\item{trace_ids}{A character vector specifying the trace identifiers
-for subsetting \code{traces.obj}.}
+\item{trace_subset_ids}{Character vector specifying the trace identifiers
+for subsetting traces, e.g. peptide or protein ids.}
 
-\item{fraction_ids}{A numeric vector specifying the fraction identifiers
-for subsetting \code{traces.obj}.}
+\item{trace_subset_type}{Character string  specifying the column name
+for applying the trace_subset_ids filter, defaults to "id".}
+
+\item{fraction_ids}{Numeric vector specifying the fraction identifiers
+for subsetting traces. The resulting traces object will not have
+fraction ids starting from 1, co-elution feature finding might thus
+be compromised. Please don't use this option for general
+pre-processing purposes.}
 }
 \value{
-traces.obj An object of type \code{traces.obj}.
+Object of class traces.
 }
 \description{
-Subset a traces.obj by trace_ids or fraction_ids.
+Subset a taces object by a specified column in trace_annotation and/or fraction ids.
 }
+\examples{
+# Load some example data:
+inputPeptideTraces <- examplePeptideTraces
+inputProteinTraces <- exampleProteinTraces
+subsetPeptides <- c("AIIDEFEQK","AIQLSGAEQLEALK","AKEALIAASETLK")
+subsetProtein <- "Q15021"
+subsetFractions <- c(5:20)
+# Run subsetting and inspect resulting traces object:
+peptideSubsettedPeptideTraces <- subset(inputPeptideTraces,trace_subset_ids=subsetPeptides,fraction_ids=subsetFractions)
+summary(peptideSubsettedPeptideTraces)
 
+proteinSubsettedPeptideTraces <- subset(inputPeptideTraces,trace_subset_ids=subsetProtein,trace_subset_type="protein_id")
+summary(proteinSubsettedPeptideTraces)
+
+proteinSubsettedProteinTraces <- subset(inputProteinTraces,trace_subset_ids=subsetProtein)
+summary(proteinSubsettedProteinTraces)
+}

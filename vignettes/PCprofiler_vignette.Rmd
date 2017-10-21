@@ -1,0 +1,340 @@
+---
+title: "Introduction to the PCprofiler package"
+author: "Isabell Bludau, Max Frank, Moritz Heusel"
+date: '`r Sys.Date()`'
+output:
+  pdf_document:
+    toc: yes
+  html_document:
+    depth: 3
+    number_sections: yes
+    theme: united
+    toc: yes
+fontsize: 11pt
+vignette: |
+  %\VignetteIndexEntry{Introduction to the PCprofiler package} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
+---
+\let\oldShaded\Shaded
+\let\endoldShaded\endShaded
+\renewenvironment{Shaded}{\footnotesize\oldShaded}{\endoldShaded}
+\let\oldverbatim\verbatim
+\let\endoldverbatim\endverbatim
+\renewenvironment{verbatim}{\footnotesize\oldverbatim}{\endoldverbatim}
+
+# Overview
+Here we show the basic steps for performing the analysis of PCP-MS datasets with PCprofiler. PCprofiler performs...
+
+```{r, message=FALSE, warning=FALSE, cache=FALSE}
+require(devtools)
+install_github("PedrioliLab/SECprofiler",ref="isa")
+library('SECprofiler')
+```
+
+# Preparation
+## Example data
+PCprofiler is generally applicable to a variety of PCP-MS techniques. The examplary dataset used in this vignette is a subset of the peptide-level quantifitative matrix generated from a HEK293 cell lysate analyzed by SEC-SWATH-MS @REF. A total of 81 SEC fractions were sampled in consecutive order and each fraction was separately measured by SWATH-MS. The samples were analyzed employing a workflow consisting of OpenSWATH, pyProphet and TRIC @REF. A subset of the quantitative data matrix in long format is available within this package as ```examplePCPdataLong``` and the annotation of which filename corresponds to which SEC fraction is available as ```exampleFractionAnnotation```.
+
+```{r, eval=TRUE}
+pcpData <- examplePCPdataLong
+fractionAnnotation <- exampleFractionAnnotation
+```
+
+## Input data
+There are a variety of computational processing steps upstream of PCprofiler that are necessary to convert raw MS files to a matrix with quantitative values of different peptides or proteins across multiple PCP fractions. The functions available within PCprofiler assume that you have already generated such a quantitative peptide or protein matrix. 
+
+### Quantitative PCP-MS data
+The main input for PCprofiler is a quantitative peptide- or protein-level matrix in long or wide format. The necessary information are the protein_id and/or peptide_id, filename and intensity. 
+
+```{r, eval=TRUE}
+head(pcpData, n=2)
+```
+
+### Fraction annotation table
+In addition to the quantitative PCP-MS data matrix, a mapping of the filenames to the consecutive fractions is necessary to generate elution profiles. It is important that the fractions start at 1 and consecutively increase by 1 unit until reaching the total number of fractions.
+
+```{r, eval=TRUE}
+head(fractionAnnotation, n=2)
+```
+
+### Molecular weight calibration
+In some PCP techniques, such as size-exclusion chromatography, it is possible to map a separation fraction to a specific molecular weight. This can be done by standard proteins with known MW spiked into the samples or run separately on the fractionation device. These reference proteins can be used for molecular-weight calibration of the fractions for techniques where a log-linear relationship between fraction and molecular weight exists, for example size-excluson chromatography.
+
+```{r, eval=TRUE, fig.show='hold'}
+calibrationTable <- exampleCalibrationTable
+calibrationTable
+calibration = calibrateMW(calibrationTable, 
+                             PDF=FALSE, 
+                             plot=TRUE)
+```
+
+# Standard analysis workflow
+## Import of elution profiles to traces object
+The first step in any analysis with PCprofiler is the import of a quantitative peptide- or protein-level matrix in long or wide format that is converted to an object of class "traces". Levaraging the fraction annotation information, the traces data struncture is alist containing four items:
+
+* A traces data.table containing quantitative profiles of the peptides or proteins. Each row represents a peptide or protein while the columns are the consecutive fractions and a final column with the id specification of the row. 
+* A trace_type character specifying whether the trace is of type "peptide" or "protein".
+* A trace_annotation data.table containing information for each peptide or protein, e.g. molecular weight.
+* A fraction annotation data.table containing fraction information, e.g. the sample name of each fraction.
+
+The trace annotation can be extended with additional information from databases such as uniprot (```exampleTraceAnnotation```). Finally each fraction can be mapped to its estimated molecular weight as determined by a calibration function. Although helpful for biological interpretation of the results, the general functionalities of PCprofiler do not depend on the additional trace and molecular weight annotation steps.
+
+```{r, eval=TRUE, message=FALSE}
+## Import quantitative PCP data into a traces object
+pepTraces <- importPCPdata(input_data=pcpData,
+                           fraction_annotation=fractionAnnotation,
+                           rm_decoys = FALSE)
+
+## Trace annotation table
+traceAnnotation <- exampleTraceAnnotation
+head(traceAnnotation, n=2)
+
+## Annotate traces with information from uniprot
+pepTraces <- annotateTraces(traces=pepTraces,
+                            trace_annotation=traceAnnotation,
+                            traces_id_column = "protein_id",
+                            trace_annotation_id_column = "Entry",
+                            trace_annotation_mass_column = "Mass",
+                            uniprot_mass_format = TRUE,
+                            replace_whitespace = TRUE)
+
+## Annotate traces with molecular weight calibration (if applicable)
+pepTraces <- annotateMolecularWeight(examplePeptideTraces,calibration)
+
+## Inspect resulting annotated traces object
+summary(pepTraces)
+```
+
+## Quality control and filtering
+PCprofiler includes several options to filter for low-quality data points and noisy traces in the data. The first option is to filter the datapoints within a peptide trace based on consecutive identifications. A minimum stretch length of 3 means that intensity values that are not embedded in a row of at least 3 consecutive identifications are removed (i.e. set to zero). A second filter based on sibling peptide correlation calculates the mean sibling peptide correlation of each peptide to its sibling peptides. Peptides with a low sibling peptide correlation can be removed either by a fixed cutoff or by selecting an FDR cutoff that should be reached after the filtering.
+
+```{r, eval=TRUE, fig.show='hold'}
+## Filter by 3 consecutive ids
+pepTraces_cons <- filterConsecutiveIdStretches(traces=pepTraces, 
+                                               min_stretch_length = 3)
+## Filter by 0.2 sibling peptide correlation
+## Note that instead of a fixed "absolute_spcCutoff" an fdr cutoff can be specified. 
+## The sibling peptide correlation cutoff will then be chosen to result in the specified 
+## FDR as estimated by decoy counting. 
+pepTraces_cons_sib <- filterBySibPepCorr(traces=pepTraces_cons,
+                                         fdr_cutoff = NULL, 
+                                         absolute_spcCutoff = 0.2, 
+                                         plot=TRUE)
+
+summary(pepTraces_cons_sib)
+```
+
+## Protein quantification
+The peptide traces can be used to infer protein-level traces. PCprofiler implements a topN strategy for summarizing peptides to a protein trace. Decoys should typically be removed at this stage.
+
+```{r, eval=TRUE}
+protTraces <- proteinQuantification(pepTraces_cons_sib, 
+                                    topN = 2,
+                                    keep_less = FALSE,
+                                    rm_decoys = TRUE)
+summary(protTraces)
+```
+
+## Protein feature finding
+Protein feature finding consists of 2 steps, the co-elution signal detection followed by FDR estimation. 
+### Co-elution signal detection
+Here we perform the protein feature finding only on a subset of all proteins because this can take some time. In order to be able to estimate an error-rate, protein decoys are generated on the fly diring the feature detection step by randomly assigning peptides to a protein decoy ```useRandomDecoyModel = TRUE```. Protein features are determined by a sliding window strategy, where all peptides of a protein are tested for local profile correlation. If a subset of the peptides within a protein correlate better then the specified cutoff, a protein feature is initiated, followed by peak detection within the regions of high correlation. The resulting protein features can be filtered by different criteria. We determined the minimum feature completenes (i.e. the minimum fraction of all peptides within a protein that should coelute) as a usefull measure to remove false positives due to random spontaneous coelution. Furthermore the minimum correlation within a detected peak can be used to further refine the reported results.
+
+```{r, eval=TRUE, message=FALSE, warning=FALSE, cache=FALSE, results='hide'}
+testProteins = unique(pepTraces_cons_sib$trace_annotation$protein_id)[1:10]
+peptideTracesSubset = subset(pepTraces_cons_sib,
+                             trace_subset_ids = testProteins, 
+                             trace_subset_type = "protein_id")
+proteinFeatures <- findProteinFeatures(traces = peptideTracesSubset,
+                                       useRandomDecoyModel = TRUE)
+proteinFeaturesFiltered <- filterFeatures(feature_table = proteinFeatures,
+                                          min_feature_completeness = 0.5,
+                                          min_peak_corr = 0.5)
+summarizeFeatures(proteinFeaturesFiltered)
+```
+
+### FDR estimation
+To determine the specificity of the performed co-elution signal detection can be estimated based on a decoy counting strategy.
+
+```{r,eval=TRUE}
+estimateDecoyFDR(proteinFeaturesFiltered)
+```
+
+## Complex feature finding
+### Complex hypothesis generation
+In generat he complex feature detection is very similar to the protein feature detection with the difference that complex hypotheses have to be generated at the beginning. This includes both target and decoy complex hypotheses for error estimation. 
+#### Targets
+One option is to load protein complex targets yin the following format:
+
+```{r,eval=TRUE}
+complexHypotheses <- exampleComplexHypotheses
+head(exampleComplexHypotheses)
+```
+
+Alternatively target complex hypotheses can be generated from a binary protein interacton network. 
+* instead of generating binary interactions from hypotheses >> include example network ibn lazyLoad
+
+```{r,eval=TRUE}
+binaryHypotheses <- generateBinaryNetwork(complexHypotheses)
+pathLength <- calculatePathlength(binaryHypotheses)
+networkTargets <- generateComplexTargets(pathLength)
+```
+
+#### Decoys
+
+```{r,eval=FALSE}
+## Generate decoys for complex hypotheses as provided in CORUM DB
+## Small sample complex sets as used in previous examples are too small for decoy generation.
+corumTargetsPlusDecoys <- generateComplexDecoys(target_hypotheses=corumComplexHypotheses,
+                                                dist_info=pathLength,
+                                                min_distance = 2,
+                                                append=TRUE)
+```
+
+### Co-elution signal detection
+
+```{r, eval=TRUE, message=FALSE, warning=FALSE, cache=FALSE, results='hide',fig.width=6, fig.align='center'}
+complexFeatures <- findComplexFeatures(traces=protTraces,
+                                       complex_hypothesis = complexHypotheses)
+complexFeaturesFiltered <- filterFeatures(feature_table = complexFeatures,
+                                          min_feature_completeness = 0.5,
+                                          min_peak_corr = 0.5)
+summarizeFeatures(complexFeaturesFiltered)
+
+bestComplexFeaturesFiltered <- getBestFeatures(complexFeaturesFiltered)
+summarizeFeatures(bestComplexFeaturesFiltered)
+```
+
+### FDR estimation
+
+```{r,eval=TRUE}
+estimateDecoyFDR(bestComplexFeaturesFiltered)
+```
+
+### Complex feature collapsing
+
+```{r,eval=TRUE}
+complexFeaturesUnique <- getUniqueFeatureGroups(complexFeaturesFiltered,
+                                                rt_height=2,
+                                                distance_cutoff=1)
+complexFeaturesCollapsed <- callapseByUniqueFeatureGroups(complexFeaturesUnique,
+                                                            rm_decoys=TRUE)
+```
+
+# Visualization
+## plotTraces
+
+```{r, eval=TRUE, fig.show='hold',fig.width=6, fig.align='center'}
+plot(protTraces,
+     legend = FALSE)
+```
+
+## plotFeatures
+
+```{r, eval=TRUE, fig.show='hold',fig.width=6, fig.align='center'}
+plotFeatures(feature_table = complexFeaturesFiltered,
+             traces = protTraces,
+             feature_id = "1187",
+             annotation_label="Entry_name",
+             calibration = calibration,
+             peak_area = TRUE)
+
+plotFeatures(feature_table = proteinFeaturesFiltered,
+             traces = pepTraces_cons_sib,
+             feature_id = "P61201",
+             annotation_label="Entry_name",
+             calibration = calibration,
+             peak_area = TRUE,
+             legend = FALSE)
+```
+
+## plot summarized MS coverage of complex hypotheses
+* maybe rename function
+
+```{r, eval=TRUE, fig.show='hold',fig.width=6, fig.align='center', message=FALSE, warning=FALSE}
+plotSummarizedMScoverage(hypotheses = complexHypotheses,
+                         protTraces = protTraces)
+```
+
+## plot complex summaries
+
+```{r, eval=TRUE, fig.show='hold',fig.width=6, fig.align='center'}
+plotSummarizedComplexes(complexFeatures = complexFeaturesFiltered, 
+                        hypotheses = complexHypotheses, 
+                        protTraces = protTraces)
+
+plotComplexCompletenessScatter(complexFeatures = complexFeaturesFiltered)
+```
+
+# Parameter optimization
+## Protein-level grid search
+
+```{r, eval=FALSE}
+proteinFeatures_grid <- performProteinGridSearch(traces = peptideTracesSubset,
+                                                 corrs = c(0.5,0.9),
+                                                 windows = c(10),
+                                                 smoothing = c(7),
+                                                 rt_heights = c(4),
+                                                 n_cores = 2)
+
+proteinFeatures_gridFiltered <- filterGridSearchResults(proteinFeatures_grid,
+                                                        peak_corr_cutoffs = c(0.5,0.75,0.9),
+                                                        feature_completeness_cutoffs = c(0,0.5,1),
+                                                        n_subunits_cutoffs = c(2,3,4),
+                                                        remove_decoys = FALSE
+                                                        )
+
+# test if FDR is done on bestFeature only
+proteinFeatures_gridFilteredStats <- estimateGridSearchDecoyFDR(proteinFeatures_gridFiltered)
+
+proteinFeatures_bestParameterStats <- getBestParameterStats(proteinFeatures_gridFilteredStats,
+                                                            FDR = 0.1)
+proteinFeatures_bestParameterData <- getBestParameterData(proteinFeatures_gridFiltered,
+                                                          FDR = 0.1)
+plotIdFDRspace(proteinFeatures_gridFilteredStats,
+               level = "complex",
+               id_level = "TP",
+               FDR_cutoff = 0.1,
+               colour_parameter = "min_feature_completeness")
+```
+
+## Complex-level grid search
+
+```{r, eval=FALSE}
+complexFeatures_grid <- performComplexGridSearch(traces = protTraces,
+                                                 complex_hypothesis = complexHypotheses,
+                                                 corrs = c(0.9,0.95),
+                                                 windows = c(10),
+                                                 smoothing = c(7),
+                                                 rt_heights = c(4),
+                                                 n_cores = 2
+                                                 )
+
+complexFeatures_gridFiltered <- filterGridSearchResults(complexFeatures_grid,
+                                                        peak_corr_cutoffs = c(0.5,0.75,0.9),
+                                                        feature_completeness_cutoffs = c(0,0.5,1),
+                                                        n_subunits_cutoffs = c(2,3,4),
+                                                        remove_decoys = FALSE
+                                                        )
+
+# test if FDR is done on bestFeature only
+complexFeatures_gridFilteredStats <- estimateGridSearchDecoyFDR(complexFeatures_gridFiltered)
+
+complexFeatures_bestParameterStats <- getBestParameterStats(complexFeatures_gridFilteredStats,
+                                                            FDR = 0.1)
+complexFeatures_bestParameterData <- getBestParameterData(complexFeatures_gridFiltered,
+                                                          FDR = 0.1)
+
+plotIdFDRspace(complexFeatures_gridFilteredStats,
+               level = "complex",
+               id_level = "TP",
+               FDR_cutoff = 0.1,
+               colour_parameter = "min_feature_completeness")
+```
+
+# Session information
+
+```{r, val=TRUE, echo=FALSE}
+session_info()
+```
+
+# References

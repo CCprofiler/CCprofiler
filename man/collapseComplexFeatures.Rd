@@ -4,8 +4,8 @@
 \alias{collapseComplexFeatures}
 \title{Collapse detected complex fetures by common apex and subunits.}
 \usage{
-collapseComplexFeatures(complexFeature = complexFeaturesPP, rt_height = 5,
-  collapse_method = "apex_only")
+collapseComplexFeatures(complexFeature = complexFeaturesPP, rt_height,
+  collapse_method)
 }
 \arguments{
 \item{complexFeature}{Object of class ComplexFeaturePP}
@@ -28,4 +28,3 @@ An object of type \code{collapsedComplexFeatures} that is a list
 \description{
 Collapse detected complex fetures by common apex and subunits.
 }
-

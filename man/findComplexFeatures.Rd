@@ -2,71 +2,66 @@
 % Please edit documentation in R/findComplexFeatures.R
 \name{findComplexFeatures}
 \alias{findComplexFeatures}
-\title{Run the sliding window algorithm for a number of protein complexes.}
+\title{Complex feature detection}
 \usage{
-findComplexFeatures(traces.obj, complex.protein.assoc,
-  MWSECcalibrationFunctions, corr.cutoff = 0.95, window.size = 15,
-  parallelized = FALSE, n.cores = parallel::detectCores(),
-  perturb.cutoff = "5\%", collapse_method = "apex_only", rt_height = 5,
+findComplexFeatures(traces, complex_hypothesis, corr_cutoff = 0.95,
+  window_size = 15, parallelized = FALSE, n_cores = 1,
+  collapse_method = "apex_only", perturb_cutoff = "5\%", rt_height = 5,
   smoothing_length = 11)
 }
 \arguments{
-\item{traces.obj}{An object of type \code{traces.obj}.}
+\item{traces}{An object of class traces.}
 
-\item{complex.protein.assoc}{A data.table that encodes the input complexes
-and their subunit compositions. The data.table should have the
-format:
+\item{complex_hypothesis}{data.table containing complex hypotheses.
+Should have the following columns:
 \itemize{
- \item \code{complex_id} A character vector that uniquely identifies
-       a complex.
- \item \code{complex_name} A character vector that contains
-       the complex name.
- \item \code{protein_id} A character vector that uniquely identifies
-       a protein and links it to a trace contained in
-       \code{traces.obj}.
+\item complex_id: character strings, a unique id for every complex
+\item complex_name: character strings, a unique name for every complex
+\item protein_id: character strings, the protein id, e.g. Uniprot id
 }}
 
-\item{corr.cutoff}{The correlation value for chromatograms above which
-proteins are considered to be coeluting.}
+\item{corr_cutoff}{Numeric, the correlation value for chromatograms above which
+peptides are considered to be coeluting, default=0.95.}
 
-\item{window.size}{Size of the window. Numeric.}
+\item{window_size}{Integer, size of the window in fractions, default=15}
 
-\item{parallelized}{If the computation should be done in parallel.
-Optional.}
+\item{parallelized}{Logical, if the computation should be done in parallel, default=\code{FALSE}.}
 
-\item{n.cores}{The number of cores to use for parallel processing. Optional.}
+\item{n_cores}{Integer, the number of cores to use for parallel processing
+(only applies if parallelized is \code{TRUE}), default=1.}
 
-\item{perturb.cutoff}{The quantile to use in estimating the perturbation level.
+\item{collapse_method}{Character, method for collapsing multiple features into one feature:
+\itemize{
+\item "apex_only": collapses by apex
+\item "apex_network": collapses by apex and connected network cluster}
+Default="apex_only"}
+
+\item{perturb_cutoff}{Numeric, the quantile to use in estimating the perturbation level, default="5%".
 Intensity values that are zero are replaced with random values that are
 below the specified quantile of the input values. Alternatively a
 cutoff value can be specified as an upper limit for perturbation values.
 This is nescessary for correlation calculation.}
+
+\item{rt_height}{Numeric, RT cutoff for collapsing features. Defaults to 5.}
+
+\item{smoothing_length}{Numeric, smoothing length of Savitzky-Golay filter. Defaults to 11.}
 }
 \value{
-A list containing various results.
-        \itemize{
-         \item \code{sw.results} A list of results of the function
-               \code{findComplexFeatures}. One for each query complex.
-         \item \code{input.complexes} A character vector of all query
-                complexes.
-         \item \code{corr.cutoff} The correlation cutoff used.
-         \item \code{window.size} The window size used.
-        }
+A data.table containing protein complex features.
 }
 \description{
-Run the sliding window algorithm for a number of protein complexes.
+Run the sliding window algorithm to find complex features.
 }
 \examples{
-# NOT RUN:
-# protein.ids <- corum.complex.protein.assoc[complex_id == 181, protein_id]
-# traces <- subset(protein.traces[protein_id \%in\% protein.ids],
-#                  select=-protein_id)
-# sample.complexes <- c(181, 191)
-# complex.protein.assoc <-
-#     corum.complex.protein.assoc[complex_id \%in\% sample.complexes]
-# findComplexFeaturesSWBulk(traces,
-#                           protein.ids,
-#                           protein.mw.conc[protein_id \%in\% protein.ids],
-#                           complex.protein.assoc)
-}
+## Load example data
+proteinTraces <- exampleProteinTraces
+complexHypotheses <- exampleComplexHypotheses
 
+## Perform co-elution signal detection
+complexFeatures <- findComplexFeatures(traces=proteinTraces,
+                                       complex_hypothesis=complexHypotheses)
+
+## Inspect complex features
+summarizeComplexFeatures(complexFeatures)
+
+}

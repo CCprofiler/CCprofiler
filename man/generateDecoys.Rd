@@ -2,25 +2,29 @@
 % Please edit documentation in R/generateHypotheses.R
 \name{generateDecoys}
 \alias{generateDecoys}
-\title{Generate list of proteins for one complex decoy hypothesis}
+\title{Generate one comlpex decoy-hypothesis}
 \usage{
-generateDecoys(size, all_proteins, dist_info, min_distance)
+generateDecoys(size, all_proteins, dist_info, min_distance = 1, n_tries = 3)
 }
 \arguments{
-\item{size}{numeric number of proteins to generate for complex decoy hypothesis}
+\item{size}{Numeric, number of proteins to generate for complex decoy hypothesis}
 
-\item{all_proteins}{character vector of all possible protein_ids}
+\item{all_proteins}{Character, vector of all possible protein_ids}
 
 \item{dist_info}{data.table with three columns (x,y,dist) containing all possible combinations
 of proteins and their shortest distance.
 This is the output from calculatePathlength()}
 
-\item{min_distance}{numeric minimum distance between to proteins to be able to be in same complex decoy}
+\item{min_distance}{Numeric, minimum distance between to proteins to be
+able to be in same complex decoy. Defaults to 1}
+
+\item{n_tries}{Numeric integer, Number of attempts to generate a decoy hypothesis until the
+algorithm quits and reports an error. Higher values allow for decoy generation with high-connectivity
+target networks, but take longer to compute.}
 }
 \value{
-data.table with binary interactions between "a" and "b"
+character string with a complex hypothesis, protein ids are separated by ';'
 }
 \description{
 Generate list of proteins for one complex decoy hypothesis
 }
-
