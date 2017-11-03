@@ -1,7 +1,7 @@
 # Due to: http://stackoverflow.com/questions/24501245/data-table-throws-object-not-found-error
 .datatable.aware=TRUE
 
-#' Filter Consecutive Id Stretches in Chromaograms
+#' Filter Consecutive Id Stretches in Chromatograms
 #' @description Filter PCP traces based on a
 #' minimal length of consecutive ID stretches.
 #' @import data.table
@@ -32,10 +32,17 @@
 #'              trace_subset_ids = exampleProtein),
 #'       legend= FALSE)
 #'
-
 filterConsecutiveIdStretches<-function(traces,
                                        min_stretch_length=3,
-                                       remove_empty=TRUE) {
+                                       remove_empty=TRUE, ...) {
+  UseMethod("filterConsecutiveIdStretches", traces)
+}
+
+#' @describeIn calculateSibPepCorr Filter Consecutive Id Stretches in Chromatograms of single traces object.
+
+filterConsecutiveIdStretches.traces <-function(traces,
+                                               min_stretch_length=3,
+                                               remove_empty=TRUE) {
   ## Test traces
   .tracesTest(traces)
   ## Get traces from container
@@ -98,4 +105,25 @@ filterConsecutiveIdStretches<-function(traces,
   traces$trace_annotation <- tracesAnnotation
   .tracesTest(traces)
   return(traces)
+}
+
+
+#' @describeIn calculateSibPepCorr #' @describeIn calculateSibPepCorr Filter Consecutive Id Stretches in Chromatograms of tracesList object.
+
+
+filterConsecutiveIdStretches.tracesList <-function(traces,
+                                               min_stretch_length=3,
+                                               remove_empty=TRUE, ...) {
+  .tracesListTest(traces)
+  res <- lapply(names(traces), function(tr){
+    message(paste0("Filtering ", tr, "..."))
+    
+    filterConsecutiveIdStretches.traces(traces = traces[[tr]],
+                                        min_stretch_length = min_stretch_length,
+                                        remove_empty = remove_empty, ... )
+  })
+  
+  class(res) <- "tracesList"
+  .tracesListTest(res)
+  return(res)
 }

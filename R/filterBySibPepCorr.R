@@ -73,6 +73,20 @@ filterBySibPepCorr <- function(traces,
                                plot = TRUE,
                                PDF = FALSE,
                                CSV = FALSE) {
+  UseMethod("filterBySibPepCorr", traces)
+}
+
+#' @describeIn calculateSibPepCorr Filter by sibling peptide correlation in traces object.
+
+filterBySibPepCorr.traces <- function(traces,
+                               fdr_cutoff = 0.01,
+                               fdr_type = "protein",
+                               FFT = 1,
+                               absolute_spcCutoff = NULL,
+                               rm_decoys = FALSE,
+                               plot = TRUE,
+                               PDF = FALSE,
+                               CSV = FALSE) {
 
   ## Test traces
   .tracesTest(traces, type = "peptide")
@@ -248,4 +262,40 @@ filterBySibPepCorr <- function(traces,
   message("Proteins remaining in dataset: ", targetProteinsAfter)
   return(tracesFiltered)
 
+}
+
+
+
+#' @describeIn calculateSibPepCorr Filter by sibling peptide correlation in traces object.
+
+filterBySibPepCorr.tracesList <- function(traces,
+                                          fdr_cutoff = 0.01,
+                                          fdr_type = "protein",
+                                          FFT = 1,
+                                          absolute_spcCutoff = NULL,
+                                          rm_decoys = FALSE,
+                                          plot = TRUE,
+                                          PDF = FALSE,
+                                          CSV = FALSE, ...) {
+  .tracesListTest(traces)
+  res <- lapply(names(traces), function(tr){
+    message(paste0("\n######################\n",
+                   "Filtering ", tr, "...\n",
+                   "######################\n"))
+    
+    filterBySibPepCorr.traces(traces = traces[[tr]],
+                              fdr_cutoff = fdr_cutoff,
+                              fdr_type = fdr_type,
+                              FFT = FFT,
+                              absolute_spcCutoff = absolute_spcCutoff,
+                              rm_decoys = rm_decoys,
+                              plot = plot,
+                              PDF = PDF,
+                              CSV = CSV, ... )
+  })
+  
+  class(res) <- "tracesList"
+  .tracesListTest(res)
+  return(res)
+  
 }

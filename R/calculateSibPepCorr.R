@@ -2,7 +2,7 @@
 .datatable.aware=TRUE
 
 #' calculateSibPepCorr
-#' @description Calculate sibling peptide correlation in traces.object of type peptide.
+#' @description Calculate sibling peptide correlation in traces object of type peptide.
 #' @import data.table
 #' @param traces An object of type traces.
 #' @param plot logical,wether to print SibPepCorr density plot to R console. Deafult is \code{TRUE}.
@@ -24,8 +24,16 @@
 calculateSibPepCorr <- function(traces,
                                 plot = TRUE,
                                 PDF = FALSE,
-                                name = "SibPepCorr_densityplot")
-  {
+                                name = "SibPepCorr_densityplot"){
+  UseMethod("calculateSibPepCorr", traces)
+}
+
+#' @describeIn calculateSibPepCorr Calculate sibling peptide correlation in traces object.
+
+calculateSibPepCorr.traces <- function(traces,
+                                plot = TRUE,
+                                PDF = FALSE,
+                                name = "SibPepCorr_densityplot"){
 
   ## Test traces
   .tracesTest(traces, type = "peptide")
@@ -78,3 +86,21 @@ calculateSibPepCorr <- function(traces,
 
   return(traces)
 }
+
+#' @describeIn calculateSibPepCorr Calculate sibling peptide correlation in tracesList object.
+
+calculateSibPepCorr.tracesList <- function(traces,
+                                       plot = TRUE,
+                                       PDF = FALSE,
+                                       name = "SibPepCorr_densityplot", ...){
+  .tracesListTest(traces)
+  res <- lapply(traces, calculateSibPepCorr.traces,  
+                plot = plot,
+                PDF = PDF,
+                name = name, ...)
+  class(res) <- "tracesList"
+  .tracesListTest(res)
+  return(res)
+}
+
+
