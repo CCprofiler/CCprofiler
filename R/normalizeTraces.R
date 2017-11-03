@@ -69,6 +69,16 @@ normalizeToStandard.tracesList <- function(tracesList, standard_ids, method = "m
 }
 
 
+#' Normalize trace intensities by spline smoothing over the fractions
+#' @description Fits a spline to a summary statistic of every elution fraction
+#' and normalizes each fraction to fit the spline
+#' @param method Character string, whether to normalize to the median or the mean intensity 
+#' @param scale Character string wether to transform values before smoothing
+#' @param span Numeric, controls the degree of smoothing (see also \code[loess] function)
+#' @param plot Logical, whether to plot a Visualization of the smoothing
+#' @param smoothe_on_targets Logical, whether to exclude decoy traces from smoothing
+#' @return Object of class traces with normalized intensities.
+#' @export
 
 
 smootheTraces <- function(traces,
