@@ -5,7 +5,7 @@
 #' @import data.table
 #' @import SWATH2stats
 #' @param data Quantitative MS data in form of OpenSWATH result file or R data.table.
-#' @param annotation.table path to tab-separated .txt file containing columns `filename` and
+#' @param annotation_table path to tab-separated .txt file containing columns `filename` and
 #'     `fraction_number` that map the file names (occuring in input table filename column)
 #'     `to a SEC elution fraction.
 #' @param remove_requantified Whether requantified (noise) peak group quantities
@@ -17,9 +17,9 @@
 #'     that can be processed with the herein contained functions.
 #' @export
 importFromOpenSWATH <- function(data= 'OpenSwathData.tsv', 
-                                annotation.table="annotation.txt",
-                                remove_requantified=TRUE,
-                                MS1Quant=FALSE, rm.decoy = FALSE,
+                                annotation_table = "annotation.txt",
+                                remove_requantified = TRUE,
+                                MS1Quant = FALSE, rm.decoy = FALSE,
                                 collapseIsoforms = FALSE)
   {
   
@@ -147,7 +147,7 @@ importFromOpenSWATH <- function(data= 'OpenSwathData.tsv',
   # add fraction number column to main dataframe
   ##################################################
   fraction_number <- integer(length=nrow(data.s))
-  files <- annotation$filename
+  files <- annotation_table$filename
   data.filenames <- data.s$filename
   
   if (length(files) != length(unique(data.filenames))) {
@@ -158,7 +158,7 @@ importFromOpenSWATH <- function(data= 'OpenSwathData.tsv',
   message(paste0("Processing " ,length(files), " Filenames"))
   for (i in seq_along(files)) {
       idxs <- grep(files[i], data.filenames, ignore.case = T)
-      fraction_number[idxs] <- annotation$fraction_number[i]
+      fraction_number[idxs] <- annotation_table$fraction_number[i]
       # message(paste("PROCESSED", i, "/", length(files), "filenames"))
       setTxtProgressBar(msg, i)
   }
