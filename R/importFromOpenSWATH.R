@@ -23,17 +23,37 @@ importFromOpenSWATH <- function(data= 'OpenSwathData.tsv',
                                 collapseIsoforms = FALSE)
   {
   
-  # read data & annotation table
-  ##################################################
-  
+   ## test arguments
+  if (missing(data)){
+        stop("Need to specify data in form of OpenSWATH result file or R data.table.")
+  }
+  if (missing(annotation_table)){
+        stop("Need to specify annotation_table.")
+  }
+
+  ## read data & annotation table
+
   if (class(data)[1] == "character") {
-    message('reading results file ...')
-    data  <- data.table::fread(data, sep="\t", header=TRUE)
+    if (file.exists(data)) {
+      message('reading results file ...')
+      data  <- data.table::fread(data, header=TRUE)
+    } else {
+      stop("data file doesn't exist")
+    }
   } else if (all(class(data) != c("data.table","data.frame"))) {
     stop("data input is neither file name or data.table")
   }
-  
-  annotation <- data.table::fread(annotation.table)
+
+  if (class(annotation_table)[1] == "character") {
+    if (file.exists(annotation_table)) {
+      message('reading annotation table ...')
+      annotation_table  <- data.table::fread(annotation_table)
+    } else {
+      stop("annotation_table file doesn't exist")
+    }
+  } else if (all(class(annotation_table) != c("data.table","data.frame"))) {
+    stop("annotation_table input is neither file name or data.table")
+}
 
   
   # # convert ProteinName to uniprot ids
