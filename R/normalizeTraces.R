@@ -77,6 +77,8 @@ normalizeToStandard.tracesList <- function(tracesList, standard_ids, method = "m
 #' @param span Numeric, controls the degree of smoothing (see also \code[loess] function)
 #' @param plot Logical, whether to plot a Visualization of the smoothing
 #' @param smoothe_on_targets Logical, whether to exclude decoy traces from smoothing
+#' @param PDF Logical, whether to produce a PDF of the summary plot
+#' @param name Character string, the name of the PDF produced. 
 #' @return Object of class traces with normalized intensities.
 #' @export
 
@@ -86,7 +88,9 @@ smootheTraces <- function(traces,
                           scale = c("none", "log"),
                           span = 0.15,
                           plot = FALSE,
-                          smoothe_on_targets = TRUE){
+                          PDF = F,
+                          name = "Smoothing_summary.pdf",
+                          smoothe_on_targets = TRUE, ...){
   UseMethod("smootheTraces", traces)
 }
 
@@ -95,7 +99,9 @@ smootheTraces.traces <- function(traces,
                           scale = c("none", "log"),
                           span = 0.15,
                           plot = FALSE,
-                          smoothe_on_targets = TRUE){
+                          PDF = F,
+                          name = "Smoothing_summary.pdf",
+                          smoothe_on_targets = TRUE, ...){
   # .tracesTest(traces)
   method <- match.arg(method)
   scale <- match.arg(scale)
@@ -141,14 +147,16 @@ smootheTraces.traces <- function(traces,
   intSum$residuals <- residuals(l)
   
   ## Plot smoothing result
+  p <- ggplot(intSum, aes(x = fraction, y = intensity)) +
+    geom_point() +
+    geom_line(aes(y = model)) +
+    theme_bw()
+  
+  if(PDF) pdf(gsub("$|\\.pdf$", ".pdf",name))
   if(plot){
-    p <- ggplot(intSum, aes(x = fraction, y = intensity)) +
-      geom_point() +
-      geom_line(aes(y = model)) +
-      theme_bw()
     plot(p)
   }
-  
+  if(PDF) dev.off()
   if(scale == "log"){
     normTraces <- normalizeTraces(traces, 2^intSum$residuals,
                                   method = "/")
@@ -156,23 +164,40 @@ smootheTraces.traces <- function(traces,
   }else if(scale == "none"){
     normTraces <- normalizeTraces(traces, intSum$intensity/intSum$model, method = "/")
   }
+  if(any(names(list(...)) == "returnPlot")){
+    return(list(traces = normTraces, summaryPlot = p))
+  }else{
+    return(normTraces)
+  }
   
-  return(normTraces)
 }
 
-smootheTraces.tracesList <- function(tracesList,
+smootheTraces.tracesList <- function(traces,
                                  method = c("mean", "median"),
                                  scale = c("none", "log"),
                                  span = 0.15,
                                  plot = FALSE,
-                                 smoothe_on_targets = TRUE){
-  .tracesListTest(tracesList)
-  res <- lapply(tracesList, smootheTraces.traces,                                 
-                method = method,
-                scale = scale,
-                span = span,
-                plot =plot,
-                smoothe_on_targets = smoothe_on_targets)
+                                 PDF = F,
+                                 name = "Smoothing_summary.pdf",
+                                 smoothe_on_targets = TRUE, ...){
+  .tracesListTest(traces)
+  
+  if(PDF) pdf(gsub("$|\\.pdf$", ".pdf",name))
+  res <- lapply(names(traces), function(tr){
+    r <- smootheTraces.traces(traces = traces[[tr]],                                
+                              method = method,
+                              scale = scale,
+                              span = span,
+                              plot =F,
+                              PDF = F,
+                              name = name,
+                              smoothe_on_targets = smoothe_on_targets,
+                              returnPlot = TRUE)
+    p <- r[["summaryPlot"]] + ggtitle(paste0("Smoothing summary - ",tr))
+    plot(p)
+    return(r[["traces"]])
+  })
+  if(PDF) dev.off()
   class(res) <- "tracesList"
   .tracesListTest(res)
   return(res)
