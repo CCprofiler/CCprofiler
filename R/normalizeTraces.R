@@ -198,6 +198,7 @@ smootheTraces.tracesList <- function(traces,
     return(r[["traces"]])
   })
   if(PDF) dev.off()
+  names(res) <- names(traces)
   class(res) <- "tracesList"
   .tracesListTest(res)
   return(res)
