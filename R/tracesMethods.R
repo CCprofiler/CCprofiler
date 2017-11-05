@@ -418,6 +418,7 @@ summary.traces <- function(traces) {
   if (! class(tracesList)=="tracesList") {
     stop("Object is not of class tracesList")
   }
+  if(is.null(names(tracesList))) stop("TracesList must consist of named traces objects. No names detected.")
   res <- lapply(tracesList, function(traces){
     if (! all(names(traces)==c("traces","trace_type","trace_annotation","fraction_annotation"))) {
       stop("At least one traces object doesn't contain all necessary items: traces, trace_type, trace_annotation, and fraction_annotation.")
