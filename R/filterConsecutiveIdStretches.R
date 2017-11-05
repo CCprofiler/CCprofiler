@@ -122,7 +122,7 @@ filterConsecutiveIdStretches.tracesList <-function(traces,
                                         min_stretch_length = min_stretch_length,
                                         remove_empty = remove_empty, ... )
   })
-  
+  names(res) <- names(traces)
   class(res) <- "tracesList"
   .tracesListTest(res)
   return(res)
