@@ -29,6 +29,7 @@ calculateSibPepCorr <- function(traces,
 }
 
 #' @describeIn calculateSibPepCorr Calculate sibling peptide correlation in traces object.
+#' @export
 
 calculateSibPepCorr.traces <- function(traces,
                                 plot = TRUE,
@@ -88,6 +89,7 @@ calculateSibPepCorr.traces <- function(traces,
 }
 
 #' @describeIn calculateSibPepCorr Calculate sibling peptide correlation in tracesList object.
+#' @export
 
 calculateSibPepCorr.tracesList <- function(traces,
                                        plot = TRUE,

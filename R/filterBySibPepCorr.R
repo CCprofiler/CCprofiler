@@ -77,6 +77,7 @@ filterBySibPepCorr <- function(traces,
 }
 
 #' @describeIn calculateSibPepCorr Filter by sibling peptide correlation in traces object.
+#' @export
 
 filterBySibPepCorr.traces <- function(traces,
                                fdr_cutoff = 0.01,
@@ -267,6 +268,7 @@ filterBySibPepCorr.traces <- function(traces,
 
 
 #' @describeIn calculateSibPepCorr Filter by sibling peptide correlation in traces object.
+#' @export
 
 filterBySibPepCorr.tracesList <- function(traces,
                                           fdr_cutoff = 0.01,

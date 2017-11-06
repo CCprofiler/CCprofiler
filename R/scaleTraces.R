@@ -1,6 +1,5 @@
 
 #' Normalize tracesList intensities to a common scale
-#' @description 
 #' @param traces Object of class tracesList.
 #' @param design_matrix data.table, A valid design matrix describing the tracesList object.
 #' @param common_scale_within Character string, the name of a column in the design matrix.

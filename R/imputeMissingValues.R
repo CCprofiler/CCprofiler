@@ -28,6 +28,7 @@ findMissingValues <- function(traces,
 }
 
 #' @describeIn findMissingValues Find missing values one traces object
+#' @export
 
 findMissingValues.traces <- function(traces, 
                               bound_left = 2, 
@@ -61,6 +62,7 @@ findMissingValues.traces <- function(traces,
 }
 
 #' @describeIn findMissingValues Find missing values in all traces within a tracesList
+#' @export
 
 findMissingValues.tracesList <- function(tracesList, 
                                      bound_left = 2, 
@@ -100,6 +102,7 @@ imputeMissingVals <- function(traces, method = c("mean", "spline")){
 }
 
 #' @describeIn imputeMissingVals Impute missing values one traces object
+#' @export
 
 imputeMissingVals.traces <- function(traces, method = c("mean", "spline")){
   .tracesTest(traces)
@@ -141,6 +144,7 @@ imputeMissingVals.traces <- function(traces, method = c("mean", "spline")){
 }
 
 #' @describeIn imputeMissingVals Find missing values in all traces within a tracesList
+#' @export
 
 imputeMissingVals.tracesList <- function(tracesList, method = c("mean", "spline")){
   .tracesListTest(tracesList)
@@ -184,6 +188,7 @@ plotImputationSummary <- function(traces,
 }
 
 #' @describeIn plotImputationSummary Plot the imputation summary for one traces object
+#' @export
 
 plotImputationSummary.traces <- function(traces,
                                   tracesImp,
@@ -249,6 +254,7 @@ plotImputationSummary.traces <- function(traces,
 }
 
 #' @describeIn plotImputationSummary Plot the imputation summary for multiple traces object
+#' @export
 
 plotImputationSummary.tracesList <- function(tracesList,
                                          tracesImpList,
@@ -307,6 +313,7 @@ imputeTraces <- function(traces,
 }
 
 #' @describeIn imputeTraces Find and impute missing values for a single traces object 
+#' @export
 
 imputeTraces.traces <- function(traces, 
                          bound_left = 2, 
@@ -337,6 +344,7 @@ imputeTraces.traces <- function(traces,
 }
 
 #' @describeIn imputeTraces Find and impute missing values for multiple traces objects
+#' @export
 
 imputeTraces.tracesList <- function(tracesList, 
                                 bound_left = 2, 

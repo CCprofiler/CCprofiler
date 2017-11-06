@@ -40,6 +40,7 @@ annotateTraces <- function(traces,
 }
 
 #' @describeIn annotateTraces Annotate single traces object
+#' @export
 annotateTraces.traces <- function(traces,
                            trace_annotation,
                            traces_id_column = "protein_id",
@@ -101,6 +102,7 @@ annotateTraces.traces <- function(traces,
 
 
 #' @describeIn annotateTraces Annotate single traces object
+#' @export
 annotateTraces.tracesList <- function(traces,
                            trace_annotation,
                            traces_id_column = "protein_id",

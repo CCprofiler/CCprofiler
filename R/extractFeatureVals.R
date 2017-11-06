@@ -1,11 +1,14 @@
 #' Extract intensity, correlation etc. within feature boundaries
 #' @description Goes through protein/complex features and extracts metrics from the traces object
-#' @param traces
+#' @param traces object of class traces
 #' @param features Protein/complex feature table returned by \code{findProteinFeatures} or
 #' \code{findComplexFeatures}.
-
+#' @param perturb_cutoff Character string or numeric, the quantile of values that noise is sampled from.
+#' Noise needs to be imputed to calculate the correlations.
+#' @param verbose Logical, whether to print messages to console.
 #' @return Long format table containing extracted feature values.
-#' 
+#' @export
+
 extractFeatureVals <- function(traces, features,
                                perturb_cutoff = "5%",
                                verbose = TRUE){
@@ -13,7 +16,8 @@ extractFeatureVals <- function(traces, features,
 }
 
 
-#' @describeIn plot.traces Plot multiple traces objects
+#' @describeIn extractFeatureVals Extract values from single traces object.
+#' @export
 extractFeatureVals.traces <- function(traces, features,
                                perturb_cutoff = "5%",
                                verbose = TRUE){
@@ -113,7 +117,8 @@ extractFeatureVals.traces <- function(traces, features,
   return(featureVals)
 }
 
-#' @describeIn plot.traces Plot multiple traces objects
+#' @describeIn extractFeatureVals Extract values from single traces object.
+#' @export
 extractFeatureVals.tracesList <- function(traces, features,
                                       perturb_cutoff = "5%",
                                       verbose = TRUE,

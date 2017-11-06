@@ -61,7 +61,21 @@ subset.traces <- function(traces,trace_subset_ids=NULL,trace_subset_type="id",fr
   traces
 }
 
-#' @describeIn subset.traces Subset traces or fractions in multiple traces objects 
+#' Subset traces or fractions in tracesList object
+#' @description  Subset a taces object by a specified column in trace_annotation and/or fraction ids.
+#' @param traces Object of class traces.
+#' @param trace_subset_ids Character vector specifying the trace identifiers
+#'        for subsetting traces, e.g. peptide or protein ids.
+#' @param trace_subset_type Character string  specifying the column name
+#'        for applying the trace_subset_ids filter, defaults to "id".
+#' @param fraction_ids Numeric vector specifying the fraction identifiers
+#'        for subsetting traces. The resulting traces object will not have
+#'        fraction ids starting from 1, co-elution feature finding might thus
+#'        be compromised. Please don't use this option for general
+#'        pre-processing purposes.
+#' @return Object of class traces.
+#' @export
+#' 
 
 subset.tracesList <- function(tracesList,
                               trace_subset_ids=NULL,
@@ -173,7 +187,7 @@ plot.traces <- function(traces,
                         plot = TRUE,
                         highlight=NULL,
                         highlight_col=NULL) {
-
+  
   .tracesTest(traces)
   traces.long <- toLongFormat(traces$traces)
   traces.long <- merge(traces.long,traces$fraction_annotation,by.x="fraction",by.y="id")
@@ -190,7 +204,7 @@ plot.traces <- function(traces,
     theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
     theme(plot.margin = unit(c(1,.5,.5,.5),"cm")) +
     ggtitle(name)#+
-    #theme(plot.title = element_text(vjust=19,size=10))
+  #theme(plot.title = element_text(vjust=19,size=10))
   if (log) {
     p <- p + scale_y_log10('log(intensity)')
   }
@@ -204,38 +218,38 @@ plot.traces <- function(traces,
         geom_line(data = traces.long[outlier == TRUE], aes_string(x='fraction', y='intensity', color='id'), lwd=2) +
         scale_color_discrete(breaks = legend_peps)
     }else{
-        legend_map <- unique(ggplot_build(p)$data[[1]]$colour)
-        names(legend_map) <- unique(p$data$id)
-        legend_map[legend_peps] <- highlight_col
-        legend_vals <- rep(highlight_col, ceiling(length(legend_peps)/ length(highlight_col)))[1:length(legend_peps)]
-        p <- p + 
-          geom_line(data = traces.long[outlier == TRUE], aes_string(x='fraction', y='intensity', lty = 'id'), color = highlight_col, lwd=2) +
-          # scale_color_discrete(guide = F)
-          scale_color_manual(values = legend_map, limits = legend_peps) 
-          # guides(lty = FALSE)
-          # scale_color_manual(limits = legend_peps, values = rep(highlight_col, length(legend_peps))) +
-          # geom_line(aes_string(x='fraction', y='intensity', color='id'))
+      legend_map <- unique(ggplot_build(p)$data[[1]]$colour)
+      names(legend_map) <- unique(p$data$id)
+      legend_map[legend_peps] <- highlight_col
+      legend_vals <- rep(highlight_col, ceiling(length(legend_peps)/ length(highlight_col)))[1:length(legend_peps)]
+      p <- p + 
+        geom_line(data = traces.long[outlier == TRUE], aes_string(x='fraction', y='intensity', lty = 'id'), color = highlight_col, lwd=2) +
+        # scale_color_discrete(guide = F)
+        scale_color_manual(values = legend_map, limits = legend_peps) 
+      # guides(lty = FALSE)
+      # scale_color_manual(limits = legend_peps, values = rep(highlight_col, length(legend_peps))) +
+      # geom_line(aes_string(x='fraction', y='intensity', color='id'))
     }
   }
   
-
+  
   if ("molecular_weight" %in% names(traces$fraction_annotation)) {
     p2 <- p
     p <- p + scale_x_continuous(name="fraction",
                                 breaks=seq(min(traces$fraction_annotation$id),
-                                      max(traces$fraction_annotation$id),10),
+                                           max(traces$fraction_annotation$id),10),
                                 labels=seq(min(traces$fraction_annotation$id),
-                                      max(traces$fraction_annotation$id),10))
+                                           max(traces$fraction_annotation$id),10))
     p2 <- p2 + scale_x_continuous(name="molecular weight (kDa)",
-                   breaks=seq(min(traces$fraction_annotation$id),max(traces$fraction_annotation$id),10),
-                   labels=round(traces$fraction_annotation$molecular_weight,digits=0)[seq(1,length(traces$fraction_annotation$id),10)]
-                   )
+                                  breaks=seq(min(traces$fraction_annotation$id),max(traces$fraction_annotation$id),10),
+                                  labels=round(traces$fraction_annotation$molecular_weight,digits=0)[seq(1,length(traces$fraction_annotation$id),10)]
+    )
     ## extract gtable
     g1 <- ggplot_gtable(ggplot_build(p))
     g2 <- ggplot_gtable(ggplot_build(p2))
     ## overlap the panel of the 2nd plot on that of the 1st plot
     pp <- c(subset(g1$layout, name=="panel", se=t:r))
-
+    
     g <- gtable_add_grob(g1, g2$grobs[[which(g2$layout$name=="panel")]], pp$t, pp$l, pp$b, pp$l)
     ## steal axis from second plot and modify
     ia <- which(g2$layout$name == "axis-b")
@@ -254,7 +268,7 @@ plot.traces <- function(traces,
     ia2 <- which(g2$layout$name == "xlab-b")
     ga2 <- g2$grobs[[ia2]]
     g <- gtable_add_grob(g,ga2, 3, 4, 2, 4)
-
+    
     if(PDF){
       pdf(paste0(name,".pdf"))
     }
@@ -283,8 +297,17 @@ plot.traces <- function(traces,
   }
 }
 
-#' @describeIn plot.traces Plot multiple traces objects
+#' Plot traces
+#' @description Plot all chromatograms in a traces object. Most generic plotting function.
+#' @param Object of class traces.
+#' @param log Logical, whether the intensities should be plotted in log scale. Default is \code{FALSE}.
+#' @param legend Logical, whether a legend of the traces should be plotted. Should be set to \code{FALSE}
+#' if many chromatograms are plotted. Default is \code{TRUE}.
+#' @param PDF Logical, whether to plot to PDF. PDF file is saved in working directory. Default is \code{FALSE}.
+#' @param name Character string with name of the plot, only used if \code{PDF=TRUE}.
+#' PDF file is saved under name.pdf. Default is "Traces".
 #' @importFrom grid.newpage, grid
+#' @export
 plot.tracesList <- function(traces,
                             design_matrix = NULL,
                             collapse_conditions = FALSE,
@@ -299,10 +322,10 @@ plot.tracesList <- function(traces,
       stop("Invalid design matrix")
     }
   }else{
-      design_matrix <- data.table(Sample_name = names(traces),
-                                  Condition = "", 
-                                  Replicate = 1:length(traces))
-    }
+    design_matrix <- data.table(Sample_name = names(traces),
+                                Condition = "", 
+                                Replicate = 1:length(traces))
+  }
   tracesList <- lapply(names(traces), function(tr){
     res <- toLongFormat(traces[[tr]]$traces)
     res$Condition <- design_matrix[Sample_name == tr, Condition]
@@ -329,7 +352,7 @@ plot.tracesList <- function(traces,
       geom_line(aes_string(x='fraction', y='intensity', color='id'))
     
   }
-     
+  
   if (log) {
     p <- p + scale_y_log10('log(intensity)')
   }

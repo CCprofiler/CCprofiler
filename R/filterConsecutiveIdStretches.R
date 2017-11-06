@@ -39,6 +39,7 @@ filterConsecutiveIdStretches<-function(traces,
 }
 
 #' @describeIn calculateSibPepCorr Filter Consecutive Id Stretches in Chromatograms of single traces object.
+#' @export
 
 filterConsecutiveIdStretches.traces <-function(traces,
                                                min_stretch_length=3,
@@ -109,6 +110,7 @@ filterConsecutiveIdStretches.traces <-function(traces,
 
 
 #' @describeIn calculateSibPepCorr #' @describeIn calculateSibPepCorr Filter Consecutive Id Stretches in Chromatograms of tracesList object.
+#' @export
 
 
 filterConsecutiveIdStretches.tracesList <-function(traces,

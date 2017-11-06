@@ -7,7 +7,7 @@
 getBestFeatures(feature_table)
 }
 \arguments{
-\item{feature_table}{data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}} 
+\item{feature_table}{data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}}
 or \code{\link[SECprofiler]{findProteinFeatures}}.}
 }
 \value{
@@ -27,3 +27,4 @@ bestComplexFeatures <- getBestFeatures(complexFeatures)
 ## Run summary function on filtered data:
 summarizeFeatures(bestComplexFeatures)
 }
+

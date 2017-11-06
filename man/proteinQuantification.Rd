@@ -2,10 +2,18 @@
 % Please edit documentation in R/proteinQuantification.R
 \name{proteinQuantification}
 \alias{proteinQuantification}
+\alias{proteinQuantification.traces}
+\alias{proteinQuantification.tracesList}
 \title{Protein Quantification}
 \usage{
 proteinQuantification(traces, topN = 2, keep_less = FALSE,
   rm_decoys = TRUE)
+
+\method{proteinQuantification}{traces}(traces, topN = 2, keep_less = FALSE,
+  rm_decoys = TRUE)
+
+\method{proteinQuantification}{tracesList}(traces, topN = 2,
+  keep_less = FALSE, rm_decoys = TRUE)
 }
 \arguments{
 \item{traces}{An object of type traces, trace_type must be peptide.}
@@ -25,6 +33,13 @@ An object of type traces, trace_type is protein.
 \description{
 Calculate protein quantities basen on the topN peptide intensities.
 }
+\section{Methods (by class)}{
+\itemize{
+\item \code{traces}: Protein Quantification for single traces object
+
+\item \code{tracesList}: Protein Quantification multiple traces ojects.
+Uses only peptides present in all traces objects for quantification.
+}}
 \examples{
 ## Load example data
 pepTraces <- examplePeptideTracesFiltered
@@ -41,5 +56,5 @@ head(protTraces$trace_annotation)
 # The protein_id column from the peptide traces object becomes the new id column of the protein traces object.
 # The last 2 columns indicate how many peptides could be observed and which were summed for quantification.
 
-
 }
+

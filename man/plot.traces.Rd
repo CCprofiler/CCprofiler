@@ -5,7 +5,7 @@
 \title{Plot traces}
 \usage{
 \method{plot}{traces}(traces, log = FALSE, legend = TRUE, PDF = FALSE,
-  name = "Traces", highlight = NULL, highlight_col = NULL)
+  name = "Traces", plot = TRUE, highlight = NULL, highlight_col = NULL)
 }
 \arguments{
 \item{log}{Logical, whether the intensities should be plotted in log scale. Default is \code{FALSE}.}
@@ -39,3 +39,4 @@ peptideTraces <- examplePeptideTraces
 subsetPeptideTraces <- subset(peptideTraces,trace_subset_ids="Q9UHV9",trace_subset_type="protein_id",fraction_ids=c(30:70))
 plot(subsetPeptideTraces,legend=FALSE)
 }
+

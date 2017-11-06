@@ -2,10 +2,22 @@
 % Please edit documentation in R/annotateTraces.R
 \name{annotateTraces}
 \alias{annotateTraces}
+\alias{annotateTraces.traces}
+\alias{annotateTraces.tracesList}
 \title{Annotate traces object}
 \usage{
 annotateTraces(traces, trace_annotation, traces_id_column = "protein_id",
   trace_annotation_id_column = "Entry",
+  trace_annotation_mass_column = "Mass", uniprot_mass_format = TRUE,
+  replace_whitespace = TRUE)
+
+\method{annotateTraces}{traces}(traces, trace_annotation,
+  traces_id_column = "protein_id", trace_annotation_id_column = "Entry",
+  trace_annotation_mass_column = "Mass", uniprot_mass_format = TRUE,
+  replace_whitespace = TRUE)
+
+\method{annotateTraces}{tracesList}(traces, trace_annotation,
+  traces_id_column = "protein_id", trace_annotation_id_column = "Entry",
   trace_annotation_mass_column = "Mass", uniprot_mass_format = TRUE,
   replace_whitespace = TRUE)
 }
@@ -33,6 +45,12 @@ Traces object of class traces with extended annotation.
 \description{
 Add custom annotation columns to the trace_annotation in a traces object from an external annotation table, e.g. UniProt.
 }
+\section{Methods (by class)}{
+\itemize{
+\item \code{traces}: Annotate single traces object
+
+\item \code{tracesList}: Annotate single traces object
+}}
 \examples{
 # Load some example data:
 inputTraces <- examplePeptideTracesUnannotated
@@ -45,3 +63,4 @@ traces_id_column = "protein_id",
 trace_annotation_id_column = "Entry")
 annotatedTraces$trace_annotation
 }
+

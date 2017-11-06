@@ -38,6 +38,7 @@ proteinQuantification <- function(traces,
 }
 
 #' @describeIn proteinQuantification Protein Quantification for single traces object
+#' @export
 proteinQuantification.traces <- function(traces,
                                   topN = 2,
                                   keep_less = FALSE,
@@ -152,6 +153,7 @@ proteinQuantification.traces <- function(traces,
 
 #' @describeIn proteinQuantification Protein Quantification multiple traces ojects.
 #' Uses only peptides present in all traces objects for quantification.
+#' @export
 
 proteinQuantification.tracesList <- function(traces,
                                          topN = 2,

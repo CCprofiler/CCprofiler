@@ -1,5 +1,4 @@
 #' Normalize trace intensities to reference traces
-#' @description 
 #' @param traces Object of class traces or tracesList.
 #' @param standard_ids Character vector, peptide or protein ids of reference peptides
 #' @param method Character string, whether to normalize to the median or the mean intensity 
@@ -13,6 +12,7 @@ normalizeToStandard <- function(traces, standard_ids, method = "median",
 }
 
 #' @describeIn normalizeToStandard Normalize to reference traces in multiple traces objects
+#' @export
 
 normalizeToStandard.traces <- function(traces, standard_ids, method = "median",
                                        filter_complete = TRUE, top_n = NULL, ...){
@@ -56,6 +56,7 @@ normalizeToStandard.traces <- function(traces, standard_ids, method = "median",
 }
 
 #' @describeIn normalizeToStandard Normalize to reference traces in multiple traces objects
+#' @export
 
 normalizeToStandard.tracesList <- function(tracesList, standard_ids, method = "median",
                                            filter_complete = TRUE, top_n = NULL, ...){
@@ -94,6 +95,8 @@ smootheTraces <- function(traces,
   UseMethod("smootheTraces", traces)
 }
 
+#' @describeIn smootheTraces Smoothe traces of a single traces object
+#' @export
 smootheTraces.traces <- function(traces,
                           method = c("mean", "median"),
                           scale = c("none", "log"),
@@ -171,6 +174,8 @@ smootheTraces.traces <- function(traces,
   }
   
 }
+#' @describeIn smootheTraces Smoothe traces of a tracesList object
+#' @export
 
 smootheTraces.tracesList <- function(traces,
                                  method = c("mean", "median"),

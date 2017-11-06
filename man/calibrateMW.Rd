@@ -55,3 +55,4 @@ calibrationFunctions$FractionToMW(14)
 calibrationFunctions$MWtoFraction(3020) # i.e. 3020 kDa
 
 }
+

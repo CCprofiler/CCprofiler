@@ -65,3 +65,4 @@ complexFeatures <- findComplexFeatures(traces=proteinTraces,
 summarizeComplexFeatures(complexFeatures)
 
 }
+

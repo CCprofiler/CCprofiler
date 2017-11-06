@@ -4,10 +4,12 @@
 \alias{complexClustering}
 \title{complexClustering}
 \usage{
-complexClustering(complexFeatures, dist_mat)
+complexClustering(complexFeatures, dist_mat, clust_method = "single")
 }
 \arguments{
 \item{dist_mat}{distance matrix from getDistanceMatrix}
+
+\item{clust_method}{character string specifying method for hclust, default is "single"}
 
 \item{complexFeature}{data.table containing filtered complex feature results.}
 }
@@ -17,3 +19,4 @@ cluster object
 \description{
 complexClustering.
 }
+
