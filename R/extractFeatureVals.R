@@ -11,7 +11,7 @@
 
 extractFeatureVals <- function(traces, features,
                                perturb_cutoff = "5%",
-                               verbose = TRUE){
+                               verbose = TRUE, ...){
   UseMethod("extractFeatureVals", traces)
 }
 
@@ -20,7 +20,7 @@ extractFeatureVals <- function(traces, features,
 #' @export
 extractFeatureVals.traces <- function(traces, features,
                                perturb_cutoff = "5%",
-                               verbose = TRUE){
+                               verbose = TRUE, ...){
   
   if(!is.data.table(features)){
     stop("features must be of type 'data.table'")
@@ -122,7 +122,7 @@ extractFeatureVals.traces <- function(traces, features,
 extractFeatureVals.tracesList <- function(traces, features,
                                       perturb_cutoff = "5%",
                                       verbose = TRUE,
-                                      design_matrix = NULL){
+                                      design_matrix = NULL, ...){
   res <- lapply(names(traces), function(tr){
     message(paste0("Extracting values from ", tr))
     vals <- extractFeatureVals.traces(traces[[tr]], features, perturb_cutoff, verbose)
