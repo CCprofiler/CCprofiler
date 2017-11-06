@@ -83,15 +83,14 @@ alignTraces <- function(tracesList,
   if(PDF) pdf(gsub("$|\\.pdf$", ".pdf",name))
   lags <- sapply(alignment_order[-length(alignment_order)], function(i){
     message(paste(names(tracesList)[i], "to", names(tracesList)[i+1]))
-    if(PDF){
+    if(PDF|plot){
       l <- getLag(tracesList[[i]], tracesList[[i+1]], returnPlot = TRUE, plot = F)
       boxplot(l$cross_corr, names = l$lag_range, notch = T,
               xlab = "Fraction shift", ylab = "Correlation")
+      title(paste(names(tracesList)[i], "to", names(tracesList)[i+1]))
       lines(1:length(l$lag_range),colMeans(l$cross_corr))
       legend(x = length(l$lag_range) + 0.7, y = 1, legend = "mean", lty = 1, xjust = 1)
       l$lag
-    }else if(plot){
-      getLag(tracesList[[i]], tracesList[[i+1]], plot = T)
     }else{
       getLag(tracesList[[i]], tracesList[[i+1]], plot = T)
     }
