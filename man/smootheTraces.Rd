@@ -23,7 +23,7 @@ smootheTraces(traces, method = c("mean", "median"), scale = c("none",
 
 \item{scale}{Character string wether to transform values before smoothing}
 
-\item{span}{Numeric, controls the degree of smoothing (see also \code[loess] function)}
+\item{span}{Numeric, controls the degree of smoothing (see also \code{loess} function)}
 
 \item{plot}{Logical, whether to plot a Visualization of the smoothing}
 

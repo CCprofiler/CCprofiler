@@ -306,7 +306,6 @@ plot.traces <- function(traces,
 #' @param PDF Logical, whether to plot to PDF. PDF file is saved in working directory. Default is \code{FALSE}.
 #' @param name Character string with name of the plot, only used if \code{PDF=TRUE}.
 #' PDF file is saved under name.pdf. Default is "Traces".
-#' @importFrom grid.newpage, grid
 #' @export
 plot.tracesList <- function(traces,
                             design_matrix = NULL,
