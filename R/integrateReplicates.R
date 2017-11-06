@@ -4,9 +4,9 @@ calculatePairwiseRepPepCorr <- function(traces, comparisons = NULL){
   if (any(sapply(traces, "[[", "trace_type") != "peptide")){
     stop("Replicate peptide correlation can only be calculated on traces of type peptide")
   }
-  for(i in 1:length(traces)){
-    setkey(traces[[i]]$traces, "id")
-  }
+  # for(i in 1:length(traces)){
+  #   setkey(traces[[i]]$traces, "id")
+  # }
   if(is.null(comparisons)){
     corrPairs <- combn(names(traces), m = 2)
   }else{
@@ -56,7 +56,7 @@ integrateReplicates <- function(traces,
                                 filter_by_RepPepCorr = TRUE,
                                 repPepCorr_cutoff = 0.5){
   
-  
+  .tracesListTest(traces)
   
   if(!is.null(integrate_within)){
     compare_col <- which(names(design_matrix) == integrate_within)
@@ -71,7 +71,7 @@ integrateReplicates <- function(traces,
   traces_res <- list()
   pairCorr <- calculatePairwiseRepPepCorr(traces = traces)
   for(condition in conditions){
-    message(paste("Integrating rplicates within:", condition))
+    message(paste("Integrating replicates within:", condition))
     sample_names <- design_matrix[get(integrate_within) == condition, Sample_name]
     
     if(filter_by_RepPepCorr){
