@@ -49,7 +49,15 @@ calculatePairwiseRepPepCorr <- function(traces, comparisons = NULL){
   return(resLong)  
 }
 
-
+#' Generate a consensus traces object from multiple replicate traces
+#' @param traces object of class tracesList.
+#' @param design_matrix data.table, design matrix describing the architecture of the tracesList object.
+#' @param integrate_within Character string, Condition to collapse 
+#' (must be a valid column of the design matrix). If \code{NULL}, everything is collapsed.
+#' @param filter_by_RepPepCorr Logical, wether to apply a RepPepCorr filter.
+#' @param repPepCorr_cutoff Numeric, the cutoff below which traces are removed.
+#' @return tracesList object containing the integrated traces
+#' @export
 integrateReplicates <- function(traces,
                                 design_matrix,
                                 integrate_within = NULL,
@@ -115,6 +123,15 @@ integrateReplicates <- function(traces,
   .tracesListTest(traces_res)
   return(traces_res)
 }
+
+#' Add or average traces objects to generate consensus traces.
+#' @param traces object of class tracesList.
+#' (must be a valid column of the design matrix). If \code{NULL}, everything is collapsed.
+#' @param min_present Numeric, the minimum number of samples in which a trace must be detected.
+#' @param aggr_fun Character string, the method of aggregating the traces.
+#'  Must be one of c("sum", "mean").
+#' @return tracesList object containing the integrated traces
+#' @export
 
 sumTraceIntensities <- function(traces, min_present = 1, aggr_fun = c("sum", "mean")){
   
