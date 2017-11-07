@@ -301,12 +301,19 @@ plot.traces <- function(traces,
 #' @description Plot all chromatograms in a traces object. Most generic plotting function.
 #' @param Object of class traces.
 #' @param log Logical, whether the intensities should be plotted in log scale. Default is \code{FALSE}.
-#' @param legend Logical, whether a legend of the traces should be plotted. Should be set to \code{FALSE}
+#' @param legend Logical, whether a legend of the traces should be plotted. 
+#' Should be set to \code{FALSE}
 #' if many chromatograms are plotted. Default is \code{TRUE}.
-#' @param PDF Logical, whether to plot to PDF. PDF file is saved in working directory. Default is \code{FALSE}.
+#' @param PDF Logical, whether to plot to PDF. PDF file is saved in working directory.
+#'  Default is \code{FALSE}.
 #' @param name Character string with name of the plot, only used if \code{PDF=TRUE}.
 #' PDF file is saved under name.pdf. Default is "Traces".
+#' @param plot Logical, wether to print or return the plot object
+#' @param highlight Character vector, ids of the traces to highlight (can be multiple).
+#'  Default is \code{NULL}.
+#' @param highlight_col Character string, A color to highlight traces in. Must be accepted by ggplot2.
 #' @export
+
 plot.tracesList <- function(traces,
                             design_matrix = NULL,
                             collapse_conditions = FALSE,
@@ -314,7 +321,9 @@ plot.tracesList <- function(traces,
                             legend = TRUE,
                             PDF=FALSE,
                             name="Traces",
-                            plot = TRUE) {
+                            plot = TRUE,
+                            highlight=NULL,
+                            highlight_col=NULL) {
   .tracesListTest(traces)
   if(!is.null(design_matrix)){
     if(!all(design_matrix$Sample_name %in% names(traces))){
@@ -334,6 +343,10 @@ plot.tracesList <- function(traces,
   traces_long <- do.call("rbind", tracesList)
   traces_frac <- unique(do.call("rbind", lapply(traces, "[[", "fraction_annotation")))
   traces_long <- merge(traces_long,traces_frac,by.x="fraction",by.y="id")
+  if(!is.null(highlight)){
+    traces_long$outlier <- gsub("\\(.*?\\)","",traces_long$id) %in% gsub("\\(.*?\\)","",highlight)
+    if(!any(traces_long$outlier)) highlight <- NULL
+  }
   
   p <- ggplot(traces_long) +
     xlab('fraction') +
@@ -350,6 +363,47 @@ plot.tracesList <- function(traces,
     p <- p + facet_grid(Condition ~ Replicate) +
       geom_line(aes_string(x='fraction', y='intensity', color='id'))
     
+  }
+  if(!is.null(highlight)){
+    legend_peps <- unique(traces_long[outlier == TRUE, id])
+    if(is.null(highlight_col)){
+      if(collapse_conditions){
+        p <- p + 
+          geom_line(data = traces_long[outlier == TRUE], aes_string(x='fraction', y='intensity', color='id', lty = 'Condition'), lwd=2) +
+          scale_color_discrete(breaks = legend_peps)
+      }else{
+        p <- p + 
+          geom_line(data = traces_long[outlier == TRUE], aes_string(x='fraction', y='intensity', color='id'), lwd=2) +
+          scale_color_discrete(breaks = legend_peps)
+      }
+      
+    }else{
+      legend_map <- unique(ggplot_build(p)$data[[1]]$colour)
+      names(legend_map) <- unique(p$data$id)
+      legend_map[legend_peps] <- highlight_col
+      legend_vals <- rep(highlight_col, ceiling(length(legend_peps)/ length(highlight_col)))[1:length(legend_peps)]
+      if(collapse_conditions){
+        p <- p + 
+          geom_line(data = traces_long[outlier == TRUE], 
+                    aes(x=fraction, y=intensity, lty = Condition, group = interaction(Condition, id), color = id),
+                     lwd=2) +
+          # scale_color_discrete(guide = F)
+          scale_color_manual(values = legend_map, limits = legend_peps) 
+        # guides(lty = FALSE)
+        # scale_color_manual(limits = legend_peps, values = rep(highlight_col, length(legend_peps))) +
+        # geom_line(aes_string(x='fraction', y='intensity', color='id'))
+      }else{
+        p <- p + 
+          geom_line(data = traces_long[outlier == TRUE], aes_string(x='fraction', y='intensity', lty = 'id', color = 'id'),
+                    lwd=2) +
+          # scale_color_discrete(guide = F)
+          scale_color_manual(values = legend_map, limits = legend_peps) 
+        # guides(lty = FALSE)
+        # scale_color_manual(limits = legend_peps, values = rep(highlight_col, length(legend_peps))) +
+        # geom_line(aes_string(x='fraction', y='intensity', color='id'))
+      }
+      
+    }
   }
   
   if (log) {

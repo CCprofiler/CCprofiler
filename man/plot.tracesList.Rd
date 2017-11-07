@@ -6,18 +6,27 @@
 \usage{
 \method{plot}{tracesList}(traces, design_matrix = NULL,
   collapse_conditions = FALSE, log = FALSE, legend = TRUE, PDF = FALSE,
-  name = "Traces", plot = TRUE)
+  name = "Traces", plot = TRUE, highlight = NULL, highlight_col = NULL)
 }
 \arguments{
 \item{log}{Logical, whether the intensities should be plotted in log scale. Default is \code{FALSE}.}
 
-\item{legend}{Logical, whether a legend of the traces should be plotted. Should be set to \code{FALSE}
+\item{legend}{Logical, whether a legend of the traces should be plotted. 
+Should be set to \code{FALSE}
 if many chromatograms are plotted. Default is \code{TRUE}.}
 
-\item{PDF}{Logical, whether to plot to PDF. PDF file is saved in working directory. Default is \code{FALSE}.}
+\item{PDF}{Logical, whether to plot to PDF. PDF file is saved in working directory.
+Default is \code{FALSE}.}
 
 \item{name}{Character string with name of the plot, only used if \code{PDF=TRUE}.
 PDF file is saved under name.pdf. Default is "Traces".}
+
+\item{plot}{Logical, wether to print or return the plot object}
+
+\item{highlight}{Character vector, ids of the traces to highlight (can be multiple).
+Default is \code{NULL}.}
+
+\item{highlight_col}{Character string, A color to highlight traces in. Must be accepted by ggplot2.}
 
 \item{Object}{of class traces.}
 }
