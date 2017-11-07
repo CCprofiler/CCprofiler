@@ -6,12 +6,14 @@
 #' @param perturb_cutoff Character string or numeric, the quantile of values that noise is sampled from.
 #' Noise needs to be imputed to calculate the correlations.
 #' @param verbose Logical, whether to print messages to console.
+#' @param extract Character string, name ot the feature table column containing the subunits to extract.
 #' @return Long format table containing extracted feature values.
 #' @export
 
 extractFeatureVals <- function(traces, features,
                                perturb_cutoff = "5%",
-                               verbose = TRUE, ...){
+                               verbose = TRUE,
+                               extract = "subunits_detected", ...){
   UseMethod("extractFeatureVals", traces)
 }
 
@@ -20,7 +22,8 @@ extractFeatureVals <- function(traces, features,
 #' @export
 extractFeatureVals.traces <- function(traces, features,
                                perturb_cutoff = "5%",
-                               verbose = TRUE, ...){
+                               verbose = TRUE, 
+                               extract = "subunits_detected", ...){
   
   if(!is.data.table(features)){
     stop("features must be of type 'data.table'")
@@ -59,7 +62,7 @@ extractFeatureVals.traces <- function(traces, features,
   featureVals <- apply(features, 1, function(hyp){
     
     # featuresHyp <- features[features$protein_id == hyp,]
-    subunitsUnion <- unique(strsplit(hyp["subunits_detected"],";")[[1]])
+    subunitsUnion <- unique(strsplit(hyp[extract],";")[[1]])
     subunitsUnion <- subunitsUnion[subunitsUnion %in% rownames(traceMatImputed)]
     nSubunits <- length(subunitsUnion)
     if(complexLevel){
@@ -122,10 +125,11 @@ extractFeatureVals.traces <- function(traces, features,
 extractFeatureVals.tracesList <- function(traces, features,
                                       perturb_cutoff = "5%",
                                       verbose = TRUE,
-                                      design_matrix = NULL, ...){
+                                      design_matrix = NULL,
+                                      extract = "subunits_detected", ...){
   res <- lapply(names(traces), function(tr){
     message(paste0("Extracting values from ", tr))
-    vals <- extractFeatureVals.traces(traces[[tr]], features, perturb_cutoff, verbose)
+    vals <- extractFeatureVals.traces(traces[[tr]], features, perturb_cutoff, verbose, extract)
     if(!is.null(design_matrix)){
       vals[,Condition := unique(design_matrix[Sample_name == tr, Condition])]
       vals[,Replicate := unique(design_matrix[Sample_name == tr, Replicate])]
