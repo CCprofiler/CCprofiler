@@ -1,4 +1,12 @@
-
+#' Test differential expression of peptides or proteins between 2 conditions
+#' @param featureVals data.table, a long-format table of intensity values within feature boundaries.
+#' A featureVals table can be produced with \code{extractFeatureVals}.
+#' @param compare_between Character string, The name of the column in the featureVals table
+#' holding the Conditions between which differential expression should be tested.
+#' @param level Character string, return tests on peptide level or aggregate to protein level.
+#' Must be one of c("protein","peptide"). Defaults to "protein".
+#' @return A data.table containing the differential testing results for every protein/peptide.
+#' @export
 testDifferentialExpression <- function(featureVals, 
                                        compare_between = "Condition",
                                        level = c("protein","peptide")){
@@ -15,7 +23,7 @@ testDifferentialExpression <- function(featureVals,
   tests <- featureValsBoth[, {
     setTxtProgressBar(pb, .GRP)
     a = t.test(formula = intensity ~ get(compare_between) , paired = T, var.equal = FALSE)
-    ints = .SD[, .(s = sum(intensity)), by = get(compare_between)]$s
+    ints = .SD[, .(s = sum(intensity)), by = .(get(compare_between))]$s
     int1 = ints[1]
     int2 = ints[2]
     .(pVal = a$p.value, int1 = int1, int2 = int2, meanDiff = a$estimate,
@@ -23,15 +31,28 @@ testDifferentialExpression <- function(featureVals,
     by = .(id, feature_id, apex)]
   close(pb)
   
-  medianPval <- getFCadjustedMedian(tests)
-  if(level == "peptide") return(medianPval)
+  if(level == "peptide") return(tests)
   
   message("Aggregating to protein-level...")
+  prottests <- aggregatePeptideTests(tests)
+  return(prottests)
+}
+
+#' Calculate a protein-level significance from peptide level differential expression tests
+#' @param tests data.table, containing peptide level p-values.
+#' Produced by \code{testDifferentialExpression} with option \code{level}="peptide".
+#' A featureVals table can be produced with \code{extractFeatureVals}.
+#' @return A data.table containing the differential testing results for every protein.
+#' @export
+
+aggregatePeptideTests <- function(tests){
+  medianPval <- getFCadjustedMedian(tests)
   medianPval[, protPval := pbeta(medianPVal, (Npeptides+1)/2, 0.5*(Npeptides+1))]
   qv <- qvalue::qvalue(medianPval$protPval, lambda = 0.4)
   medianPval$QVal <- qv$qvalues
   medianPval[, pBHadj := p.adjust(protPval, method = "fdr")]
   return(medianPval)
+  
 }
 
 getFCadjustedMedian <- function(tests){
@@ -44,12 +65,20 @@ getFCadjustedMedian <- function(tests){
 filterValsByOverlap <- function(featureVals, compare_between){
   # Select peptides present in both conditions
   # conditions <- unique(featureVals[,get(compare_between)])
-  fv <- unique(featureVals[,.(id, feature_id, apex, get(compare_between))])
-  fv$dup <- duplicated(fv[, .(id, feature_id, apex)])
-  fv <- unique(fv[dup == TRUE, .(id, feature_id, apex)])
+  if("Replicate" %in% names(featureVals)){
+    fv <- unique(featureVals[,.(id, feature_id, apex, Replicate, get(compare_between))])  
+    fv$dup <- duplicated(fv[, .(id, feature_id, apex, Replicate)])
+    fv <- unique(fv[dup == TRUE, .(id, feature_id, apex, Replicate)])
+    featureValsBoth <- merge(featureVals, fv, by = c("id", "feature_id", "apex", "Replicate"))
+  }else{
+    fv <- unique(featureVals[,.(id, feature_id, apex, get(compare_between))])
+    fv$dup <- duplicated(fv[, .(id, feature_id, apex)])
+    fv <- unique(fv[dup == TRUE, .(id, feature_id, apex)])
+    featureValsBoth <- merge(featureVals, fv, by = c("id", "feature_id", "apex"))
+  }
   # split <- lapply(conditions, function(cond) featureVals[get(compare_between) == cond, .(feature_id, id,apex)])
   # featureValsBoth <- featureVals[, .SD[all(sapply(conditions ,"%in%", get(compare_between)))], by = .(id, feature_id, get(compare_between))]
-  featureValsBoth <- merge(featureVals, fv, by = c("id", "feature_id", "apex"))
+  
   return(featureValsBoth)
 }
 
