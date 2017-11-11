@@ -140,3 +140,41 @@ extractFeatureVals.tracesList <- function(traces, features,
   do.call(rbind, res)
 }
 
+#' Fill traceVals for all Samples
+#' @description Fill in traces that are not detected in certain conditions with noise values
+#' @param featureVals data.table, a long-format table of intensity values within feature boundaries.
+#' A featureVals table can be produced with \code{extractFeatureVals}.
+#' @param design_matrix data.table, design matrix describing the architecture of the tracesList object.
+#' @param perturb_cutoff Character string or numeric, the quantile of values that noise is sampled from.
+#' Noise needs to be imputed to calculate the correlations.
+#' @return Long format table containing filled feature values.
+#' @export
+
+fillFeatureVals <- function(featureVals,
+                            design_matrix,
+                            perturb_cutoff = "5%"){
+  
+  if(class(perturb_cutoff) == "character"){
+    qt <- as.numeric(gsub("%","",perturb_cutoff))/100
+    perturb_cutoff <- quantile(featureVals$intensity, qt)
+  }
+  set.seed(123) # set seed to always get same results
+  samples <- unique(design_matrix$Sample)
+  n_samples <- length(samples)
+  fv <- copy(featureVals)
+  setkeyv(fv, c("id", "feature_id", "apex", "fraction", "bound_left", "bound_right", "Sample"))
+  complete_table <- unique(fv[, .(id, feature_id, apex, fraction, bound_left, bound_right)])
+  # complete_table_ <- apply(complete_table, 1, function(x) cbind(rbind(rep(x, n_samples)), samples))
+  complete_table_ <- do.call(rbind,lapply(samples, function(x) cbind(complete_table, x)))
+  setnames(complete_table_, "x", "Sample")
+  setkeyv(complete_table_, key(fv))
+  fvComp <- merge(complete_table_, fv,
+                  by=c("id", "feature_id", "apex", "fraction", "bound_left", "bound_right", "Sample"),
+                  all.x= T)
+  fvComp[, filled_in := is.na(intensity)]
+  n_filled <- fvComp[filled_in == T, .N]
+  fvComp[filled_in == T, intensity := as.double(sample(1:perturb_cutoff, n_filled, replace = T))]
+  return(fvComp)
+}
+  
+  
