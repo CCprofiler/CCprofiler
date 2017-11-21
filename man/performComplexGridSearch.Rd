@@ -51,3 +51,4 @@ gridList <- performComplexGridSearch(traces = proteinTraces,
                          
 lapply(gridList, head, n = 2)
 }
+

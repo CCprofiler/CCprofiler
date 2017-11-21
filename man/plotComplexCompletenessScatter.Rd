@@ -8,7 +8,7 @@ plotComplexCompletenessScatter(complexFeatures, PDF = FALSE,
   name = "complex_completeness_scatter")
 }
 \arguments{
-\item{complexFeatures}{data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}} 
+\item{complexFeatures}{data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}}
 or \code{\link[SECprofiler]{findProteinFeatures}}.}
 
 \item{PDF}{Logical, whether to generate a PDF file with the summary plot. Default is \code{FALSE}.}
@@ -17,8 +17,8 @@ or \code{\link[SECprofiler]{findProteinFeatures}}.}
 Only applicable if PDF=\code{TRUE}. Default is "feature_summary".}
 }
 \description{
-Plot the number of observed co-eluting subunits over the number of subunits 
-in the hypothesis, colour-coded by the completeness. This is only taking into account targets. 
+Plot the number of observed co-eluting subunits over the number of subunits
+in the hypothesis, colour-coded by the completeness. This is only taking into account targets.
 If decoys are present they are removed using "DECOY" as a flag.
 }
 \examples{
@@ -27,3 +27,4 @@ complexFeatures <- exampleComplexFeatures
 ## Run plotting function:
 plotComplexCompletenessScatter(complexFeatures)
 }
+

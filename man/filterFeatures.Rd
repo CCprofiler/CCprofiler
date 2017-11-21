@@ -10,19 +10,19 @@ filterFeatures(feature_table, complex_ids = NULL, protein_ids = NULL,
   min_monomer_distance_factor = NULL)
 }
 \arguments{
-\item{feature_table}{data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}} 
+\item{feature_table}{data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}}
 or \code{\link[SECprofiler]{findProteinFeatures}}.}
 
-\item{complex_ids}{character vector containing all desired \code{complex_id} values. 
+\item{complex_ids}{character vector containing all desired \code{complex_id} values.
 Only applicable to complex feature tables. Defaults to \code{NULL}.}
 
-\item{protein_ids}{character vector containing all desired \code{protein_id} values. 
+\item{protein_ids}{character vector containing all desired \code{protein_id} values.
 Only applicable to protein feature tables. Defaults to \code{NULL}.}
 
-\item{min_feature_completeness}{Numeric between 0 and 1, specifying the required completeness 
+\item{min_feature_completeness}{Numeric between 0 and 1, specifying the required completeness
 of a feature reltive to the tested hypothesis (keeps all features if at least one is bigger than the cutoff).}
 
-\item{min_hypothesis_completeness}{Numeric between 0 and 1, specifying the required completeness 
+\item{min_hypothesis_completeness}{Numeric between 0 and 1, specifying the required completeness
 of the most complete feature reltive to the tested hypothesis (keeps all features if at least one feature is bigger than the cutoff).}
 
 \item{min_subunits}{Integer specifying minimum number of subunits in a co-elution feature.}
@@ -46,10 +46,11 @@ complexFeatures <- exampleComplexFeatures
 summarizeFeatures(complexFeatures)
 ## Filter complex features by a peak correlation of 0.5, a minimum hypothesis
 ## completeness of 0.5 and a minimum distance to the monomers by a factor of 2:
-filteredComplexFeatures <- filterFeatures(complexFeatures, 
-                                     min_peak_corr=0.5, 
+filteredComplexFeatures <- filterFeatures(complexFeatures,
+                                     min_peak_corr=0.5,
                                      min_hypothesis_completeness=0.5,
                                      min_monomer_distance_factor=2)
 ## Run summary function on filtered data:
 summarizeFeatures(filteredComplexFeatures)
 }
+

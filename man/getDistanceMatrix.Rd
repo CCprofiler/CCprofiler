@@ -24,8 +24,9 @@ calculate the pairwise distance between complex hypotheses.
 ## load example data
 complexHypotheses <- exampleComplexHypotheses
 complexHypotheses <- complexHypotheses[, .(subunits_detected = paste0(protein_id, collapse = ";")),
-                                       by = complex_id] 
+                                       by = complex_id]
 ## Get the distance matrix
 distMat <- getDistanceMatrix(complexHypotheses)
 
 }
+

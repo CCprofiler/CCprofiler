@@ -8,7 +8,7 @@ plotSummarizedComplexes(complexFeatures, hypotheses, protTraces, PDF = FALSE,
   name = "complex_completeness_pie")
 }
 \arguments{
-\item{complexFeatures}{data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}} 
+\item{complexFeatures}{data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}}
 or \code{\link[SECprofiler]{findProteinFeatures}}.}
 
 \item{hypotheses}{data.table containing complex hypotheses.
@@ -34,7 +34,8 @@ complexFeatures <- exampleComplexFeatures
 complexHypotheses <- exampleComplexHypotheses
 proteinTraces <- exampleProteinTraces
 ## Run plotting function:
-plotSummarizedComplexes(complexFeatures=complexFeatures, 
-                        hypotheses=complexHypotheses, 
+plotSummarizedComplexes(complexFeatures=complexFeatures,
+                        hypotheses=complexHypotheses,
                         protTraces=proteinTraces)
 }
+
