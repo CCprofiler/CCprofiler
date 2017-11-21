@@ -26,7 +26,7 @@ Here we show the basic steps for performing the analysis of PCP-MS datasets with
 
 ```{r, message=FALSE, warning=FALSE, cache=FALSE}
 require(devtools)
-install_github("PedrioliLab/SECprofiler",ref="isa")
+install_github("PedrioliLab/SECprofiler",ref="submission")
 library('SECprofiler')
 ```
 
@@ -140,28 +140,22 @@ Protein feature finding consists of 2 steps, the co-elution signal detection fol
 Here we perform the protein feature finding only on a subset of all proteins because this can take some time. In order to be able to estimate an error-rate, protein decoys are generated on the fly diring the feature detection step by randomly assigning peptides to a protein decoy ```useRandomDecoyModel = TRUE```. Protein features are determined by a sliding window strategy, where all peptides of a protein are tested for local profile correlation. If a subset of the peptides within a protein correlate better then the specified cutoff, a protein feature is initiated, followed by peak detection within the regions of high correlation. The resulting protein features can be filtered by different criteria. We determined the minimum feature completenes (i.e. the minimum fraction of all peptides within a protein that should coelute) as a usefull measure to remove false positives due to random spontaneous coelution. Furthermore the minimum correlation within a detected peak can be used to further refine the reported results.
 
 ```{r, eval=TRUE, message=FALSE, warning=FALSE, cache=FALSE, results='hide'}
-testProteins = unique(pepTraces_cons_sib$trace_annotation$protein_id)[1:10]
+testProteins = unique(pepTraces_cons_sib$trace_annotation$protein_id)[1:50]
 peptideTracesSubset = subset(pepTraces_cons_sib,
                              trace_subset_ids = testProteins, 
                              trace_subset_type = "protein_id")
 proteinFeatures <- findProteinFeatures(traces = peptideTracesSubset,
                                        useRandomDecoyModel = TRUE)
-proteinFeaturesFiltered <- filterFeatures(feature_table = proteinFeatures,
-                                          min_feature_completeness = 0.5,
-                                          min_peak_corr = 0.5)
+proteinFeaturesScored <- calculateCoelutionScore(proteinFeatures)
+qvalueProteinFeaturesScored <- calculateQvalue(proteinFeaturesScored)
+qvalueProteinFeaturesScoredStats <- qvaluePositivesPlot(qvalueProteinFeaturesScored)
+proteinFeaturesFiltered <- subset(qvalueProteinFeaturesScored, qvalue <= 0.05)
 summarizeFeatures(proteinFeaturesFiltered)
-```
-
-### FDR estimation
-To determine the specificity of the performed co-elution signal detection can be estimated based on a decoy counting strategy.
-
-```{r,eval=TRUE}
-estimateDecoyFDR(proteinFeaturesFiltered)
 ```
 
 ## Complex feature finding
 ### Complex hypothesis generation
-In generat he complex feature detection is very similar to the protein feature detection with the difference that complex hypotheses have to be generated at the beginning. This includes both target and decoy complex hypotheses for error estimation. 
+In general the complex feature detection is very similar to the protein feature detection with the difference that complex hypotheses have to be generated at the beginning. This includes both target and decoy complex hypotheses for error estimation. 
 #### Targets
 One option is to load protein complex targets yin the following format:
 
@@ -195,29 +189,21 @@ corumTargetsPlusDecoys <- generateComplexDecoys(target_hypotheses=corumComplexHy
 ```{r, eval=TRUE, message=FALSE, warning=FALSE, cache=FALSE, results='hide',fig.width=6, fig.align='center'}
 complexFeatures <- findComplexFeatures(traces=protTraces,
                                        complex_hypothesis = complexHypotheses)
-complexFeaturesFiltered <- filterFeatures(feature_table = complexFeatures,
-                                          min_feature_completeness = 0.5,
-                                          min_peak_corr = 0.5)
+complexFeaturesScored <- calculateCoelutionScore(complexFeatures)
+qvalueComplexFeaturesScored <- calculateQvalue(complexFeaturesScored)
+qvalueComplexFeaturesScoredStats <- qvaluePositivesPlot(qvalueComplexFeaturesScored)
+complexFeaturesFiltered <- subset(qvalueComplexFeaturesScored, qvalue <= 0.05)
 summarizeFeatures(complexFeaturesFiltered)
-
-bestComplexFeaturesFiltered <- getBestFeatures(complexFeaturesFiltered)
-summarizeFeatures(bestComplexFeaturesFiltered)
-```
-
-### FDR estimation
-
-```{r,eval=TRUE}
-estimateDecoyFDR(bestComplexFeaturesFiltered)
 ```
 
 ### Complex feature collapsing
 
 ```{r,eval=TRUE}
 complexFeaturesUnique <- getUniqueFeatureGroups(complexFeaturesFiltered,
-                                                rt_height=2,
-                                                distance_cutoff=1)
+                                                rt_height = 0,
+                                                distance_cutoff = 1.25)
 complexFeaturesCollapsed <- callapseByUniqueFeatureGroups(complexFeaturesUnique,
-                                                            rm_decoys=TRUE)
+                                                          rm_decoys = TRUE)
 ```
 
 # Visualization
@@ -276,25 +262,11 @@ proteinFeatures_grid <- performProteinGridSearch(traces = peptideTracesSubset,
                                                  rt_heights = c(4),
                                                  n_cores = 2)
 
-proteinFeatures_gridFiltered <- filterGridSearchResults(proteinFeatures_grid,
-                                                        peak_corr_cutoffs = c(0.5,0.75,0.9),
-                                                        feature_completeness_cutoffs = c(0,0.5,1),
-                                                        n_subunits_cutoffs = c(2,3,4),
-                                                        remove_decoys = FALSE
-                                                        )
-
-# test if FDR is done on bestFeature only
-proteinFeatures_gridFilteredStats <- estimateGridSearchDecoyFDR(proteinFeatures_gridFiltered)
-
-proteinFeatures_bestParameterStats <- getBestParameterStats(proteinFeatures_gridFilteredStats,
-                                                            FDR = 0.1)
-proteinFeatures_bestParameterData <- getBestParameterData(proteinFeatures_gridFiltered,
-                                                          FDR = 0.1)
-plotIdFDRspace(proteinFeatures_gridFilteredStats,
-               level = "complex",
-               id_level = "TP",
-               FDR_cutoff = 0.1,
-               colour_parameter = "min_feature_completeness")
+proteinFeatures_scoredData <- lapply(proteinFeatures_grid, calculateCoelutionScore)
+proteinFeatures_qvalueData <- lapply(proteinFeatures_scoredData, calculateQvalue, plot=F)
+proteinFeatures_stats <- qvaluePositivesPlotGrid(proteinFeatures_qvalueData)
+proteinFeatures_bestStats <- getBestQvalueParameters(proteinFeatures_stats, FDR_cutoff = 0.05)
+proteinFeatures_bestStats
 ```
 
 ## Complex-level grid search
@@ -309,26 +281,11 @@ complexFeatures_grid <- performComplexGridSearch(traces = protTraces,
                                                  n_cores = 2
                                                  )
 
-complexFeatures_gridFiltered <- filterGridSearchResults(complexFeatures_grid,
-                                                        peak_corr_cutoffs = c(0.5,0.75,0.9),
-                                                        feature_completeness_cutoffs = c(0,0.5,1),
-                                                        n_subunits_cutoffs = c(2,3,4),
-                                                        remove_decoys = FALSE
-                                                        )
-
-# test if FDR is done on bestFeature only
-complexFeatures_gridFilteredStats <- estimateGridSearchDecoyFDR(complexFeatures_gridFiltered)
-
-complexFeatures_bestParameterStats <- getBestParameterStats(complexFeatures_gridFilteredStats,
-                                                            FDR = 0.1)
-complexFeatures_bestParameterData <- getBestParameterData(complexFeatures_gridFiltered,
-                                                          FDR = 0.1)
-
-plotIdFDRspace(complexFeatures_gridFilteredStats,
-               level = "complex",
-               id_level = "TP",
-               FDR_cutoff = 0.1,
-               colour_parameter = "min_feature_completeness")
+complexFeatures_scoredData <- lapply(complexFeatures_grid, calculateCoelutionScore)
+complexFeatures_qvalueData <- lapply(complexFeatures_scoredData, calculateQvalue, plot=F)
+complexFeatures_stats <- qvaluePositivesPlotGrid(complexFeatures_qvalueData)
+complexFeatures_bestStats <- getBestQvalueParameters(complexFeatures_stats, FDR_cutoff = 0.05)
+complexFeatures_bestStats
 ```
 
 # Session information
