@@ -295,7 +295,7 @@ filterBySibPepCorr.tracesList <- function(traces,
                               PDF = PDF,
                               CSV = CSV, ... )
   })
-  
+  names(res) <- names(traces)
   class(res) <- "tracesList"
   .tracesListTest(res)
   return(res)
