@@ -27,7 +27,7 @@ testDifferentialExpression <- function(featureVals,
     int1 = ints[1]
     int2 = ints[2]
     .(pVal = a$p.value, int1 = int1, int2 = int2, meanDiff = a$estimate,
-      log2FC =  log2(int1/int2),n_fractions = a$parameter + 1)},
+      log2FC =  log2(int1/int2),n_fractions = a$parameter + 1, Tstat = a$statistic)},
     by = .(id, feature_id, apex)]
   close(pb)
   
@@ -47,7 +47,7 @@ testDifferentialExpression <- function(featureVals,
 
 aggregatePeptideTests <- function(tests){
   medianPval <- getFCadjustedMedian(tests)
-  medianPval[, protPval := pbeta(medianPVal, (Npeptides+1)/2, 0.5*(Npeptides+1))]
+  medianPval[, protPval := pbeta(medianPVal, Npeptides/2 + 0.5, Npeptides - (Npeptides/2 + 0.5) + 1)]
   qv <- qvalue::qvalue(medianPval$protPval, lambda = 0.4)
   medianPval$QVal <- qv$qvalues
   medianPval[, pBHadj := p.adjust(protPval, method = "fdr")]
@@ -56,9 +56,10 @@ aggregatePeptideTests <- function(tests){
 }
 
 getFCadjustedMedian <- function(tests){
-  tests[, FCpVal := (1-pVal) * sign(log2FC)]
-  medianPval <- tests[ ,{mPval = median(FCpVal)
-  .(medianPVal = 1-(mPval * sign(mPval)), Npeptides = .N, medianLog2FC = median(log2FC))},
+  test <- copy(tests)
+  test[, FCpVal := (1-pVal) * sign(log2FC)]
+  medianPval <- test[ ,{mPval = median(FCpVal)
+  .(medianPVal = 1-(mPval * sign(mPval)), Npeptides = .N, medianLog2FC = median(log2FC), medianTstat = median(Tstat))},
   by = .(feature_id, apex)]
   }
 
