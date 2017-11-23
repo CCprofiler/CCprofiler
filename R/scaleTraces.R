@@ -53,3 +53,38 @@ scaleTraces <- function(traces, design_matrix,
   .tracesListTest(res)
   return(res)
 }
+
+
+#' Plot a comparison of the intensities in different samples
+#' @param traces Object of class tracesList.
+#' @param PDF Logical, whether to plot to PDF. PDF file is saved in working directory.
+#'  Default is \code{FALSE}.
+#' @param name Character string with name of the plot, only used if \code{PDF=TRUE}.
+#' PDF file is saved under name.pdf. Default is "Traces".
+#' @param plot Logical, wether to print or return the plot object
+#' @return Violin plot of trace intensities per sample
+#' @export
+
+plotGlobalIntensities <- function(traces, plot = T, PDF = F, name = "IntensitySummary.pdf"){
+  .tracesListTest(traces)
+  allInts <- do.call(rbind, lapply(names(traces), function(x){
+    m <- c(getIntensityMatrix(traces[[x]]))
+    data.table( Intensity = m[m>0], Sample = x)
+  }))
+  means <- allInts[, .(Intensity = mean(Intensity)), by = Sample]
+  p <- ggplot(allInts, aes(y=Intensity, x = Sample)) +
+    geom_violin( draw_quantiles = 0.5) +
+    theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
+    scale_y_log10() +
+    theme_bw() +
+    geom_point(data = means, inherit.aes = TRUE)
+  
+  if(plot){
+    if(PDF) pdf(gsub("\\.pdf|$", ".pdf", name), height = 5, width = 7)
+    print(p)
+    if(PDF) dev.off()
+  }else{
+    return(p)
+  }
+}
+

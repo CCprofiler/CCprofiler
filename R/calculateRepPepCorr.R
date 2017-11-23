@@ -1,7 +1,17 @@
+#' Calculates the correlation of every petide between replicates
+#' @description Average pairwise pearson correlation of the intensity vectors between
+#' replicates.
+#' @param traces Object of class \code{tracesList}.
+#' @param design_matrix data.table, describing the \code{tracesList} object.
+#' @param compare_within Character string, name of the column defining the conditions.
+#' @param add Logical,add repPepCorr to \code{tracesList} object or return a table.
+#' @return Object of class traces with additional repPepCorr column or data.table
+#' contaioning repPepCors.
+#' @export
 
 
 calculateRepPepCorr <- function(traces, design_matrix, compare_within = NULL,
-                                add = T, sa = NULL){
+                                add = T){
   
   # Check input type
   if (any(sapply(traces, "[[", "trace_type") != "peptide")){

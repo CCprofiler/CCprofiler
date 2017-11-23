@@ -17,12 +17,22 @@ normalizeToStandard <- function(traces, standard_ids, method = "median",
 normalizeToStandard.traces <- function(traces, standard_ids, method = "median",
                                        filter_complete = TRUE, top_n = NULL, ...){
   # .tracesTest(traces)
-  if(any(standard_ids %in% traces$trace_annotation$protein_id)){
+  foundIds <- standard_ids %in% traces$trace_annotation$protein_id
+  if(any(foundIds)){
+    if(!all(foundIds)){
+      message(paste("Only detected", standard_ids[foundIds], ". Using those/this...", collapse = " "))
+    }
     standards <- getIntensityMatrix(subset(traces,
                                            trace_subset_ids = standard_ids,
                                            trace_subset_type = "protein_id"))
   }else{
-    standards <- getIntensityMatrix(subset(traces, trace_subset_ids = standard_ids))
+    foundIds <- standard_ids %in% traces$trace_annotation$id
+    if(!any(foundIds)){
+      stop("Specified standard Ids did not match any of the data")
+    }else if(!all(foundIds)){
+      message(paste("Only detected", standard_ids[foundIds], ". Using those/this...", collapse = " "))
+    }
+      standards <- getIntensityMatrix(subset(traces, trace_subset_ids = standard_ids))
   }
   if(filter_complete){
     completeRows <- !apply(standards, 1, function(x) any(x == 0))
@@ -225,5 +235,72 @@ normalizeTraces <- function(traces, normVals, method = "-", transform = c("none"
   return(normTraces)
 }
 
+plotReference <- function(traces, design_matrix, ref_id = "P00722", log = F,
+                          PDF = TRUE, legend = TRUE, average_int = "median",
+                          plot = TRUE){
+  .tracesListTest(traces)
+  traces_sub <- subset(traces, trace_subset_ids = ref_id, trace_subset_type = "protein_id")
+  traces_long <- lapply(names(traces_sub), function(x){
+    res <- toLongFormat(traces_sub[[x]]$traces)
+    res$Condition <- design_matrix[Sample_name == x, Condition]
+    res$Replicate <- design_matrix[Sample_name == x, Replicate]
+    res
+  })
+  traces_long <- do.call("rbind", traces_long)
+  if(average_int == "median"){
+    referenceMeans <- traces_long[, .(intensity = median(intensity[intensity > 0])),
+                                  by = .(fraction, Condition, Replicate)]
+  }else if(average_int == "mean"){
+    referenceMeans <- traces_long[, .(intensity = mean(intensity[intensity > 0])),
+                                  by = .(fraction, Condition, Replicate)]
+  }else stop("average_int must be mean or median")
+  # TraceMeans
+  targetIds <- unique(unlist(sapply(traces, function(x) x$trace_annotation[!grepl("DECOY_", protein_id), id])))
+  targetTraces <- subset(traces, trace_subset_ids = targetIds)
+  targetInt <- lapply(targetTraces, getIntensityMatrix)
+  ints <- lapply(names(targetInt), function(sample){
+    if(average_int == "median"){
+      ints <-apply(targetInt[[sample]], 2, function(x) median(x[x > 0]))
+    }else if(average_int == "mean"){
+      ints <-apply(targetInt[[sample]], 2, function(x) mean(x[x > 0]))
+    }else stop("average_int must be mean or median")
+    
+    res <- data.table(intensity = ints, fraction = seq_along(ints))
+    res$Condition <- design_matrix[Sample_name == sample, Condition]
+    res$Replicate <- design_matrix[Sample_name == sample, Replicate]
+    res
+  })
+  traceMeans <- do.call("rbind", ints)
+  
+  p <- ggplot(traces_long) +
+    geom_line(aes_string(x='fraction', y='intensity', color='id')) +
+    geom_line(data = traceMeans, aes(x=fraction, y=intensity, size = 'a'), color = "black") +
+    geom_line(data = referenceMeans, aes(x=fraction, y=intensity, size = 'b'), color = "black") +
+    xlab('fraction') +
+    ylab('intensity') +
+    theme_bw() +
+    facet_grid(Condition ~ Replicate ) +
+    scale_size_manual(values = c('a' = 1.2, 'b' = 2), 
+                      labels = c('a' = "All traces", 'b' = "Reference traces"),
+                      name = average_int)
+  if (log) {
+    p <- p + scale_y_log10('log(intensity)')
+  }
+  if (!legend) {
+    p <- p + scale_color_discrete(guide = F)
+  }
+  if(plot){
+    if(PDF){
+      pdf("ReferencePeptides.pdf", height = 6, width = 10)
+    }
+    plot(p)
+    if(PDF){
+      dev.off()
+    }
+    
+  }else{
+    return(p)
+  }
+}
 
 
