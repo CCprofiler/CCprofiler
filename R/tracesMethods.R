@@ -394,7 +394,7 @@ plot.tracesList <- function(traces,
         # geom_line(aes_string(x='fraction', y='intensity', color='id'))
       }else{
         p <- p + 
-          geom_line(data = traces_long[outlier == TRUE], aes_string(x='fraction', y='intensity', lty = 'id', color = 'id'),
+          geom_line(data = traces_long[outlier == TRUE], aes_string(x='fraction', y='intensity', color = 'id'),
                     lwd=2) +
           # scale_color_discrete(guide = F)
           scale_color_manual(values = legend_map, limits = legend_peps) 
