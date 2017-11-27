@@ -183,4 +183,74 @@ calculatePairwiseRepPepCorr <- function(traces, comparisons = NULL){
   return(resLong)  
 }
 
+#' plot RepPepCorrDensities
+#' @description Plot replicate peptide correlation in traces object of type peptide.
+#' @import data.table
+#' @param traces An object of type traces.
+#' @param PDF logical, wether to print RepPepCorr density plot to a PDF file. Deafaults to \code{FALSE}.
+#' @return Plot.
+#' @export
 
+plotRepPepCorrDensities <- function(traces, PDF = FALSE,
+                                    name = "ReplicatePeptideCorrelationDensity"){
+  UseMethod("plotRepPepCorrDensities", traces)
+}
+
+#' @describeIn plotRepPepCorrDensities
+plotRepPepCorrDensities.traces <- function(traces, PDF = FALSE,
+                                           name = "ReplicatePeptideCorrelationDensity"){
+  
+  ## Test traces
+  .tracesTest(traces, type = "peptide")
+  
+  # check whether decoys are present in the input peptide traces object
+  trace_annotation <- traces$trace_annotation
+  decoys_present = TRUE
+  if (sum(grep("^DECOY_", trace_annotation$protein_id)) == 0){
+    message("No decoy entries in trace_annotation$protein_id column \n
+            No decoy density will be plotted")
+    decoys_present = FALSE
+  }
+  
+  #check whether RepPepCorr has been calculated/is contained in trace_annotation
+  if (!("RepPepCorr" %in% names(traces$trace_annotation))){
+    stop("No RepPepCorr has been calculated on this dataset. Use calculateRepPepCorr function.")
+  }
+  
+  dens_all <- density(na.omit(trace_annotation$RepPepCorr))
+  dens_targets <- density(na.omit(trace_annotation[grep("^DECOY", trace_annotation$protein_id,invert = TRUE),]$RepPepCorr))
+  
+  if(PDF == TRUE){
+    pdf(gsub("\\.pdf$|$", ".pdf", name))
+  }
+  
+  plot(dens_targets$x, dens_targets$y*dens_targets$n, lty = 1, lwd = 3,
+       type = "l", ylab = "scaled frequency", xlab = "RepPepCorr",
+       main = name)
+  
+  if (decoys_present){
+    dens_decoys <- density(na.omit(trace_annotation[grep("^DECOY_", trace_annotation$protein_id),]$RepPepCorr))
+    lines(dens_decoys$x, dens_decoys$y*dens_decoys$n, lty = 2, lwd = 3)
+    legend("topleft", lty = c(1,3), lwd = c(3,3), legend = c("target peptides", "decoy peptides"))
+  } else{
+    legend("topleft", lty = c(1), lwd = c(3), legend = c("target peptides"))
+  }
+  
+  if(PDF == TRUE){
+    dev.off()
+  }
+}
+
+#' @describeIn plotRepPepCorrDensities
+plotRepPepCorrDensities.tracesList <- function(traces, PDF = FALSE,
+                                               name = "ReplicatePeptideCorrelationDensity"){
+  .tracesListTest(traces)
+  
+  if(PDF) pdf(gsub("$|\\.pdf$", ".pdf",name))
+  res <- lapply(names(traces), function(tr){
+    plotRepPepCorrDensities.traces(traces = traces[[tr]],
+                                   PDF = F,
+                                   name = paste(name, tr, sep = " - "))
+  })
+  if(PDF) dev.off()
+}
