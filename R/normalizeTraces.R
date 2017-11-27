@@ -235,6 +235,22 @@ normalizeTraces <- function(traces, normVals, method = "-", transform = c("none"
   return(normTraces)
 }
 
+#' Plot a comparison of the intensities in different samples
+#' @param traces Object of class tracesList.
+#' @param design_matrix data.table, A valid design matrix describing the tracesList object.
+#' @param ref_id Character string, the name(s) of proteins/peptides to plot.
+#' @param log Logical, wether to plot on log scale.
+#' @param PDF Logical, whether to plot to PDF. PDF file is saved in working directory.
+#'  Default is \code{FALSE}.
+#' @param legend Logical, wether to plot a legend.
+#' @param average_int Character string, One of mean or median. Which summary to plot.
+#' @param name Character string with name of the plot, only used if \code{PDF=TRUE}.
+#' PDF file is saved under name.pdf. Default is "Traces".
+#' @param plot Logical, wether to print or return the plot object
+#' @return A plot of the reference traces with a mean/median trace of both the
+#' reference and all traces.
+#' @export
+
 plotReference <- function(traces, design_matrix, ref_id = "P00722", log = F,
                           PDF = TRUE, legend = TRUE, average_int = "median",
                           plot = TRUE){
