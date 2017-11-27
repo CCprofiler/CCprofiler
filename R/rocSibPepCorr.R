@@ -84,8 +84,8 @@ rocSibPepCorr <- function(traces,
 ## Estimate the FDR
   if(fdr_type == "peptide"){
 
-  fdr_protein <- FFT*decoyProteins/(targetProteins)
-  fdr_peptides <- FFT*decoyPeptides/(targetPeptides)
+  fdr_protein <- pmin(1, FFT*decoyProteins/(targetProteins))
+  fdr_peptides <- pmin(1, FFT*decoyPeptides/(targetPeptides))
   true_targetProteins <- as.integer(targetProteins * (1-fdr_protein))
   true_targetPeptides <- as.integer(targetPeptides * (1-fdr_peptides))
   resulttable <- as.data.table(cbind(corrTest,
@@ -96,7 +96,7 @@ rocSibPepCorr <- function(traces,
                              'n_targetPeptides' , 'n_true_targetPeptides','n_decoyPeptides' , 'peptideFDR')
   }else if(fdr_type == "protein"){
 
-    fdr_protein <- FFT*decoyProteins/(targetProteins)
+    fdr_protein <- pmin(1, FFT*decoyProteins/(targetProteins))
     true_targetProteins <- as.integer(targetProteins * (1-fdr_protein))
     resulttable <- as.data.table(cbind(corrTest,
                                        targetProteins, true_targetProteins, decoyProteins,fdr_protein))
