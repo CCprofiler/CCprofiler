@@ -10,7 +10,8 @@
 #' @export
 
 calculateRepPepCorr <- function(traces, design_matrix, compare_within = NULL,
-                                add = T){
+                                add = T, plot = F, PDF = F,
+                                name = "ReplicatePeptideCorrelationDensity"){
   
   # Check input type
   
@@ -53,6 +54,9 @@ calculateRepPepCorr <- function(traces, design_matrix, compare_within = NULL,
       }
     }
     .tracesListTest(traces)
+    if(plot){
+      plotRepPepCorrDensities.tracesList(traces, PDF = PDF, name = name)
+    }
     return(traces)
   }else{
     return(pwcorr)      
