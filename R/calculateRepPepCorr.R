@@ -9,14 +9,15 @@
 #' contaioning repPepCors.
 #' @export
 
-
 calculateRepPepCorr <- function(traces, design_matrix, compare_within = NULL,
                                 add = T){
   
   # Check input type
+  
   if (any(sapply(traces, "[[", "trace_type") != "peptide")){
     stop("Replicate peptide correlation can only be calculated on traces of type peptide")
   }
+  .tracesListTest(traces, type = "peptide")
   for(i in 1:length(traces)){
     if(any(names(traces[[i]]$trace_annotation)== "RepPepCorr" & add == T)){
       traces[[i]]$trace_annotation[,RepPepCorr := NULL]
@@ -25,8 +26,6 @@ calculateRepPepCorr <- function(traces, design_matrix, compare_within = NULL,
     setkey(traces[[i]]$traces, "id")
   }
   
-  
-  # Find peptides present in all replicates of the conditions
   if(!is.null(compare_within)){
     compare_col <- which(names(design_matrix) == compare_within)
     stopifnot(length(compare_col) == 1)
@@ -37,49 +36,151 @@ calculateRepPepCorr <- function(traces, design_matrix, compare_within = NULL,
     compare_within <- "Condition"
   }
   
-  repPepCorr <- lapply(conditions, function(condition){
-    sample_names <- design_matrix[get(compare_within) == condition, Sample_name]
-    
-    message(paste0("Calculating RepPepCorr for Replicates within ", condition, "..."))
-    df <- do.call("rbind", lapply(traces[sample_names], function(x) x$traces))
-    setkey(df, "id")
-    # Subset to intersection peptides
-    # if(is.null(intersect)){
-    #   # intersect_peps <- Reduce(intersect, lapply(traces[sample_names], function(x) x$trace_annotation$id))
-    #   # df <- df[intersect]
-    #   intersect <- length(sample_names)
-    # }
-    # df <- df[,if(.N >=intersect) .SD,by=id]
-    # Calculate the mean correllation of the intersection peptides
-    df_cors <- df[,
-                  .({c <- cor(t(.SD))
-                  mean(c[lower.tri(c)])},
-                  nrow(c)),
-                  by = id]
-    names(df_cors) <- c("id", "RepPepCorr", "detected_in")
-    # sapply(intersect, function(pep){
-    #   df_p <- df
-    #   df[, id:= NULL]
-    #   df_cor <- cor(t(df))
-    #   mean(df_cor[lower.tri(df_cor)])
-    # }) 
-    # 
-    df_cors
-  })
-  names(repPepCorr) <- conditions
+  pwcorr <- calculatePairwiseRepPepCorr(traces)
   
   if(add){
     for(condition in conditions){
-      sample_names <- design_matrix[design_matrix[[2]] == condition, Sample_name]
-      for(sample_name in sample_names){
-        traces[[sample_name]]$trace_annotation <- merge(traces[[sample_name]]$trace_annotation,
-                                                        repPepCorr[[condition]],
-                                                        by = "id", all.x = T)
+      samplesInCond <- design_matrix[get(compare_within) == condition, Sample_name]
+      message(paste0("Calculating RepPepCorrs for ", condition, "..."))
+      pc <- pwcorr[Sample1 %in% samplesInCond & Sample2 %in% samplesInCond & !is.na(RepPepCorr)]
+      # pc[, detected_in := .N, by = id]
+      for(sample in samplesInCond){
+        pcs <- pc[(Sample1 == sample | Sample2 == sample)]
+        meanpc <- pcs[, .(RepPepCorr = mean(RepPepCorr)), by = id]
+        traces[[sample]]$trace_annotation <- merge(traces[[sample]]$trace_annotation,
+                                                   meanpc,
+                                                   by = "id", all.x = T)
       }
     }
+    .tracesListTest(traces)
     return(traces)
   }else{
-    return(repPepCorr)      
+    return(pwcorr)      
   }
 }
+
+# calculateRepPepCorr <- function(traces, design_matrix, compare_within = NULL,
+#                                 add = T){
+#   
+#   # Check input type
+#   
+#   if (any(sapply(traces, "[[", "trace_type") != "peptide")){
+#     stop("Replicate peptide correlation can only be calculated on traces of type peptide")
+#   }
+#   .tracelListTest(traces, type = "peptide")
+#   for(i in 1:length(traces)){
+#     if(any(names(traces[[i]]$trace_annotation)== "RepPepCorr" & add == T)){
+#       traces[[i]]$trace_annotation[,RepPepCorr := NULL]
+#       message(paste0("Found RepPepCorr in ", names(traces)[i], ": Overwriting..."))
+#     }
+#     setkey(traces[[i]]$traces, "id")
+#   }
+#   
+#   if(!is.null(compare_within)){
+#     compare_col <- which(names(design_matrix) == compare_within)
+#     stopifnot(length(compare_col) == 1)
+#     conditions <- unique(design_matrix[[compare_within]])
+#   }else{
+#     design_matrix$Condition <- "all Conditions"
+#     conditions <- "all Conditions"
+#     compare_within <- "Condition"
+#   }
+#   
+#   repPepCorr <- lapply(conditions, function(condition){
+#     sample_names <- design_matrix[get(compare_within) == condition, Sample_name]
+#     
+#     message(paste0("Calculating RepPepCorr for Replicates within ", condition, "..."))
+#     df <- do.call("rbind", lapply(traces[sample_names], function(x) x$traces))
+#     setkey(df, "id")
+#     # Subset to intersection peptides
+#     # if(is.null(intersect)){
+#     #   # intersect_peps <- Reduce(intersect, lapply(traces[sample_names], function(x) x$trace_annotation$id))
+#     #   # df <- df[intersect]
+#     #   intersect <- length(sample_names)
+#     # }
+#     # df <- df[,if(.N >=intersect) .SD,by=id]
+#     # Calculate the mean correllation of the intersection peptides
+#     df_cors <- df[,
+#                   .({c <- cor(t(.SD))
+#                   mean(c[lower.tri(c)])},
+#                   nrow(c)),
+#                   by = id]
+#     names(df_cors) <- c("id", "RepPepCorr", "detected_in")
+#     # sapply(intersect, function(pep){
+#     #   df_p <- df
+#     #   df[, id:= NULL]
+#     #   df_cor <- cor(t(df))
+#     #   mean(df_cor[lower.tri(df_cor)])
+#     # }) 
+#     # 
+#     df_cors
+#   })
+#   names(repPepCorr) <- conditions
+#   
+#   if(add){
+#     for(condition in conditions){
+#       sample_names <- design_matrix[design_matrix[[2]] == condition, Sample_name]
+#       for(sample_name in sample_names){
+#         traces[[sample_name]]$trace_annotation <- merge(traces[[sample_name]]$trace_annotation,
+#                                                         repPepCorr[[condition]],
+#                                                         by = "id", all.x = T)
+#       }
+#     }
+#     return(traces)
+#   }else{
+#     return(repPepCorr)      
+#   }
+# }
+
+calculatePairwiseRepPepCorr <- function(traces, comparisons = NULL){
+  
+  # Check input type
+  if (any(sapply(traces, "[[", "trace_type") != "peptide")){
+    stop("Replicate peptide correlation can only be calculated on traces of type peptide")
+  }
+  # for(i in 1:length(traces)){
+  #   setkey(traces[[i]]$traces, "id")
+  # }
+  if(is.null(comparisons)){
+    corrPairs <- combn(names(traces), m = 2)
+  }else{
+    corrPairs <- comparisons
+  }
+  
+  corrPairNames <- apply(corrPairs, 2, paste, collapse = "-")
+  intMats <- lapply(traces, getIntensityMatrix)
+  allIds <- unique(do.call("c", lapply(intMats, rownames)))
+  res <- data.table(id = allIds)
+  
+  cross_corr <- apply(corrPairs, 2, function(pair){
+    # print(pair)
+    tr1 <- intMats[[pair[1]]]
+    tr2 <- intMats[[pair[2]]]
+    ids1 <- rownames(tr1)
+    ids2 <- rownames(tr2)
+    common_ids <- intersect(ids1, ids2)
+    
+    t1 <- tr1[common_ids,]
+    t2 <-  tr2[common_ids,]
+    # sapply(1:nrow(t1), function(i) cor(t1[i,], t2[i,]))
+    cA <- t1 - rowMeans(t1)
+    cB <- t2 - rowMeans(t2)
+    sA <- sqrt(rowMeans(cA^2))
+    sB <- sqrt(rowMeans(cB^2))
+    
+    rowMeans(cA * cB) / (sA * sB)
+  })
+  cross_corr <- lapply(cross_corr, function(x) data.table(id = names(x), corr = x))
+  for(i in 1: length(cross_corr)){
+    res <- merge(res, cross_corr[[i]], by = "id", all.x = TRUE, suffixes = c(i-1, i))
+  }
+  names(res) <- c("id", corrPairNames)
+  resLong <- melt(res, id.vars = "id", variable.name = "Sample_pair", value.name = "RepPepCorr")
+  ann <- as.data.table(cbind(corrPairNames, t(corrPairs)))
+  names(ann) <- c("Sample_pair", "Sample1", "Sample2")
+  resLong <- merge(resLong, ann, by = "Sample_pair", all.x = TRUE)
+  setkey(resLong, "id")
+  return(resLong)  
+}
+
 

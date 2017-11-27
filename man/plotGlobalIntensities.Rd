@@ -19,7 +19,8 @@ Default is \code{FALSE}.}
 PDF file is saved under name.pdf. Default is "Traces".}
 }
 \value{
-Violin plot of trace intensities per sample
+Violin plot of trace intensities per sample. The vertical line represents
+the median intensity. The black dot indicates the mean.
 }
 \description{
 Plot a comparison of the intensities in different samples
