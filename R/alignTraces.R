@@ -69,6 +69,8 @@ getLag <- function(traces1, traces2, min_lag = -5, max_lag = 5, plot = T, ...){
 #' @param alignment_order Integer vector, determines the sequence of alignment.
 #' @param plot Logical, wether to plot boxplots of corellation at different lags.
 #' @param PDF Logical, wether to produce a PDF in the working directory.
+#' @param min_lag numeric, the lower bound of the range of lags to evaluate.
+#' @param max_lag numeric, the upper bound of the range of lags to evaluate.
 #' @param name Character string, the name of the PDF file.
 #' @return Numeric vector, the shifts with the highest corellations for each alignment
 #' @export
@@ -77,6 +79,7 @@ alignTraces <- function(tracesList,
                         alignment_order = seq_along(tracesList),
                         plot = TRUE,
                         PDF = FALSE,
+                        min_lag = -5, max_lag = 5,
                         name= "AlignmentSummary.pdf", ...){
   .tracesListTest(tracesList)
   message("Sequentially aligning traces: ")
@@ -84,7 +87,8 @@ alignTraces <- function(tracesList,
   lags <- sapply(alignment_order[-length(alignment_order)], function(i){
     message(paste(names(tracesList)[i], "to", names(tracesList)[i+1]))
     if(PDF|plot){
-      l <- getLag(tracesList[[i]], tracesList[[i+1]], returnPlot = TRUE, plot = F)
+      l <- getLag(tracesList[[i]], tracesList[[i+1]], returnPlot = TRUE, plot = F,
+                  min_lag = min_lag, max_lag = max_lag, ...)
       boxplot(l$cross_corr, names = l$lag_range, notch = T,
               xlab = "Fraction shift", ylab = "Correlation")
       title(paste(names(tracesList)[i], "to", names(tracesList)[i+1]))
@@ -92,7 +96,8 @@ alignTraces <- function(tracesList,
       legend(x = length(l$lag_range) + 0.7, y = 1, legend = "mean", lty = 1, xjust = 1)
       l$lag
     }else{
-      getLag(tracesList[[i]], tracesList[[i+1]], plot = T)
+      getLag(tracesList[[i]], tracesList[[i+1]], plot = F,
+             min_lag = min_lag, max_lag = max_lag, ...)
     }
   })
   if(PDF) dev.off()
