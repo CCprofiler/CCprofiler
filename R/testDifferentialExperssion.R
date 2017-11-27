@@ -6,6 +6,7 @@
 #' @param level Character string, return tests on peptide level or aggregate to protein level.
 #' Must be one of c("protein","peptide"). Defaults to "protein".
 #' @return A data.table containing the differential testing results for every protein/peptide.
+#' @import qvalue
 #' @export
 testDifferentialExpression <- function(featureVals, 
                                        compare_between = "Condition",
@@ -31,7 +32,12 @@ testDifferentialExpression <- function(featureVals,
     by = .(id, feature_id, apex)]
   close(pb)
   
-  if(level == "peptide") return(tests)
+  if(level == "peptide"){
+    tests$pBHadj <- p.adjust(tests$pVal, method = "BH")
+    pQv <- qvalue::qvalue(tests$pVal, lambda = 0.4)
+    tests$QVal <- pQv$qvalues
+    return(tests)
+  } 
   
   message("Aggregating to protein-level...")
   prottests <- aggregatePeptideTests(tests)
