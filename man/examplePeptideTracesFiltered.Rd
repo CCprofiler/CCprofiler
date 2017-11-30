@@ -20,4 +20,3 @@ sibPepCorrFilteredTraces <- filterBySibPepCorr(consecutiveFilteredTraces,
 all.equal(sibPepCorrFilteredTraces,examplePeptideTracesFiltered)
 }
 \keyword{datasets}
-

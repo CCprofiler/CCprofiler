@@ -56,4 +56,3 @@ proteinFeaturesFiltered <- filterFeatures(proteinFeatures,
 estimateDecoyFDR(proteinFeaturesFiltered)
 
 }
-

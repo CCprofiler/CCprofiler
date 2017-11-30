@@ -22,4 +22,3 @@ data.table with stats
 \description{
 qvaluePositivesPlot
 }
-

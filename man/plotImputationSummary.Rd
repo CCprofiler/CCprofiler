@@ -46,6 +46,7 @@ missing values per fraction and some imputed traces.
 
 \item \code{tracesList}: Plot the imputation summary for multiple traces object
 }}
+
 \examples{
 tracesMiss <- findMissingValues(examplePeptideTraces)
 tracesImp <- imputeMissingVals(tracesMiss)
@@ -53,4 +54,3 @@ View(tracesImp$traces)
 
 plotImputationSummary(tracesMiss, tracesImp, PDF = FALSE)
 }
-

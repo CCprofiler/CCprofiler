@@ -5,7 +5,8 @@
 \title{Get the alignment shifts in tracesList object}
 \usage{
 alignTraces(tracesList, alignment_order = seq_along(tracesList),
-  plot = TRUE, PDF = FALSE, name = "AlignmentSummary.pdf", ...)
+  plot = TRUE, PDF = FALSE, min_lag = -5, max_lag = 5,
+  name = "AlignmentSummary.pdf", ...)
 }
 \arguments{
 \item{tracesList}{Object of class tracesList to align.}
@@ -16,6 +17,10 @@ alignTraces(tracesList, alignment_order = seq_along(tracesList),
 
 \item{PDF}{Logical, wether to produce a PDF in the working directory.}
 
+\item{min_lag}{numeric, the lower bound of the range of lags to evaluate.}
+
+\item{max_lag}{numeric, the upper bound of the range of lags to evaluate.}
+
 \item{name}{Character string, the name of the PDF file.}
 }
 \value{
@@ -24,4 +29,3 @@ Numeric vector, the shifts with the highest corellations for each alignment
 \description{
 Get the alignment shifts in tracesList object
 }
-

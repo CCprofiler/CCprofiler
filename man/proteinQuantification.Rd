@@ -7,13 +7,14 @@
 \title{Protein Quantification}
 \usage{
 proteinQuantification(traces, topN = 2, keep_less = FALSE,
-  rm_decoys = TRUE)
+  rm_decoys = TRUE, use_sibPepCorr = FALSE, use_repPepCorr = FALSE)
 
 \method{proteinQuantification}{traces}(traces, topN = 2, keep_less = FALSE,
-  rm_decoys = TRUE)
+  rm_decoys = TRUE, use_sibPepCorr = FALSE, use_repPepCorr = FALSE)
 
 \method{proteinQuantification}{tracesList}(traces, topN = 2,
-  keep_less = FALSE, rm_decoys = TRUE)
+  keep_less = FALSE, rm_decoys = TRUE, use_sibPepCorr = FALSE,
+  use_repPepCorr = FALSE)
 }
 \arguments{
 \item{traces}{An object of type traces, trace_type must be peptide.}
@@ -26,6 +27,12 @@ as the sum of fewer peptide intensities than others. Only use withh caution.), d
 
 \item{rm_decoys}{Logical, specifying whether decoys should be kept.
 The decoys have only limited use on the protein level, default is \code{TRUE}.}
+
+\item{use_sibPepCorr}{Logical, specify whether the sibling peptide correlation should be considered for selecting
+the top N peptides, default is \code{FALSE}.}
+
+\item{use_repPepCorr}{Logical, specify whether the replicate peptide correlation should be considered for selecting
+the top N peptides, default is \code{FALSE}. This argument is only used for tracesList objects.}
 }
 \value{
 An object of type traces, trace_type is protein.
@@ -40,6 +47,7 @@ Calculate protein quantities basen on the topN peptide intensities.
 \item \code{tracesList}: Protein Quantification multiple traces ojects.
 Uses only peptides present in all traces objects for quantification.
 }}
+
 \examples{
 ## Load example data
 pepTraces <- examplePeptideTracesFiltered
@@ -57,4 +65,3 @@ head(protTraces$trace_annotation)
 # The last 2 columns indicate how many peptides could be observed and which were summed for quantification.
 
 }
-

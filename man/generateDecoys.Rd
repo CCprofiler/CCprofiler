@@ -28,4 +28,3 @@ character string with a complex hypothesis, protein ids are separated by ';'
 \description{
 Generate list of proteins for one complex decoy hypothesis
 }
-
