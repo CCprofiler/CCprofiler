@@ -97,7 +97,8 @@ calculatePathlength <- function(binaryInteractionTable){
 #' @param redundancy_cutoff Numeric, maximum overlap distance between two hypotheses
 #' (0=identical,1=subset,between 1 and 2=some shared subunits, 2=no shared subunits).
 #' Defaults to 1.
-#'
+#' @param parallelized Logical, if the computation should be done in parallel, default=FALSE.
+#' @param n_cores Numeric, number of cores used for parallelization.
 #' @return data.table in the format of complex hypotheses.
 #' Has the following columns:
 #' \itemize{
@@ -124,20 +125,41 @@ calculatePathlength <- function(binaryInteractionTable){
 
 generateComplexTargets <- function(dist_info,
                                    max_distance=1,
-                                   redundancy_cutoff=1){
+                                   redundancy_cutoff=1,
+                                   parallelized=FALSE,
+                                   n_cores=1){
 
   all_proteins <- unique(c(dist_info$x,dist_info$y))
 
   ## Extract one complex hypotheis for every protein contained
-  initial_complexes <- lapply(all_proteins, function(protein){
-
-    combi_sub <- subset(dist_info,(((x == protein) | (y == protein)) & (dist<=max_distance)))
-    interactors <- sort(unique(c(combi_sub$x,combi_sub$y)))
-    interactorString <- paste(interactors,collapse =";")
-    data.table(complex_id=protein,
-               subunits_detected=interactorString,
-               n_subunits=length(interactors))
-  })
+  if (parallelized) {
+    cl <- snow::makeCluster(n_cores)
+    doSNOW::registerDoSNOW(cl)
+    clusterExport(cl, "data.table")
+    initial_complexes <- parLapply(cl,
+                                   all_proteins, 
+                                   function(protein){
+                                     combi_sub <- subset(dist_info,(((x == protein) | (y == protein)) & (dist<=max_distance)))
+                                     interactors <- sort(unique(c(combi_sub$x,combi_sub$y)))
+                                     interactorString <- paste(interactors,collapse =";")
+                                     data.table(complex_id=protein,
+                                                subunits_detected=interactorString,
+                                                n_subunits=length(interactors))
+                                   })
+     
+    parallel::stopCluster(cl)
+  } else {
+    initial_complexes <- lapply(all_proteins, function(protein){
+      
+      combi_sub <- subset(dist_info,(((x == protein) | (y == protein)) & (dist<=max_distance)))
+      interactors <- sort(unique(c(combi_sub$x,combi_sub$y)))
+      interactorString <- paste(interactors,collapse =";")
+      data.table(complex_id=protein,
+                 subunits_detected=interactorString,
+                 n_subunits=length(interactors))
+    })
+  }
+  
   initial_complexes <- do.call("rbind", initial_complexes)
 
   ## Remove redundant hypotheses

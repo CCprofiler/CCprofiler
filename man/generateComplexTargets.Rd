@@ -4,7 +4,8 @@
 \alias{generateComplexTargets}
 \title{Generate complex target-hypotheses}
 \usage{
-generateComplexTargets(dist_info, max_distance = 1, redundancy_cutoff = 1)
+generateComplexTargets(dist_info, max_distance = 1, redundancy_cutoff = 1,
+  parallelized = FALSE, n_cores = 1)
 }
 \arguments{
 \item{dist_info}{data.table with three columns containing all possible combinations of proteins:
@@ -20,6 +21,10 @@ as being in one complex. Defaults to 1.}
 \item{redundancy_cutoff}{Numeric, maximum overlap distance between two hypotheses
 (0=identical,1=subset,between 1 and 2=some shared subunits, 2=no shared subunits).
 Defaults to 1.}
+
+\item{parallelized}{Logical, if the computation should be done in parallel, default=FALSE.}
+
+\item{n_cores}{Numeric, number of cores used for parallelization.}
 }
 \value{
 data.table in the format of complex hypotheses.
