@@ -448,18 +448,57 @@ summary.traces <- function(traces) {
   pct_decoys <- signif(no_decoys/no_traces * 100, 2)
   res <- c(no_traces, no_targets, no_decoys, pct_decoys)
   names(res) <- c("No. of Traces", "No. of Targets", "No. of Decoys", "% Decoys")
+  
+  if(traces$trace_type == "peptide"){
+    no_ptraces <- length(unique(traces$trace_annotation$protein_id))
+    no_pdecoys <- length(unique(grep("DECOY", traces$trace_annotation$protein_id)))
+    no_ptargets <- no_ptraces - no_pdecoys
+    pct_pdecoys <- signif(no_pdecoys/no_ptraces * 100, 2)
+    pres <- c(no_ptraces, no_ptargets, no_pdecoys, pct_pdecoys)
+    names(pres) <- c("No. of Proteins", "No. of Targets", "No. of Decoys", "% Decoys")
+    res <- list(Peptides = res, Proteins = pres)
+  }
   annotation_info <- names(traces$trace_annotation)
   fraction_info = length(traces$fraction_annotation$id)
   type=traces$trace_type
+  
+  summary=list(metrics=res,type=type,annotations=annotation_info,fraction_count=fraction_info)
   if("SibPepCorr" %in% names(traces$trace_annotation)) {
     SibPepCorr_summary <- summary(traces$trace_annotation$SibPepCorr)
-    summary=list(metrics=res,type=type,annotations=annotation_info,fraction_count=fraction_info,SibPepCorr_summary=SibPepCorr_summary)
-  } else {
-    summary=list(metrics=res,type=type,annotations=annotation_info,fraction_count=fraction_info)
+    summary$SibPepCorr_summary <- SibPepCorr_summary
+  }
+  if("RepPepCorr" %in% names(traces$trace_annotation)) {
+    RepPepCorr_summary <- summary(traces$trace_annotation$RepPepCorr)
+    summary$RepPepCorr_summary <- RepPepCorr_summary
   }
   summary
 }
 
+#' Summarize a tracesList object
+#' @description Summarize a tracesList object to get an overview.
+#' @param traces Object of class tracesList
+#' @return A summary list with following entries:
+#'          \itemize{
+#'           \item \code{metrics} Summary of traces counts including decoy statistics.
+#'           \item \code{type} Type of traces: peptides or proteins.
+#'           \item \code{annotations} Names of trace annotations.
+#'           \item \code{fraction_count} Number of fractions in traces object.
+#'           \item \code{SibPepCorr} Summary of sibling peptide correlation.
+#'           Only reported if sibling peptide correlations were previously calculated.
+#'          }
+#' @export
+
+summary.tracesList <- function(traces) {
+  .tracesListTest(traces)
+  res <- lapply(names(traces),function(tr){
+    trace <- traces[[tr]]
+    cat(paste0("###########################\n## ",
+           tr, "\n",
+           "###########################\n\n"))
+    print(summary.traces(trace))
+  })
+  
+}
 #' Test if an object is of class traces.
 #' @param traces Object of class traces.
 #' @param type Character string specifying whether a specific type of traces is required.
