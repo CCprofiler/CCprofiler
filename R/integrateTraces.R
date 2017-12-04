@@ -10,14 +10,16 @@
 integrateTraceIntensities <- function(traces,
                                       design_matrix = NULL,
                                       integrate_within = NULL,
-                                      min_present = 1, 
-                                      aggr_fun = c("sum", "mean")){
-  
+                                      min_present = 1,
+                                      aggr_fun = c("sum", "mean"),
+                                      aggr_corr_fun = c("mean", "sum")){
+
   for(i in 1:length(traces)){
     .tracesTest(traces[[i]], type = traces[[1]]$trace_type)
   }
   aggr_fun <- match.arg(aggr_fun)
-  
+  aggr_corr_fun <- match.arg(aggr_corr_fun)
+
   if(!is.null(integrate_within)){
     if(is.null(design_matrix)){
       stop("If integrate_within is specified, you have to specify a design matrix as well")
@@ -36,19 +38,31 @@ integrateTraceIntensities <- function(traces,
   for(condition in conditions){
     samples <- design_matrix[get(integrate_within) == condition, Sample_name]
     traces <- oldTraces[samples]
-    
+
     ## Create a merged annotation
     annComb <- do.call("rbind", lapply(traces, function(x) x$trace_annotation))
     setkey(annComb, "id")
     if(any(names(annComb) == "SibPepCorr")){
-      annComb[, meanSibPepCorr := mean(SibPepCorr), by= id][, SibPepCorr := NULL]
+      if (aggr_corr_fun == "mean") {
+        annComb[, meanSibPepCorr := mean(SibPepCorr,na.rm=T), by= id][, SibPepCorr := NULL]
+      } else if (aggr_corr_fun == "sum") {
+        annComb[, sumSibPepCorr := sum(SibPepCorr,na.rm=T), by= id][, SibPepCorr := NULL]
+      } else {
+        stop("aggr_corr_fun parameter is not valid. Please choose between mean or sum.")
+      }
     }
     if(any(names(annComb) == "RepPepCorr")){
-      annComb[, meanRepPepCorr := mean(RepPepCorr), by= id][, RepPepCorr := NULL]
+      if (aggr_corr_fun == "mean") {
+        annComb[, meanRepPepCorr := mean(RepPepCorr,na.rm=T), by= id][, RepPepCorr := NULL]
+      } else if (aggr_corr_fun == "sum") {
+        annComb[, sumRepPepCorr := sum(RepPepCorr,na.rm=T), by= id][, RepPepCorr := NULL]
+      } else {
+        stop("aggr_corr_fun parameter is not valid. Please choose between mean or sum.")
+      }
     }
     annComb[, detectedIn := .N, by = id]
     annComb <- unique(annComb, by = "id")
-    
+
     ## Calculate Mean of intensities
     traceInt <- do.call("rbind", lapply(traces, "[[", "traces"))
     setkey(traceInt, "id")
@@ -58,7 +72,7 @@ integrateTraceIntensities <- function(traces,
       traceIntSum <- traceInt[, lapply(.SD, sum), by = id]
     }
     setcolorder(traceIntSum, c(names(traceIntSum)[-1], "id"))
-    
+
     ## Create a merged fraction annotation
     fracAnnComb <- rbindlist(lapply(traces, "[[", "fraction_annotation"), fill = TRUE)
     setkey(fracAnnComb, "id")
@@ -73,7 +87,7 @@ integrateTraceIntensities <- function(traces,
         }
       }), by = id]
     }
-    
+
     ## Assemble the new traces object
     resTraces <- list(traces = traceIntSum,
                       trace_type = traces[[1]]$trace_type,
@@ -83,7 +97,7 @@ integrateTraceIntensities <- function(traces,
     .tracesTest(resTraces)
     tracesRes[[condition]] <- resTraces
   }
-  
+
   if(length(tracesRes) >1){
     class(tracesRes) <- "tracesList"
     .tracesListTest(tracesRes)
