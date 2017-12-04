@@ -19,3 +19,4 @@ proteinFeatures <- findProteinFeatures(traces = examplePeptideTracesFiltered)
 all.equal(proteinFeatures,exampleProteinFeatures)
 }
 \keyword{datasets}
+

@@ -25,3 +25,4 @@ calibration = calibrateMW(calibrationTable)
 # Perform molecular weight annotation:
 mwTraces <- annotateMolecularWeight(inputTraces, calibration)
 }
+

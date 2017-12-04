@@ -34,3 +34,4 @@ An object of type \code{collapsedComplexFeatures} that is a list
 \description{
 Calculate q-values from coelution score for all detected features.
 }
+

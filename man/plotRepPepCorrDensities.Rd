@@ -18,3 +18,4 @@ Plot.
 \description{
 Plot replicate peptide correlation in traces object of type peptide.
 }
+

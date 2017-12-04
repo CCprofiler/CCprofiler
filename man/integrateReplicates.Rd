@@ -25,3 +25,4 @@ tracesList object containing the integrated traces
 \description{
 Generate a consensus traces object from multiple replicate traces
 }
+

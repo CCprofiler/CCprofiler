@@ -30,3 +30,4 @@ A data.table containing the following information:
 \description{
 Convert any input ids to uniprotkb accession ids.
 }
+
