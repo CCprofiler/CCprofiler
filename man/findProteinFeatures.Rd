@@ -60,3 +60,4 @@ proteinFeatures <- findProteinFeatures(traces=peptideTracesSubset)
 ## Inspect complex features
 head(proteinFeatures,n=3)
 }
+

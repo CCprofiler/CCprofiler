@@ -13,3 +13,4 @@ Each row in this data.table corresponds to an association between a protein/pept
 and any specific information, for example annotations downloaded from Uniprot.
 }
 \keyword{datasets}
+

@@ -52,3 +52,4 @@ An object of type \code{complexFeatureStoichiometries} that is a list
 A helper function to extend a list of complex features with additional
 stoichiometry estimation.
 }
+

@@ -26,3 +26,4 @@ have the same length as the number of rows in `m`.}
 \description{
 Helper function to find boundaries of complex features.
 }
+

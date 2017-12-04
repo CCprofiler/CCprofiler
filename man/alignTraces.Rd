@@ -29,3 +29,4 @@ Numeric vector, the shifts with the highest corellations for each alignment
 \description{
 Get the alignment shifts in tracesList object
 }
+
