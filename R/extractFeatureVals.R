@@ -13,7 +13,8 @@
 extractFeatureVals <- function(traces, features,
                                perturb_cutoff = "5%",
                                verbose = TRUE,
-                               extract = "subunits_detected", ...){
+                               extract = "subunits_detected",
+                               fill = F, ...){
   UseMethod("extractFeatureVals", traces)
 }
 
@@ -23,7 +24,8 @@ extractFeatureVals <- function(traces, features,
 extractFeatureVals.traces <- function(traces, features,
                                perturb_cutoff = "5%",
                                verbose = TRUE, 
-                               extract = "subunits_detected", ...){
+                               extract = "subunits_detected",
+                               fill = F, ...){
   
   if(!is.data.table(features)){
     stop("features must be of type 'data.table'")
@@ -111,12 +113,20 @@ extractFeatureVals.traces <- function(traces, features,
     info_cols <- c("id","feature_id", "apex", "bound_left", "bound_right",
                    "corr","peak_cor", "total_pep_intensity", "total_prot_intensity",
                    "total_top2_prot_intensity")
-    res[, (info_cols) := .(subunitsUnion, id, apex, bound_left, bound_right, corrSubunits,
-                           pk, intensities, totalIntensity, totalTop2Intensity)]
+    res <- res[, (info_cols) := .(subunitsUnion, id, apex, bound_left, bound_right, corrSubunits,
+                                  pk, intensities, totalIntensity, totalTop2Intensity)]
     resLong <- melt(res, id.vars = info_cols, variable.name = "fraction", value.name = "intensity")
+    resLong
   })
   featureVals <- do.call("rbind", featureVals)
+  featureVals <- as.data.table(featureVals)
   featureVals[, fraction := as.numeric(levels(fraction))[fraction]]
+  if(fill){
+    if(verbose) message("Filling in missing values...")
+    featureVals <- fillFeatureVals(featureVals = featureVals,
+                                   design_matrix = design_matrix,
+                                   perturb_cutoff = perturb_cutoff)
+  }
   return(featureVals)
 }
 
@@ -126,10 +136,16 @@ extractFeatureVals.tracesList <- function(traces, features,
                                       perturb_cutoff = "5%",
                                       verbose = TRUE,
                                       design_matrix = NULL,
-                                      extract = "subunits_detected", ...){
+                                      extract = "subunits_detected", 
+                                      fill = F, ...){
   res <- lapply(names(traces), function(tr){
     message(paste0("Extracting values from ", tr))
-    vals <- extractFeatureVals.traces(traces[[tr]], features, perturb_cutoff, verbose, extract)
+    vals <- extractFeatureVals.traces(traces[[tr]],
+                                      features = features, 
+                                      perturb_cutoff = perturb_cutoff, 
+                                      verbose = verbose, 
+                                      extract = extract, 
+                                      fill = fill)
     if(!is.null(design_matrix)){
       vals[,Condition := unique(design_matrix[Sample_name == tr, Condition])]
       vals[,Replicate := unique(design_matrix[Sample_name == tr, Replicate])]
