@@ -190,7 +190,14 @@ fillFeatureVals <- function(featureVals,
   fvComp[, filled_in := is.na(intensity)]
   n_filled <- fvComp[filled_in == T, .N]
   fvComp[filled_in == T, intensity := as.double(sample(1:perturb_cutoff, n_filled, replace = T))]
-  return(fvComp)
+  fvComp[, Condition := NULL]
+  fvComp[, Replicate := NULL]
+  fvComp <- merge(fvComp, design_matrix[,.(Sample_name, Condition)],
+                  by.x = "Sample", by.y = "Sample_name", sort = F)
+  fvComp <- merge(fvComp, design_matrix[,.(Sample_name, Replicate)],
+                  by.x = "Sample", by.y = "Sample_name", sort = F)
+
+  return(fvComp[])
 }
   
   
