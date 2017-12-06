@@ -3,12 +3,12 @@ title: "Introduction to the CCprofiler package"
 author: "Isabell Bludau, Max Frank, Moritz Heusel"
 date: '`r Sys.Date()`'
 output:
+  pdf_document:
+    toc: yes
   html_document:
     depth: 3
     number_sections: yes
     theme: united
-    toc: yes
-  pdf_document:
     toc: yes
 fontsize: 11pt
 vignette: |
