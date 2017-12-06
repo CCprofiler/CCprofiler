@@ -49,7 +49,11 @@ getUniqueFeatureGroups <- function(feature_table,
     rm(data)
   }
   feature_table[,consecutive_feature_identifier := NULL]
-  feature_table <- feature_table[order(unique_feature_identifier,-n_subunits_detected,-sw_score,-area,mw_diff)]
+  if("mw_diff" %in% names(feature_table)){
+    feature_table <- feature_table[order(unique_feature_identifier,-n_subunits_detected,-sw_score,-area,mw_diff)]
+  } else {
+    feature_table <- feature_table[order(unique_feature_identifier,-n_subunits_detected,-sw_score,-area)]
+  }
   return(feature_table)
 }
 
