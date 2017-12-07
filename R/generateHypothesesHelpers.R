@@ -10,8 +10,8 @@
 getDistance <- function(A,B, all_A, all_B){
   # all_A <- length(A)
   # all_B <- length(B)
-  unique_A <- length(setdiff(A, B))
-  unique_B <- length(setdiff(B, A))
+  unique_A <- length(which(! A %in% B))
+  unique_B <- length(which(! B %in% A))
   scoreA <- unique_A/all_A
   scoreB <- unique_B/all_B
   if((scoreA==0) & (scoreB==0)){
