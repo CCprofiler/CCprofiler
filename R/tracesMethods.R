@@ -499,6 +499,44 @@ summary.tracesList <- function(traces) {
   })
   
 }
+
+#' Summarize a tracesList object
+#' @description Summarize a tracesList object to get an overview.
+#' @param traces Object of class tracesList
+#' @return A summary list with following entries:
+#'          \itemize{
+#'           \item \code{metrics} Summary of traces counts including decoy statistics.
+#'           \item \code{type} Type of traces: peptides or proteins.
+#'           \item \code{annotations} Names of trace annotations.
+#'           \item \code{fraction_count} Number of fractions in traces object.
+#'           \item \code{SibPepCorr} Summary of sibling peptide correlation.
+#'           Only reported if sibling peptide correlations were previously calculated.
+#'          }
+#' @export
+print.tracesList <- function(traces){
+  summary.tracesList(traces)
+}
+
+#' Summarize a traces object
+#' @description Summarize a traces object to get an overview.
+#' @param traces Object of class traces.
+#' @return A summary list with following entries:
+#'          \itemize{
+#'           \item \code{metrics} Summary of traces counts including decoy statistics.
+#'           \item \code{type} Type of traces: peptides or proteins.
+#'           \item \code{annotations} Names of trace annotations.
+#'           \item \code{fraction_count} Number of fractions in traces object.
+#'           \item \code{SibPepCorr} Summary of sibling peptide correlation.
+#'           Only reported if sibling peptide correlations were previously calculated.
+#'          }
+#' @examples
+#' summary(examplePeptideTracesFiltered)
+#' @export
+
+print.traces <- function(traces){
+  summary.traces(traces)
+}
+
 #' Test if an object is of class traces.
 #' @param traces Object of class traces.
 #' @param type Character string specifying whether a specific type of traces is required.
