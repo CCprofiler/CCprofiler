@@ -149,9 +149,25 @@ toLongFormat <- function(traces.dt) {
 #' mwTraces <- annotateMolecularWeight(inputTraces, calibration)
 #' @export
 annotateMolecularWeight <- function(traces, calibration){
+  UseMethod("annotateMolecularWeight", traces)
+}
+
+#' @describeIn annotateMolecularWeight Annotate single traces object
+#' @export
+annotateMolecularWeight.traces <- function(traces, calibration){
   .tracesTest(traces)
   traces$fraction_annotation[,molecular_weight := round(calibration$FractionToMW(traces$fraction_annotation$id),digits=3)]
   traces
+}
+
+#' @describeIn annotateMolecularWeight Annotate tracesList object
+#' @export
+annotateMolecularWeight.tracesList <- function(traces, calibration){
+  .tracesListTest(traces)
+  res <- lapply(traces, annotateMolecularWeight.traces, calibration = calibration)
+  class(res) <- "tracesList"
+  .tracesListTest(res)
+  return(res)
 }
 
 #' Plot traces

@@ -2,9 +2,15 @@
 % Please edit documentation in R/tracesMethods.R
 \name{annotateMolecularWeight}
 \alias{annotateMolecularWeight}
+\alias{annotateMolecularWeight.traces}
+\alias{annotateMolecularWeight.tracesList}
 \title{Annotate traces with molecular weight calibration.}
 \usage{
 annotateMolecularWeight(traces, calibration)
+
+\method{annotateMolecularWeight}{traces}(traces, calibration)
+
+\method{annotateMolecularWeight}{tracesList}(traces, calibration)
 }
 \arguments{
 \item{Object}{of class traces.}
@@ -16,6 +22,13 @@ Object of class traces with moleclar weight annotation of fractions.
 Annotate fractions in traces object with calibrated molecular weight.
 This only applies to specific fractionation strategies e.g. SEC)
 }
+\section{Methods (by class)}{
+\itemize{
+\item \code{traces}: Annotate single traces object
+
+\item \code{tracesList}: Annotate tracesList object
+}}
+
 \examples{
 # Load relevant data:
 inputTraces <- examplePeptideTraces
@@ -25,4 +38,3 @@ calibration = calibrateMW(calibrationTable)
 # Perform molecular weight annotation:
 mwTraces <- annotateMolecularWeight(inputTraces, calibration)
 }
-

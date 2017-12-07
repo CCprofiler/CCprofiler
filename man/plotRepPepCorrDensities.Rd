@@ -2,9 +2,17 @@
 % Please edit documentation in R/calculateRepPepCorr.R
 \name{plotRepPepCorrDensities}
 \alias{plotRepPepCorrDensities}
+\alias{plotRepPepCorrDensities.traces}
+\alias{plotRepPepCorrDensities.tracesList}
 \title{plot RepPepCorrDensities}
 \usage{
 plotRepPepCorrDensities(traces, PDF = FALSE,
+  name = "ReplicatePeptideCorrelationDensity")
+
+\method{plotRepPepCorrDensities}{traces}(traces, PDF = FALSE,
+  name = "ReplicatePeptideCorrelationDensity")
+
+\method{plotRepPepCorrDensities}{tracesList}(traces, PDF = FALSE,
   name = "ReplicatePeptideCorrelationDensity")
 }
 \arguments{
@@ -18,4 +26,10 @@ Plot.
 \description{
 Plot replicate peptide correlation in traces object of type peptide.
 }
+\section{Methods (by class)}{
+\itemize{
+\item \code{traces}: Plot densities for single traces object
+
+\item \code{tracesList}: Plot densities for tracesList object
+}}
 

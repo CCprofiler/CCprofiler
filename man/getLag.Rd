@@ -23,4 +23,3 @@ Numeric, the shift that produces the highest corellation
 \description{
 Get the shift between 2 traces objects via global corellation
 }
-

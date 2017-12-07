@@ -43,4 +43,3 @@ filteredComplexFeatures <- filterByStepwiseCompleteness(feature_table=complexFea
 ## Run summary function on filtered data:
 summarizeFeatures(filteredComplexFeatures)
 }
-

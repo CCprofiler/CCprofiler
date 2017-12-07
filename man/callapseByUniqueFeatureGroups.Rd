@@ -30,4 +30,3 @@ complexFeaturesCollapsed <- callapseByUniqueFeatureGroups(complexFeaturesUnique,
 complexFeaturesCollapsed
 
 }
-

@@ -200,7 +200,7 @@ plotRepPepCorrDensities <- function(traces, PDF = FALSE,
   UseMethod("plotRepPepCorrDensities", traces)
 }
 
-#' @describeIn plotRepPepCorrDensities
+#' @describeIn plotRepPepCorrDensities Plot densities for single traces object
 plotRepPepCorrDensities.traces <- function(traces, PDF = FALSE,
                                            name = "ReplicatePeptideCorrelationDensity"){
   
@@ -245,7 +245,7 @@ plotRepPepCorrDensities.traces <- function(traces, PDF = FALSE,
   }
 }
 
-#' @describeIn plotRepPepCorrDensities
+#' @describeIn plotRepPepCorrDensities Plot densities for tracesList object
 plotRepPepCorrDensities.tracesList <- function(traces, PDF = FALSE,
                                                name = "ReplicatePeptideCorrelationDensity"){
   .tracesListTest(traces)

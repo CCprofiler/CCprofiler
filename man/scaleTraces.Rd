@@ -23,4 +23,3 @@ Object of class traces with normalized intensities.
 \description{
 Normalize tracesList intensities to a common scale
 }
-

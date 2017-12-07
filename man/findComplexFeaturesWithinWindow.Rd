@@ -30,4 +30,3 @@ A list containing lists that describe the found subclusters.
 Detect subgroups within a window. This is a helper function and should
 be called by `findComplexFeaturesSW`.
 }
-
