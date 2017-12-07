@@ -46,8 +46,8 @@ a specified number of non-zero neighbors to be classified as \code{NA}.
 
 \item \code{tracesList}: Find missing values in all traces within a tracesList
 }}
+
 \examples{
 tracesMiss <- findMissingValues(examplePeptideTraces)
 View(tracesMiss$traces)
 }
-

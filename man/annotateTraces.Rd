@@ -51,6 +51,7 @@ Add custom annotation columns to the trace_annotation in a traces object from an
 
 \item \code{tracesList}: Annotate single traces object
 }}
+
 \examples{
 # Load some example data:
 inputTraces <- examplePeptideTracesUnannotated
@@ -63,4 +64,3 @@ traces_id_column = "protein_id",
 trace_annotation_id_column = "Entry")
 annotatedTraces$trace_annotation
 }
-

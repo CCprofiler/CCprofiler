@@ -54,4 +54,3 @@ targetHypotheses_ <- generateComplexTargets(dist_info = shortestPaths,
                                             redundancy_cutoff = 1)
 
 }
-

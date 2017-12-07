@@ -25,4 +25,3 @@ the median intensity. The black dot indicates the mean.
 \description{
 Plot a comparison of the intensities in different samples
 }
-

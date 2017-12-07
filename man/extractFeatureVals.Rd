@@ -7,14 +7,14 @@
 \title{Extract intensity, correlation etc. within feature boundaries}
 \usage{
 extractFeatureVals(traces, features, perturb_cutoff = "5\%", verbose = TRUE,
-  extract = "subunits_detected", ...)
+  extract = "subunits_detected", fill = F, ...)
 
 \method{extractFeatureVals}{traces}(traces, features, perturb_cutoff = "5\%",
-  verbose = TRUE, extract = "subunits_detected", ...)
+  verbose = TRUE, extract = "subunits_detected", fill = F, ...)
 
 \method{extractFeatureVals}{tracesList}(traces, features,
   perturb_cutoff = "5\%", verbose = TRUE, design_matrix = NULL,
-  extract = "subunits_detected", ...)
+  extract = "subunits_detected", fill = F, ...)
 }
 \arguments{
 \item{traces}{object of class traces}

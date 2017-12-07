@@ -46,4 +46,3 @@ gridStats <- estimateGridSearchDecoyFDR(complexFeaturesGridFiltered,
 ## Inspect the oputput
 gridStats
 }
-

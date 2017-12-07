@@ -23,4 +23,3 @@ tracesList object containing the integrated traces
 \description{
 Add or average traces objects to generate consensus traces.
 }
-

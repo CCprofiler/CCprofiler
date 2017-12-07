@@ -17,4 +17,3 @@ proteinTraces <- proteinQuantification(examplePeptideTracesFiltered)
 all.equal(proteinTraces,exampleProteinTraces)
 }
 \keyword{datasets}
-

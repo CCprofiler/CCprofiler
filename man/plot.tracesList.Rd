@@ -33,4 +33,3 @@ Default is \code{NULL}.}
 \description{
 Plot all chromatograms in a traces object. Most generic plotting function.
 }
-
