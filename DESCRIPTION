@@ -16,7 +16,9 @@ Depends:
     foreach,
     parallel,
     igraph,
-    pracma
+    pracma,
+    gridExtra,
+    Rmpfr
 RoxygenNote: 5.0.1
 Imports:
     igraph
