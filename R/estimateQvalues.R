@@ -145,9 +145,10 @@ plotScoreDistribution <- function(features,PDF=TRUE,name="scoreDistribution"){
 #' @param plot logical, default = TRUE
 #' @param PDF logical, defalt = FALSE
 #' @param name character strimg specifying pdf name, default = "qvaluePositivesPlotGrid"
+#' @param colour_parameter character specifying parameter to colour by
 #' @return data.table with stats
 #' @export
-qvaluePositivesPlotGrid <- function(featuresGrid,plot=TRUE,PDF=FALSE,name="qvaluePositivesPlotGrid"){
+qvaluePositivesPlotGrid <- function(featuresGrid,plot=TRUE,PDF=FALSE,name="qvaluePositivesPlotGrid",colour_parameter="corr"){
   stats_list <- lapply(featuresGrid,function(x){
     maxQvalue <- max(x$qvalue)
     stats <- data.table(qvalue_cutoff=seq(0,maxQvalue,0.005))
@@ -164,11 +165,15 @@ qvaluePositivesPlotGrid <- function(featuresGrid,plot=TRUE,PDF=FALSE,name="qvalu
     if(PDF){
       pdf(paste0(name,".pdf"))
     }
-    p <- ggplot(data=stats_all,aes(x=qvalue_cutoff,y=positives,colour=factor(corr))) +
-      geom_point()
+    p <- ggplot(data=stats_all,aes(x=qvalue_cutoff,y=positives,colour=factor(get(colour_parameter)))) +
+      scale_colour_hue(guide = guide_legend(title = paste0(eval(colour_parameter),"\n"))) +
+      geom_point() +
+      theme_classic()
     print(p)
-    tp <- ggplot(data=stats_all,aes(x=qvalue_cutoff,y=true_positives,colour=factor(corr))) +
-      geom_point()
+    tp <- ggplot(data=stats_all,aes(x=qvalue_cutoff,y=true_positives,colour=factor(get(colour_parameter)))) +
+      scale_colour_hue(guide = guide_legend(title = paste0(eval(colour_parameter),"\n"))) +
+      geom_point() +
+      theme_classic()
     print(tp)
     if(PDF){
       dev.off()
