@@ -1,4 +1,4 @@
-#' Run SECprofiler from SECexplorer y providing ids and their type.
+#' Run CCprofiler from SECexplorer y providing ids and their type.
 #' @param ids A character vector containing names or identifiers.
 #' @param type A character string specifying the type of ids.
 #' @return A list containing the following elements:
@@ -121,12 +121,12 @@ SECexplorer_processing <- function(protein_ids,traces.obj){
                              complex.protein.assoc = complex.table,
                              MWSECcalibrationFunctions=calibration,
                              corr.cutoff=0.95,
-                             window.size=15,
+                             window.size=8,
                              parallelized=FALSE,
                              perturb.cutoff = "5%",
                              collapse_method="apex_only",
-                             rt_height=5,
-                             smoothing_length=11)
+                             rt_height=3,
+                             smoothing_length=9)
   res = resultsToTable(swf)
   model = lm(log(std_weights_kDa) ~ std_elu_fractions)
   model_coeffitients = model$coefficients
