@@ -37,3 +37,4 @@ tracesWithDecoys <- generateRandomPepTraces(exampleTraces,
 summary(tracesWithDecoys)
 
 }
+

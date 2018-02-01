@@ -2,7 +2,7 @@
 #' @description Plot pie chart showing the number of complex hypotheses with co-elution features of certain completenes.
 #' This is only taking into account targets. If decoys are present they are removed using "DECOY" as a flag.
 #' @import data.table
-#' @param complexFeatures data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}} 
+#' @param complexFeatures data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}}
 #' or \code{\link[SECprofiler]{findProteinFeatures}}.
 #' @param hypotheses data.table containing complex hypotheses.
 #' Should have the following columns:
@@ -20,8 +20,8 @@
 #' complexHypotheses <- exampleComplexHypotheses
 #' proteinTraces <- exampleProteinTraces
 #' ## Run plotting function:
-#' plotSummarizedComplexes(complexFeatures=complexFeatures, 
-#'                         hypotheses=complexHypotheses, 
+#' plotSummarizedComplexes(complexFeatures=complexFeatures,
+#'                         hypotheses=complexHypotheses,
 #'                         protTraces=proteinTraces)
 #' @export
 plotSummarizedComplexes <- function(complexFeatures,hypotheses,protTraces,PDF=FALSE,name="complex_completeness_pie"){
@@ -38,7 +38,7 @@ plotSummarizedComplexes <- function(complexFeatures,hypotheses,protTraces,PDF=FA
   targetHypotheses[,detected_collapsed := sum(detected),by=complex_id]
   targetHypotheses[,ms_completeness := detected_collapsed/annotated_collapsed,by=complex_id]
   unique_targetHypotheses <- unique(targetHypotheses,by="complex_id")
-  unique_targetHypotheses_50 <- subset(unique_targetHypotheses,ms_completeness >= 0.5)
+  #unique_targetHypotheses_50 <- subset(unique_targetHypotheses,ms_completeness >= 0.5)
 
   targetFeatures <- getBestFeatures(targetFeatures)
   targetFeatures_min50 <- subset(targetFeatures,(completeness>=0.5) & (completeness<1))
@@ -48,10 +48,10 @@ plotSummarizedComplexes <- function(complexFeatures,hypotheses,protTraces,PDF=FA
   #complexFeatures_noDecoys <- complexFeatures[grep("DECOY",complexFeatures$complex_id,invert=TRUE)]
   complexCompletenessSummary <- data.table(name=c("no co-elution","co-elution\n(< 50% complete)","co-elution\n(>= 50% complete)","co-elution\n(100% complete)"),
                                         count=c(
-                                          sum(!(unique_targetHypotheses_50$complex_id %in% targetFeatures$complex_id)),
-                                          sum(unique_targetHypotheses_50$complex_id %in% targetFeatures_lower50$complex_id),
-                                          sum(unique_targetHypotheses_50$complex_id %in% targetFeatures_min50$complex_id),
-                                          sum(unique_targetHypotheses_50$complex_id %in% targetFeatures_100$complex_id)
+                                          sum(!(unique_targetHypotheses$complex_id %in% targetFeatures$complex_id)),
+                                          sum(unique_targetHypotheses$complex_id %in% targetFeatures_lower50$complex_id),
+                                          sum(unique_targetHypotheses$complex_id %in% targetFeatures_min50$complex_id),
+                                          sum(unique_targetHypotheses$complex_id %in% targetFeatures_100$complex_id)
                                           )
                                         )
 
@@ -65,12 +65,12 @@ plotSummarizedComplexes <- function(complexFeatures,hypotheses,protTraces,PDF=FA
 
 
 #' Scatter plot of complex completeness
-#' @description Plot the number of observed co-eluting subunits over the number of subunits 
-#' in the hypothesis, colour-coded by the completeness. This is only taking into account targets. 
+#' @description Plot the number of observed co-eluting subunits over the number of subunits
+#' in the hypothesis, colour-coded by the completeness. This is only taking into account targets.
 #' If decoys are present they are removed using "DECOY" as a flag.
 #' @import data.table
 #' @import ggplot2
-#' @param complexFeatures data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}} 
+#' @param complexFeatures data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}}
 #' or \code{\link[SECprofiler]{findProteinFeatures}}.
 #' @param PDF Logical, whether to generate a PDF file with the summary plot. Default is \code{FALSE}.
 #' @param name Character string specifying the name of the PDF file of the summary plot.
@@ -101,12 +101,10 @@ plotComplexCompletenessScatter <- function(complexFeatures,PDF=FALSE,name="compl
           panel.grid.minor = element_blank()) +
     labs(colour = "Completeness\n") +
     theme(legend.justification=c(0,1), legend.position=c(0.05,0.75)) +
-    ggtitle("complex completeness scatter") + 
+    ggtitle("complex completeness scatter") +
     theme(plot.title = element_text(size=14, face="bold"))
   print(p)
   if(PDF){
     dev.off()
   }
 }
-
-

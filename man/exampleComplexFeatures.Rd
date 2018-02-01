@@ -20,3 +20,4 @@ complex hypotheses can be detected.
  all.equal(complexFeatures,exampleComplexFeatures)
 }
 \keyword{datasets}
+

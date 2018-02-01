@@ -8,7 +8,7 @@ summarizeFeatures(feature_table, plot = TRUE, PDF = FALSE,
   name = "feature_summary")
 }
 \arguments{
-\item{feature_table}{data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}} 
+\item{feature_table}{data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}}
 or \code{\link[SECprofiler]{findProteinFeatures}}.}
 
 \item{plot}{Logical, whether to generate a feature summary plot. Default is \code{TRUE}.}
@@ -35,3 +35,4 @@ filteredComplexFeatures <- filterFeatures(complexFeatures)
 ## Run summary function on filtered data:
 summarizeFeatures(filteredComplexFeatures)
 }
+

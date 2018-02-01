@@ -36,10 +36,10 @@ getDistance <- function(A,B, all_A, all_B){
 #' ## load example data
 #' complexHypotheses <- exampleComplexHypotheses
 #' complexHypotheses <- complexHypotheses[, .(subunits_detected = paste0(protein_id, collapse = ";")),
-#'                                        by = complex_id] 
+#'                                        by = complex_id]
 #' ## Get the distance matrix
 #' distMat <- getDistanceMatrix(complexHypotheses)
-#' 
+#'
 getDistanceMatrix <- function(complexFeatures){
   complex_subunits <- strsplit(complexFeatures$subunits_detected, ';')
   n_complexes <- length(complex_subunits)
@@ -59,10 +59,11 @@ getDistanceMatrix <- function(complexFeatures){
 #' @description complexClustering.
 #' @param complexFeature data.table containing filtered complex feature results.
 #' @param dist_mat distance matrix from getDistanceMatrix
+#' @param clust_method character string specifying method for hclust, default is "single"
 #' @return cluster object
 #' @export
-complexClustering <- function(complexFeatures,dist_mat){
-  hc <- hclust(dist_mat)
+complexClustering <- function(complexFeatures,dist_mat,clust_method="single"){
+  hc <- hclust(dist_mat,method=clust_method)
   hc$labels = complexFeatures$consecutive_feature_identifier
   hc
 }
@@ -77,7 +78,7 @@ complexClustering <- function(complexFeatures,dist_mat){
 
 .collapseWideHypothesis <- function(hypothesis,
                                redundancy_cutoff=1){
-  
+
   dist_hyp <- getDistanceMatrix(hypothesis)
   clust_hyp <- complexClustering(hypothesis,dist_hyp)
   tree_cut=cutree(clust_hyp,h=redundancy_cutoff)
@@ -98,11 +99,10 @@ complexClustering <- function(complexFeatures,dist_mat){
     hypothesis[,complex_name := paste(complex_id,collapse="_"),by="unique_feature_identifier"]
   }
   hypothesis_unique <- unique(hypothesis,by="unique_feature_identifier")
-  hypothesis_unique[, subunits_detected := hypothesis[, 
+  hypothesis_unique[, subunits_detected := hypothesis[,
                                                       paste0(subunits_detected, collapse = ";"),
                                                       by = unique_feature_identifier]$V1]
   hypothesis_unique <- subset(hypothesis_unique,select=c("complex_id","complex_name","subunits_detected"))
   hypothesis_unique <- hypothesis_unique[,list(protein_id = unique(unlist(strsplit(subunits_detected, ";")))), by=c("complex_id","complex_name")]
   return(hypothesis_unique)
 }
-
