@@ -27,8 +27,8 @@ Here we present the basic functionalities of the package *CCprofiler* for comple
 
 ```{r, message=FALSE, warning=FALSE, cache=FALSE}
 require(devtools)
-install_github("PedrioliLab/SECprofiler", ref = "submission")
-library('SECprofiler')
+install_github("CCprofiler/CCprofiler")
+library('CCprofiler')
 ```
 
 # Preparation
