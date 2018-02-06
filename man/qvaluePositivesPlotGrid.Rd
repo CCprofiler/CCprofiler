@@ -5,7 +5,7 @@
 \title{qvaluePositivesPlotGrid}
 \usage{
 qvaluePositivesPlotGrid(featuresGrid, plot = TRUE, PDF = FALSE,
-  name = "qvaluePositivesPlotGrid")
+  name = "qvaluePositivesPlotGrid", colour_parameter = "corr")
 }
 \arguments{
 \item{featuresGrid}{list of complex or protein feature data.tables including qvalues}
@@ -15,6 +15,8 @@ qvaluePositivesPlotGrid(featuresGrid, plot = TRUE, PDF = FALSE,
 \item{PDF}{logical, defalt = FALSE}
 
 \item{name}{character strimg specifying pdf name, default = "qvaluePositivesPlotGrid"}
+
+\item{colour_parameter}{character specifying parameter to colour by}
 }
 \value{
 data.table with stats

@@ -2,7 +2,7 @@
 % Please edit documentation in R/runSECexplorer.R
 \name{runSECexplorer}
 \alias{runSECexplorer}
-\title{Run SECprofiler from SECexplorer y providing ids and their type.}
+\title{Run CCprofiler from SECexplorer y providing ids and their type.}
 \usage{
 runSECexplorer(ids, type)
 }
@@ -63,6 +63,6 @@ A list containing the following elements:
        }
 }
 \description{
-Run SECprofiler from SECexplorer y providing ids and their type.
+Run CCprofiler from SECexplorer y providing ids and their type.
 }
 
