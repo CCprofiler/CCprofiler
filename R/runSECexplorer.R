@@ -123,7 +123,7 @@ SECexplorer_processing <- function(protein_ids,traces.obj){
                              window_size=8,
                              parallelized=FALSE,
                              perturb_cutoff = "5%",
-                             collapse_method="apex_only",
+                             collapse_method="apex_network",
                              rt_height=3,
                              smoothing_length=9)
   #res = resultsToTable(swf)
