@@ -96,13 +96,17 @@ calculateSibPepCorr.tracesList <- function(traces,
                                        PDF = FALSE,
                                        name = "SibPepCorr_densityplot", ...){
   .tracesListTest(traces)
-  res <- lapply(traces, calculateSibPepCorr.traces,  
-                plot = plot,
-                PDF = PDF,
-                name = name, ...)
+  res <- lapply(names(traces), function(sample){
+          message(paste("Calculating SibPepCorr for sample", sample, "..."))
+          traces_i <- traces[[sample]]
+          name <- paste0(name, "_", sample)
+          calculateSibPepCorr.traces(traces = traces_i,
+                                      plot = plot,
+                                      PDF = PDF,
+                                      name = name, ...)
+  })
+  names(res) <- names(traces)
   class(res) <- "tracesList"
   .tracesListTest(res)
   return(res)
 }
-
-
