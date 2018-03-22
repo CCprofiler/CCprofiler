@@ -18,14 +18,14 @@ findMissingValues(traces, bound_left = 2, bound_right = 2,
 \arguments{
 \item{traces}{Object of class traces or tracesList.}
 
-\item{bound_left}{Numeric integer, the minimum number of non-zero values to the 
+\item{bound_left}{Numeric integer, the minimum number of non-zero values to the
 left of a missing value to be replaced with \code{NA}.}
 
-\item{bound_right}{Numeric integer, the minimum number of non-zero values to the 
+\item{bound_right}{Numeric integer, the minimum number of non-zero values to the
 right of a missing value to be replaced with \code{NA}.}
 
 \item{consider_borders}{Logical, whether to find missin values in the first/last fractions
-(e.g. \code{0-1-1 -> NA-1-1} and \code{1-0-1-1 -> 1-NA-1-1} if the leftmost value is the 
+(e.g. \code{0-1-1 -> NA-1-1} and \code{1-0-1-1 -> 1-NA-1-1} if the leftmost value is the
 first fraction of the traces object).}
 }
 \value{
