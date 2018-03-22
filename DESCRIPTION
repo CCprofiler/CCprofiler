@@ -1,4 +1,4 @@
-Package: SECprofiler
+Package: CCprofiler
 Title: Complex feature detection using SEC protein chromatograms.
 Version: 0.1
 Author: Robin Hafen <robin.hafen@gmail.com> Isabell Bludau
@@ -16,7 +16,9 @@ Depends:
     foreach,
     parallel,
     igraph,
-    pracma
+    pracma,
+    gridExtra,
+    Rmpfr
 RoxygenNote: 6.0.1
 Imports:
     igraph

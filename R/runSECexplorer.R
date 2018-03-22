@@ -1,4 +1,4 @@
-#' Run SECprofiler from SECexplorer y providing ids and their type.
+#' Run CCprofiler from SECexplorer y providing ids and their type.
 #' @param ids A character vector containing names or identifiers.
 #' @param type A character string specifying the type of ids.
 #' @return A list containing the following elements:
@@ -52,7 +52,7 @@
 #'        }
 #' @export
 runSECexplorer <- function(ids,type){
-  traces.obj <- traces.obj
+  traces.obj <- fullProtTracesHEK
   conversionRes <- convertIDs(ids,type,traces.obj)
   if (length(conversionRes$protein_ids) == 0) {
     featureRes <- NULL
@@ -112,26 +112,27 @@ runSECexplorer <- function(ids,type){
 #'        }
 SECexplorer_processing <- function(protein_ids,traces.obj){
   #@TODO ID mapping?
-  traces.obj <- subset(traces.obj,trace_ids = protein_ids)
+  traces.obj <- subset(traces.obj,trace_subset_ids = protein_ids)
   complex.table <- data.table(complex_id=rep(1,length(protein_ids)),complex_name=rep("1",length(protein_ids)),protein_id=protein_ids)
-  std_weights_kDa = c(1398, 699, 300, 150, 44, 17)
-  std_elu_fractions = c(19, 29, 37, 46, 54.5, 61)
-  calibration = calibrateSECMW(std_weights_kDa = std_weights_kDa, std_elu_fractions = std_elu_fractions,plot=TRUE,PDF=FALSE)
-  swf <- findComplexFeatures(traces.obj = traces.obj,
-                             complex.protein.assoc = complex.table,
-                             MWSECcalibrationFunctions=calibration,
-                             corr.cutoff=0.95,
-                             window.size=15,
+  #std_weights_kDa = c(1398, 699, 300, 150, 44, 17)
+  #std_elu_fractions = c(19, 29, 37, 46, 54.5, 61)
+  calibration = calibrateMW(exampleCalibrationTable,plot=TRUE,PDF=FALSE)
+  swf <- findComplexFeatures(traces = traces.obj,
+                             complex_hypothesis = complex.table,
+                             corr_cutoff=0.95,
+                             window_size=8,
                              parallelized=FALSE,
-                             perturb.cutoff = "5%",
-                             collapse_method="apex_only",
-                             rt_height=5,
-                             smoothing_length=11)
-  res = resultsToTable(swf)
+                             perturb_cutoff = "5%",
+                             collapse_method="apex_network",
+                             rt_height=3,
+                             smoothing_length=9)
+  #res = resultsToTable(swf)
+  std_weights_kDa = exampleCalibrationTable$std_weights_kDa
+  std_elu_fractions = exampleCalibrationTable$std_elu_fractions
   model = lm(log(std_weights_kDa) ~ std_elu_fractions)
   model_coeffitients = model$coefficients
   names(model_coeffitients) = c("intercept","slope")
-  list(traces=traces.obj,features=res,calibration=model_coeffitients)
+  list(traces=traces.obj,features=swf,calibration=model_coeffitients)
 }
 
 #TEST
@@ -160,8 +161,8 @@ SECexplorer_processing <- function(protein_ids,traces.obj){
 #'            \item \code{input type} If the input type was not \code{UNIPROTKB} this contains the ids of the input type.
 #'           }
 #'        }
-convertIDs <- function(ids=ids,type="UNIPROTKB",traces.obj=traces.obj){
-  human_annotated_more <- uniprot_reviewed_9606_10082016_annotated
+convertIDs <- function(ids=ids,type="UNIPROTKB",traces.obj=fullProtTracesHEK){
+  human_annotated_more <- uniprotNameAnnotated
   if(type=="UNIPROTKB"){
     # which input names are not defined in our mapping table as UNIPROTKB
     not_defined <- ids[which(! ids %in% human_annotated_more$UNIPROTKB)]
