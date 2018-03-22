@@ -137,7 +137,7 @@ toLongFormat <- function(traces.dt) {
 #' Annotate traces with molecular weight calibration.
 #' @description Annotate fractions in traces object with calibrated molecular weight.
 #' This only applies to specific fractionation strategies e.g. SEC)
-#' @param Object of class traces.
+#' @param traces Object of class traces.
 #' @return Object of class traces with moleclar weight annotation of fractions.
 #' @examples
 #' # Load relevant data:
@@ -172,7 +172,7 @@ annotateMolecularWeight.tracesList <- function(traces, calibration){
 
 #' Plot traces
 #' @description Plot all chromatograms in a traces object. Most generic plotting function.
-#' @param Object of class traces.
+#' @param traces Object of class traces.
 #' @param log Logical, whether the intensities should be plotted in log scale. Default is \code{FALSE}.
 #' @param legend Logical, whether a legend of the traces should be plotted. Should be set to \code{FALSE}
 #' if many chromatograms are plotted. Default is \code{TRUE}.
@@ -315,7 +315,7 @@ plot.traces <- function(traces,
 
 #' Plot traces
 #' @description Plot all chromatograms in a traces object. Most generic plotting function.
-#' @param Object of class traces.
+#' @param traces Object of class traces.
 #' @param log Logical, whether the intensities should be plotted in log scale. Default is \code{FALSE}.
 #' @param legend Logical, whether a legend of the traces should be plotted. 
 #' Should be set to \code{FALSE}
@@ -607,3 +607,21 @@ print.traces <- function(traces){
   })
 }
 
+
+updateTraces <- function(traces) {
+  UseMethod("updateTraces", traces)
+}
+
+updateTraces.traces <- function(traces) {
+  # call all functions that compute summary statistics that could have changed due to the manipulation
+  # of the traces object (note that these functions should be relatively fast)
+  traces <- annotateFractions(traces)
+  .tracesTest(traces)
+  return(traces)
+}
+
+updateTraces.tracesList <- function(traces) {
+  traces <- annotateFractions(traces)
+  .tracesListTest(traces)
+  return(traces)
+}
