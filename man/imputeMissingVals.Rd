@@ -41,7 +41,7 @@ tracesMiss <- findMissingValues(examplePeptideTraces)
 tracesImp <- imputeMissingVals(tracesMiss)
 View(tracesImp$traces)
 
-# The imputed values can be visualised using the package 'daff' 
+# The imputed values can be visualised using the package 'daff'
 require(daff)
 render_diff(diff_data(examplePeptideTraces$traces, tracesImp$traces))
 
