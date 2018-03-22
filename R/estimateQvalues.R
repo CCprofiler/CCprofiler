@@ -193,3 +193,32 @@ getBestQvalueParameters <- function(stats,FDR_cutoff=0.05){
   best_stats <- stats_sub[1]
   return(best_stats)
 }
+
+#' Score protein or complex features and filter by q-value/FDR
+#' @param features data.table output from findComplexFeatures or findProteinFeatures function
+#' @param FDR numeric between 0 and 1, default = 0.05
+#' @param plot logical, default = TRUE
+#' @param PDF logical, defalt = FALSE
+#' @param name character strimg specifying pdf name, default = "qvalueStats"
+#' @return data.table with scored and filtered features
+#' @export
+scoreFeatures <- function(features, FDR = 0.05, plot = T, PDF = FALSE, name = "qvalueStats"){
+  if(plot==TRUE){
+  if(PDF==TRUE){
+    pdf(paste0(name,".pdf"))
+  }
+  featuresScored <- calculateCoelutionScore(features)
+  qvalueFeaturesScored <- calculateQvalue(featuresScored, name="qvalueStats", PDF=F)
+  qvalueFeaturesScoredStats <- qvaluePositivesPlot(qvalueFeaturesScored, name="qvaluePositivesPlot",PDF=F)
+  filteredData <- subset(qvalueFeaturesScored, qvalue<=FDR)
+  if(PDF==TRUE){
+    dev.off()
+  }
+  } else {
+    featuresScored <- calculateCoelutionScore(features)
+    qvalueFeaturesScored <- calculateQvalue(featuresScored, name="qvalueStats", PDF=F, plot=F)
+    qvalueFeaturesScoredStats <- qvaluePositivesPlot(qvalueFeaturesScored, name="qvaluePositivesPlot",PDF=F, plot=F)
+    filteredData <- subset(qvalueFeaturesScored, qvalue<=FDR)
+  }
+  filteredData[]
+}
