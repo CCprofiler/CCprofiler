@@ -607,3 +607,21 @@ print.traces <- function(traces){
   })
 }
 
+
+updateTraces <- function(traces) {
+  UseMethod("updateTraces", traces)
+}
+
+updateTraces.traces <- function(traces) {
+  # call all functions that compute summary statistics that could have changed due to the manipulation
+  # of the traces object (note that these functions should be relatively fast)
+  traces <- annotateFractions(traces)
+  .tracesTest(traces)
+  return(traces)
+}
+
+updateTraces.tracesList <- function(traces) {
+  traces <- annotateFractions(traces)
+  .tracesListTest(traces)
+  return(traces)
+}
