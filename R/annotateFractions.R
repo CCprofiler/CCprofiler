@@ -1,4 +1,4 @@
-#' 
+#'
 #' Add summary statistics to the fractionAnnotation object
 #' @param traces Object of class traces.
 #' @return Object of class traces with annotation of fractions.
@@ -21,6 +21,8 @@ annotateFractions.traces <- function(traces){
   traces_res <- annotateFractionMissingValues(traces)
   traces_res <- annotateFractionIdCounts(traces_res)
   traces_res <- annotateFractionIntensity(traces_res)
+  traces_res <- annotateResidualIntensity(traces_res)
+  traces_res <- annotateResidualIdCounts(traces_res)
   .tracesTest(traces_res)
   return(traces_res)
 }
@@ -57,5 +59,27 @@ annotateFractionIntensity <- function(traces){
   .tracesTest(traces = traces)
   ints <- colSums(getIntensityMatrix(traces))
   traces$fraction_annotation$intensitySum <- ints
+  return(traces)
+}
+
+#' Calculate loess residuals
+annotateResidualIntensity <- function(traces){
+  .tracesTest(traces = traces)
+  ints <- colSums(getIntensityMatrix(traces))
+  intSum <- data.frame(fraction = 1:length(ints), intensity = ints)
+  l <- loess(intensity ~ fraction, data = intSum, span = 0.15)
+  residuals <- residuals(l)
+  traces$fraction_annotation$loessResiduals <- residuals
+  return(traces)
+}
+
+#' Calculate loess residuals
+annotateResidualIdCounts <- function(traces){
+  .tracesTest(traces = traces)
+  ints <- apply(getIntensityMatrix(traces), 2, function(column) length(which(column>0)))
+  intSum <- data.frame(fraction = 1:length(ints), intensity = ints)
+  l <- loess(intensity ~ fraction, data = intSum, span = 0.15)
+  residuals <- residuals(l)
+  traces$fraction_annotation$loessResidualsIdCounts <- residuals
   return(traces)
 }

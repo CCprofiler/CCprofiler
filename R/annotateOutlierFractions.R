@@ -20,8 +20,18 @@ annotateOutlierFractions.traces <- function(traces, excludeBoarder=TRUE,
   .tracesTest(traces)
   traces_res <- copy(traces)
   traces_updated <- updateTraces(traces_res)
-  dist_data <- subset(traces_updated$fraction_annotation, select=c("missingValues","nrIds","intensitySum"))
-  mahalanobis_dist <- mahalanobis(dist_data, colMeans(dist_data), cov(dist_data), tol = 1e-17)
+  dist_data <- subset(traces_updated$fraction_annotation, select=c("missingValues","loessResidualsIdCounts","loessResiduals"))
+  if (excludeBoarder) {
+    dist_data$missingValues[1] = 0
+    dist_data$missingValues[length(dist_data$missingValues)] = 0
+  }
+  range01 <- function(x){(x-min(x))/(max(x)-min(x))}
+  dist_data[, missingValues := range01(missingValues)]
+  dist_data[, loessResiduals := abs(loessResiduals)]
+  dist_data[, loessResiduals := range01(loessResiduals)]
+  dist_data[, loessResidualsIdCounts := abs(loessResidualsIdCounts)]
+  dist_data[, loessResidualsIdCounts := range01(loessResidualsIdCounts)]
+  mahalanobis_dist <- mahalanobis(dist_data, colMeans(dist_data), cov(dist_data)) #, tol = 1e-17)
   traces_updated$fraction_annotation[,mahalanobis := mahalanobis_dist]
   traces_updated$fraction_annotation[,chisq.pvalue := pchisq(mahalanobis_dist, df=3, lower.tail=FALSE)]
   traces_updated$fraction_annotation[,isOutlier := ifelse(chisq.pvalue < 0.01, TRUE, FALSE)]
@@ -40,8 +50,20 @@ annotateOutlierFractions.traces <- function(traces, excludeBoarder=TRUE,
     qqplot <- ggplot(dt, aes(x=chi3sq,y=D2)) + geom_point() +
         geom_abline() + ggtitle("Q-Q plot of Mahalanobis")
     print(qqplot)
-    d2plot <- ggplot(traces_updated$fraction_annotation, aes(x=id, y=mahalanobis)) + geom_point()
+    d2plot <- ggplot(traces_updated$fraction_annotation, aes(x=id, y=mahalanobis)) +
+      geom_point() + ggtitle("Mahalanobis")
     print(d2plot)
+    d_data <- dist_data
+    d_data[,id := .I]
+    d1 <- ggplot(dist_data, aes(x=id, y=missingValues)) +
+      geom_point() + ggtitle("missingValues")
+    print(d1)
+    d2 <- ggplot(dist_data, aes(x=id, y=loessResidualsIdCounts)) +
+      geom_point() + ggtitle("loessResidualsIdCounts")
+    print(d2)
+    d3 <- ggplot(dist_data, aes(x=id, y=loessResiduals)) +
+      geom_point() + ggtitle("loessResiduals")
+    print(d3)
     if(PDF){
       dev.off()
     }
