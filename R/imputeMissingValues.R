@@ -138,7 +138,7 @@ imputeMissingVals.traces <- function(traces, method = c("mean", "spline")){
   })
   intMatImp <- t(intMatImp)
   intMatImp[intMatImp < 0] <- 0
-  traces_res$traces[naIndx] <- intMatImp[naIndx]
+  traces_res$traces[naIndx] <- round(intMatImp[naIndx],digits=2)
   .tracesTest(traces_res)
   return(traces_res)
 }

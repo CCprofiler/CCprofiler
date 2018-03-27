@@ -1,7 +1,6 @@
 #' Impute outlier fractions
 #' @description Imputes values fo fractions that were labeled as outliers by getFractionInformation.
 #' @param traces An object of type traces. These should be the raw, unprocessed traces.
-#' @param impute_all logical, if all traces values should be imputed, default=FALSE
 #' @param bound_left Numeric integer, the minimum number of non-zero values to the
 #' left of a missing value to be replaced with \code{NA}.
 #' @param bound_right Numeric integer, the minimum number of non-zero values to the
@@ -19,7 +18,6 @@
 #' head(intensityMatrix)
 #' @export
 imputeOutlierFractions <- function(traces,
-                              impute_all = FALSE,
                               bound_left = 2,
                               bound_right = 2,
                               consider_borders = TRUE,
@@ -30,41 +28,38 @@ imputeOutlierFractions <- function(traces,
 #' @describeIn imputeOutlierFractions Impute outlier fractions in traces object
 #' @export
 imputeOutlierFractions.traces <- function(traces,
-                                          impute_all = FALSE,
                                           bound_left = 2,
                                           bound_right = 2,
                                           consider_borders = TRUE,
                                           method = c("mean", "spline"), ...){
   .tracesTest(traces)
-
-  # get outlier ids
-  outlier_fractions <- traces$fraction_annotation[isOutlier==TRUE]$id
-  # remove values from outlier fractions
-  flagedTraces <- copy(traces)
-  if (impute_all==TRUE) {
-    flagedTraces$traces[,(outlier_fractions):= as.numeric(NA),by=id]
+  if (! TRUE %in% traces$fraction_annotation$isOutlier) {
+    message("No outlier fractions to impute ...")
+    return(traces)
   } else {
-    flagedTraces$traces[,(outlier_fractions):=0,by=id]
-    flagedTracesToImpute <- findMissingValues(flagedTraces)
+    message("Imputing outlier fractions ...")
+    # get outlier ids
+    outlier_fractions <- traces$fraction_annotation[isOutlier==TRUE]$id
+    # remove values from outlier fractions
+    flagedTraces <- copy(traces)
+    flagedTraces$traces[,(outlier_fractions):= as.numeric(NA),by=id]
+    # run imputation function
+    resTraces <- imputeMissingVals(flagedTraces,method="spline")
+    resTraces <- updateTraces(resTraces)
+    .tracesTest(resTraces)
+    return(resTraces)
   }
-  # run imputation function
-  resTraces <- imputeMissingVals(flagedTracesToImpute,method="spline")
-
-  .tracesTest(resTraces)
-  return(resTraces)
 }
 
 #' @describeIn imputeOutlierFractions Impute outlier fractions in multiple traces objects
 #' @export
 imputeOutlierFractions.tracesList <- function(tracesList,
-                                              impute_all = FALSE,
                                               bound_left = 2,
                                               bound_right = 2,
                                               consider_borders = TRUE,
                                               method = c("mean", "spline"), ...){
   .tracesListTest(tracesList)
   tracesListRes <- lapply(tracesList, imputeOutlierFractions.traces,
-                          impute_all = FALSE,
                           bound_left = 2,
                           bound_right = 2,
                           consider_borders = TRUE,
