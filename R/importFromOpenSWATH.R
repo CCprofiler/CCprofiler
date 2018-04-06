@@ -138,13 +138,13 @@ importFromOpenSWATH <- function(data,
   if (proteogenomicsWF==TRUE){
     message("Separating information on protein-, isoform- and gene-level within ProteinName...")
     setnames(traces_annotation,c("FullPeptideName"),c("id"))
-    traces_annotation_full <- separateProteinNamesToGeneLevel(traces_annotation)
+    traces_annotation <- separateProteinNamesToGeneLevel(traces_annotation)
 
-    traces_annotation_full[,decoy := 0]
+    traces_annotation[,decoy := 0]
     if(rm_decoys == FALSE){
-      traces_annotation_full$decoy[grep("^DECOY", traces_annotation_full$ProteinName)] = 1
+      traces_annotation$decoy[grep("^DECOY", traces_annotation$ProteinName)] = 1
     }
-    traces_annotation_full[,ProteinName:=NULL]
+    traces_annotation[,ProteinName:=NULL]
   } else {
     ## convert ProteinName to uniprot ids
     if (length(grep("\\|",data$ProteinName)) > 0) {
