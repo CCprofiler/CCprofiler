@@ -13,6 +13,8 @@
 #' @param rm_requantified Logical, whether requantified (noise) peak group quantities
 #'     (as indicated by m_score = 2) should be removed, defaults to \code{TRUE}.
 #' @param rm_decoys Logical, whether decoys should be removed, defaults to \code{FALSE}.
+#' @param rm_nonProteotypic Logical, whether non-proteotypic peptides should be removed, defaults to \code{TRUE}.
+#' @param proteogenomicsWF Logical, whether information on protein, isoform and gene level is encoded in ProteinName, defaults to \code{FALSE}.
 #' @param MS1Quant Logical, whether MS1 quantification should be used, defaults to \code{FALSE}.
 #' @param verbose Logical, whether to print progress message into console, defaults to \code{TRUE}.
 #' @return An object of class Traces containing
@@ -27,12 +29,14 @@
 #'                                 rm_requantified = TRUE)
 #'   summary(traces)
 #'
-
 importFromOpenSWATH <- function(data,
                                 annotation_table,
                                 rm_requantified=TRUE,
                                 rm_decoys = FALSE,
+                                rm_nonProteotypic = TRUE,
                                 MS1Quant=FALSE,
+                                proteogenomicsWF=FALSE,
+                                uniprot=TRUE,
                                 verbose=TRUE){
 
   ## test arguments
@@ -67,25 +71,17 @@ importFromOpenSWATH <- function(data,
     stop("annotation_table input is neither file name or data.table")
   }
 
-  ## remove non-proteotypic discarding/keeping Decoys
-  message('removing non-unique proteins only keeping proteotypic peptides ...')
+  ## discarding/keeping Decoys
   if (rm_decoys == TRUE){
     message('remove decoys ...')
-    data <- data[grep("^1/", data$ProteinName)]
-  } else {
-    data <- data[c(grep("^1/", data$ProteinName), grep("^DECOY_1/", data$ProteinName))]
+    data <- data[grep("^DECOY", data$ProteinName,invert=TRUE)]
   }
-  data$ProteinName <- gsub("1\\/","",data$ProteinName)
 
-
-  ## convert ProteinName to uniprot ids
-  if (length(grep("\\|",data$ProteinName)) > 0) {
-    message('converting ProteinName to uniprot ids ...')
-    decoy_idx <- grep("^DECOY_",data$ProteinName)
-    data$ProteinName <- gsub(".*\\|(.*?)\\|.*", "\\1", data$ProteinName)
-    data$ProteinName[decoy_idx] <- paste0("DECOY_",data$ProteinName[decoy_idx])
-    # the above does not work further downstream because "1/" is removed
-    #data$ProteinName <- extractIdsFromFastaHeader(data$ProteinName)
+  ## discarding/keeping non-proteotypic peptides
+  if (rm_nonProteotypic ==TRUE) {
+    message('remove non-proteotypic peptides ...')
+    data <- data[grep("^1/|^DECOY_1/", data$ProteinName)]
+    data$ProteinName <- gsub("1\\/","",data$ProteinName)
   }
 
   ## subset data to some important columns to save RAM
@@ -139,7 +135,28 @@ importFromOpenSWATH <- function(data,
 
   traces_annotation <- data.table(traces_wide[,c("FullPeptideName", "ProteinName"), with = FALSE])
   setcolorder(traces_annotation, c("FullPeptideName", "ProteinName"))
-  setnames(traces_annotation,c("FullPeptideName", "ProteinName"),c("id","protein_id"))
+  if (proteogenomicsWF==TRUE){
+    message("Separating information on protein-, isoform- and gene-level within ProteinName...")
+    setnames(traces_annotation,c("FullPeptideName"),c("id"))
+    traces_annotation_full <- separateProteinNamesToGeneLevel(traces_annotation)
+
+    traces_annotation_full[,decoy := 0]
+    if(rm_decoys == FALSE){
+      traces_annotation_full$decoy[grep("^DECOY", traces_annotation_full$ProteinName)] = 1
+    }
+    traces_annotation_full[,ProteinName:=NULL]
+  } else {
+    ## convert ProteinName to uniprot ids
+    if (length(grep("\\|",data$ProteinName)) > 0) {
+      message('converting ProteinName to uniprot ids ...')
+      decoy_idx <- grep("^DECOY_",data$ProteinName)
+      data$ProteinName <- gsub(".*\\|(.*?)\\|.*", "\\1", data$ProteinName)
+      if(length(decoy_idx>0)) {
+        data$ProteinName[decoy_idx] <- paste0("DECOY_",data$ProteinName[decoy_idx])
+      }
+    }
+    setnames(traces_annotation,c("FullPeptideName","ProteinName"),c("id","protein_id"))
+  }
 
   traces <- subset(traces_wide, select = -ProteinName)
   traces[,id:=FullPeptideName]
@@ -163,4 +180,82 @@ importFromOpenSWATH <- function(data,
   setorder(result$traces, id)
   .tracesTest(result)
   return(result)
+}
+
+
+separateProteinNamesToGeneLevel <- function(ann_table){
+  split <- strsplit(ann_table$ProteinName, split = "/")
+  newprot <- lapply(split, mapSinglePeptide)
+  ann_table[,protein_id:=unlist(newprot)[ c(TRUE,FALSE,FALSE) ]]
+  ann_table[,isoform_id:=unlist(newprot)[ c(FALSE,TRUE,FALSE) ]]
+  ann_table[,gene_id:=unlist(newprot)[ c(FALSE,FALSE,TRUE) ]]
+  return(ann_table)
+}
+
+mapSinglePeptide <- function(proteins){
+  protein_map <- proteins[-1]
+  protein_map <- gsub("^cf\\|","",protein_map)
+  isoform_map <- gsub("\\|.*$","",protein_map)
+  gene_map <- unique(gsub("\\-.*$","",isoform_map))
+  isoform_map <- unique(isoform_map)
+  protein_map <- unique(gsub(".*\\|","",protein_map))
+  isoform_map <- paste(c(length(isoform_map),isoform_map), collapse = "/")
+  gene_map <- paste(c(length(gene_map),gene_map), collapse = "/")
+  protein_map <- paste(c(length(protein_map),protein_map), collapse = "/")
+  return(list(protein_map,isoform_map,gene_map))
+}
+
+#' Import peptide profiles from an OpenSWATH experiment.
+#' @description This is a convenience function to directly import peptide profiles
+#'  from an OpenSWATH experiment (after TRIC alignment). The peptide intensities are calculated by summing all charge
+#'  states. Alternativley the MS1 signal can be used for quantification.
+#' @import data.table
+#' @param data Quantitative MS data in form of OpenSWATH result file or R data.table.
+#' @param annotation_table file or data.table containing columns `filename` and
+#'     `fraction_number` that map the file names (occuring in input table filename column)
+#'     `to a SEC elution fraction.
+#' @param rm_requantified Logical, whether requantified (noise) peak group quantities
+#'     (as indicated by m_score = 2) should be removed, defaults to \code{TRUE}.
+#' @param rm_decoys Logical, whether decoys should be removed, defaults to \code{FALSE}.
+#' @param rm_nonProteotypic Logical, whether non-proteotypic peptides should be removed, defaults to \code{TRUE}.
+#' @param proteogenomicsWF Logical, whether information on protein, isoform and gene level is encoded in ProteinName, defaults to \code{FALSE}.
+#' @param MS1Quant Logical, whether MS1 quantification should be used, defaults to \code{FALSE}.
+#' @param verbose Logical, whether to print progress message into console, defaults to \code{TRUE}.
+#' @return An object of class Traces containing
+#'     "traces", "traces_type", "traces_annotation" and "fraction_annotation" list entries
+#'     that can be processed with the herein contained functions.
+#' @export
+#' @examples
+#'   input_data <- exampleOpenSWATHinput
+#'   annotation <- exampleFractionAnnotation
+#'   traces <- importFromOpenSWATH(data = input_data,
+#'                                 annotation_table = annotation,
+#'                                 rm_requantified = TRUE)
+#'   summary(traces)
+#'
+importMultipleCondiionsFromOpenSWATH <- function(data,
+                                annotation_table,
+                                rm_requantified=TRUE,
+                                rm_decoys = FALSE,
+                                rm_nonProteotypic = TRUE,
+                                MS1Quant=FALSE,
+                                proteogenomicsWF=FALSE,
+                                verbose=TRUE){
+  samples <- unique(annotation_table$sample)
+  traces_list <- lapply(samples, function(s){
+    ann_sub <- annotation_table[sample == s]
+    dt_sub <- data[ann_sub[, filename]]
+    print(paste("Importing: ", s))
+    importFromOpenSWATH(data = dt_sub, annotation_table = ann_sub,
+    rm_requantified=rm_requantified,
+    rm_decoys = rm_decoys,
+    rm_nonProteotypic = rm_nonProteotypic,
+    MS1Quant=MS1Quant,
+    proteogenomicsWF=proteogenomicsWF,
+    verbose=verbose)
+  })
+  names(traces_list) <- samples
+  class(traces_list) <- "tracesList"
+  .tracesListTest(traces_list)
+  traces_list
 }
