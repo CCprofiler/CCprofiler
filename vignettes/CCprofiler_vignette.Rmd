@@ -1,6 +1,6 @@
 ---
 title: "Introduction to the *CCprofiler* package"
-author: "Isabell Bludau, Max Frank, Moritz Heusel"
+author: ""
 date: '`r Sys.Date()`'
 output:
   pdf_document:
