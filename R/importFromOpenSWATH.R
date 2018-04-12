@@ -186,7 +186,7 @@ importFromOpenSWATH <- function(data,
 separateProteinNamesToGeneLevel <- function(ann_table){
   split <- strsplit(ann_table$ProteinName, split = "/")
   newprot <- lapply(split, mapSinglePeptide)
-  ann_table[,protein_id:=unlist(newprot)[ c(TRUE,FALSE,FALSE) ]]
+  ann_table[,ensembl_protein_id:=unlist(newprot)[ c(TRUE,FALSE,FALSE) ]]
   ann_table[,isoform_id:=unlist(newprot)[ c(FALSE,TRUE,FALSE) ]]
   ann_table[,gene_id:=unlist(newprot)[ c(FALSE,FALSE,TRUE) ]]
   return(ann_table)
