@@ -1,6 +1,6 @@
 ---
 title: "Introduction to the *CCprofiler* package for complex-centric analysis of co-fractionation MS datasets"
-author: ""
+author: "Isabell Bludau and Ruedi Aebersold"
 date: '`r Sys.Date()`'
 output:
   pdf_document:
