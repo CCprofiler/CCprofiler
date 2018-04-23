@@ -13,7 +13,7 @@
 
 \item{log}{Logical, whether the intensities should be plotted in log scale. Default is \code{FALSE}.}
 
-\item{legend}{Logical, whether a legend of the traces should be plotted. 
+\item{legend}{Logical, whether a legend of the traces should be plotted.
 Should be set to \code{FALSE}
 if many chromatograms are plotted. Default is \code{TRUE}.}
 

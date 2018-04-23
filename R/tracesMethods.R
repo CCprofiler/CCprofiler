@@ -31,7 +31,7 @@
 #' proteinSubsettedProteinTraces <- subset(inputProteinTraces,trace_subset_ids=subsetProtein)
 #' summary(proteinSubsettedProteinTraces)
 #' @export
-#' 
+#'
 
 subset.traces <- function(traces,trace_subset_ids=NULL,trace_subset_type="id",fraction_ids=NULL){
   .tracesTest(traces)
@@ -75,7 +75,7 @@ subset.traces <- function(traces,trace_subset_ids=NULL,trace_subset_type="id",fr
 #'        pre-processing purposes.
 #' @return Object of class traces.
 #' @export
-#' 
+#'
 
 subset.tracesList <- function(tracesList,
                               trace_subset_ids=NULL,
@@ -203,7 +203,7 @@ plot.traces <- function(traces,
                         plot = TRUE,
                         highlight=NULL,
                         highlight_col=NULL) {
-  
+
   .tracesTest(traces)
   traces.long <- toLongFormat(traces$traces)
   traces.long <- merge(traces.long,traces$fraction_annotation,by.x="fraction",by.y="id")
@@ -211,7 +211,7 @@ plot.traces <- function(traces,
     traces.long$outlier <- gsub("\\(.*?\\)","",traces.long$id) %in% gsub("\\(.*?\\)","",highlight)
     if(!any(traces.long$outlier)) highlight <- NULL
   }
-  
+
   p <- ggplot(traces.long) +
     geom_line(aes_string(x='fraction', y='intensity', color='id')) +
     xlab('fraction') +
@@ -230,7 +230,7 @@ plot.traces <- function(traces,
   if(!is.null(highlight)){
     legend_peps <- unique(traces.long[outlier == TRUE, id])
     if(is.null(highlight_col)){
-      p <- p + 
+      p <- p +
         geom_line(data = traces.long[outlier == TRUE], aes_string(x='fraction', y='intensity', color='id'), lwd=2) +
         scale_color_discrete(breaks = legend_peps)
     }else{
@@ -238,17 +238,17 @@ plot.traces <- function(traces,
       names(legend_map) <- unique(p$data$id)
       legend_map[legend_peps] <- highlight_col
       legend_vals <- rep(highlight_col, ceiling(length(legend_peps)/ length(highlight_col)))[1:length(legend_peps)]
-      p <- p + 
+      p <- p +
         geom_line(data = traces.long[outlier == TRUE], aes_string(x='fraction', y='intensity', lty = 'id'), color = highlight_col, lwd=2) +
         # scale_color_discrete(guide = F)
-        scale_color_manual(values = legend_map, limits = legend_peps) 
+        scale_color_manual(values = legend_map, limits = legend_peps)
       # guides(lty = FALSE)
       # scale_color_manual(limits = legend_peps, values = rep(highlight_col, length(legend_peps))) +
       # geom_line(aes_string(x='fraction', y='intensity', color='id'))
     }
   }
-  
-  
+
+
   if ("molecular_weight" %in% names(traces$fraction_annotation)) {
     p2 <- p
     p <- p + scale_x_continuous(name="fraction",
@@ -265,7 +265,7 @@ plot.traces <- function(traces,
     g2 <- ggplot_gtable(ggplot_build(p2))
     ## overlap the panel of the 2nd plot on that of the 1st plot
     pp <- c(subset(g1$layout, name=="panel", se=t:r))
-    
+
     g <- gtable_add_grob(g1, g2$grobs[[which(g2$layout$name=="panel")]], pp$t, pp$l, pp$b, pp$l)
     ## steal axis from second plot and modify
     ia <- which(g2$layout$name == "axis-b")
@@ -284,7 +284,7 @@ plot.traces <- function(traces,
     ia2 <- which(g2$layout$name == "xlab-b")
     ga2 <- g2$grobs[[ia2]]
     g <- gtable_add_grob(g,ga2, 3, 4, 2, 4)
-    
+
     if(PDF){
       pdf(paste0(name,".pdf"))
     }
@@ -293,7 +293,7 @@ plot.traces <- function(traces,
     }else{
       return(g)
     }
-    
+
     if(PDF){
       dev.off()
     }
@@ -306,7 +306,7 @@ plot.traces <- function(traces,
     }else{
       return(ggplot_gtable(ggplot_build(p)))
     }
-    
+
     if(PDF){
       dev.off()
     }
@@ -317,7 +317,7 @@ plot.traces <- function(traces,
 #' @description Plot all chromatograms in a traces object. Most generic plotting function.
 #' @param traces Object of class traces.
 #' @param log Logical, whether the intensities should be plotted in log scale. Default is \code{FALSE}.
-#' @param legend Logical, whether a legend of the traces should be plotted. 
+#' @param legend Logical, whether a legend of the traces should be plotted.
 #' Should be set to \code{FALSE}
 #' if many chromatograms are plotted. Default is \code{TRUE}.
 #' @param PDF Logical, whether to plot to PDF. PDF file is saved in working directory.
@@ -347,7 +347,7 @@ plot.tracesList <- function(traces,
     }
   }else{
     design_matrix <- data.table(Sample_name = names(traces),
-                                Condition = "", 
+                                Condition = "",
                                 Replicate = 1:length(traces))
   }
   tracesList <- lapply(names(traces), function(tr){
@@ -363,7 +363,7 @@ plot.tracesList <- function(traces,
     traces_long$outlier <- gsub("\\(.*?\\)","",traces_long$id) %in% gsub("\\(.*?\\)","",highlight)
     if(!any(traces_long$outlier)) highlight <- NULL
   }
-  
+
   p <- ggplot(traces_long) +
     xlab('fraction') +
     ylab('intensity') +
@@ -378,50 +378,50 @@ plot.tracesList <- function(traces,
   }else{
     p <- p + facet_grid(Condition ~ Replicate) +
       geom_line(aes_string(x='fraction', y='intensity', color='id'))
-    
+
   }
   if(!is.null(highlight)){
     legend_peps <- unique(traces_long[outlier == TRUE, id])
     if(is.null(highlight_col)){
       if(collapse_conditions){
-        p <- p + 
+        p <- p +
           geom_line(data = traces_long[outlier == TRUE], aes_string(x='fraction', y='intensity', color='id', lty = 'Condition'), lwd=2) +
           scale_color_discrete(breaks = legend_peps)
       }else{
-        p <- p + 
+        p <- p +
           geom_line(data = traces_long[outlier == TRUE], aes_string(x='fraction', y='intensity', color='id'), lwd=2) +
           scale_color_discrete(breaks = legend_peps)
       }
-      
+
     }else{
       legend_map <- unique(ggplot_build(p)$data[[1]]$colour)
       names(legend_map) <- unique(p$data$id)
       legend_map[legend_peps] <- highlight_col
       legend_vals <- rep(highlight_col, ceiling(length(legend_peps)/ length(highlight_col)))[1:length(legend_peps)]
       if(collapse_conditions){
-        p <- p + 
-          geom_line(data = traces_long[outlier == TRUE], 
+        p <- p +
+          geom_line(data = traces_long[outlier == TRUE],
                     aes(x=fraction, y=intensity, lty = Condition, group = interaction(Condition, id), color = id),
                      lwd=2) +
           # scale_color_discrete(guide = F)
-          scale_color_manual(values = legend_map, limits = legend_peps) 
+          scale_color_manual(values = legend_map, limits = legend_peps)
         # guides(lty = FALSE)
         # scale_color_manual(limits = legend_peps, values = rep(highlight_col, length(legend_peps))) +
         # geom_line(aes_string(x='fraction', y='intensity', color='id'))
       }else{
-        p <- p + 
+        p <- p +
           geom_line(data = traces_long[outlier == TRUE], aes_string(x='fraction', y='intensity', color = 'id'),
                     lwd=2) +
           # scale_color_discrete(guide = F)
-          scale_color_manual(values = legend_map, limits = legend_peps) 
+          scale_color_manual(values = legend_map, limits = legend_peps)
         # guides(lty = FALSE)
         # scale_color_manual(limits = legend_peps, values = rep(highlight_col, length(legend_peps))) +
         # geom_line(aes_string(x='fraction', y='intensity', color='id'))
       }
-      
+
     }
   }
-  
+
   if (log) {
     p <- p + scale_y_log10('log(intensity)')
   }
@@ -464,7 +464,7 @@ summary.traces <- function(traces) {
   pct_decoys <- signif(no_decoys/no_traces * 100, 2)
   res <- c(no_traces, no_targets, no_decoys, pct_decoys)
   names(res) <- c("No. of Traces", "No. of Targets", "No. of Decoys", "% Decoys")
-  
+
   if(traces$trace_type == "peptide"){
     no_ptraces <- length(unique(traces$trace_annotation$protein_id))
     no_pdecoys <- length(unique(grep("DECOY", traces$trace_annotation$protein_id)))
@@ -477,7 +477,7 @@ summary.traces <- function(traces) {
   annotation_info <- names(traces$trace_annotation)
   fraction_info = length(traces$fraction_annotation$id)
   type=traces$trace_type
-  
+
   summary=list(metrics=res,type=type,annotations=annotation_info,fraction_count=fraction_info)
   if("SibPepCorr" %in% names(traces$trace_annotation)) {
     SibPepCorr_summary <- summary(traces$trace_annotation$SibPepCorr)
@@ -513,7 +513,7 @@ summary.tracesList <- function(traces) {
            "###########################\n\n"))
     print(summary.traces(trace))
   })
-  
+
 }
 
 #' Summarize a tracesList object
@@ -603,15 +603,22 @@ print.traces <- function(traces){
     if (! identical(names(traces$traces),c(traces$fraction_annotation$id,"id"))) {
       stop("In at least one traces object: Fractions in traces and fraction_annotation are not identical.")
     }
-    
+
   })
 }
 
-
+#' Update trace and fraction annotation
+#' @description  Add information to trace and fraction annotation
+#' @param traces Object of class traces.
+#' @return Object of class traces.
+#' @export
+#'
 updateTraces <- function(traces) {
   UseMethod("updateTraces", traces)
 }
 
+#' @describeIn updateTraces Update trace and fraction annotation
+#' @export
 updateTraces.traces <- function(traces) {
   # call all functions that compute summary statistics that could have changed due to the manipulation
   # of the traces object (note that these functions should be relatively fast)
@@ -620,6 +627,8 @@ updateTraces.traces <- function(traces) {
   return(traces)
 }
 
+#' @describeIn updateTraces Update trace and fraction annotation
+#' @export
 updateTraces.tracesList <- function(traces) {
   traces <- annotateFractions(traces)
   .tracesListTest(traces)
