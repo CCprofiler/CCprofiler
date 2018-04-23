@@ -9,6 +9,8 @@
   name = "Traces", plot = TRUE, highlight = NULL, highlight_col = NULL)
 }
 \arguments{
+\item{traces}{Object of class traces.}
+
 \item{log}{Logical, whether the intensities should be plotted in log scale. Default is \code{FALSE}.}
 
 \item{legend}{Logical, whether a legend of the traces should be plotted. 
@@ -27,9 +29,8 @@ PDF file is saved under name.pdf. Default is "Traces".}
 Default is \code{NULL}.}
 
 \item{highlight_col}{Character string, A color to highlight traces in. Must be accepted by ggplot2.}
-
-\item{Object}{of class traces.}
 }
 \description{
 Plot all chromatograms in a traces object. Most generic plotting function.
 }
+

@@ -1,12 +1,11 @@
-#'
 #' Add summary statistics to the fractionAnnotation object
 #' @param traces Object of class traces.
 #' @return Object of class traces with annotation of fractions.
-#' @export
-#' @example
+#' @examples
 #' inputTraces <- examplePeptideTraces
 #' exampleTracesAnnotatedFractions <- annotateFractions(inputTraces)
 #' exampleTracesAnnotatedFractions$fraction_annotation
+#' @export
 
 annotateFractions <- function(traces){
   UseMethod("annotateFractions", traces)

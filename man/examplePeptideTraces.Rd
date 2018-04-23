@@ -28,3 +28,4 @@ peptideTracesUniprotCalibration <- annotateMolecularWeight(peptideTracesUniprot,
 all.equal(peptideTracesUniprotCalibration,examplePeptideTraces)
 }
 \keyword{datasets}
+

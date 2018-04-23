@@ -35,3 +35,4 @@ reference and all traces.
 \description{
 Plot a comparison of the intensities in different samples
 }
+

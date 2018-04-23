@@ -53,7 +53,6 @@ Calculate protein quantities basen on the topN peptide intensities.
 \item \code{tracesList}: Protein Quantification multiple traces ojects.
 Uses only peptides present in all traces objects for quantification.
 }}
-
 \examples{
 ## Load example data
 pepTraces <- examplePeptideTracesFiltered
@@ -71,3 +70,4 @@ head(protTraces$trace_annotation)
 # The last 2 columns indicate how many peptides could be observed and which were summed for quantification.
 
 }
+

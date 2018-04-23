@@ -28,3 +28,4 @@ An object of type \code{collapsedComplexFeatures} that is a list
 \description{
 Collapse detected complex fetures by common apex and subunits.
 }
+

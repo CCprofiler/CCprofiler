@@ -5,7 +5,8 @@
 \title{Import peptide profiles from an OpenSWATH experiment.}
 \usage{
 importFromOpenSWATH(data, annotation_table, rm_requantified = TRUE,
-  rm_decoys = FALSE, MS1Quant = FALSE, verbose = TRUE)
+  rm_decoys = FALSE, rm_nonProteotypic = TRUE, MS1Quant = FALSE,
+  proteogenomicsWF = FALSE, uniprot = TRUE, verbose = TRUE)
 }
 \arguments{
 \item{data}{Quantitative MS data in form of OpenSWATH result file or R data.table.}
@@ -19,7 +20,11 @@ importFromOpenSWATH(data, annotation_table, rm_requantified = TRUE,
 
 \item{rm_decoys}{Logical, whether decoys should be removed, defaults to \code{FALSE}.}
 
+\item{rm_nonProteotypic}{Logical, whether non-proteotypic peptides should be removed, defaults to \code{TRUE}.}
+
 \item{MS1Quant}{Logical, whether MS1 quantification should be used, defaults to \code{FALSE}.}
+
+\item{proteogenomicsWF}{Logical, whether information on protein, isoform and gene level is encoded in ProteinName, defaults to \code{FALSE}.}
 
 \item{verbose}{Logical, whether to print progress message into console, defaults to \code{TRUE}.}
 }
@@ -42,3 +47,4 @@ This is a convenience function to directly import peptide profiles
   summary(traces)
 
 }
+

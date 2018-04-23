@@ -44,3 +44,4 @@ complexHypothesesCollapsed <- collapseHypothesis(complexHypotheses)
 
 
 }
+

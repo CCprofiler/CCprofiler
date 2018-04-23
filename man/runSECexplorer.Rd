@@ -65,3 +65,4 @@ A list containing the following elements:
 \description{
 Run CCprofiler from SECexplorer y providing ids and their type.
 }
+

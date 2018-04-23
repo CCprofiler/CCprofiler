@@ -28,3 +28,4 @@ Object of class traces.
 \description{
 Subset a taces object by a specified column in trace_annotation and/or fraction ids.
 }
+

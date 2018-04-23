@@ -23,3 +23,4 @@ A summary list with following entries:
 \description{
 Summarize a tracesList object to get an overview.
 }
+

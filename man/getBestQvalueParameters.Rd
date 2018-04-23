@@ -17,3 +17,4 @@ data.table with best stats
 \description{
 getBestQvalueParameters
 }
+

@@ -23,3 +23,4 @@ A data.table containing the differential testing results for every protein/pepti
 \description{
 Test differential expression of peptides or proteins between 2 conditions
 }
+

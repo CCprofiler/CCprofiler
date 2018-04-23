@@ -6,7 +6,7 @@ annotateMassDistribution <- function(traces){
   UseMethod("annotateMassDistribution", traces)
 }
 
-#' @describeIn annotateMassDistribution
+#' @describeIn annotateMassDistribution Estimates fraction of assembled vs. monomeric mass per id.
 #' @export
 annotateMassDistribution.traces <- function(traces){
   .tracesTest(traces)
@@ -41,7 +41,7 @@ annotateMassDistribution.traces <- function(traces){
   return(traces)
 }
 
-#' @describeIn annotateMassDistribution
+#' @describeIn annotateMassDistribution Estimates fraction of assembled vs. monomeric mass per id.
 #' @export
 annotateMassDistribution.tracesList <- function(tracesList){
   .tracesListTest(tracesList)

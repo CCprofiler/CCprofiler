@@ -4,7 +4,7 @@
 #' @param excludeBoarder If boarder fractions should be excluded as outliers, default is TRUE.
 #' @return Object of class traces with annotation of fractions and outliers.
 #' @export
-#' @example
+#' @examples
 #' inputTraces <- examplePeptideTraces
 #' exampleTracesAnnotatedOutliers <- annotateOutlierFractions(inputTraces)
 #' exampleTracesAnnotatedOutliers$fraction_annotation

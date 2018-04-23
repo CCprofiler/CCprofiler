@@ -25,7 +25,7 @@
 #' trace_annotation=inputAnnotation,
 #' traces_id_column = "protein_id",
 #' trace_annotation_id_column = "Entry")
-# Inspect annotation result:
+#' Inspect annotation result:
 #' annotatedTraces$trace_annotation
 #' @export
 
@@ -110,9 +110,9 @@ annotateTraces.tracesList <- function(traces,
                            trace_annotation_mass_column = "Mass",
                            uniprot_mass_format = TRUE,
                            replace_whitespace = TRUE){
-  
+
   .tracesListTest(traces)
-  res <- lapply(traces, annotateTraces.traces,                                         
+  res <- lapply(traces, annotateTraces.traces,
                 trace_annotation = trace_annotation,
                 traces_id_column = traces_id_column,
                 trace_annotation_id_column = trace_annotation_id_column,
@@ -123,4 +123,3 @@ annotateTraces.tracesList <- function(traces,
   .tracesListTest(res)
   return(res)
 }
-  
