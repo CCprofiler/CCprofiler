@@ -75,6 +75,7 @@ integrateTraceIntensities <- function(traces,
 
     ## Create a merged fraction annotation
     fracAnnComb <- rbindlist(lapply(traces, "[[", "fraction_annotation"), fill = TRUE)
+    fracAnnComb <- subset(fracAnnComb, select = names(fracAnnComb) %in% c("id","molecular_weight"))
     setkey(fracAnnComb, "id")
     if(ncol(fracAnnComb) == 1){
       fracAnnComb <- unique(fracAnnComb)
