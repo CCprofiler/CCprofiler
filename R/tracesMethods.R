@@ -358,6 +358,7 @@ plot.tracesList <- function(traces,
   })
   traces_long <- do.call("rbind", tracesList)
   traces_frac <- unique(do.call("rbind", lapply(traces, "[[", "fraction_annotation")))
+  traces_frac <- unique(subset(traces_frac, select = names(traces_frac) %in% c("id","molecular_weight")))
   traces_long <- merge(traces_long,traces_frac,by.x="fraction",by.y="id")
   if(!is.null(highlight)){
     traces_long$outlier <- gsub("\\(.*?\\)","",traces_long$id) %in% gsub("\\(.*?\\)","",highlight)
