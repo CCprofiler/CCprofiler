@@ -325,6 +325,7 @@ plot.traces <- function(traces,
 #' @param name Character string with name of the plot, only used if \code{PDF=TRUE}.
 #' PDF file is saved under name.pdf. Default is "Traces".
 #' @param plot Logical, wether to print or return the plot object
+#' @param isoformAnnotation Logical, wether to colour traces by their isoform annotation
 #' @param highlight Character vector, ids of the traces to highlight (can be multiple).
 #'  Default is \code{NULL}.
 #' @param highlight_col Character string, A color to highlight traces in. Must be accepted by ggplot2.
@@ -338,6 +339,7 @@ plot.tracesList <- function(traces,
                             PDF=FALSE,
                             name="Traces",
                             plot = TRUE,
+                            isoformAnnotation = FALSE,
                             highlight=NULL,
                             highlight_col=NULL) {
   .tracesListTest(traces)
@@ -357,6 +359,13 @@ plot.tracesList <- function(traces,
     res
   })
   traces_long <- do.call("rbind", tracesList)
+  if(isoformAnnotation==TRUE) {
+    isoform_annotation <- lapply(names(traces), function(tr){subset(traces[[tr]]$trace_annotation,select=c("id","isoform_id"))})
+    isoform_annotation <- unique(do.call("rbind", isoform_annotation))
+    isoform_annotation$isoform_id <- gsub("ENSG[0-9]+-","",isoform_annotation$isoform_id)
+    traces_long <- merge(traces_long,isoform_annotation, by.x="id",by.y="id")
+    traces_long[,line:=paste0(isoform_id,id)]
+  }
   traces_frac <- unique(do.call("rbind", lapply(traces, "[[", "fraction_annotation")))
   traces_frac <- unique(subset(traces_frac, select = names(traces_frac) %in% c("id","molecular_weight")))
   traces_long <- merge(traces_long,traces_frac,by.x="fraction",by.y="id")
@@ -374,12 +383,21 @@ plot.tracesList <- function(traces,
     ggtitle(name) +
     theme(plot.title = element_text(vjust=19,size=10))
   if(collapse_conditions){
-    p <- p + facet_grid(~ Replicate) +
-      geom_line(aes_string(x='fraction', y='intensity', color='id', lty = 'Condition'))
+    if(! isoformAnnotation==TRUE) {
+      p <- p + facet_grid(~ Replicate) +
+        geom_line(aes_string(x='fraction', y='intensity', color='id', lty = 'Condition'))
+    } else {
+    p <- p + facet_grid(Condition ~ Replicate) +
+      geom_line(aes_string(x='fraction', y='intensity', color='isoform_id', group='line', lty = 'Condition'))
+    }
   }else{
+    if(! isoformAnnotation==TRUE) {
     p <- p + facet_grid(Condition ~ Replicate) +
       geom_line(aes_string(x='fraction', y='intensity', color='id'))
-
+    } else {
+    p <- p + facet_grid(Condition ~ Replicate) +
+      geom_line(aes_string(x='fraction', y='intensity', color='isoform_id', group='line'))
+    }
   }
   if(!is.null(highlight)){
     legend_peps <- unique(traces_long[outlier == TRUE, id])

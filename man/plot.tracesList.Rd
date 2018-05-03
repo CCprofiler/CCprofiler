@@ -6,7 +6,8 @@
 \usage{
 \method{plot}{tracesList}(traces, design_matrix = NULL,
   collapse_conditions = FALSE, log = FALSE, legend = TRUE, PDF = FALSE,
-  name = "Traces", plot = TRUE, highlight = NULL, highlight_col = NULL)
+  name = "Traces", plot = TRUE, isoformAnnotation = FALSE,
+  highlight = NULL, highlight_col = NULL)
 }
 \arguments{
 \item{traces}{Object of class traces.}
@@ -24,6 +25,8 @@ Default is \code{FALSE}.}
 PDF file is saved under name.pdf. Default is "Traces".}
 
 \item{plot}{Logical, wether to print or return the plot object}
+
+\item{isoformAnnotation}{Logical, wether to colour traces by their isoform annotation}
 
 \item{highlight}{Character vector, ids of the traces to highlight (can be multiple).
 Default is \code{NULL}.}
