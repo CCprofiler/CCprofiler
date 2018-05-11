@@ -7,6 +7,7 @@
 #' Noise needs to be imputed to calculate the correlations.
 #' @param verbose Logical, whether to print messages to console.
 #' @param extract Character string, name ot the feature table column containing the subunits to extract.
+#' @param imputeZero Logical, whether zero values of a fraction within a feature should be imputed, default = FALSE.
 #' @return Long format table containing extracted feature values.
 #' @export
 
@@ -14,7 +15,8 @@ extractFeatureVals <- function(traces, features,
                                perturb_cutoff = "5%",
                                verbose = TRUE,
                                extract = "subunits_detected",
-                               fill = F, ...){
+                               imputeZero = FALSE,
+                               fill = FALSE, ...){
   UseMethod("extractFeatureVals", traces)
 }
 
@@ -23,10 +25,11 @@ extractFeatureVals <- function(traces, features,
 #' @export
 extractFeatureVals.traces <- function(traces, features,
                                perturb_cutoff = "5%",
-                               verbose = TRUE, 
+                               verbose = TRUE,
                                extract = "subunits_detected",
-                               fill = F, ...){
-  
+                               imputeZero = FALSE,
+                               fill = FALSE, ...){
+
   if(!is.data.table(features)){
     stop("features must be of type 'data.table'")
   }
@@ -42,14 +45,16 @@ extractFeatureVals.traces <- function(traces, features,
   } else {
     stop("Could not detect if feature table is for protein or complex Features. Aborting...")
   }
-  
+
   if(!("peak_corr" %in% featureColnames)) stop("No column peak_corr found. peak_corr must be
                                                   calculated with calculateFeatureCorrelation() first!")
-  
-  
-  
+
+
+
+  # Get traces matrix
+  traceMat <- getIntensityMatrix(traces)
   # Impute noise for missing intensity measurements globally for all traces
-  traceMatImputed <- getIntensityMatrix(traces)
+  traceMatImputed <- copy(traceMat)
   nZero <- sum(traceMatImputed == 0) # number of ZERO values in matrix
   measuredVals <- traceMatImputed[traceMatImputed != 0]
   if(class(perturb_cutoff) == "character"){
@@ -59,13 +64,14 @@ extractFeatureVals.traces <- function(traces, features,
   set.seed(123) # set seed to always get same results
   traceMatImputed[traceMatImputed == 0] <- sample(1:perturb_cutoff,size = nZero,
                                                       replace = TRUE)
+
   # Calculate correlation in Peak boundaries for every detected trace
-  
+
   featureVals <- apply(features, 1, function(hyp){
-    
+
     # featuresHyp <- features[features$protein_id == hyp,]
     subunitsUnion <- unique(strsplit(hyp[extract],";")[[1]])
-    subunitsUnion <- subunitsUnion[subunitsUnion %in% rownames(traceMatImputed)]
+    subunitsUnion <- subunitsUnion[subunitsUnion %in% rownames(traceMat)]
     nSubunits <- length(subunitsUnion)
     if(complexLevel){
       id <- as.character(hyp["complex_id"])
@@ -79,10 +85,11 @@ extractFeatureVals.traces <- function(traces, features,
     apex <- as.numeric(hyp["apex"])
     pk <- as.numeric(hyp["peak_corr"])
     # get intensity of every trace within peak boundaries
-    tracesFeature <- traceMatImputed[subunitsUnion,bound_left:bound_right]
-    
+    tracesFeature <- traceMat[subunitsUnion,bound_left:bound_right]
+    tracesFeatureImputed <- traceMatImputed[subunitsUnion,bound_left:bound_right]
+
     if(nSubunits>1){
-        corr <- cor(t(tracesFeature))
+        corr <- cor(t(tracesFeatureImputed))
         # get mean correlation for every subunit
         corrSubunits <- (colSums(corr)-1) / ((nSubunits-1)) #*pk to normalize?
         intensities <- rowSums(tracesFeature)
@@ -90,7 +97,7 @@ extractFeatureVals.traces <- function(traces, features,
         totalIntensity <- sum(intensities)
         totalTop2Intensity <- sum(sort(intensities, decreasing = T)[1:2])
         res <- data.table(tracesFeature)
-        
+
     } else if(nSubunits == 1){
       if(verbose){
         message(paste0("Feature with only one subunit detected: ", id, " - Apex", apex,
@@ -108,8 +115,8 @@ extractFeatureVals.traces <- function(traces, features,
         message(paste0("Feature: ", id, " - Apex", apex, " has no detected subunits. Omitting."))
       }
       return(NULL)
-    } 
-    
+    }
+
     info_cols <- c("id","feature_id", "apex", "bound_left", "bound_right",
                    "corr","peak_cor", "total_pep_intensity", "total_prot_intensity",
                    "total_top2_prot_intensity")
@@ -121,6 +128,19 @@ extractFeatureVals.traces <- function(traces, features,
   featureVals <- do.call("rbind", featureVals)
   featureVals <- as.data.table(featureVals)
   featureVals[, fraction := as.numeric(levels(fraction))[fraction]]
+  if (imputeZero) {
+    if(verbose) message("Filling in fractions with zero values within features...")
+    featureVals[, imputedFraction := ifelse(intensity == 0, TRUE, FALSE)]
+    featureVals[intensity==0]$intensity <- NA
+    featureVals[, min_int := min(intensity,na.rm=TRUE), by=c("id","feature_id","apex")]
+    set.seed(123)
+    featureVals[,new := unlist(lapply(min_int,function(x){sample(x,1)}))]
+    featureVals[,intensity := ifelse(imputedFraction == TRUE, new, intensity)]
+    featureVals[, min_int := NULL]
+    featureVals[, new := NULL]
+  } else {
+    featureVals[, imputedFraction := FALSE]
+  }
   if(fill){
     if(verbose) message("Filling in missing values...")
     featureVals <- fillFeatureVals(featureVals = featureVals,
@@ -136,15 +156,17 @@ extractFeatureVals.tracesList <- function(traces, features,
                                       perturb_cutoff = "5%",
                                       verbose = TRUE,
                                       design_matrix = NULL,
-                                      extract = "subunits_detected", 
-                                      fill = F, ...){
+                                      extract = "subunits_detected",
+                                      imputeZero = FALSE,
+                                      fill = FALSE, ...){
   res <- lapply(names(traces), function(tr){
     message(paste0("Extracting values from ", tr))
     vals <- extractFeatureVals.traces(traces[[tr]],
-                                      features = features, 
-                                      perturb_cutoff = perturb_cutoff, 
-                                      verbose = verbose, 
-                                      extract = extract, 
+                                      features = features,
+                                      perturb_cutoff = perturb_cutoff,
+                                      verbose = verbose,
+                                      extract = extract,
+                                      imputeZero = imputeZero,
                                       fill = fill)
     if(!is.null(design_matrix)){
       vals[,Condition := unique(design_matrix[Sample_name == tr, Condition])]
@@ -169,7 +191,7 @@ extractFeatureVals.tracesList <- function(traces, features,
 fillFeatureVals <- function(featureVals,
                             design_matrix,
                             perturb_cutoff = "5%"){
-  
+
   if(class(perturb_cutoff) == "character"){
     qt <- as.numeric(gsub("%","",perturb_cutoff))/100
     perturb_cutoff <- quantile(featureVals$intensity, qt)
@@ -199,5 +221,3 @@ fillFeatureVals <- function(featureVals,
 
   return(fvComp[])
 }
-  
-  

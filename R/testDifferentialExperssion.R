@@ -5,20 +5,30 @@
 #' holding the Conditions between which differential expression should be tested.
 #' @param level Character string, return tests on peptide level or aggregate to protein level.
 #' Must be one of c("protein","peptide"). Defaults to "protein".
+#' @param measuredOnly Logical, if only measured values should be used for differential expression testing.
 #' @return A data.table containing the differential testing results for every protein/peptide.
 #' @import qvalue
 #' @export
-testDifferentialExpression <- function(featureVals, 
+testDifferentialExpression <- function(featureVals,
                                        compare_between = "Condition",
-                                       level = c("protein","peptide")){
+                                       level = c("protein","peptide"),
+                                       measuredOnly = TRUE){
   level <- match.arg(level)
   featVals <- copy(featureVals)
   setkeyv(featVals, c("feature_id", "apex", "id", "fraction"))
   message("Excluding peptides only found in one condition...")
-  featureValsBoth <- filterValsByOverlap(featVals, compare_between)
-  
+
+  if (measuredOnly) {
+    featVals <- subset(featVals,imputedFraction==FALSE)
+    featureValsBoth <- filterValsByFractionOverlap(featVals, compare_between)
+    featureValsBoth[, n_frac := .N, by=c("id", "feature_id", "apex","Condition")]
+    featureValsBoth <- subset(featureValsBoth, n_frac > 2)
+  } else {
+    featureValsBoth <- filterValsByOverlap(featVals, compare_between)
+  }
+
   message("Testing peptide-level differential expression")
-  
+
   grpn = uniqueN(featureValsBoth[,.(id, feature_id, apex)])
   pb <- txtProgressBar(min = 0, max = grpn, style = 3)
   tests <- featureValsBoth[, {
@@ -31,14 +41,14 @@ testDifferentialExpression <- function(featureVals,
       log2FC =  log2(int1/int2),n_fractions = a$parameter + 1, Tstat = a$statistic)},
     by = .(id, feature_id, apex)]
   close(pb)
-  
+
   if(level == "peptide"){
     tests$pBHadj <- p.adjust(tests$pVal, method = "BH")
     pQv <- qvalue::qvalue(tests$pVal, lambda = 0.4)
     tests$QVal <- pQv$qvalues
     return(tests)
-  } 
-  
+  }
+
   message("Aggregating to protein-level...")
   prottests <- aggregatePeptideTests(tests)
   return(prottests)
@@ -58,7 +68,7 @@ aggregatePeptideTests <- function(tests){
   medianPval$QVal <- qv$qvalues
   medianPval[, pBHadj := p.adjust(protPval, method = "fdr")]
   return(medianPval)
-  
+
 }
 
 getFCadjustedMedian <- function(tests){
@@ -73,7 +83,7 @@ filterValsByOverlap <- function(featureVals, compare_between){
   # Select peptides present in both conditions
   # conditions <- unique(featureVals[,get(compare_between)])
   if("Replicate" %in% names(featureVals)){
-    fv <- unique(featureVals[,.(id, feature_id, apex, Replicate, get(compare_between))])  
+    fv <- unique(featureVals[,.(id, feature_id, apex, Replicate, get(compare_between))])
     fv$dup <- duplicated(fv[, .(id, feature_id, apex, Replicate)])
     fv <- unique(fv[dup == TRUE, .(id, feature_id, apex, Replicate)])
     featureValsBoth <- merge(featureVals, fv, by = c("id", "feature_id", "apex", "Replicate"))
@@ -85,7 +95,27 @@ filterValsByOverlap <- function(featureVals, compare_between){
   }
   # split <- lapply(conditions, function(cond) featureVals[get(compare_between) == cond, .(feature_id, id,apex)])
   # featureValsBoth <- featureVals[, .SD[all(sapply(conditions ,"%in%", get(compare_between)))], by = .(id, feature_id, get(compare_between))]
-  
+
+  return(featureValsBoth)
+}
+
+filterValsByFractionOverlap <- function(featureVals, compare_between){
+  # Select peptides present in both conditions
+  # conditions <- unique(featureVals[,get(compare_between)])
+  if("Replicate" %in% names(featureVals)){
+    fv <- unique(featureVals[,.(id, feature_id, apex, Replicate, fraction, get(compare_between))])
+    fv$dup <- duplicated(fv[, .(id, feature_id, apex, Replicate, fraction)])
+    fv <- unique(fv[dup == TRUE, .(id, feature_id, apex, Replicate, fraction)])
+    featureValsBoth <- merge(featureVals, fv, by = c("id", "feature_id", "apex", "Replicate", "fraction"))
+  }else{
+    fv <- unique(featureVals[,.(id, feature_id, apex, fraction, get(compare_between))])
+    fv$dup <- duplicated(fv[, .(id, feature_id, apex, fraction)])
+    fv <- unique(fv[dup == TRUE, .(id, feature_id, apex, fraction)])
+    featureValsBoth <- merge(featureVals, fv, by = c("id", "feature_id", "apex", "fraction"))
+  }
+  # split <- lapply(conditions, function(cond) featureVals[get(compare_between) == cond, .(feature_id, id,apex)])
+  # featureValsBoth <- featureVals[, .SD[all(sapply(conditions ,"%in%", get(compare_between)))], by = .(id, feature_id, get(compare_between))]
+
   return(featureValsBoth)
 }
 
@@ -97,8 +127,3 @@ normalizeVals <- function(featureVals,
   featureVals[, normIntensity := normIntensity * medianOfMedians]
   return(featureVals)
 }
-
-
-
-
-
