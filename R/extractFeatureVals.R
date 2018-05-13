@@ -27,8 +27,7 @@ extractFeatureVals.traces <- function(traces, features,
                                perturb_cutoff = "5%",
                                verbose = TRUE,
                                extract = "subunits_detected",
-                               imputeZero = FALSE,
-                               fill = FALSE, ...){
+                               imputeZero = FALSE, ...){
 
   if(!is.data.table(features)){
     stop("features must be of type 'data.table'")
@@ -49,8 +48,6 @@ extractFeatureVals.traces <- function(traces, features,
   if(!("peak_corr" %in% featureColnames)) stop("No column peak_corr found. peak_corr must be
                                                   calculated with calculateFeatureCorrelation() first!")
 
-
-
   # Get traces matrix
   traceMat <- getIntensityMatrix(traces)
   # Impute noise for missing intensity measurements globally for all traces
@@ -62,8 +59,7 @@ extractFeatureVals.traces <- function(traces, features,
     perturb_cutoff <- quantile(measuredVals, qt)
   }
   set.seed(123) # set seed to always get same results
-  traceMatImputed[traceMatImputed == 0] <- sample(1:perturb_cutoff,size = nZero,
-                                                      replace = TRUE)
+  traceMatImputed[traceMatImputed == 0] <- runif(min = 0, max = perturb_cutoff, nZero)
 
   # Calculate correlation in Peak boundaries for every detected trace
 
@@ -125,27 +121,31 @@ extractFeatureVals.traces <- function(traces, features,
     resLong <- melt(res, id.vars = info_cols, variable.name = "fraction", value.name = "intensity")
     resLong
   })
+
   featureVals <- do.call("rbind", featureVals)
   featureVals <- as.data.table(featureVals)
   featureVals[, fraction := as.numeric(levels(fraction))[fraction]]
+
+  ## Zero Value imputation
   if (imputeZero) {
     if(verbose) message("Filling in fractions with zero values within features...")
-    featureVals[, imputedFraction := ifelse(intensity == 0, TRUE, FALSE)]
-    featureVals[intensity==0]$intensity <- NA
-    featureVals[, min_int := min(intensity,na.rm=TRUE), by=c("id","feature_id","apex")]
     set.seed(123)
-    featureVals[,new := unlist(lapply(min_int,function(x){sample(x,1)}))]
-    featureVals[,intensity := ifelse(imputedFraction == TRUE, new, intensity)]
+    featureVals[, imputedFraction := (intensity == 0)]
+    ## Completely absent features are imputed below the minimum value of that trace
+    featureVals[, imputedFeature := (sum(intensity) == 0), by=.(id, apex)]
+    featureVals[imputedFeature == TRUE,
+                min_int := unlist(lapply(id, function(x) min(traceMat[x,][traceMat[x,]>0])))]
+    featureVals[imputedFeature == TRUE, intensity := runif(min = 0, max = min_int, .N)]
+    ## Features with some zeroes are imputed below the smallest value of that feature
+    featureVals[intensity==0]$intensity <- NA
+    featureVals[imputedFeature == FALSE, min_int := min(intensity,na.rm=TRUE), by=c("id","feature_id","apex")]
+    ## featureVals[,new := unlist(lapply(min_int,function(x){sample(x,1)}))]
+    ## featureVals[,intensity := ifelse(imputedFraction == TRUE, new, intensity)]
+    featureVals[is.na(intensity), intensity := runif(min = 0, max = min_int, .N)]
     featureVals[, min_int := NULL]
-    featureVals[, new := NULL]
+    ## featureVals[, new := NULL]
   } else {
     featureVals[, imputedFraction := FALSE]
-  }
-  if(fill){
-    if(verbose) message("Filling in missing values...")
-    featureVals <- fillFeatureVals(featureVals = featureVals,
-                                   design_matrix = design_matrix,
-                                   perturb_cutoff = perturb_cutoff)
   }
   return(featureVals)
 }
@@ -166,11 +166,22 @@ extractFeatureVals.tracesList <- function(traces, features,
                                       perturb_cutoff = perturb_cutoff,
                                       verbose = verbose,
                                       extract = extract,
-                                      imputeZero = imputeZero,
-                                      fill = fill)
+                                      imputeZero = imputeZero)
+    ## Remove any traces that are found in no condition
+    vals <- vals[vals[, .I[sum(intensity) > 0], by=c("id","feature_id","apex")]$V1]
     if(!is.null(design_matrix)){
       vals[,Condition := unique(design_matrix[Sample_name == tr, Condition])]
       vals[,Replicate := unique(design_matrix[Sample_name == tr, Replicate])]
+
+      if(fill){
+        if(verbose) message("Filling in missing values...")
+        featureVals <- fillFeatureVals(featureVals = vals,
+                                       design_matrix = design_matrix,
+                                       perturb_cutoff = perturb_cutoff)
+      }
+    }else if(fill){
+      message("Cannot fill values without a design matrix. Please specify.")
+      message("Will return non-filled feature Values...")
     }
     vals[,Sample := tr]
     return(vals)
@@ -209,9 +220,14 @@ fillFeatureVals <- function(featureVals,
   fvComp <- merge(complete_table_, fv,
                   by=c("id", "feature_id", "apex", "fraction", "bound_left", "bound_right", "Sample"),
                   all.x= T)
-  fvComp[, filled_in := is.na(intensity)]
-  n_filled <- fvComp[filled_in == T, .N]
-  fvComp[filled_in == T, intensity := as.double(sample(1:perturb_cutoff, n_filled, replace = T))]
+  ## Remove any traces that are found in no condition
+  fvComp <- fvComp[fvComp[, .I[sum(intensity, na.rm = T) > 0], by=c("id","feature_id","apex")]$V1]
+  ## Impute missing features with the minimum Value with the perturbation cutoff
+  fvComp[, imputedCondition := is.na(intensity)]
+  n_filled <- fvComp[imputedCondition == T, .N]
+  ## fvComp[, min_int := min(intensity[intensity > 0],na.rm=TRUE), by=c("id","feature_id","apex")]
+  ## fvComp[imputedCondition  == T, intensity := runif(min=0, max = min_int, n=n_filled)]
+  fvComp[imputedCondition == T, intensity := as.double(runif(min = 0, max = perturb_cutoff, n_filled))]
   fvComp[, Condition := NULL]
   fvComp[, Replicate := NULL]
   fvComp <- merge(fvComp, design_matrix[,.(Sample_name, Condition)],
