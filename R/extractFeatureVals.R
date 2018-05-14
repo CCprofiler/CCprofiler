@@ -167,26 +167,30 @@ extractFeatureVals.tracesList <- function(traces, features,
                                       verbose = verbose,
                                       extract = extract,
                                       imputeZero = imputeZero)
-    ## Remove any traces that are found in no condition
-    vals <- vals[vals[, .I[sum(intensity) > 0], by=c("id","feature_id","apex")]$V1]
-    if(!is.null(design_matrix)){
-      vals[,Condition := unique(design_matrix[Sample_name == tr, Condition])]
-      vals[,Replicate := unique(design_matrix[Sample_name == tr, Replicate])]
-
-      if(fill){
-        if(verbose) message("Filling in missing values...")
-        featureVals <- fillFeatureVals(featureVals = vals,
-                                       design_matrix = design_matrix,
-                                       perturb_cutoff = perturb_cutoff)
-      }
-    }else if(fill){
-      message("Cannot fill values without a design matrix. Please specify.")
-      message("Will return non-filled feature Values...")
-    }
     vals[,Sample := tr]
     return(vals)
   })
-  do.call(rbind, res)
+  res <- do.call(rbind, res)
+  ## Remove any traces that are found in no condition
+  res <- res[res[, .I[!all(imputedFraction)], by=c("id","feature_id","apex")]$V1]
+
+  if(!is.null(design_matrix)){
+    res <- merge(res, unique(design_matrix[Sample_name %in% unique(res$Sample), .(Sample_name, Condition)]),
+                 by.x = "Sample", by.y = "Sample_name")
+    res <- merge(res, unique(design_matrix[Sample_name %in% unique(res$Sample), .(Sample_name, Replicate)]),
+                 by.x = "Sample", by.y = "Sample_name")
+
+    if(fill){
+      if(verbose) message("Filling in missing values...")
+      res <- fillFeatureVals(featureVals = res,
+                                     design_matrix = design_matrix,
+                                     perturb_cutoff = perturb_cutoff)
+    }
+  }else if(fill){
+    message("Cannot fill values without a design matrix. Please specify.")
+    message("Will return non-filled feature Values...")
+  }
+  return(res)
 }
 
 #' Fill traceVals for all Samples
@@ -220,14 +224,19 @@ fillFeatureVals <- function(featureVals,
   fvComp <- merge(complete_table_, fv,
                   by=c("id", "feature_id", "apex", "fraction", "bound_left", "bound_right", "Sample"),
                   all.x= T)
+  fvComp[is.na(imputedFraction)]$imputedFraction <- TRUE
+  fvComp[is.na(imputedFeature)]$imputedFeature <- TRUE
   ## Remove any traces that are found in no condition
-  fvComp <- fvComp[fvComp[, .I[sum(intensity, na.rm = T) > 0], by=c("id","feature_id","apex")]$V1]
-  ## Impute missing features with the minimum Value with the perturbation cutoff
+  fvComp <- fvComp[fvComp[, .I[!all(imputedFraction)], by=c("id","feature_id","apex")]$V1]
+
   fvComp[, imputedCondition := is.na(intensity)]
   n_filled <- fvComp[imputedCondition == T, .N]
-  ## fvComp[, min_int := min(intensity[intensity > 0],na.rm=TRUE), by=c("id","feature_id","apex")]
-  ## fvComp[imputedCondition  == T, intensity := runif(min=0, max = min_int, n=n_filled)]
+  ## Impute missing features with the minimum Value with the perturbation cutoff
   fvComp[imputedCondition == T, intensity := as.double(runif(min = 0, max = perturb_cutoff, n_filled))]
+  ## Impute missing traces with the feature minimum of the other fraction
+  fvComp[, min_int := min(intensity[imputedFraction == F & intensity > 0],na.rm=TRUE), by=c("id","feature_id","apex")]
+  fvComp[imputedCondition  == T, intensity := runif(min=0, max = min_int, n=n_filled)]
+
   fvComp[, Condition := NULL]
   fvComp[, Replicate := NULL]
   fvComp <- merge(fvComp, design_matrix[,.(Sample_name, Condition)],
