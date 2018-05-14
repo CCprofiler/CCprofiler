@@ -26,7 +26,7 @@ testDifferentialExpression <- function(featureVals,
   } else {
     featureValsBoth <- filterValsByOverlap(featVals, compare_between)
   }
-
+  featureValsBoth <- getQuantTraces(featureValsBoth, compare_between)
   message("Testing peptide-level differential expression")
 
   grpn = uniqueN(featureValsBoth[,.(id, feature_id, apex)])
@@ -34,13 +34,15 @@ testDifferentialExpression <- function(featureVals,
   tests <- featureValsBoth[, {
     setTxtProgressBar(pb, .GRP)
     a = t.test(formula = intensity ~ get(compare_between) , paired = T, var.equal = FALSE)
-    ints = .SD[, .(s = sum(intensity)), by = .(get(compare_between))]$s
-    int1 = ints[1]
-    int2 = ints[2]
+    qints = .SD[useForQuant == T, .(s = sum(intensity)), by = .(get(compare_between))]$s
+    ints = .SD[imputedFraction == F, .(s = sum(intensity)), by = .(get(compare_between))]$s
+    int1 = max(0, ints[1], na.rm=T)
+    int2 = max(0, ints[2], na.rm=T)
     .(pVal = a$p.value, int1 = int1, int2 = int2, meanDiff = a$estimate,
-      log2FC =  log2(int1/int2),n_fractions = a$parameter + 1, Tstat = a$statistic)},
+      log2FC =  log2(qints[1]/qints[2]),n_fractions = a$parameter + 1, Tstat = a$statistic)},
     by = .(id, feature_id, apex)]
   close(pb)
+  tests[is.na(log2FC) & (int1 == 0 | int2  == 0)]$log2FC <- Inf
 
   if(level == "peptide"){
     tests$pBHadj <- p.adjust(tests$pVal, method = "BH")
@@ -119,6 +121,16 @@ filterValsByFractionOverlap <- function(featureVals, compare_between){
   return(featureValsBoth)
 }
 
+getQuantTraces <- function(featureVals, compare_between){
+  if("Replicate" %in% names(featureVals)){
+    featureVals[, useForQuant := (!any(imputedFraction) & .N == 2),
+                by=.(id, feature_id, apex, Replicate, fraction)]
+  }else{
+    featureVals[, useForQuant := (!any(imputedFraction) & .N == 2),
+                by=.(id, feature_id, apex, fraction)]
+  }
+  return(featureVals)
+}
 
 normalizeVals <- function(featureVals,
                           compare_between = "Condition"){
