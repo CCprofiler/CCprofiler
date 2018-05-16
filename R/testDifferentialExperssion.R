@@ -39,8 +39,10 @@ testDifferentialExpression <- function(featureVals,
     ints = .SD[imputedFraction == F, .(s = sum(intensity)), by = .(get(compare_between))] # this creates quantitative discrepancies depending on how many fractions are used
     int1 = max(0, ints[get==samples[1]]$s, na.rm=T)
     int2 = max(0, ints[get==samples[2]]$s, na.rm=T)
+    qint1 = qints[get==samples[1]]$s
+    qint2 = qints[get==samples[2]]$s
     .(pVal = a$p.value, int1 = int1, int2 = int2, meanDiff = a$estimate,
-      log2FC =  log2(qints[get==samples[1]]$s/qints[get==samples[2]]$s),
+      qint1 = qint1, qint2 = qint2, log2FC =  log2(qint1/qint2),
       n_fractions = a$parameter + 1, Tstat = a$statistic, testOrder = paste0(samples[1],".vs.",samples[2]))},
     by = .(id, feature_id, apex)]
   close(pb)
@@ -80,9 +82,18 @@ aggregatePeptideTests <- function(tests){
 getFCadjustedMedian <- function(tests){
   test <- copy(tests)
   test[, FCpVal := (1-pVal) * sign(log2FC)]
-  medianPval <- test[ ,{mPval = median(FCpVal)
-  .(medianPVal = 1-(mPval * sign(mPval)), Npeptides = .N, medianLog2FC = median(log2FC), medianTstat = median(Tstat))},
+  medianPval <- test[ ,{mPval = median(FCpVal,na.rm=T)
+  .(medianPVal = 1-(mPval * sign(mPval)),
+  Npeptides = .N,
+  medianLog2FC = median(log2FC,na.rm=T),
+  medianTstat = median(Tstat),
+  medianMeanDiff = median(meanDiff),
+  sumLog2FC = log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T))
+  )},
   by = .(feature_id, apex)]
+  medianPval[is.nan(sumLog2FC) & (medianLog2FC == "Inf")]$sumLog2FC <- Inf
+  medianPval[is.nan(sumLog2FC) & (medianLog2FC == "-Inf")]$sumLog2FC <- -Inf
+  return(medianPval)
   }
 
 filterValsByOverlap <- function(featureVals, compare_between){
