@@ -16,33 +16,37 @@ testDifferentialExpression <- function(featureVals,
   level <- match.arg(level)
   featVals <- copy(featureVals)
   setkeyv(featVals, c("feature_id", "apex", "id", "fraction"))
-  message("Excluding peptides only found in one condition...")
 
+  message("Excluding peptides only found in one condition...")
   if (measuredOnly) {
     featVals <- subset(featVals,imputedFraction==FALSE)
     featureValsBoth <- filterValsByFractionOverlap(featVals, compare_between)
-    featureValsBoth[, n_frac := .N, by=c("id", "feature_id", "apex","Condition")]
+    featureValsBoth[, n_frac := .N, by=c("id", "feature_id", "apex",compare_between)]
     featureValsBoth <- subset(featureValsBoth, n_frac > 2)
   } else {
     featureValsBoth <- filterValsByOverlap(featVals, compare_between)
   }
   featureValsBoth <- getQuantTraces(featureValsBoth, compare_between)
-  message("Testing peptide-level differential expression")
 
+  message("Testing peptide-level differential expression")
   grpn = uniqueN(featureValsBoth[,.(id, feature_id, apex)])
   pb <- txtProgressBar(min = 0, max = grpn, style = 3)
   tests <- featureValsBoth[, {
     setTxtProgressBar(pb, .GRP)
+    samples = unique(.SD[,get(compare_between)])
     a = t.test(formula = intensity ~ get(compare_between) , paired = T, var.equal = FALSE)
-    qints = .SD[useForQuant == T, .(s = sum(intensity)), by = .(get(compare_between))]$s
-    ints = .SD[imputedFraction == F, .(s = sum(intensity)), by = .(get(compare_between))]$s
-    int1 = max(0, ints[1], na.rm=T)
-    int2 = max(0, ints[2], na.rm=T)
+    qints = .SD[useForQuant == T, .(s = sum(intensity)), by = .(get(compare_between))]
+    # ints = .SD[imputedFraction == F, .(s = sum(intensity)), by = .(get(compare_between))] # this creates quantitative discrepancies depending on how many fractions are used
+    ints = .SD[,.(s = sum(intensity)), by = .(get(compare_between))]
+    int1 = max(0, ints[get==samples[1]]$s, na.rm=T)
+    int2 = max(0, ints[get==samples[2]]$s, na.rm=T)
     .(pVal = a$p.value, int1 = int1, int2 = int2, meanDiff = a$estimate,
-      log2FC =  log2(qints[1]/qints[2]),n_fractions = a$parameter + 1, Tstat = a$statistic)},
+      log2FC =  log2(qints[get==samples[1]]$s/qints[get==samples[2]]$s),
+      n_fractions = a$parameter + 1, Tstat = a$statistic, testOrder = paste0(samples[1],".vs.",samples[2]))},
     by = .(id, feature_id, apex)]
   close(pb)
-  tests[is.na(log2FC) & (int1 == 0 | int2  == 0) & (meanDiff >= 0)]$log2FC <- Inf
+  tests[is.na(log2FC) & (int1 == 0 | int2  == 0) & (meanDiff == 0)]$log2FC <- 0
+  tests[is.na(log2FC) & (int1 == 0 | int2  == 0) & (meanDiff > 0)]$log2FC <- Inf
   tests[is.na(log2FC) & (int1 == 0 | int2  == 0) & (meanDiff < 0)]$log2FC <- -Inf
 
   if(level == "peptide"){
