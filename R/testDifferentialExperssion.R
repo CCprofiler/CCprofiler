@@ -42,7 +42,8 @@ testDifferentialExpression <- function(featureVals,
       log2FC =  log2(qints[1]/qints[2]),n_fractions = a$parameter + 1, Tstat = a$statistic)},
     by = .(id, feature_id, apex)]
   close(pb)
-  tests[is.na(log2FC) & (int1 == 0 | int2  == 0)]$log2FC <- Inf
+  tests[is.na(log2FC) & (int1 == 0 | int2  == 0) & (meanDiff >= 0)]$log2FC <- Inf
+  tests[is.na(log2FC) & (int1 == 0 | int2  == 0) & (meanDiff < 0)]$log2FC <- -Inf
 
   if(level == "peptide"){
     tests$pBHadj <- p.adjust(tests$pVal, method = "BH")
