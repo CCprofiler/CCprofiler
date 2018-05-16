@@ -36,8 +36,7 @@ testDifferentialExpression <- function(featureVals,
     samples = unique(.SD[,get(compare_between)])
     a = t.test(formula = intensity ~ get(compare_between) , paired = T, var.equal = FALSE)
     qints = .SD[useForQuant == T, .(s = sum(intensity)), by = .(get(compare_between))]
-    # ints = .SD[imputedFraction == F, .(s = sum(intensity)), by = .(get(compare_between))] # this creates quantitative discrepancies depending on how many fractions are used
-    ints = .SD[,.(s = sum(intensity)), by = .(get(compare_between))]
+    ints = .SD[imputedFraction == F, .(s = sum(intensity)), by = .(get(compare_between))] # this creates quantitative discrepancies depending on how many fractions are used
     int1 = max(0, ints[get==samples[1]]$s, na.rm=T)
     int2 = max(0, ints[get==samples[2]]$s, na.rm=T)
     .(pVal = a$p.value, int1 = int1, int2 = int2, meanDiff = a$estimate,
