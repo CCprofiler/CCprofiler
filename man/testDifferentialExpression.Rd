@@ -5,7 +5,7 @@
 \title{Test differential expression of peptides or proteins between 2 conditions}
 \usage{
 testDifferentialExpression(featureVals, compare_between = "Condition",
-  level = c("protein", "peptide"))
+  level = c("protein", "peptide", "complex"), measuredOnly = TRUE)
 }
 \arguments{
 \item{featureVals}{data.table, a long-format table of intensity values within feature boundaries.
@@ -16,6 +16,8 @@ holding the Conditions between which differential expression should be tested.}
 
 \item{level}{Character string, return tests on peptide level or aggregate to protein level.
 Must be one of c("protein","peptide"). Defaults to "protein".}
+
+\item{measuredOnly}{Logical, if only measured values should be used for differential expression testing.}
 }
 \value{
 A data.table containing the differential testing results for every protein/peptide.

@@ -105,6 +105,12 @@ aggregatePeptideTests <- function(tests){
   return(aggregated)
 }
 
+#' Calculate a complex-level significance from protein level differential expression tests
+#' @param tests data.table, containing protein level p-values.
+#' Produced by \code{testDifferentialExpression} with option \code{level}="protein".
+#' A featureVals table can be produced with \code{extractFeatureVals}.
+#' @return A data.table containing the differential testing results for every complex.
+#' @export
 aggregateProteinTests <- function(tests){
   aggregated <- aggregateTests(tests,level="complex")
   return(aggregated)
