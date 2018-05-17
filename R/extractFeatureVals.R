@@ -35,12 +35,26 @@ extractFeatureVals.traces <- function(traces, features,
   featureColnames <- names(features)
   if("complex_id" %in% featureColnames){
     complexLevel <- TRUE
-    .tracesTest(traces, type = "protein")
-    allIds <- features$complex_id
+    if (traces$trace_type == "protein") {
+      .tracesTest(traces, type = "protein")
+      tracesType <- "protein"
+      allIds <- features$complex_id
+    } else if (traces$trace_type == "peptide") {
+      tracesType <- "peptide"
+      .tracesTest(traces, type = "peptide")
+      allIds <- features$complex_id
+    } else {
+      stop("Could not detect if traces object is of type peptide or protein. Aborting...")
+    }
   } else if("protein_id" %in% featureColnames){
     complexLevel <- FALSE
-    .tracesTest(traces, type = "peptide")
-    allIds <- features$protein_id
+    if (traces$trace_type == "peptide") {
+      tracesType <- "peptide"
+      .tracesTest(traces, type = "peptide")
+      allIds <- features$protein_id
+    } else {
+      stop("Could not detect if traces object is of type peptide. Aborting...")
+    }
   } else {
     stop("Could not detect if feature table is for protein or complex Features. Aborting...")
   }
@@ -67,7 +81,18 @@ extractFeatureVals.traces <- function(traces, features,
 
     # featuresHyp <- features[features$protein_id == hyp,]
     subunitsUnion <- unique(strsplit(hyp[extract],";")[[1]])
-    subunitsUnion <- subunitsUnion[subunitsUnion %in% rownames(traceMat)]
+    if (complexLevel == FALSE) {
+      subunitsUnion <- subunitsUnion[subunitsUnion %in% rownames(traceMat)]
+    } else if ((complexLevel == TRUE) & (tracesType == "protein")) {
+      subunitsUnion <- subunitsUnion[subunitsUnion %in% rownames(traceMat)]
+    } else if ((complexLevel == TRUE) & (tracesType == "peptide")) {
+      prot_ids <- traces$trace_annotation$protein_id
+      subunitsUnion <- subunitsUnion[subunitsUnion %in% prot_ids]
+      # change subunitsUnion to peptide ids
+      subunitsUnion <- traces$trace_annotation[protein_id %in% subunitsUnion]$id
+    } else {
+      stop("Features and traces do not match. Aborting...")
+    }
     nSubunits <- length(subunitsUnion)
     if(complexLevel){
       id <- as.character(hyp["complex_id"])
@@ -113,9 +138,15 @@ extractFeatureVals.traces <- function(traces, features,
       return(NULL)
     }
 
-    info_cols <- c("id","feature_id", "apex", "bound_left", "bound_right",
-                   "corr","peak_cor", "total_pep_intensity", "total_prot_intensity",
-                   "total_top2_prot_intensity")
+    if (tracesType=="peptide"){
+      info_cols <- c("id","feature_id", "apex", "bound_left", "bound_right",
+                     "corr","peak_cor", "total_pep_intensity", "total_prot_intensity",
+                     "total_top2_prot_intensity")
+    } else {
+      info_cols <- c("id","feature_id", "apex", "bound_left", "bound_right",
+                     "corr","peak_cor", "total_prot_intensity", "total_complex_intensity",
+                     "total_top2_complex_intensity")
+    }
     res <- res[, (info_cols) := .(subunitsUnion, id, apex, bound_left, bound_right, corrSubunits,
                                   pk, intensities, totalIntensity, totalTop2Intensity)]
     resLong <- melt(res, id.vars = info_cols, variable.name = "fraction", value.name = "intensity")
@@ -133,9 +164,11 @@ extractFeatureVals.traces <- function(traces, features,
     featureVals[, imputedFraction := (intensity == 0)]
     ## Completely absent features are imputed below the minimum value of that trace
     featureVals[, imputedFeature := (sum(intensity) == 0), by=.(id, apex)]
-    featureVals[imputedFeature == TRUE,
-                min_int := unlist(lapply(id, function(x) min(traceMat[x,][traceMat[x,]>0])))]
-    featureVals[imputedFeature == TRUE, intensity := runif(min = 0, max = min_int, .N)]
+    if (TRUE %in% unique(featureVals$imputedFeature)) {
+      featureVals[imputedFeature == TRUE,
+                  min_int := unlist(lapply(id, function(x) min(traceMat[x,][traceMat[x,]>0])))]
+      featureVals[imputedFeature == TRUE, intensity := runif(min = 0, max = min_int, .N)]
+    }
     ## Features with some zeroes are imputed below the smallest value of that feature
     featureVals[intensity==0]$intensity <- NA
     featureVals[imputedFeature == FALSE, min_int := min(intensity,na.rm=TRUE), by=c("id","feature_id","apex")]
