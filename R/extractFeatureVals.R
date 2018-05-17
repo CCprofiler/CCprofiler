@@ -228,7 +228,7 @@ extractFeatureVals.tracesList <- function(traces, features,
                  by.x = "Sample", by.y = "Sample_name")
 
     if(fill){
-      if(verbose) message("Filling in missing values...")
+      if(verbose) message("Filling in missing values across Features...")
       res <- fillFeatureVals(featureVals = res,
                                      design_matrix = design_matrix,
                                      perturb_cutoff = perturb_cutoff)
