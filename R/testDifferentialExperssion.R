@@ -178,7 +178,7 @@ getFCadjustedMedian <- function(tests,level){
 filterValsByOverlap <- function(featureVals, compare_between){
   # Select peptides present in both conditions
   # conditions <- unique(featureVals[,get(compare_between)])
-  if ("complex_id" %in% names(featVals)) {
+  if ("complex_id" %in% names(featureVals)) {
     if("Replicate" %in% names(featureVals)){
       fv <- unique(featureVals[,.(id, feature_id, complex_id, apex, Replicate, get(compare_between))])
       fv$dup <- duplicated(fv[, .(id, feature_id, complex_id, apex, Replicate)])
@@ -212,7 +212,7 @@ filterValsByOverlap <- function(featureVals, compare_between){
 filterValsByFractionOverlap <- function(featureVals, compare_between){
   # Select peptides present in both conditions
   # conditions <- unique(featureVals[,get(compare_between)])
-  if ("complex_id" %in% names(featVals)) {
+  if ("complex_id" %in% names(featureVals)) {
     if("Replicate" %in% names(featureVals)){
       fv <- unique(featureVals[,.(id, feature_id, complex_id, apex, Replicate, fraction, get(compare_between))])
       fv$dup <- duplicated(fv[, .(id, feature_id, complex_id, apex, Replicate, fraction)])
@@ -244,7 +244,7 @@ filterValsByFractionOverlap <- function(featureVals, compare_between){
 }
 
 getQuantTraces <- function(featureVals, compare_between){
-  if ("complex_id" %in% names(featVals)) {
+  if ("complex_id" %in% names(featureVals)) {
     if("Replicate" %in% names(featureVals)){
       featureVals[, useForQuant := (!any(imputedFraction) & .N == 2),
                   by=.(id, feature_id, complex_id, apex, Replicate, fraction)]
