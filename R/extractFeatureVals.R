@@ -90,6 +90,8 @@ extractFeatureVals.traces <- function(traces, features,
       subunitsUnion <- subunitsUnion[subunitsUnion %in% prot_ids]
       # change subunitsUnion to peptide ids
       subunitsUnion <- traces$trace_annotation[protein_id %in% subunitsUnion]$id
+      pepProtMap <- subset(traces$trace_annotation[id %in% subunitsUnion],select=c("id","protein_id"))
+      names(pepProtMap) <- c("pep_id","prot_id")
     } else {
       stop("Features and traces do not match. Aborting...")
     }
@@ -139,16 +141,27 @@ extractFeatureVals.traces <- function(traces, features,
     }
 
     if (tracesType=="peptide"){
-      info_cols <- c("id","feature_id", "apex", "bound_left", "bound_right",
-                     "corr","peak_cor", "total_pep_intensity", "total_prot_intensity",
-                     "total_top2_prot_intensity")
+      if (complexLevel){
+        info_cols <- c("id","feature_id", "complex_id", "apex", "bound_left", "bound_right",
+                       "corr","peak_cor", "total_pep_intensity", "total_prot_intensity",
+                       "total_top2_prot_intensity")
+        prot_id <- unlist(lapply(subunitsUnion,function(x){pepProtMap[pep_id==x]$prot_id}))
+        res <- res[, (info_cols) := .(subunitsUnion, prot_id, id, apex, bound_left, bound_right, corrSubunits,
+                                     pk, intensities, totalIntensity, totalTop2Intensity)]
+      } else {
+        info_cols <- c("id","feature_id", "apex", "bound_left", "bound_right",
+                       "corr","peak_cor", "total_pep_intensity", "total_complex_intensity",
+                       "total_top2_complex_intensity")
+        res <- res[, (info_cols) := .(subunitsUnion, id, apex, bound_left, bound_right, corrSubunits,
+                                       pk, intensities, totalIntensity, totalTop2Intensity)]
+      }
     } else {
       info_cols <- c("id","feature_id", "apex", "bound_left", "bound_right",
                      "corr","peak_cor", "total_prot_intensity", "total_complex_intensity",
                      "total_top2_complex_intensity")
+      res <- res[, (info_cols) := .(subunitsUnion, id, apex, bound_left, bound_right, corrSubunits,
+                                   pk, intensities, totalIntensity, totalTop2Intensity)]
     }
-    res <- res[, (info_cols) := .(subunitsUnion, id, apex, bound_left, bound_right, corrSubunits,
-                                  pk, intensities, totalIntensity, totalTop2Intensity)]
     resLong <- melt(res, id.vars = info_cols, variable.name = "fraction", value.name = "intensity")
     resLong
   })
@@ -248,14 +261,22 @@ fillFeatureVals <- function(featureVals,
   samples <- unique(design_matrix$Sample)
   n_samples <- length(samples)
   fv <- copy(featureVals)
-  setkeyv(fv, c("id", "feature_id", "apex", "fraction", "bound_left", "bound_right", "Sample"))
-  complete_table <- unique(fv[, .(id, feature_id, apex, fraction, bound_left, bound_right)])
+  if ("complex_id" %in% names(fv)) {
+    key_v <- c("id", "feature_id", "complex_id", "apex", "fraction", "bound_left", "bound_right", "Sample")
+    setkeyv(fv, key_v)
+    complete_table <- unique(fv[, .(id, feature_id, complex_id, apex, fraction, bound_left, bound_right)])
+  } else {
+    key_v <- c("id", "feature_id", "apex", "fraction", "bound_left", "bound_right", "Sample")
+    setkeyv(fv, key_v)
+    complete_table <- unique(fv[, .(id, feature_id, apex, fraction, bound_left, bound_right)])
+  }
+
   # complete_table_ <- apply(complete_table, 1, function(x) cbind(rbind(rep(x, n_samples)), samples))
   complete_table_ <- do.call(rbind,lapply(samples, function(x) cbind(complete_table, x)))
   setnames(complete_table_, "x", "Sample")
   setkeyv(complete_table_, key(fv))
   fvComp <- merge(complete_table_, fv,
-                  by=c("id", "feature_id", "apex", "fraction", "bound_left", "bound_right", "Sample"),
+                  by=key_v,
                   all.x= T)
   fvComp[is.na(imputedFraction)]$imputedFraction <- TRUE
   fvComp[is.na(imputedFeature)]$imputedFeature <- TRUE
