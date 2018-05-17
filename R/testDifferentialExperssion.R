@@ -15,7 +15,11 @@ testDifferentialExpression <- function(featureVals,
                                        measuredOnly = TRUE){
   level <- match.arg(level)
   featVals <- copy(featureVals)
-  setkeyv(featVals, c("feature_id", "apex", "id", "fraction"))
+  if ("complex_id" %in% names(featVals)) {
+    setkeyv(featVals, c("feature_id", "complex_id", "apex", "id", "fraction"))
+  } else {
+    setkeyv(featVals, c("feature_id", "apex", "id", "fraction"))
+  }
 
   message("Excluding peptides only found in one condition...")
   if (measuredOnly) {
@@ -29,23 +33,43 @@ testDifferentialExpression <- function(featureVals,
   featureValsBoth <- getQuantTraces(featureValsBoth, compare_between)
 
   message("Testing peptide-level differential expression")
-  grpn = uniqueN(featureValsBoth[,.(id, feature_id, apex)])
-  pb <- txtProgressBar(min = 0, max = grpn, style = 3)
-  tests <- featureValsBoth[, {
-    setTxtProgressBar(pb, .GRP)
-    samples = unique(.SD[,get(compare_between)])
-    a = t.test(formula = intensity ~ get(compare_between) , paired = T, var.equal = FALSE)
-    qints = .SD[useForQuant == T, .(s = sum(intensity)), by = .(get(compare_between))]
-    ints = .SD[imputedFraction == F, .(s = sum(intensity)), by = .(get(compare_between))] # this creates quantitative discrepancies depending on how many fractions are used
-    int1 = max(0, ints[get==samples[1]]$s, na.rm=T)
-    int2 = max(0, ints[get==samples[2]]$s, na.rm=T)
-    qint1 = qints[get==samples[1]]$s
-    qint2 = qints[get==samples[2]]$s
-    .(pVal = a$p.value, int1 = int1, int2 = int2, meanDiff = a$estimate,
-      qint1 = qint1, qint2 = qint2, log2FC =  log2(qint1/qint2),
-      n_fractions = a$parameter + 1, Tstat = a$statistic, testOrder = paste0(samples[1],".vs.",samples[2]))},
-    by = .(id, feature_id, apex)]
-  close(pb)
+  if ("complex_id" %in% names(featureValsBoth)) {
+    grpn = uniqueN(featureValsBoth[,.(id, feature_id, complex_id, apex)])
+    pb <- txtProgressBar(min = 0, max = grpn, style = 3)
+    tests <- featureValsBoth[, {
+      setTxtProgressBar(pb, .GRP)
+      samples = unique(.SD[,get(compare_between)])
+      a = t.test(formula = intensity ~ get(compare_between) , paired = T, var.equal = FALSE)
+      qints = .SD[useForQuant == T, .(s = sum(intensity)), by = .(get(compare_between))]
+      ints = .SD[imputedFraction == F, .(s = sum(intensity)), by = .(get(compare_between))] # this creates quantitative discrepancies depending on how many fractions are used
+      int1 = max(0, ints[get==samples[1]]$s, na.rm=T)
+      int2 = max(0, ints[get==samples[2]]$s, na.rm=T)
+      qint1 = qints[get==samples[1]]$s
+      qint2 = qints[get==samples[2]]$s
+      .(pVal = a$p.value, int1 = int1, int2 = int2, meanDiff = a$estimate,
+        qint1 = qint1, qint2 = qint2, log2FC =  log2(qint1/qint2),
+        n_fractions = a$parameter + 1, Tstat = a$statistic, testOrder = paste0(samples[1],".vs.",samples[2]))},
+      by = .(id, feature_id, complex_id, apex)]
+    close(pb)
+  } else {
+    grpn = uniqueN(featureValsBoth[,.(id, feature_id, apex)])
+    pb <- txtProgressBar(min = 0, max = grpn, style = 3)
+    tests <- featureValsBoth[, {
+      setTxtProgressBar(pb, .GRP)
+      samples = unique(.SD[,get(compare_between)])
+      a = t.test(formula = intensity ~ get(compare_between) , paired = T, var.equal = FALSE)
+      qints = .SD[useForQuant == T, .(s = sum(intensity)), by = .(get(compare_between))]
+      ints = .SD[imputedFraction == F, .(s = sum(intensity)), by = .(get(compare_between))] # this creates quantitative discrepancies depending on how many fractions are used
+      int1 = max(0, ints[get==samples[1]]$s, na.rm=T)
+      int2 = max(0, ints[get==samples[2]]$s, na.rm=T)
+      qint1 = qints[get==samples[1]]$s
+      qint2 = qints[get==samples[2]]$s
+      .(pVal = a$p.value, int1 = int1, int2 = int2, meanDiff = a$estimate,
+        qint1 = qint1, qint2 = qint2, log2FC =  log2(qint1/qint2),
+        n_fractions = a$parameter + 1, Tstat = a$statistic, testOrder = paste0(samples[1],".vs.",samples[2]))},
+      by = .(id, feature_id, apex)]
+    close(pb)
+  }
   tests[is.na(log2FC) & (int1 == 0 | int2  == 0) & (meanDiff == 0)]$log2FC <- 0
   tests[is.na(log2FC) & (int1 == 0 | int2  == 0) & (meanDiff > 0)]$log2FC <- Inf
   tests[is.na(log2FC) & (int1 == 0 | int2  == 0) & (meanDiff < 0)]$log2FC <- -Inf
@@ -82,15 +106,27 @@ aggregatePeptideTests <- function(tests){
 getFCadjustedMedian <- function(tests){
   test <- copy(tests)
   test[, FCpVal := (1-pVal) * sign(log2FC)]
-  medianPval <- test[ ,{mPval = median(FCpVal,na.rm=T)
-  .(medianPVal = 1-(mPval * sign(mPval)),
-  Npeptides = .N,
-  medianLog2FC = median(log2FC,na.rm=T),
-  medianTstat = median(Tstat),
-  medianMeanDiff = median(meanDiff),
-  sumLog2FC = log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T))
-  )},
-  by = .(feature_id, apex)]
+  if ("complex_id" %in% names(test)) {
+    medianPval <- test[ ,{mPval = median(FCpVal,na.rm=T)
+    .(medianPVal = 1-(mPval * sign(mPval)),
+    Npeptides = .N,
+    medianLog2FC = median(log2FC,na.rm=T),
+    medianTstat = median(Tstat),
+    medianMeanDiff = median(meanDiff),
+    sumLog2FC = log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T))
+    )},
+    by = .(feature_id, complex_id, apex)]
+  } else {
+    medianPval <- test[ ,{mPval = median(FCpVal,na.rm=T)
+    .(medianPVal = 1-(mPval * sign(mPval)),
+    Npeptides = .N,
+    medianLog2FC = median(log2FC,na.rm=T),
+    medianTstat = median(Tstat),
+    medianMeanDiff = median(meanDiff),
+    sumLog2FC = log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T))
+    )},
+    by = .(feature_id, apex)]
+  }
   medianPval[is.nan(sumLog2FC) & (medianLog2FC == "Inf")]$sumLog2FC <- Inf
   medianPval[is.nan(sumLog2FC) & (medianLog2FC == "-Inf")]$sumLog2FC <- -Inf
   return(medianPval)
@@ -99,16 +135,30 @@ getFCadjustedMedian <- function(tests){
 filterValsByOverlap <- function(featureVals, compare_between){
   # Select peptides present in both conditions
   # conditions <- unique(featureVals[,get(compare_between)])
-  if("Replicate" %in% names(featureVals)){
-    fv <- unique(featureVals[,.(id, feature_id, apex, Replicate, get(compare_between))])
-    fv$dup <- duplicated(fv[, .(id, feature_id, apex, Replicate)])
-    fv <- unique(fv[dup == TRUE, .(id, feature_id, apex, Replicate)])
-    featureValsBoth <- merge(featureVals, fv, by = c("id", "feature_id", "apex", "Replicate"))
-  }else{
-    fv <- unique(featureVals[,.(id, feature_id, apex, get(compare_between))])
-    fv$dup <- duplicated(fv[, .(id, feature_id, apex)])
-    fv <- unique(fv[dup == TRUE, .(id, feature_id, apex)])
-    featureValsBoth <- merge(featureVals, fv, by = c("id", "feature_id", "apex"))
+  if ("complex_id" %in% names(featVals)) {
+    if("Replicate" %in% names(featureVals)){
+      fv <- unique(featureVals[,.(id, feature_id, complex_id, apex, Replicate, get(compare_between))])
+      fv$dup <- duplicated(fv[, .(id, feature_id, complex_id, apex, Replicate)])
+      fv <- unique(fv[dup == TRUE, .(id, feature_id, complex_id, apex, Replicate)])
+      featureValsBoth <- merge(featureVals, fv, by = c("id", "feature_id", "complex_id", "apex", "Replicate"))
+    }else{
+      fv <- unique(featureVals[,.(id, feature_id, complex_id, apex, get(compare_between))])
+      fv$dup <- duplicated(fv[, .(id, feature_id, complex_id, apex)])
+      fv <- unique(fv[dup == TRUE, .(id, feature_id, complex_id, apex)])
+      featureValsBoth <- merge(featureVals, fv, by = c("id", "feature_id", "complex_id", "apex"))
+    }
+  } else {
+    if("Replicate" %in% names(featureVals)){
+      fv <- unique(featureVals[,.(id, feature_id, apex, Replicate, get(compare_between))])
+      fv$dup <- duplicated(fv[, .(id, feature_id, apex, Replicate)])
+      fv <- unique(fv[dup == TRUE, .(id, feature_id, apex, Replicate)])
+      featureValsBoth <- merge(featureVals, fv, by = c("id", "feature_id", "apex", "Replicate"))
+    }else{
+      fv <- unique(featureVals[,.(id, feature_id, apex, get(compare_between))])
+      fv$dup <- duplicated(fv[, .(id, feature_id, apex)])
+      fv <- unique(fv[dup == TRUE, .(id, feature_id, apex)])
+      featureValsBoth <- merge(featureVals, fv, by = c("id", "feature_id", "apex"))
+    }
   }
   # split <- lapply(conditions, function(cond) featureVals[get(compare_between) == cond, .(feature_id, id,apex)])
   # featureValsBoth <- featureVals[, .SD[all(sapply(conditions ,"%in%", get(compare_between)))], by = .(id, feature_id, get(compare_between))]
@@ -119,16 +169,30 @@ filterValsByOverlap <- function(featureVals, compare_between){
 filterValsByFractionOverlap <- function(featureVals, compare_between){
   # Select peptides present in both conditions
   # conditions <- unique(featureVals[,get(compare_between)])
-  if("Replicate" %in% names(featureVals)){
-    fv <- unique(featureVals[,.(id, feature_id, apex, Replicate, fraction, get(compare_between))])
-    fv$dup <- duplicated(fv[, .(id, feature_id, apex, Replicate, fraction)])
-    fv <- unique(fv[dup == TRUE, .(id, feature_id, apex, Replicate, fraction)])
-    featureValsBoth <- merge(featureVals, fv, by = c("id", "feature_id", "apex", "Replicate", "fraction"))
-  }else{
-    fv <- unique(featureVals[,.(id, feature_id, apex, fraction, get(compare_between))])
-    fv$dup <- duplicated(fv[, .(id, feature_id, apex, fraction)])
-    fv <- unique(fv[dup == TRUE, .(id, feature_id, apex, fraction)])
-    featureValsBoth <- merge(featureVals, fv, by = c("id", "feature_id", "apex", "fraction"))
+  if ("complex_id" %in% names(featVals)) {
+    if("Replicate" %in% names(featureVals)){
+      fv <- unique(featureVals[,.(id, feature_id, complex_id, apex, Replicate, fraction, get(compare_between))])
+      fv$dup <- duplicated(fv[, .(id, feature_id, complex_id, apex, Replicate, fraction)])
+      fv <- unique(fv[dup == TRUE, .(id, feature_id, complex_id, apex, Replicate, fraction)])
+      featureValsBoth <- merge(featureVals, fv, by = c("id", "feature_id", "complex_id", "apex", "Replicate", "fraction"))
+    }else{
+      fv <- unique(featureVals[,.(id, feature_id, complex_id, apex, fraction, get(compare_between))])
+      fv$dup <- duplicated(fv[, .(id, feature_id, complex_id, apex, fraction)])
+      fv <- unique(fv[dup == TRUE, .(id, feature_id, complex_id, apex, fraction)])
+      featureValsBoth <- merge(featureVals, fv, by = c("id", "feature_id", "complex_id", "apex", "fraction"))
+    }
+  } else {
+    if("Replicate" %in% names(featureVals)){
+      fv <- unique(featureVals[,.(id, feature_id, apex, Replicate, fraction, get(compare_between))])
+      fv$dup <- duplicated(fv[, .(id, feature_id, apex, Replicate, fraction)])
+      fv <- unique(fv[dup == TRUE, .(id, feature_id, apex, Replicate, fraction)])
+      featureValsBoth <- merge(featureVals, fv, by = c("id", "feature_id", "apex", "Replicate", "fraction"))
+    }else{
+      fv <- unique(featureVals[,.(id, feature_id, apex, fraction, get(compare_between))])
+      fv$dup <- duplicated(fv[, .(id, feature_id, apex, fraction)])
+      fv <- unique(fv[dup == TRUE, .(id, feature_id, apex, fraction)])
+      featureValsBoth <- merge(featureVals, fv, by = c("id", "feature_id", "apex", "fraction"))
+    }
   }
   # split <- lapply(conditions, function(cond) featureVals[get(compare_between) == cond, .(feature_id, id,apex)])
   # featureValsBoth <- featureVals[, .SD[all(sapply(conditions ,"%in%", get(compare_between)))], by = .(id, feature_id, get(compare_between))]
@@ -137,12 +201,22 @@ filterValsByFractionOverlap <- function(featureVals, compare_between){
 }
 
 getQuantTraces <- function(featureVals, compare_between){
-  if("Replicate" %in% names(featureVals)){
-    featureVals[, useForQuant := (!any(imputedFraction) & .N == 2),
-                by=.(id, feature_id, apex, Replicate, fraction)]
-  }else{
-    featureVals[, useForQuant := (!any(imputedFraction) & .N == 2),
-                by=.(id, feature_id, apex, fraction)]
+  if ("complex_id" %in% names(featVals)) {
+    if("Replicate" %in% names(featureVals)){
+      featureVals[, useForQuant := (!any(imputedFraction) & .N == 2),
+                  by=.(id, feature_id, complex_id, apex, Replicate, fraction)]
+    }else{
+      featureVals[, useForQuant := (!any(imputedFraction) & .N == 2),
+                  by=.(id, feature_id, complex_id, apex, fraction)]
+    }
+  } else {
+    if("Replicate" %in% names(featureVals)){
+      featureVals[, useForQuant := (!any(imputedFraction) & .N == 2),
+                  by=.(id, feature_id, apex, Replicate, fraction)]
+    }else{
+      featureVals[, useForQuant := (!any(imputedFraction) & .N == 2),
+                  by=.(id, feature_id, apex, fraction)]
+    }
   }
   return(featureVals)
 }
