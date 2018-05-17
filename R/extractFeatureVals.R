@@ -59,8 +59,9 @@ extractFeatureVals.traces <- function(traces, features,
     stop("Could not detect if feature table is for protein or complex Features. Aborting...")
   }
 
-  if(!("peak_corr" %in% featureColnames)) stop("No column peak_corr found. peak_corr must be
-                                                  calculated with calculateFeatureCorrelation() first!")
+  #if(!("peak_corr" %in% featureColnames)) stop("No column peak_corr found. peak_corr must be
+  #                                                calculated with calculateFeatureCorrelation() first!")
+  if(!("peak_corr" %in% featureColnames)){features[,peak_corr:=1]} # I've done this to easily enable running feature extraction on collapsed complex features.
 
   # Get traces matrix
   traceMat <- getIntensityMatrix(traces)
