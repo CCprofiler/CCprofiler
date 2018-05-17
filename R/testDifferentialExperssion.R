@@ -11,7 +11,7 @@
 #' @export
 testDifferentialExpression <- function(featureVals,
                                        compare_between = "Condition",
-                                       level = c("protein","peptide"),
+                                       level = c("protein","peptide","complex"),
                                        measuredOnly = TRUE){
   level <- match.arg(level)
   featVals <- copy(featureVals)
@@ -77,13 +77,20 @@ testDifferentialExpression <- function(featureVals,
   if(level == "peptide"){
     tests$pBHadj <- p.adjust(tests$pVal, method = "BH")
     pQv <- qvalue::qvalue(tests$pVal, lambda = 0.4)
-    tests$QVal <- pQv$qvalues
+    tests$qVal <- pQv$qvalues
     return(tests)
+  } else if (level == "protein") {
+    message("Aggregating to protein-level...")
+    prottests <- aggregatePeptideTests(tests)
+    return(prottests)
+  } else if (level == "complex") {
+    message("Aggregating to complex-level...")
+    prottests <- aggregatePeptideTests(tests)
+    complextests <- aggregateProteinTests(prottests)
+    return(complextests)
+  } else {
+    stop("Specified level is not valid. Please chose between peptide, protein and complex.")
   }
-
-  message("Aggregating to protein-level...")
-  prottests <- aggregatePeptideTests(tests)
-  return(prottests)
 }
 
 #' Calculate a protein-level significance from peptide level differential expression tests
@@ -94,38 +101,74 @@ testDifferentialExpression <- function(featureVals,
 #' @export
 
 aggregatePeptideTests <- function(tests){
-  medianPval <- getFCadjustedMedian(tests)
-  medianPval[, protPval := pbeta(medianPVal, Npeptides/2 + 0.5, Npeptides - (Npeptides/2 + 0.5) + 1)]
-  qv <- qvalue::qvalue(medianPval$protPval, lambda = 0.4)
-  medianPval$QVal <- qv$qvalues
-  medianPval[, pBHadj := p.adjust(protPval, method = "fdr")]
-  return(medianPval)
-
+  aggregated <- aggregateTests(tests,level="protein")
+  return(aggregated)
 }
 
-getFCadjustedMedian <- function(tests){
-  test <- copy(tests)
-  test[, FCpVal := (1-pVal) * sign(log2FC)]
-  if ("complex_id" %in% names(test)) {
-    medianPval <- test[ ,{mPval = median(FCpVal,na.rm=T)
-    .(medianPVal = 1-(mPval * sign(mPval)),
-    Npeptides = .N,
-    medianLog2FC = median(log2FC,na.rm=T),
-    medianTstat = median(Tstat),
-    medianMeanDiff = median(meanDiff),
-    sumLog2FC = log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T))
-    )},
-    by = .(feature_id, complex_id, apex)]
+aggregateProteinTests <- function(tests){
+  aggregated <- aggregateTests(tests,level="complex")
+  return(aggregated)
+}
+
+aggregateTests <- function(tests,level){
+  medianPval <- getFCadjustedMedian(tests, level=level)
+  if (level == "protein") {
+    medianPval[, pVal := pbeta(medianPVal, Npeptides/2 + 0.5, Npeptides - (Npeptides/2 + 0.5) + 1)]
+  } else if (level == "complex") {
+    medianPval[, pVal := pbeta(medianPVal, Nproteins/2 + 0.5, Nproteins - (Nproteins/2 + 0.5) + 1)]
   } else {
+    stop("Test level must be protein or complex.")
+  }
+  qv <- qvalue::qvalue(medianPval$pVal, lambda = 0.4)
+  medianPval$qVal <- qv$qvalues
+  medianPval[, pBHadj := p.adjust(pVal, method = "fdr")]
+  return(medianPval)
+}
+
+getFCadjustedMedian <- function(tests,level){
+  test <- copy(tests)
+  if (level == "protein") {
+    test[, FCpVal := (1-pVal) * sign(log2FC)]
+    if ("complex_id" %in% names(test)) {
+      medianPval <- test[ ,{mPval = median(FCpVal,na.rm=T)
+      .(medianPVal = 1-(mPval * sign(mPval)),
+      Npeptides = .N,
+      medianLog2FC = median(log2FC,na.rm=T),
+      medianTstat = median(Tstat),
+      medianMeanDiff = median(meanDiff),
+      qint1 = sum(qint1,na.rm=T),
+      qint2 = sum(qint2,na.rm=T),
+      sumLog2FC = log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T))
+      )},
+      by = .(feature_id, complex_id, apex)]
+    } else {
+      medianPval <- test[ ,{mPval = median(FCpVal,na.rm=T)
+      .(medianPVal = 1-(mPval * sign(mPval)),
+      Npeptides = .N,
+      medianLog2FC = median(log2FC,na.rm=T),
+      medianTstat = median(Tstat),
+      medianMeanDiff = median(meanDiff),
+      qint1 = sum(qint1,na.rm=T),
+      qint2 = sum(qint2,na.rm=T),
+      sumLog2FC = log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T))
+      )},
+      by = .(feature_id, apex)]
+    }
+  } else if (level == "complex") {
+    test[, FCpVal := (1-pVal) * sign(sumLog2FC)]
     medianPval <- test[ ,{mPval = median(FCpVal,na.rm=T)
     .(medianPVal = 1-(mPval * sign(mPval)),
-    Npeptides = .N,
-    medianLog2FC = median(log2FC,na.rm=T),
-    medianTstat = median(Tstat),
-    medianMeanDiff = median(meanDiff),
+    Nproteins = .N,
+    medianLog2FC = median(sumLog2FC,na.rm=T),
+    medianTstat = median(medianTstat),
+    medianMeanDiff = median(medianMeanDiff),
+    qint1 = sum(qint1,na.rm=T),
+    qint2 = sum(qint2,na.rm=T),
     sumLog2FC = log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T))
     )},
-    by = .(feature_id, apex)]
+    by = .(complex_id, apex)]
+  } else {
+    stop("Test level must be protein or complex.")
   }
   medianPval[is.nan(sumLog2FC) & (medianLog2FC == "Inf")]$sumLog2FC <- Inf
   medianPval[is.nan(sumLog2FC) & (medianLog2FC == "-Inf")]$sumLog2FC <- -Inf
