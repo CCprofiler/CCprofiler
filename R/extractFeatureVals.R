@@ -146,15 +146,15 @@ extractFeatureVals.traces <- function(traces, features,
         info_cols <- c("id","feature_id", "apex", "bound_left", "bound_right",
                        "corr","peak_cor", "total_pep_intensity", "total_complex_intensity",
                        "total_top2_complex_intensity")
-        prot_id <- unlist(lapply(subunitsUnion,function(x){pepProtMap[pep_id==x]$prot_id}))
-        res <- res[, (info_cols) := .(subunitsUnion, prot_id, id, apex, bound_left, bound_right, corrSubunits,
-                                     pk, intensities, totalIntensity, totalTop2Intensity)]
+        res <- res[, (info_cols) := .(subunitsUnion, id, apex, bound_left, bound_right, corrSubunits,
+                                      pk, intensities, totalIntensity, totalTop2Intensity)]
       } else {
         info_cols <- c("id","feature_id", "complex_id", "apex", "bound_left", "bound_right",
                        "corr","peak_cor", "total_pep_intensity", "total_prot_intensity",
                        "total_top2_prot_intensity")
-        res <- res[, (info_cols) := .(subunitsUnion, id, apex, bound_left, bound_right, corrSubunits,
-                                       pk, intensities, totalIntensity, totalTop2Intensity)]
+        prot_id <- unlist(lapply(subunitsUnion,function(x){pepProtMap[pep_id==x]$prot_id}))
+        res <- res[, (info_cols) := .(subunitsUnion, prot_id, id, apex, bound_left, bound_right, corrSubunits,
+                                      pk, intensities, totalIntensity, totalTop2Intensity)]
       }
     } else {
       info_cols <- c("id","feature_id", "apex", "bound_left", "bound_right",
