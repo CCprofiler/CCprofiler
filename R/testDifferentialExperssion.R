@@ -300,8 +300,8 @@ plotVolcano <- function(testResults, FC_cutoff=2, pBHadj_cutoff=0.01,name="volca
       geom_point() +
       theme_classic() +
       geom_hline(yintercept=-log10(pBHadj_cutoff), colour="red", linetype="dashed") +
-      geom_vline(xintercept=-log(FC_cutoff), colour="red", linetype="dashed") +
-      geom_vline(xintercept=log(FC_cutoff), colour="red", linetype="dashed")
+      geom_vline(xintercept=-log2(FC_cutoff), colour="red", linetype="dashed") +
+      geom_vline(xintercept=log2(FC_cutoff), colour="red", linetype="dashed")
   print(p)
   if (PDF) {
     dev.off()
