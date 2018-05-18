@@ -277,3 +277,33 @@ normalizeVals <- function(featureVals,
   featureVals[, normIntensity := normIntensity * medianOfMedians]
   return(featureVals)
 }
+
+#' Volcano plot for differential expression of peptides, proteins or complexes between 2 conditions
+#' @param testResults data.table, a data.table with test statistics.
+#' A testResults can be produced with \code{testDifferentialExpression}.
+#' @param FC_cutoff Numeric fold change cutoff, default is 2.
+#' @param pBHadj_cutoff Numeric p-value cutoff, default is 0.01.
+#' @param name character string specifying the name of output if PDF=TRUE, default is "volcanoPlot".
+#' @param PDF logical if PDF should be created, default is FALSE.
+#' @return plot
+#' @export
+plotVolcano <- function(testResults, FC_cutoff=2, pBHadj_cutoff=0.01,name="volcanoPlot", PDF=FALSE) {
+  if (PDF) {
+    pdf(paste0(name,".pdf"))
+  }
+  if ("sumLog2FC" %in% names(testResults)) {
+    p <- ggplot(testResults, aes(x=sumLog2FC,y=-log10(pBHadj)))
+  } else {
+    p <- ggplot(testResults, aes(x=log2FC,y=-log10(pBHadj)))
+  }
+  p <- p +
+      geom_point() +
+      theme_classic() +
+      geom_hline(yintercept=-log10(pBHadj_cutoff), colour="red", linetype="dashed") +
+      geom_vline(xintercept=-log(FC_cutoff), colour="red", linetype="dashed") +
+      geom_vline(xintercept=log(FC_cutoff), colour="red", linetype="dashed")
+  print(p)
+  if (PDF) {
+    dev.off()
+  }
+}
