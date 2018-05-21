@@ -111,6 +111,8 @@ extractFeatureVals.traces <- function(traces, features,
     # get intensity of every trace within peak boundaries
     tracesFeature <- traceMat[subunitsUnion,bound_left:bound_right]
     tracesFeatureImputed <- traceMatImputed[subunitsUnion,bound_left:bound_right]
+    tracesAll <- traceMat[subunitsUnion,]
+    tracesAllImputed <- traceMatImputed[subunitsUnion,]
 
     if(nSubunits>1){
         corr <- cor(t(tracesFeatureImputed))
@@ -120,6 +122,8 @@ extractFeatureVals.traces <- function(traces, features,
         rank <- rank(intensities)
         totalIntensity <- sum(intensities)
         totalTop2Intensity <- sum(sort(intensities, decreasing = T)[1:2])
+        globalIntensity <- rowSums(tracesAll)
+        globalIntensityImputed <- rowSums(tracesAllImputed)
         res <- data.table(tracesFeature)
 
     } else if(nSubunits == 1){
@@ -132,6 +136,8 @@ extractFeatureVals.traces <- function(traces, features,
       rank <- 1
       totalIntensity <- intensities
       totalTop2Intensity <- NA
+      globalIntensity <- sum(tracesAll)
+      globalIntensityImputed <- sum(tracesAllImputed)
       res <- setDT(as.list(tracesFeature))[]
       # names(res) <- as.character(bound_left:bound_right)
     }else{
@@ -145,23 +151,23 @@ extractFeatureVals.traces <- function(traces, features,
       if (complexLevel){
         info_cols <- c("id","feature_id", "complex_id", "apex", "bound_left", "bound_right",
                        "corr","peak_cor", "total_pep_intensity", "total_complex_intensity",
-                       "total_top2_complex_intensity")
+                       "total_top2_complex_intensity", "global_intensity", "global_intensity_imputed")
         prot_id <- unlist(lapply(subunitsUnion,function(x){pepProtMap[pep_id==x]$prot_id}))
         res <- res[, (info_cols) := .(subunitsUnion, prot_id, id, apex, bound_left, bound_right, corrSubunits,
-                                     pk, intensities, totalIntensity, totalTop2Intensity)]
+                                     pk, intensities, totalIntensity, totalTop2Intensity, globalIntensity, globalIntensityImputed)]
       } else {
         info_cols <- c("id","feature_id", "apex", "bound_left", "bound_right",
                        "corr","peak_cor", "total_pep_intensity", "total_prot_intensity",
-                       "total_top2_prot_intensity")
+                       "total_top2_prot_intensity", "global_intensity", "global_intensity_imputed")
         res <- res[, (info_cols) := .(subunitsUnion, id, apex, bound_left, bound_right, corrSubunits,
-                                       pk, intensities, totalIntensity, totalTop2Intensity)]
+                                       pk, intensities, totalIntensity, totalTop2Intensity, globalIntensity, globalIntensityImputed)]
       }
     } else {
       info_cols <- c("id","feature_id", "apex", "bound_left", "bound_right",
                      "corr","peak_cor", "total_prot_intensity", "total_complex_intensity",
-                     "total_top2_complex_intensity")
+                     "total_top2_complex_intensity", "global_intensity", "global_intensity_imputed")
       res <- res[, (info_cols) := .(subunitsUnion, id, apex, bound_left, bound_right, corrSubunits,
-                                   pk, intensities, totalIntensity, totalTop2Intensity)]
+                                   pk, intensities, totalIntensity, totalTop2Intensity, globalIntensity, globalIntensityImputed)]
     }
     resLong <- melt(res, id.vars = info_cols, variable.name = "fraction", value.name = "intensity")
     resLong

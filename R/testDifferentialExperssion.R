@@ -46,9 +46,19 @@ testDifferentialExpression <- function(featureVals,
       int2 = max(0, ints[get==samples[2]]$s, na.rm=T)
       qint1 = qints[get==samples[1]]$s
       qint2 = qints[get==samples[2]]$s
+      global_ints = .SD[, .(s = unique(global_intensity)), by = .(get(compare_between))]
+      global_int1 = global_ints[get==samples[1]]$s
+      global_int2 = global_ints[get==samples[2]]$s
+      global_ints_imp = .SD[, .(s = unique(global_intensity_imputed)), by = .(get(compare_between))]
+      global_int1_imp = global_ints_imp[get==samples[1]]$s
+      global_int2_imp = global_ints_imp[get==samples[2]]$s
       .(pVal = a$p.value, int1 = int1, int2 = int2, meanDiff = a$estimate,
         qint1 = qint1, qint2 = qint2, log2FC =  log2(qint1/qint2),
-        n_fractions = a$parameter + 1, Tstat = a$statistic, testOrder = paste0(samples[1],".vs.",samples[2]))},
+        n_fractions = a$parameter + 1,  Tstat = a$statistic, testOrder = paste0(samples[1],".vs.",samples[2]),
+        global_int1 = global_int1, global_int2 = global_int2, global_log2FC = log2(global_int1/global_int2),
+        global_int1_imp = global_int1_imp, global_int2_imp = global_int2_imp, global_log2FC_imp = log2(global_int1_imp/global_int2_imp),
+        local_vs_global_log2FC = log2(qint1/qint2)-log2(global_int1/global_int2), local_vs_global_log2FC_imp = log2(qint1/qint2)-log2(global_int1_imp/global_int2_imp)
+       )},
       by = .(id, feature_id, complex_id, apex)]
     close(pb)
   } else {
@@ -64,9 +74,19 @@ testDifferentialExpression <- function(featureVals,
       int2 = max(0, ints[get==samples[2]]$s, na.rm=T)
       qint1 = qints[get==samples[1]]$s
       qint2 = qints[get==samples[2]]$s
+      global_ints = .SD[, .(s = unique(global_intensity)), by = .(get(compare_between))]
+      global_int1 = global_ints[get==samples[1]]$s
+      global_int2 = global_ints[get==samples[2]]$s
+      global_ints_imp = .SD[, .(s = unique(global_intensity_imputed)), by = .(get(compare_between))]
+      global_int1_imp = global_ints_imp[get==samples[1]]$s
+      global_int2_imp = global_ints_imp[get==samples[2]]$s
       .(pVal = a$p.value, int1 = int1, int2 = int2, meanDiff = a$estimate,
         qint1 = qint1, qint2 = qint2, log2FC =  log2(qint1/qint2),
-        n_fractions = a$parameter + 1, Tstat = a$statistic, testOrder = paste0(samples[1],".vs.",samples[2]))},
+        n_fractions = a$parameter + 1, Tstat = a$statistic, testOrder = paste0(samples[1],".vs.",samples[2]),
+        global_int1 = global_int1, global_int2 = global_int2, global_log2FC = log2(global_int1/global_int2),
+        global_int1_imp = global_int1_imp, global_int2_imp = global_int2_imp, global_log2FC_imp = log2(global_int1_imp/global_int2_imp),
+        local_vs_global_log2FC = log2(qint1/qint2)-log2(global_int1/global_int2), local_vs_global_log2FC_imp = log2(qint1/qint2)-log2(global_int1_imp/global_int2_imp)
+      )},
       by = .(id, feature_id, apex)]
     close(pb)
   }
@@ -144,7 +164,15 @@ getFCadjustedMedian <- function(tests,level){
       medianMeanDiff = median(meanDiff),
       qint1 = sum(qint1,na.rm=T),
       qint2 = sum(qint2,na.rm=T),
-      sumLog2FC = log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T))
+      sumLog2FC = log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)),
+      global_int1 = sum(global_int1,na.rm=T),
+      global_int2 = sum(global_int2,na.rm=T),
+      global_sumLog2FC = log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T)),
+      global_int1_imp = sum(global_int1_imp,na.rm=T),
+      global_int2_imp = sum(global_int2_imp,na.rm=T),
+      global_sumLog2FC_imp = log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)),
+      local_vs_global_log2FC = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T))), 
+      local_vs_global_log2FC_imp = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)))
       )},
       by = .(feature_id, complex_id, apex)]
     } else {
@@ -156,7 +184,15 @@ getFCadjustedMedian <- function(tests,level){
       medianMeanDiff = median(meanDiff),
       qint1 = sum(qint1,na.rm=T),
       qint2 = sum(qint2,na.rm=T),
-      sumLog2FC = log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T))
+      sumLog2FC = log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)),
+      global_int1 = sum(global_int1,na.rm=T),
+      global_int2 = sum(global_int2,na.rm=T),
+      global_sumLog2FC = log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T)),
+      global_int1_imp = sum(global_int1_imp,na.rm=T),
+      global_int2_imp = sum(global_int2_imp,na.rm=T),
+      global_sumLog2FC_imp = log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)),
+      local_vs_global_log2FC = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T))), 
+      local_vs_global_log2FC_imp = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)))
       )},
       by = .(feature_id, apex)]
     }
@@ -170,7 +206,15 @@ getFCadjustedMedian <- function(tests,level){
     medianMeanDiff = median(medianMeanDiff),
     qint1 = sum(qint1,na.rm=T),
     qint2 = sum(qint2,na.rm=T),
-    sumLog2FC = log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T))
+    sumLog2FC = log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)),
+    global_int1 = sum(global_int1,na.rm=T),
+    global_int2 = sum(global_int2,na.rm=T),
+    global_sumLog2FC = log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T)),
+    global_int1_imp = sum(global_int1_imp,na.rm=T),
+    global_int2_imp = sum(global_int2_imp,na.rm=T),
+    global_sumLog2FC_imp = log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)),
+    local_vs_global_log2FC = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T))), 
+    local_vs_global_log2FC_imp = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)))
     )},
     by = .(complex_id, apex)]
   } else {
