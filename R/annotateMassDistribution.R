@@ -51,7 +51,62 @@ annotateMassDistribution.tracesList <- function(tracesList){
   return(tracesListRes)
 }
 
-getMassAssemblyChange <- function(tracesList){
+#' getMassAssemblyChange
+#' @description Estimates change of assembled vs. monomeric mass per id.
+#' @param tracesList An object of type traces.list including assembled mass 
+#' annotation as produced by \code{annotateMassDistribution}.
+#' @param design_matrix data.table, design matrix describing the architecture of the tracesList object.
+#' @export
+getMassAssemblyChange <- function(tracesList, design_matrix){
   .tracesListTest(tracesList)
-
+  samples <- unique(design_matrix$Sample)
+  if(length(samples) != 2) {
+    stop("This function is only available for comparing 2 conditions.")
+  }
+  if(! all(samples %in% names(tracesList))) {
+    stop("tracesList and design_matrix do not match. Pleas check sample names.")
+  }
+  if (! "sum_assembled_norm" %in% names(tracesList[[tr]]$trace_annotation)) {
+    stop("No assembled mass annotation available, please run annotateMassDistribution first.")
+  }
+  res <- lapply(names(tracesList), function(tr){
+    vals <- subset(tracesList[[tr]]$trace_annotation,select=c("protein_id","sum_assembled_norm"))
+    vals[,Sample := tr]
+    return(vals)
+  })
+  res <- do.call(rbind, res)
+  res_cast <- dcast(res, formula = protein_id ~ Sample, value.var=c("sum_assembled_norm"))
+  res_cast[, change := log2(get(samples[1])/(get(samples[2])))]
+  res_cast[is.nan(change), change := 0]
+  res_cast[, testOrder := paste0(samples[1],".vs.",samples[2])]
+  return(res_cast[])
 }
+
+#' plotMassAssemblyChange between 2 conditions
+#' @param assamblyTest data.table, a data.table with test statistics.
+#' An assamblyTest can be produced with \code{getMassAssemblyChange}.
+#' @param FC_cutoff Numeric fold change cutoff, default is 2.
+#' @param name character string specifying the name of output if PDF=TRUE, default is "massAssemblyChange".
+#' @param PDF logical if PDF should be created, default is FALSE.
+#' @return plot
+#' @export
+plotMassAssemblyChange <- function(assamblyTest, FC_cutoff=2, name="massAssemblyChange", PDF=FALSE){
+  if (PDF) {
+    pdf(paste0(name,".pdf"))
+  }
+  no_change <- nrow(subset(assamblyTest, abs(change) <= FC_cutoff))
+  more_assembled <- nrow(subset(assamblyTest, change < -FC_cutoff))
+  less_assembled <- nrow(subset(assamblyTest, change > FC_cutoff))
+  pie(c(no_change,more_assembled,less_assembled),
+      labels=c(paste("abs(logFC) < ",FC_cutoff,"\n",no_change),
+               paste0("logFC < -",FC_cutoff,"\n",more_assembled),
+               paste0("logFC > ",FC_cutoff,"\n",less_assembled)),
+      main = paste0(unique(assamblyTest$testOrder)))
+  
+  h <- ggplot(assamblyTest, aes(x=change)) + geom_histogram(binwidth = 1) + theme_classic()
+  print(h)
+  if (PDF) {
+    dev.off()
+  }
+}
+
