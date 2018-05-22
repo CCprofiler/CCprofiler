@@ -66,7 +66,7 @@ getMassAssemblyChange <- function(tracesList, design_matrix){
   if(! all(samples %in% names(tracesList))) {
     stop("tracesList and design_matrix do not match. Pleas check sample names.")
   }
-  if (! "sum_assembled_norm" %in% names(tracesList[[tr]]$trace_annotation)) {
+  if (! "sum_assembled_norm" %in% names(tracesList[[1]]$trace_annotation)) {
     stop("No assembled mass annotation available, please run annotateMassDistribution first.")
   }
   res <- lapply(names(tracesList), function(tr){
