@@ -310,8 +310,6 @@ plotFeatures.tracesList <- function(feature_table,
                                 Replicate = 1:length(traces))
   }
 
-  traceAnn <- do.call(rbind, lapply(traces, "[[", "trace_annotation"))
-  traceAnn <- unique(traceAnn)
 
   if (traces[[1]]$trace_type == "protein") {
     features <- subset(features, complex_id == feature_id)
@@ -321,6 +319,8 @@ plotFeatures.tracesList <- function(feature_table,
       proteins <- unique(unlist(strsplit(features$subunits, split = ";")))
     }
     traces <- subset(traces, trace_subset_ids = proteins)
+    traceAnn <- do.call(rbind, lapply(traces, "[[", "trace_annotation"))
+    traceAnn <- unique(traceAnn)
     complexName = unique(features$complex_name)[1]
     if ("complexCompleteness" %in% names(features)) {
       n_annotatedSubunits = features$n_subunits_annotated[1]
@@ -339,6 +339,8 @@ plotFeatures.tracesList <- function(feature_table,
     features <- subset(features, protein_id == feature_id)
     proteins <- unique(unlist(strsplit(features$subunits_annotated, split = ";")))
     traces <- subset(traces, trace_subset_ids = proteins)
+    traceAnn <- do.call(rbind, lapply(traces, "[[", "trace_annotation"))
+    traceAnn <- unique(traceAnn)
     if (annotation_label %in% names(traceAnn)) {
       complexName = traceAnn[,get(annotation_label)][1]
     } else {
