@@ -71,18 +71,26 @@ plotFeatures <- function(feature_table,
   features <- copy(feature_table)
   if (traces$trace_type == "protein") {
     features <- subset(features, complex_id == feature_id)
-    proteins <- unique(unlist(strsplit(features$subunits_with_signal, split = ";")))
+    if ("subunits_with_signal" %in% names(features)){
+      proteins <- unique(unlist(strsplit(features$subunits_with_signal, split = ";")))
+    } else {
+      proteins <- unique(unlist(strsplit(features$subunits, split = ";")))
+    }
     traces <- subset(traces, trace_subset_ids = proteins)
     complexName = unique(features$complex_name)[1]
-    n_annotatedSubunits = features$n_subunits_annotated[1]
-    n_signalSubunits = features$n_subunits_with_signal[1]
-    n_detectedSubunits = features$n_subunits_detected[1]
-    complexCompleteness = round(features$completeness[1],digits=2)
-    title <- paste0(complexName,
-                    "\nAnnotated subunits: ",n_annotatedSubunits,
-                    "   Subunits with signal: ",n_signalSubunits,
-                    "\nMax. coeluting subunits: ",n_detectedSubunits,
-                    "   Max. completeness: ",complexCompleteness)
+    if ("complexCompleteness" %in% names(features)) {
+      n_annotatedSubunits = features$n_subunits_annotated[1]
+      n_signalSubunits = features$n_subunits_with_signal[1]
+      n_detectedSubunits = features$n_subunits_detected[1]
+      complexCompleteness = round(features$completeness[1],digits=2)
+      title <- paste0(complexName,
+                      "\nAnnotated subunits: ",n_annotatedSubunits,
+                      "   Subunits with signal: ",n_signalSubunits,
+                      "\nMax. coeluting subunits: ",n_detectedSubunits,
+                      "   Max. completeness: ",complexCompleteness)
+    } else {
+      title=paste0(features$complex_name,"\n ","\n ","\n ")
+    }
   } else {
     features <- subset(features, protein_id == feature_id)
     proteins <- unique(unlist(strsplit(features$subunits_annotated, split = ";")))
@@ -307,18 +315,26 @@ plotFeatures.tracesList <- function(feature_table,
 
   if (traces[[1]]$trace_type == "protein") {
     features <- subset(features, complex_id == feature_id)
-    proteins <- unique(unlist(strsplit(features$subunits_with_signal, split = ";")))
+    if ("subunits_with_signal" %in% names(features)){
+      proteins <- unique(unlist(strsplit(features$subunits_with_signal, split = ";")))
+    } else {
+      proteins <- unique(unlist(strsplit(features$subunits, split = ";")))
+    }
     traces <- subset(traces, trace_subset_ids = proteins)
     complexName = unique(features$complex_name)[1]
-    n_annotatedSubunits = features$n_subunits_annotated[1]
-    n_signalSubunits = features$n_subunits_with_signal[1]
-    n_detectedSubunits = features$n_subunits_detected[1]
-    complexCompleteness = round(features$completeness[1],digits=2)
-    title <- paste0(complexName,
-                    "\nAnnotated subunits: ",n_annotatedSubunits,
-                    "   Subunits with signal: ",n_signalSubunits,
-                    "\nMax. coeluting subunits: ",n_detectedSubunits,
-                    "   Max. completeness: ",complexCompleteness)
+    if ("complexCompleteness" %in% names(features)) {
+      n_annotatedSubunits = features$n_subunits_annotated[1]
+      n_signalSubunits = features$n_subunits_with_signal[1]
+      n_detectedSubunits = features$n_subunits_detected[1]
+      complexCompleteness = round(features$completeness[1],digits=2)
+      title <- paste0(complexName,
+                      "\nAnnotated subunits: ",n_annotatedSubunits,
+                      "   Subunits with signal: ",n_signalSubunits,
+                      "\nMax. coeluting subunits: ",n_detectedSubunits,
+                      "   Max. completeness: ",complexCompleteness)
+    } else {
+      title=paste0(features$complex_name,"\n ","\n ","\n ")
+    }
   } else {
     features <- subset(features, protein_id == feature_id)
     proteins <- unique(unlist(strsplit(features$subunits_annotated, split = ";")))
