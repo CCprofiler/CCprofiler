@@ -171,7 +171,7 @@ getFCadjustedMedian <- function(tests,level){
       global_int1_imp = sum(global_int1_imp,na.rm=T),
       global_int2_imp = sum(global_int2_imp,na.rm=T),
       global_sumLog2FC_imp = log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)),
-      local_vs_global_log2FC = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T))), 
+      local_vs_global_log2FC = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T))),
       local_vs_global_log2FC_imp = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)))
       )},
       by = .(feature_id, complex_id, apex)]
@@ -191,7 +191,7 @@ getFCadjustedMedian <- function(tests,level){
       global_int1_imp = sum(global_int1_imp,na.rm=T),
       global_int2_imp = sum(global_int2_imp,na.rm=T),
       global_sumLog2FC_imp = log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)),
-      local_vs_global_log2FC = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T))), 
+      local_vs_global_log2FC = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T))),
       local_vs_global_log2FC_imp = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)))
       )},
       by = .(feature_id, apex)]
@@ -213,7 +213,7 @@ getFCadjustedMedian <- function(tests,level){
     global_int1_imp = sum(global_int1_imp,na.rm=T),
     global_int2_imp = sum(global_int2_imp,na.rm=T),
     global_sumLog2FC_imp = log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)),
-    local_vs_global_log2FC = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T))), 
+    local_vs_global_log2FC = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T))),
     local_vs_global_log2FC_imp = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)))
     )},
     by = .(complex_id, apex)]
@@ -325,15 +325,16 @@ normalizeVals <- function(featureVals,
 #' Volcano plot for differential expression of peptides, proteins or complexes between 2 conditions
 #' @param testResults data.table, a data.table with test statistics.
 #' A testResults can be produced with \code{testDifferentialExpression}.
+#' @param highlight character string of feature_id that should be highlighted. Default = NULL.
 #' @param FC_cutoff Numeric fold change cutoff, default is 2.
 #' @param pBHadj_cutoff Numeric p-value cutoff, default is 0.01.
 #' @param name character string specifying the name of output if PDF=TRUE, default is "volcanoPlot".
 #' @param PDF logical if PDF should be created, default is FALSE.
 #' @return plot
 #' @export
-plotVolcano <- function(testResults, FC_cutoff=2, pBHadj_cutoff=0.01,name="volcanoPlot", PDF=FALSE) {
+plotVolcano <- function(testResults, highlight=NULL, FC_cutoff=2, pBHadj_cutoff=0.01,name="volcanoPlot", PDF=FALSE) {
   if (PDF) {
-    pdf(paste0(name,".pdf"))
+    pdf(paste0(name,".pdf"), height=4, width=4)
   }
   if ("sumLog2FC" %in% names(testResults)) {
     p <- ggplot(testResults, aes(x=sumLog2FC,y=-log10(pBHadj)))
@@ -341,11 +342,19 @@ plotVolcano <- function(testResults, FC_cutoff=2, pBHadj_cutoff=0.01,name="volca
     p <- ggplot(testResults, aes(x=log2FC,y=-log10(pBHadj)))
   }
   p <- p +
-      geom_point() +
+      geom_point(size=1) +
       theme_classic() +
       geom_hline(yintercept=-log10(pBHadj_cutoff), colour="red", linetype="dashed") +
       geom_vline(xintercept=-log2(FC_cutoff), colour="red", linetype="dashed") +
       geom_vline(xintercept=log2(FC_cutoff), colour="red", linetype="dashed")
+  if (! is.null(highlight)){
+    sub <- subset(testResults,feature_id %in% highlight)
+    if ("sumLog2FC" %in% names(testResults)) {
+      p <- p + geom_point(data=sub, aes(x=sumLog2FC,y=-log10(pBHadj)), colour="red", fill="red", size=3, shape=23)
+    } else {
+      p <- p + geom_point(data=sub, aes(x=log2FC,y=-log10(pBHadj)), colour="red", fill="red", size=3, shape=23)
+    }
+  }
   print(p)
   if (PDF) {
     dev.off()
