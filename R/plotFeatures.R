@@ -15,32 +15,32 @@
 #' @param log Logical if intensities should be log transformed, default is \code{fFALSE}.
 #' @export
 #' @examples
-#' 
+#'
 #' #------------------------
 #' ## Complex level plotting
 #' #------------------------
-#' 
+#'
 #' ## Load example data
 #' featureTable = exampleComplexFeatures
 #' proteinTraces = exampleProteinTraces
 #' complexId = "2174-1" # Complex of interest
-#' 
+#'
 #' ## Plot all features found for this Protein
 #' plotFeatures(feature_table = featureTable,
 #'                     traces = proteinTraces,
 #'                     feature_id = complexId,
 #'                     peak_area = TRUE,
 #'                     onlyBest = FALSE)
-#' 
+#'
 #' #------------------------
 #' ## Protein level plotting
 #' #------------------------
-#'  
+#'
 #' ## Load example data
 #'  featureTable = exampleProteinFeatures
 #'  peptideTraces = examplePeptideTraces
 #'  proteinId = "P61201" # Protein of interest
-#'  
+#'
 #'  ## Plot all features found for this Protein
 #'  plotFeatures(feature_table = featureTable,
 #'                      traces = peptideTraces,
@@ -48,7 +48,7 @@
 #'                      peak_area = TRUE,
 #'                      onlyBest = FALSE,
 #'                      legend = FALSE)
-#' 
+#'
 
 plotFeatures <- function(feature_table,
                                traces,
@@ -105,12 +105,12 @@ plotFeatures <- function(feature_table,
   }
   traces.long <- toLongFormat(traces$traces)
   traces.long <- merge(traces.long,traces$fraction_annotation,by.x="fraction",by.y="id")
-  
+
   ## Get traces to highlight
   if(!is.null(highlight)){
     traces.long$outlier <- gsub("\\(.*?\\)","",traces.long$id) %in% gsub("\\(.*?\\)","",highlight)
   }
-  
+
   if (annotation_label %in% names(traces$trace_annotation)) {
     traces.long <- merge(traces.long,traces$trace_annotation,by="id",all.x=TRUE,all.y=FALSE)
     if (traces$trace_type == "protein") {
@@ -147,10 +147,10 @@ plotFeatures <- function(feature_table,
       message("No molecular weight annotation of the traces. Cannot plot monomer molecular weight.")
       monomer_MW <- FALSE
     }
-  } 
-  
-  
- 
+  }
+
+
+
   p <- ggplot(traces.long) +
     geom_line(aes_string(x='fraction', y='intensity', color='id')) +
     xlab('fraction') +
@@ -161,20 +161,20 @@ plotFeatures <- function(feature_table,
     ggtitle(title) +
     theme(plot.title = element_text(vjust=19,size=10, face="bold")) +
     guides(fill=FALSE)
-  
+
   if(!is.null(highlight)){
     legend_peps <- unique(traces.long[outlier == TRUE, id])
     if(is.null(highlight_col)){
-      p <- p + 
+      p <- p +
         geom_line(data = traces.long[outlier == TRUE], aes_string(x='fraction', y='intensity', color='id'), lwd=2) +
         scale_color_discrete(breaks = legend_peps)
     }else{
-      p <- p + 
+      p <- p +
         geom_line(data = traces.long[outlier == TRUE], aes_string(x='fraction', y='intensity', group = 'id'), color = highlight_col, lwd=2)
       # scale_color_discrete(breaks = legend_peps)
     }
   }
-  
+
   if (log) {
     p <- p + scale_y_log10('log(intensity)')
   }
@@ -199,7 +199,7 @@ plotFeatures <- function(feature_table,
   if (!legend) {
     p <- p + theme(legend.position="none")
   }
-  
+
   if ("molecular_weight" %in% names(traces$fraction_annotation)) {
     grid.newpage()
     p2 <- p
@@ -217,7 +217,7 @@ plotFeatures <- function(feature_table,
     g2 <- ggplot_gtable(ggplot_build(p2))
     ## overlap the panel of the 2nd plot on that of the 1st plot
     pp <- c(subset(g1$layout, name=="panel", se=t:r))
-    
+
     g <- gtable_add_grob(g1, g2$grobs[[which(g2$layout$name=="panel")]], pp$t, pp$l, pp$b, pp$l)
     ## steal axis from second plot and modify
     ia <- which(g2$layout$name == "axis-b")
@@ -236,7 +236,7 @@ plotFeatures <- function(feature_table,
     ia2 <- which(g2$layout$name == "xlab-b")
     ga2 <- g2$grobs[[ia2]]
     g <- gtable_add_grob(g,ga2, 3, 4, 2, 4)
-    
+
     if(PDF){
       pdf(paste0(name,".pdf"))
     }
@@ -255,6 +255,22 @@ plotFeatures <- function(feature_table,
   }
 }
 
+#' plotFeatures.tracesList
+#' @param feature_table data.table
+#' @param traces traces object of type peptide or protein.
+#' @param feature_id Character string specifying complex_id
+#' @param design_matrix data.table with design matrix
+#' @param calibration calibration function
+#' @param annotation_label Character string specifying column name in trace annotation to use for trace labeling, default is protein_id (uniprot id).
+#' @param peak_area Logical if selected peak area should be highlighted.
+#' @param onlyBest logical true or false
+#' @param apex logical true or false
+#' @param peak_area logical true or false
+#' @param sliding_window_area Logical if original sliding_window area should be highlighted
+#' @param estimated_complex_MW Logical if estimated complex MW should be indicated
+#' @param monomer_MW Logical if monomer MWs should be indicated
+#' @param log Logical if intensities should be log transformed, default is \code{fFALSE}.
+#' @export
 plotFeatures.tracesList <- function(feature_table,
                                traces,
                                feature_id,
@@ -386,25 +402,29 @@ plotFeatures.tracesList <- function(feature_table,
     theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
     theme(plot.margin = unit(c(1.5,.5,.5,.5),"cm")) +
     ggtitle(title) +
-    theme(plot.title = element_text(vjust=19,size=10, face="bold")) +
+    theme(plot.title = element_text(vjust=15,size=10, face="bold")) +
     guides(fill=FALSE)
 
   ## Split the plot with design matrix
-  p <- p + facet_grid(Condition ~ Replicate)
+  if (length(unique(traces_long$Replicate)) > 1) {
+    p <- p + facet_grid(Condition ~ Replicate)
+  } else {
+    p <- p + facet_grid(Condition ~ .)
+  }
   ## Highlight traces
   if(!is.null(highlight)){
     legend_peps <- unique(traces_long[outlier == TRUE, id])
     if(is.null(highlight_col)){
-      p <- p + 
+      p <- p +
         geom_line(data = traces_long[outlier == TRUE], aes_string(x='fraction', y='intensity', color='id'), lwd=2) +
         scale_color_discrete(breaks = legend_peps)
     }else{
-      p <- p + 
+      p <- p +
         geom_line(data = traces_long[outlier == TRUE], aes_string(x='fraction', y='intensity', group = 'id'), color = highlight_col, lwd=2)
       # scale_color_discrete(breaks = legend_peps)
     }
   }
-  
+
   if (log) {
     p <- p + scale_y_log10('log(intensity)')
   }
@@ -429,7 +449,7 @@ plotFeatures.tracesList <- function(feature_table,
   if (!legend) {
     p <- p + theme(legend.position="none")
   }
-  
+
   if ("molecular_weight" %in% names(traces[[1]]$fraction_annotation)) {
     message("Molecular weight annotation for multiple conditions not yet implemented")
     ## grid.newpage()
@@ -448,7 +468,7 @@ plotFeatures.tracesList <- function(feature_table,
     ## g2 <- ggplot_gtable(ggplot_build(p2))
     ## ## overlap the panel of the 2nd plot on that of the 1st plot
     ## pp <- c(subset(g1$layout, name=="panel", se=t:r))
-    
+
     ## g <- gtable_add_grob(g1
     ## g <- gtable_add_grob(g1, g2$grobs[[which(g2$layout$name=="panel")]], pp$t, pp$l, pp$b, pp$l)
     ## ## steal axis from second plot and modify
@@ -468,7 +488,7 @@ plotFeatures.tracesList <- function(feature_table,
     ## ia2 <- which(g2$layout$name == "xlab-b")
     ## ga2 <- g2$grobs[[ia2]]
     ## g <- gtable_add_grob(g,ga2, 3, 4, 2, 4)
-    
+
     ## if(PDF){
     ##   pdf(paste0(name,".pdf"))
     ## }

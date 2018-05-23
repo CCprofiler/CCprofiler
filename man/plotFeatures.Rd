@@ -54,12 +54,12 @@ plotFeatures(feature_table = featureTable,
 #------------------------
 ## Protein level plotting
 #------------------------
- 
+
 ## Load example data
  featureTable = exampleProteinFeatures
  peptideTraces = examplePeptideTraces
  proteinId = "P61201" # Protein of interest
- 
+
  ## Plot all features found for this Protein
  plotFeatures(feature_table = featureTable,
                      traces = peptideTraces,
