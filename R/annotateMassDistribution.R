@@ -98,9 +98,9 @@ plotMassAssemblyChange <- function(assamblyTest, FC_cutoff=2, name="massAssembly
   more_assembled <- nrow(subset(assamblyTest, change < -FC_cutoff))
   less_assembled <- nrow(subset(assamblyTest, change > FC_cutoff))
   pie(c(no_change,more_assembled,less_assembled),
-      labels=c(paste("abs(logFC) < ",FC_cutoff,"\n",no_change),
-               paste0("logFC < -",FC_cutoff,"\n",more_assembled),
-               paste0("logFC > ",FC_cutoff,"\n",less_assembled)),
+      labels=c(paste("no assembly change \n abs(log2FC) < ",FC_cutoff,"\n",no_change),
+               paste0("more assembled \n log2FC < -",FC_cutoff,"\n",more_assembled),
+               paste0("less assembled \n log2FC > ",FC_cutoff,"\n",less_assembled)),
       main = paste0(unique(assamblyTest$testOrder)))
   
   h <- ggplot(assamblyTest, aes(x=change)) + geom_histogram(binwidth = 1) + theme_classic()
