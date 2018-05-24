@@ -348,7 +348,13 @@ plotVolcano <- function(testResults, highlight=NULL, FC_cutoff=2, pBHadj_cutoff=
       geom_vline(xintercept=-log2(FC_cutoff), colour="red", linetype="dashed") +
       geom_vline(xintercept=log2(FC_cutoff), colour="red", linetype="dashed")
   if (! is.null(highlight)){
-    sub <- subset(testResults,feature_id %in% highlight)
+    if ("feature_id" %in% names(testResults)) {
+      sub <- subset(testResults,feature_id %in% highlight)
+    } else if ("complex_id" %in% names(testResults)) {
+      sub <- subset(testResults,complex_id %in% highlight)
+    } else {
+      stop("The testResults do not have the proper format. Input should be the result from testDifferentialExpression.")
+    }
     if ("sumLog2FC" %in% names(testResults)) {
       p <- p + geom_point(data=sub, aes(x=sumLog2FC,y=-log10(pBHadj)), colour="red", fill="red", size=3, shape=23)
     } else {
