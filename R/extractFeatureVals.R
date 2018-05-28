@@ -32,6 +32,9 @@ extractFeatureVals.traces <- function(traces, features,
   if(!is.data.table(features)){
     stop("features must be of type 'data.table'")
   }
+  if(!extract %in% colnames(features)){
+    stop(paste0("Column name: ", extract, " not found in features. Aborting."))
+    }
   featureColnames <- names(features)
   if("complex_id" %in% featureColnames){
     complexLevel <- TRUE
@@ -82,20 +85,23 @@ extractFeatureVals.traces <- function(traces, features,
 
     # featuresHyp <- features[features$protein_id == hyp,]
     subunitsUnion <- unique(strsplit(hyp[extract],";")[[1]])
+    subunitsDetected <- unique(strsplit(hyp["subunits_detected"],";")[[1]])
     if (complexLevel == FALSE) {
       subunitsUnion <- subunitsUnion[subunitsUnion %in% rownames(traceMat)]
     } else if ((complexLevel == TRUE) & (tracesType == "protein")) {
       subunitsUnion <- subunitsUnion[subunitsUnion %in% rownames(traceMat)]
     } else if ((complexLevel == TRUE) & (tracesType == "peptide")) {
-      prot_ids <- traces$trace_annotation$protein_id
-      subunitsUnion <- subunitsUnion[subunitsUnion %in% prot_ids]
+      prot_ids <- traces$trace_annotation
+      subunitsUnion <- subunitsUnion[subunitsUnion %in% prot_ids$protein_id]
       # change subunitsUnion to peptide ids
-      subunitsUnion <- traces$trace_annotation[protein_id %in% subunitsUnion]$id
+      subunitsUnion <- prot_ids[protein_id %in% subunitsUnion]$id
+      subunitsDetected <- prot_ids[protein_id %in% subunitsDetected]$id
       pepProtMap <- subset(traces$trace_annotation[id %in% subunitsUnion],select=c("id","protein_id"))
       names(pepProtMap) <- c("pep_id","prot_id")
     } else {
       stop("Features and traces do not match. Aborting...")
     }
+    subunitsDetected <- subunitsDetected[subunitsDetected %in% subunitsUnion]
     nSubunits <- length(subunitsUnion)
     if(complexLevel){
       id <- as.character(hyp["complex_id"])
@@ -115,9 +121,20 @@ extractFeatureVals.traces <- function(traces, features,
     tracesAllImputed <- traceMatImputed[subunitsUnion,]
 
     if(nSubunits>1){
+      if(length(subunitsDetected) > 1){
         corr <- cor(t(tracesFeatureImputed))
-        # get mean correlation for every subunit
-        corrSubunits <- (colSums(corr)-1) / ((nSubunits-1)) #*pk to normalize?
+        ## Only the detected subunits are used as a reference for correlation
+        corr[, subunitsDetected] <- NA
+        diag(corr) <- NA
+                                        # get mean correlation for every subunit
+        corrSubunits <- (rowMeans(corr)) #*pk to normalize?
+        ## get mean correlation of all detected subunits (remove all other subunits)
+        corr[subunitsDetected,] <- NA
+        pkcorr <- mean(corr[upper.tri(corr)])
+      }else{
+        pkcorr <- rep(NA, nSubunits)
+        corrSubunits = rep(NA, nSubunits)
+      }
         intensities <- rowSums(tracesFeature)
         rank <- rank(intensities)
         totalIntensity <- sum(intensities)
@@ -131,6 +148,7 @@ extractFeatureVals.traces <- function(traces, features,
         message(paste0("Feature with only one subunit detected: ", id, " - Apex", apex,
                        ". This will produce NAs"))
       }
+      pkcorr <- NA
       corrSubunits = NA
       intensities <- sum(tracesFeature)
       rank <- 1
@@ -150,24 +168,27 @@ extractFeatureVals.traces <- function(traces, features,
     if (tracesType=="peptide"){
       if (complexLevel){
         info_cols <- c("id","feature_id", "complex_id", "apex", "bound_left", "bound_right",
-                       "corr","peak_cor", "total_pep_intensity", "total_complex_intensity",
+                       "corr","peak_cor", "peak_cor_detected", "total_pep_intensity", "total_complex_intensity",
                        "total_top2_complex_intensity", "global_intensity", "global_intensity_imputed")
         prot_id <- unlist(lapply(subunitsUnion,function(x){pepProtMap[pep_id==x]$prot_id}))
         res <- res[, (info_cols) := .(subunitsUnion, prot_id, id, apex, bound_left, bound_right, corrSubunits,
-                                     pk, intensities, totalIntensity, totalTop2Intensity, globalIntensity, globalIntensityImputed)]
+                                      pk, pkcorr, intensities, totalIntensity, totalTop2Intensity,
+                                      globalIntensity, globalIntensityImputed)]
       } else {
         info_cols <- c("id","feature_id", "apex", "bound_left", "bound_right",
-                       "corr","peak_cor", "total_pep_intensity", "total_prot_intensity",
+                       "corr","peak_cor", "peak_cor_detected", "total_pep_intensity", "total_prot_intensity",
                        "total_top2_prot_intensity", "global_intensity", "global_intensity_imputed")
         res <- res[, (info_cols) := .(subunitsUnion, id, apex, bound_left, bound_right, corrSubunits,
-                                       pk, intensities, totalIntensity, totalTop2Intensity, globalIntensity, globalIntensityImputed)]
+                                      pk, pkcorr, intensities, totalIntensity, totalTop2Intensity,
+                                      globalIntensity, globalIntensityImputed)]
       }
     } else {
       info_cols <- c("id","feature_id", "apex", "bound_left", "bound_right",
-                     "corr","peak_cor", "total_prot_intensity", "total_complex_intensity",
+                     "corr","peak_cor", "peak_cor_detected", "total_prot_intensity", "total_complex_intensity",
                      "total_top2_complex_intensity", "global_intensity", "global_intensity_imputed")
       res <- res[, (info_cols) := .(subunitsUnion, id, apex, bound_left, bound_right, corrSubunits,
-                                   pk, intensities, totalIntensity, totalTop2Intensity, globalIntensity, globalIntensityImputed)]
+                                    pk, pkcorr, intensities, totalIntensity, totalTop2Intensity,
+                                    globalIntensity, globalIntensityImputed)]
     }
     resLong <- melt(res, id.vars = info_cols, variable.name = "fraction", value.name = "intensity")
     resLong
