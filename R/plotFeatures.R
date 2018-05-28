@@ -320,7 +320,7 @@ plotFeatures.tracesList <- function(feature_table,
     }
     traces <- subset(traces, trace_subset_ids = proteins)
     traceAnn <- do.call(rbind, lapply(traces, "[[", "trace_annotation"))
-    traceAnn <- unique(traceAnn)
+    traceAnn <- unique(traceAnn,by="id")
     complexName = unique(features$complex_name)[1]
     if ("complexCompleteness" %in% names(features)) {
       n_annotatedSubunits = features$n_subunits_annotated[1]
