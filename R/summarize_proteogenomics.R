@@ -80,3 +80,43 @@ getProteogenomicsIds.tracesList <- function(tracesList){
   names(res) <- names(tracesList)
   res
 }
+
+#' Annotate peptides that are specific for a non major isoform of the gene of origin
+#' @details Defines the most frequently detected isoform as the major isoform for that gene
+#' and then detects peptides that do not match to that gene.
+#' @export
+annotateNonMajorIsoformPeptides <- function(traces){
+  UseMethod("annotateNonMajorIsoformPeptides", traces)
+}
+
+#' @describeIn annotateNonMajorIsoformPeptides
+annotateNonMajorIsoformPeptides.traces <- function(traces){
+  ann <- traces$trace_annotation
+  isotable <- ann[, .(isoid= paste(ensembl_protein_id, collapse = "/")), by=gene_id]
+  genes <- isotable$gene_id
+  isoforms <- strsplit(isotable$isoid, split="/")
+  names(isoforms) <- genes
+  majorIso <- lapply(isoforms, function(gene){
+    iso <- grep(gene, pattern="ENS", value=T)
+    detections <- table(iso)
+    major <- names(detections)[which.max(detections)]
+    return(major)
+  })
+  ann[, majorIsoform := majorIso[gene_id]]
+  ann[, nonMajorSpecific := !grepl(majorIsoform, ensembl_protein_id), by=id]
+  traces$trace_annotation <- ann
+  return(traces)
+
+}
+
+#' @describeIn annotateNonMajorIsoformPeptides
+annotateNonMajorIsoformPeptides.tracesList <- function(tracesList){
+  res <- lapply(names(tracesList), function(sample){
+    message(paste("Annotating isoforms of sample", sample))
+    traces <- tracesList[[sample]]
+    annotateNonMajorIsoformPeptides.traces(traces = traces)
+  })
+  names(res) <- names(tracesList)
+  class(res) <- "tracesList"
+  return(res)
+}
