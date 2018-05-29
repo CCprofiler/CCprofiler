@@ -124,13 +124,14 @@ extractFeatureVals.traces <- function(traces, features,
       if(length(subunitsDetected) > 1){
         corr <- cor(t(tracesFeatureImputed))
         ## Only the detected subunits are used as a reference for correlation
-        corr[, subunitsDetected] <- NA
+        subunitsNotDetcted <- setdiff(subunitsUnion, subunitsDetected)
+        corr[, subunitsNotDetcted] <- NA
         diag(corr) <- NA
                                         # get mean correlation for every subunit
-        corrSubunits <- (rowMeans(corr)) #*pk to normalize?
+        corrSubunits <- (rowMeans(corr, na.rm=T)) #*pk to normalize?
         ## get mean correlation of all detected subunits (remove all other subunits)
-        corr[subunitsDetected,] <- NA
-        pkcorr <- mean(corr[upper.tri(corr)])
+        corr[subunitsNotDetcted,] <- NA
+        pkcorr <- mean(corr[upper.tri(corr)], na.rm = T)
       }else{
         pkcorr <- rep(NA, nSubunits)
         corrSubunits = rep(NA, nSubunits)
