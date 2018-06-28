@@ -575,13 +575,14 @@ print.traces <- function(traces){
 #' Test if an object is of class traces.
 #' @param traces Object of class traces.
 #' @param type Character string specifying whether a specific type of traces is required.
+#' @param additionalItems Character string specifying additional entries that are required in the list.
 #' The two options are "peptide" or "protein". Default is \code{NULL},
 #' meaning that no specific type is required.
-.tracesTest <- function(traces,type=NULL){
+.tracesTest <- function(traces,type=NULL, additionalItems=NULL){
   if (! class(traces)=="traces") {
     stop("Object is not of class traces.")
   }
-  if (! all(names(traces)==c("traces","trace_type","trace_annotation","fraction_annotation"))) {
+  if (! all(c("traces","trace_type","trace_annotation","fraction_annotation") %in% names(traces))) {
     stop("Traces object doesn't contain all necessary items: traces, trace_type, trace_annotation, and fraction_annotation.")
   }
   if (!is.null(type)) {
@@ -595,20 +596,27 @@ print.traces <- function(traces){
   if (! identical(names(traces$traces),c(traces$fraction_annotation$id,"id"))) {
     stop("Fractions in traces and fraction_annotation are not identical.")
   }
+  if(!is.null(additionalItems)){
+    contained <- (additionalItems %in% names(traces))
+    if(!all(contained)){
+      stop(paste0("Required entries not found: ", additionalItems[!contained]))
+    }
+  }
 }
 
 #' Test if an object is of class tracesList.
 #' @param traces Object of class tracesList.
 #' @param type Character string specifying whether a specific type of traces is required.
+#' @param additionalItems Character string specifying additional entries that are required in the list.
 #' The two options are "peptide" or "protein". Default is \code{NULL},
 #' meaning that no specific type is required.
-.tracesListTest <- function(tracesList,type=NULL){
+.tracesListTest <- function(tracesList, type=NULL, additionalItems=NULL){
   if (! class(tracesList)=="tracesList") {
     stop("Object is not of class tracesList")
   }
   if(is.null(names(tracesList))) stop("TracesList must consist of named traces objects. No names detected.")
   res <- lapply(tracesList, function(traces){
-    if (! all(names(traces)==c("traces","trace_type","trace_annotation","fraction_annotation"))) {
+    if (! all(c("traces","trace_type","trace_annotation","fraction_annotation") %in% names(traces))) {
       stop("At least one traces object doesn't contain all necessary items: traces, trace_type, trace_annotation, and fraction_annotation.")
     }
     if (!is.null(type)) {
@@ -622,7 +630,12 @@ print.traces <- function(traces){
     if (! identical(names(traces$traces),c(traces$fraction_annotation$id,"id"))) {
       stop("In at least one traces object: Fractions in traces and fraction_annotation are not identical.")
     }
-
+    if(!is.null(additionalItems)){
+      contained <- (additionalItems %in% names(traces))
+      if(!all(contained)){
+        stop(paste0("Required entries not found: ", additionalItems[!contained]))
+      }
+    }
   })
 }
 
