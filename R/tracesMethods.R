@@ -40,6 +40,9 @@ subset.traces <- function(traces,trace_subset_ids=NULL,trace_subset_type="id",fr
       traces$trace_annotation <- subset(traces$trace_annotation, get(trace_subset_type) %in% trace_subset_ids)
       trace_ids <- traces$trace_annotation$id
       traces$traces <- subset(traces$traces,id %in% trace_ids)
+      if(!is.null(traces[["genomic_coord"]])){
+        traces$genomic_coord <- traces$genomic_coord[trace_ids]
+      }
       if (nrow(traces$traces) == 0) {
         message("Caution! Subsetting returns empty traces object.")
       }
