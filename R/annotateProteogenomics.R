@@ -244,6 +244,7 @@ proteinToGenomeFast <- function (x, db, id = "name", idType = "protein_id") {
 #' @param verbose boolean whether to print warning messages.
 #' @import ensembldb
 #' @import GenomicRanges
+#' @export
 #' @return Object of class traces or tracesList with an additional item 'genomic_coord'
 #' containing a GRangesList with one entry for each peptide containing the genomic coordinates.
 annotateGenomicCoordinates <- function(traces,

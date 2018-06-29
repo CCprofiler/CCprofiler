@@ -9,4 +9,3 @@
 \description{
 Summarize a tracesList object
 }
-

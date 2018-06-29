@@ -20,4 +20,3 @@ data.table with scored and filtered features
 \description{
 Append secondary features to scored filtered primary feature table
 }
-

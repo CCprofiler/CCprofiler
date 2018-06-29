@@ -19,4 +19,3 @@ Get a matrix of intensity values from a traces object.
 intensityMatrix <- getIntensityMatrix(examplePeptideTraces)
 head(intensityMatrix)
 }
-

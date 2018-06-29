@@ -7,6 +7,7 @@
 #' The names of the vector must correspond to the ids of the peptides to be plotted.
 #' @param plot boolean, whether to plot or to return the plot.
 #' @import ggbio
+#' @export
 
 plotPeptidesInGenome <- function(traces,
                                  gene_id,

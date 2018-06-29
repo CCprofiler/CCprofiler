@@ -71,4 +71,3 @@ proteinFeaturesGrid <- list(exampleProteinFeatures)
                                                         remove_decoys=FALSE)
 
 }
-

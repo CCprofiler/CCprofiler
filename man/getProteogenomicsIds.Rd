@@ -9,4 +9,3 @@ getProteogenomicsIds(traces)
 \description{
 getProteogenomicsIds of traces
 }
-

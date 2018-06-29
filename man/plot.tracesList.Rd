@@ -4,10 +4,10 @@
 \alias{plot.tracesList}
 \title{Plot traces}
 \usage{
-\method{plot}{tracesList}(traces, design_matrix = NULL,
-  collapse_conditions = FALSE, log = FALSE, legend = TRUE, PDF = FALSE,
-  name = "Traces", plot = TRUE, isoformAnnotation = FALSE,
-  highlight = NULL, highlight_col = NULL)
+plot.tracesList(traces, design_matrix = NULL, collapse_conditions = FALSE,
+  log = FALSE, legend = TRUE, PDF = FALSE, name = "Traces",
+  plot = TRUE, isoformAnnotation = FALSE, highlight = NULL,
+  highlight_col = NULL, colorMap = NULL)
 }
 \arguments{
 \item{traces}{Object of class traces.}
@@ -32,8 +32,10 @@ PDF file is saved under name.pdf. Default is "Traces".}
 Default is \code{NULL}.}
 
 \item{highlight_col}{Character string, A color to highlight traces in. Must be accepted by ggplot2.}
+
+\item{colorMap}{named character vector containing valid color specifications for plotting.
+The names of the vector must correspond to the ids of the peptides to be plotted.}
 }
 \description{
 Plot all chromatograms in a traces object. Most generic plotting function.
 }
-

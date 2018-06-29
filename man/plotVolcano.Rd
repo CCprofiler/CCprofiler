@@ -4,12 +4,14 @@
 \alias{plotVolcano}
 \title{Volcano plot for differential expression of peptides, proteins or complexes between 2 conditions}
 \usage{
-plotVolcano(testResults, FC_cutoff = 2, pBHadj_cutoff = 0.01,
-  name = "volcanoPlot", PDF = FALSE)
+plotVolcano(testResults, highlight = NULL, FC_cutoff = 2,
+  pBHadj_cutoff = 0.01, name = "volcanoPlot", PDF = FALSE)
 }
 \arguments{
 \item{testResults}{data.table, a data.table with test statistics.
 A testResults can be produced with \code{testDifferentialExpression}.}
+
+\item{highlight}{character string of feature_id that should be highlighted. Default = NULL.}
 
 \item{FC_cutoff}{Numeric fold change cutoff, default is 2.}
 
@@ -25,4 +27,3 @@ plot
 \description{
 Volcano plot for differential expression of peptides, proteins or complexes between 2 conditions
 }
-
