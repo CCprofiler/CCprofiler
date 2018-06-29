@@ -20,7 +20,7 @@ annotateLeadingIsoform <- function(traces, isoform_col="isoform_id", output_col=
   UseMethod("annotateLeadingIsoform", traces)
   }
 
-#' @describeIn annotateLeadingIsoform Annotate the Leading Isoform in a single traces object
+#' @describeIn annotateLeadingIsoform Annotate the Leading Isoform in a tracesList object
 annotateLeadingIsoform.tracesList <- function(tracesList, isoform_col="isoform_id",
                                               output_col="LeadingIsoform"){
 
@@ -94,4 +94,90 @@ findLeadingIso <- function(presenceMat){
     isos <- isos[-l]
   }
   return(leadingIso)
+}
+
+#' Align peptides to reference proteins to get the relative position
+#' @param traces Object of class traces with annotated leading isoform (see =annotateLeadingIsoform=)
+#' @param mappingTable data.table containing all sequences that were in the proteomics search space.
+#' Must have the following columns: 'sequence', 'header'
+#' 'header' must be of the format: 'sp|IsoformId|etc'. The function will extract the isoform id
+#' and match it to the leading isoform.
+#' @param multimatch character, Skip or choose the first sequence if multiple id's match.
+#' @param verbose boolean, whether to be verbose.
+#' @return Object of class traces with annotated relative positions of each peptide.
+#' Two columns are added to =trace_annotation=:
+#' 'PeptidePositionStart' the position of the first amino acid in the protein.
+#' 'PeptidePositionEnd' the position of the last amino acid in the protein.
+#' @export
+
+annotateRelativePepPos <- function(traces, mappingTable, multimatch=c("first", "skip"), verbose=F){
+  UseMethod("annotateRelativePepPos", traces)
+  }
+
+#' @describeIn annotateRelativePepPos Annotate the relative Position of all peptides in a tracesList object.
+
+annotateRelativePepPos.tracesList <- function(tracesList, mappingTable, multimatch=c("first", "skip"), verbose=F){
+  .tracesListTest(tracesList)
+  res <- lapply(names(tracesList),function(x){
+    message(paste0("Annotating Peptide positions in ", x))
+    annotateRelativePepPos.traces(tracesList[[x]],
+                                  mappingTable=mappingTable,
+                                  multimatch=multimatch,
+                                  verbose=verbose)
+  })
+  names(res) <- names(tracesList)
+  class(res) <- "tracesList"
+  .tracesListTest(res)
+  return(res)
+}
+
+#' @describeIn annotateRelativePepPos Annotate the relative Position of all peptides in a single traces object.
+
+annotateRelativePepPos.traces <- function(traces, mappingTable, multimatch=c("first", "skip"), verbose=F){
+  multimatch <- match.arg(multimatch)
+  ann <- traces$trace_annotation
+  ## Remove PTMs
+  if(!("Sequence" %in% names(ann))){
+    ann$Sequence <- gsub("\\(.*?\\)", "", ann$id)
+  }
+  mappingTable$IsoformId <- gsub("\\|.*", "", gsub(">.*?\\|","", mappingTable$header))
+  ## Find protein and align
+  matches <- apply(ann, 1, function(pep){
+    seq <- mappingTable[IsoformId == pep["LeadingIsoform"]]$sequence
+    if(length(seq) == 1){
+      return(gregexpr(pep["Sequence"], seq))
+    }else if(length(seq) > 1){
+      if(multimatch == "skip"){
+        if(verbose){
+          message(paste0("Warning: Multiple sequences found for Protein: ",
+                         pep["LeadingIsoform"], ". Skipping"))
+        }
+        m <- -1
+        attr(m, "match.length") <- 0
+        return(list(m))
+      }else{
+        if(verbose){
+          message(paste0("Warning: Multiple sequences found for Protein: ",
+                         pep["LeadingIsoform"], ". Choosing First Match."))
+        }
+        seq <- seq[1]
+        return(gregexpr(pep["Sequence"], seq))
+      }
+    }else{
+      if(verbose){
+        message(paste0("Warning: No sequence found for Protein: ",
+                       pep["LeadingIsoform"], ". Skipping"))
+      }
+      m <- -1
+      attr(m, "match.length") <- 0
+      return(list(m))
+    }
+  })
+
+  ann$PeptidePositionStart <- sapply(matches, function(m) m[[1]][1])
+  ann$PeptidePositionEnd <- ann$PeptidePositionStart +
+    sapply(matches, function(m) attr(m[[1]], "match.length")[1]) - 1
+  traces$trace_annotation <- ann
+  return(traces)
+
 }
