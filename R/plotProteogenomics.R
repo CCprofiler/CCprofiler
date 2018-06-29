@@ -12,6 +12,7 @@ plotPeptidesInGenome <- function(traces,
                                  gene_id,
                                  ensdb=NULL,
                                  colorMap=NULL,
+                                 highlight=NULL,
                                  plot=T){
 
   if(!is.null(ensdb)){
@@ -31,21 +32,38 @@ plotPeptidesInGenome <- function(traces,
   mcols(gr)$id <- names(gr)
   pepRanges <- relist(gr, pepRanges)
 
-  cm <- createGGplotColMap(names(pepRanges))
+
+  ## Annotate which traces to highlight
+  if(!is.null(highlight)){
+    mcols(pepRanges)$outlier <- gsub("\\(.*?\\)","",names(pepRanges)) %in% gsub("\\(.*?\\)","",highlight)
+    mcols(pepRanges)$outlier <- sapply(mcols(pepRanges)$outlier, ifelse, "a","b")
+    if(!any(mcols(pepRanges)$outlier == "a")) highlight <- NULL
+  }else{
+    mcols(pepRanges)$outlier <- "a"
+  }
+
+  ## Create a reproducible coloring for the peptides plotted
+  if(!is.null(colorMap)){
+    if(!all(unique(names(pepRanges)) %in% names(colorMap))){
+      stop("Invalid colorMap specified. Not all traces to be plotted are contained in the colorMap")
+    }
+  }else{
+    colorMap <- createGGplotColMap(names(pepRanges))
+  }
 
   p_pep <- ggplot() +
-    geom_alignment(pepRanges, aes(fill = id, color=id),
+    geom_alignment(pepRanges, aes(fill=id, alpha=outlier),
                    type="model", group.selfish=F) +
     theme(legend.position="none") +
-    scale_fill_manual(values=cm) +
-    scale_color_manual(values=cm)
+    scale_fill_manual(values=colorMap) +
+    scale_alpha_manual(values = c(a=1, b=0.3))
 
   if(!is.null(ensdb)){
     tr <- tracks(GeneModel=p_gm, Peptides=p_pep, heights = c(2,1))
   }else{
     tr <- tracks(Peptides=p_pep)
   }
-  p_tr <- plot(tr_sub, plot=F)
+  p_tr <- plot(tr_sub, plot=F, highlight=highlight, colorMap=colorMap)
   tr <- as(tr, "grob")
   if(plot){
     grid.arrange(p_tr, tr, ncol=1)
