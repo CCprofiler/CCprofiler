@@ -181,3 +181,134 @@ annotateRelativePepPos.traces <- function(traces, mappingTable, multimatch=c("fi
   return(traces)
 
 }
+
+
+#' Fetch genomic coordinates of peptides more efficiently
+#' @details This is an adapted function of the ensembldb package. It speeds up
+#' calculations by grouping peptides by proteins and only fetching each CDS once per
+#' protein.
+#' @import ensembldb
+#' @return A list of genomic ranges containing the genomic coordinates of each peptide.
+
+proteinToGenomeFast <- function (x, db, id = "name", idType = "protein_id") {
+  if (missing(x) || !is(x, "IRanges"))
+    stop("Argument 'x' is required and has to be an 'IRanges' object")
+  if (missing(db) || !is(db, "EnsDb"))
+    stop("Argument 'db' is required and has to be an 'EnsDb' object")
+  coords_cds <- ensembldb:::.proteinCoordsToTx(x)
+  ## Modification: fetch only for unique ids and then copy for speedup
+  ids <- unique(names(x))
+  message("Fetching CDS for ", length(ids), " proteins ... ",
+          appendLF = FALSE)
+  uniqueX <- IRanges(start=rep(1, length(ids)), end=rep(2, length(ids)), names=ids)
+  cds_genome <- ensembldb:::.cds_for_id_range(db, uniqueX, id = id, idType = idType)
+  cds_genome <- cds_genome[names(x)] # Copy found entries for all duplicated entries
+  message(sum(lengths(cds_genome) > 0), " found")
+  message("Checking CDS and protein sequence lengths ... ",
+          appendLF = FALSE)
+  cds_genome <- ensembldb:::.cds_matching_protein(db, cds_genome)
+  are_ok <- unlist(lapply(cds_genome, function(z) {
+    if (is(z, "GRangesList"))
+      all(z[[1]]$cds_ok)
+    else NA
+  }))
+  are_ok <- are_ok[!is.na(are_ok)]
+  message(sum(are_ok), "/", length(are_ok), " OK")
+  res <- mapply(cds_genome, as(coords_cds, "IRangesList"),
+                as(x, "IRangesList"), FUN = function(gnm, cds, prt) {
+                  if (is.null(gnm)) {
+                    GRanges()
+                  }
+                  else {
+                    maps <- unlist(ensembldb:::.to_genome(gnm, cds))
+                    names(maps) <- NULL
+                    mcols(maps)$protein_start <- start(prt)
+                    mcols(maps)$protein_end <- end(prt)
+                    maps[order(maps$exon_rank)]
+                  }
+                })
+  lapply(res, function(z) {
+    if (length(unique(z$protein_id)) > 1)
+      split(z, f = z$protein_id)
+    else z
+  })
+}
+
+
+#' Annotate the genomic position of peptides in traces
+#' @param traces Object of class traces with annotated relative peptide positions
+#' (see =annotateRelativePepPos=).
+#' @param db An EnsDb object containing the CDS mappings of the proteins in question.
+#' @param proteinIdCol character, the name of the column in =trace_annotation= containing
+#' the ids of the proteins the relative peptide positions have been calculated for.
+#' @param verbose boolean whether to print warning messages.
+#' @import ensembldb
+#' @import GenomicRanges
+#' @return Object of class traces or tracesList with an additional item 'genomic_coord'
+#' containing a GRangesList with one entry for each peptide containing the genomic coordinates.
+annotateGenomicCoordinates <- function(traces,
+                                       db=system.file("extdata/EnsDb.Hsapiens.v86.sqlite",
+                                                      package = "EnsDb.Hsapiens.v86"),
+                                       proteinIdCol="LeadingEnsemblProtein",
+                                       verbose=F){
+  UseMethod("annotateGenomicCoordinates", traces)
+}
+
+#' @describeIn annotateGenomicCoordinates Annotate the relative Position of all peptides in a tracesList object.
+annotateGenomicCoordinates.tracesList <- function(tracesList,
+                                       db=system.file("extdata/EnsDb.Hsapiens.v86.sqlite",
+                                                      package = "EnsDb.Hsapiens.v86"),
+                                       proteinIdCol="LeadingEnsemblProtein",
+                                       verbose=F){
+  .tracesListTest(tracesList)
+  res <- lapply(names(tracesList),function(x){
+    message(paste0("Fetching genomic Peptide positions in ", x))
+    annotateGenomicCoordinates.traces(tracesList[[x]],
+                                      db=db,
+                                      proteinIdCol=proteinIdCol,
+                                      verbose=verbose)
+  })
+  names(res) <- names(tracesList)
+  class(res) <- "tracesList"
+  .tracesListTest(res)
+  return(res)
+}
+
+#' @describeIn annotateGenomicCoordinates Annotate the relative Position of all peptides in a single traces object.
+
+annotateGenomicCoordinates.traces <- function(traces,
+                                         db=system.file("extdata/EnsDb.Hsapiens.v86.sqlite",
+                                                        package = "EnsDb.Hsapiens.v86"),
+                                         proteinIdCol="LeadingEnsemblProtein",
+                                         verbose=F){
+  edb <- validateEnsDB(db)
+  ann <- traces$trace_annotation
+  if(("PeptidePositionStart" %in% colnames(traces))){
+    stop("Did not find relative peptide positions. Aborting")
+  }
+  ## Transform to IRanges object so that ensembldb can be used
+  prtCoord <- IRanges(start=ann$PeptidePositionStart,
+                      end=ann$PeptidePositionEnd,
+                      names=ann[[proteinIdCol]])
+  ## Fetch the genomic coordinates to a List of genomic ranges
+  gnmCoord <- proteinToGenomeFast(prtCoord, edb)
+  ## Add to traces object
+  names(gnmCoord) <- ann$id
+  traces$genomic_coord <- gnmCoord
+  .tracesTest(traces)
+  return(traces)
+}
+
+#' Validate if the user specified the database correctly
+validateEnsDB <- function(ensdb){
+  if(!is.null(ensdb)){
+    if(class(ensdb) == "character"){
+      edb <- EnsDb(ensdb)
+    }else if(class(ensdb) == "EnsDb"){
+      edb <- ensdb
+    }else{
+      stop("ensdb must either be a path to an EnsDb file or and 'EnsDb' object")
+    }
+  }
+  return(edb)
+}
