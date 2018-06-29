@@ -2,9 +2,15 @@
 % Please edit documentation in R/summarize_proteogenomics.R
 \name{annotateNonMajorIsoformPeptides}
 \alias{annotateNonMajorIsoformPeptides}
+\alias{annotateNonMajorIsoformPeptides.traces}
+\alias{annotateNonMajorIsoformPeptides.tracesList}
 \title{Annotate peptides that are specific for a non major isoform of the gene of origin}
 \usage{
 annotateNonMajorIsoformPeptides(traces)
+
+\method{annotateNonMajorIsoformPeptides}{traces}(traces)
+
+\method{annotateNonMajorIsoformPeptides}{tracesList}(tracesList)
 }
 \description{
 Annotate peptides that are specific for a non major isoform of the gene of origin
@@ -13,3 +19,10 @@ Annotate peptides that are specific for a non major isoform of the gene of origi
 Defines the most frequently detected isoform as the major isoform for that gene
 and then detects peptides that do not match to that gene.
 }
+\section{Methods (by class)}{
+\itemize{
+\item \code{traces}: Annotate a single traces object
+
+\item \code{tracesList}: Annotate a tracesList object
+}}
+
