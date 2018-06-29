@@ -182,6 +182,8 @@ annotateMolecularWeight.tracesList <- function(traces, calibration){
 #' @param PDF Logical, whether to plot to PDF. PDF file is saved in working directory. Default is \code{FALSE}.
 #' @param name Character string with name of the plot, only used if \code{PDF=TRUE}.
 #' PDF file is saved under name.pdf. Default is "Traces".
+#' @param colorMap named character vector containing valid color specifications for plotting.
+#' The names of the vector must correspond to the ids of the peptides to be plotted.
 #' @examples
 #' # Protein traces
 #' proteinTraces=exampleProteinTraces
@@ -205,7 +207,8 @@ plot.traces <- function(traces,
                         name="Traces",
                         plot = TRUE,
                         highlight=NULL,
-                        highlight_col=NULL) {
+                        highlight_col=NULL,
+                        colorMap=NULL) {
 
   .tracesTest(traces)
   traces.long <- toLongFormat(traces$traces)
@@ -215,6 +218,15 @@ plot.traces <- function(traces,
     if(!any(traces.long$outlier)) highlight <- NULL
   }
 
+  ## Create a reproducible coloring for the peptides plotted
+  if(!is.null(colorMap)){
+    if(!all(unique(traces.long$id) %in% names(colorMap))){
+      stop("Invalid colorMap specified. Not all traces to be plotted are contained in the colorMap")
+    }
+  }else{
+    colorMap <- createGGplotColMap(unique(traces.long$id))
+  }
+
   p <- ggplot(traces.long) +
     geom_line(aes_string(x='fraction', y='intensity', color='id')) +
     xlab('fraction') +
@@ -222,7 +234,8 @@ plot.traces <- function(traces,
     theme_bw() +
     theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
     theme(plot.margin = unit(c(1,.5,.5,.5),"cm")) +
-    ggtitle(name)#+
+    ggtitle(name) +
+    scale_color_manual(values=colorMap)
   #theme(plot.title = element_text(vjust=19,size=10))
   if (log) {
     p <- p + scale_y_log10('log(intensity)')
@@ -235,16 +248,17 @@ plot.traces <- function(traces,
     if(is.null(highlight_col)){
       p <- p +
         geom_line(data = traces.long[outlier == TRUE], aes_string(x='fraction', y='intensity', color='id'), lwd=2) +
-        scale_color_discrete(breaks = legend_peps)
+        scale_color_manual(values=colorMap, breaks = legend_peps)
+        ## scale_color_discrete(breaks = legend_peps)
     }else{
-      legend_map <- unique(ggplot_build(p)$data[[1]]$colour)
-      names(legend_map) <- unique(p$data$id)
-      legend_map[legend_peps] <- highlight_col
-      legend_vals <- rep(highlight_col, ceiling(length(legend_peps)/ length(highlight_col)))[1:length(legend_peps)]
+      ## legend_map <- unique(ggplot_build(p)$data[[1]]$colour)
+      ## names(legend_map) <- unique(p$data$id)
+      ## legend_map[legend_peps] <- highlight_col
+      ## legend_vals <- rep(highlight_col, ceiling(length(legend_peps)/ length(highlight_col)))[1:length(legend_peps)]
       p <- p +
-        geom_line(data = traces.long[outlier == TRUE], aes_string(x='fraction', y='intensity', lty = 'id'), color = highlight_col, lwd=2) +
+        geom_line(data = traces.long[outlier == TRUE], aes_string(x='fraction', y='intensity', lty = 'id'), color = highlight_col, lwd=2)
         # scale_color_discrete(guide = F)
-        scale_color_manual(values = legend_map, limits = legend_peps)
+        ## scale_color_manual(values = legend_map, limits = legend_peps)
       # guides(lty = FALSE)
       # scale_color_manual(limits = legend_peps, values = rep(highlight_col, length(legend_peps))) +
       # geom_line(aes_string(x='fraction', y='intensity', color='id'))
@@ -332,6 +346,8 @@ plot.traces <- function(traces,
 #' @param highlight Character vector, ids of the traces to highlight (can be multiple).
 #'  Default is \code{NULL}.
 #' @param highlight_col Character string, A color to highlight traces in. Must be accepted by ggplot2.
+#' @param colorMap named character vector containing valid color specifications for plotting.
+#' The names of the vector must correspond to the ids of the peptides to be plotted.
 #' @export
 
 plot.tracesList <- function(traces,
@@ -344,7 +360,8 @@ plot.tracesList <- function(traces,
                             plot = TRUE,
                             isoformAnnotation = FALSE,
                             highlight=NULL,
-                            highlight_col=NULL) {
+                            highlight_col=NULL,
+                            colorMap=NULL) {
   .tracesListTest(traces)
   if(!is.null(design_matrix)){
     if(!all(design_matrix$Sample_name %in% names(traces))){
@@ -377,6 +394,15 @@ plot.tracesList <- function(traces,
     if(!any(traces_long$outlier)) highlight <- NULL
   }
 
+  ## Create a reproducible coloring for the peptides plotted
+  if(!is.null(colorMap)){
+    if(!all(unique(traces_long$id) %in% names(colorMap))){
+      stop("Invalid colorMap specified. Not all traces to be plotted are contained in the colorMap")
+    }
+  }else{
+    colorMap <- createGGplotColMap(unique(traces_long$id))
+  }
+
   p <- ggplot(traces_long) +
     xlab('fraction') +
     ylab('intensity') +
@@ -384,7 +410,9 @@ plot.tracesList <- function(traces,
     theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
     theme(plot.margin = unit(c(1,.5,.5,.5),"cm")) +
     ggtitle(name) +
+    scale_color_manual(values=colorMap) +
     theme(plot.title = element_text(vjust=19,size=10))
+
   if(collapse_conditions){
     if(! isoformAnnotation==TRUE) {
       p <- p + facet_grid(~ Replicate) +
@@ -402,31 +430,32 @@ plot.tracesList <- function(traces,
       geom_line(aes_string(x='fraction', y='intensity', color='isoform_id', group='line'))
     }
   }
+
   if(!is.null(highlight)){
     legend_peps <- unique(traces_long[outlier == TRUE, id])
     if(is.null(highlight_col)){
       if(collapse_conditions){
         p <- p +
           geom_line(data = traces_long[outlier == TRUE], aes_string(x='fraction', y='intensity', color='id', lty = 'Condition'), lwd=2) +
-          scale_color_discrete(breaks = legend_peps)
+          scale_color_manual(values = colorMap, breaks = legend_peps)
       }else{
         p <- p +
           geom_line(data = traces_long[outlier == TRUE], aes_string(x='fraction', y='intensity', color='id'), lwd=2) +
-          scale_color_discrete(breaks = legend_peps)
+          scale_color_manual(values = colorMap, breaks = legend_peps)
       }
 
     }else{
-      legend_map <- unique(ggplot_build(p)$data[[1]]$colour)
-      names(legend_map) <- unique(p$data$id)
-      legend_map[legend_peps] <- highlight_col
-      legend_vals <- rep(highlight_col, ceiling(length(legend_peps)/ length(highlight_col)))[1:length(legend_peps)]
+      ## legend_map <- unique(ggplot_build(p)$data[[1]]$colour)
+      ## names(legend_map) <- unique(p$data$id)
+      ## legend_map[legend_peps] <- highlight_col
+      ## legend_vals <- rep(highlight_col, ceiling(length(legend_peps)/ length(highlight_col)))[1:length(legend_peps)]
       if(collapse_conditions){
         p <- p +
           geom_line(data = traces_long[outlier == TRUE],
                     aes(x=fraction, y=intensity, lty = Condition, group = interaction(Condition, id), color = id),
                      lwd=2) +
           # scale_color_discrete(guide = F)
-          scale_color_manual(values = legend_map, limits = legend_peps)
+          scale_color_manual(values = colorMap, breaks = legend_peps)
         # guides(lty = FALSE)
         # scale_color_manual(limits = legend_peps, values = rep(highlight_col, length(legend_peps))) +
         # geom_line(aes_string(x='fraction', y='intensity', color='id'))
@@ -435,7 +464,8 @@ plot.tracesList <- function(traces,
           geom_line(data = traces_long[outlier == TRUE], aes_string(x='fraction', y='intensity', color = 'id'),
                     lwd=2) +
           # scale_color_discrete(guide = F)
-          scale_color_manual(values = legend_map, limits = legend_peps)
+          scale_color_manual(values = colorMap, breaks = legend_peps)
+          ## scale_color_manual(values = legend_map, limits = legend_peps)
         # guides(lty = FALSE)
         # scale_color_manual(limits = legend_peps, values = rep(highlight_col, length(legend_peps))) +
         # geom_line(aes_string(x='fraction', y='intensity', color='id'))
