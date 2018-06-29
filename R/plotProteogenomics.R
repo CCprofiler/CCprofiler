@@ -25,7 +25,7 @@ plotPeptidesInGenome <- function(traces,
 
   if(is.null(tr_sub[["genomic_coord"]])){
     message("No genomic Coordinates found. Trying to fetch them...")
-    tr_sub <- annotateGenomicCoordinates(tr_sub, db=endb)
+    tr_sub <- annotateGenomicCoordinates(tr_sub, db=edb)
   }
   pepRanges <- tr_sub$genomic_coord
 
