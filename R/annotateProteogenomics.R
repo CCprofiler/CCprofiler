@@ -294,6 +294,7 @@ annotateGenomicCoordinates.traces <- function(traces,
   gnmCoord <- proteinToGenomeFast(prtCoord, edb)
   ## Add to traces object
   names(gnmCoord) <- ann$id
+  gnmCoord <- GRangesList(gnmCoord)
   traces$genomic_coord <- gnmCoord
   .tracesTest(traces)
   return(traces)
