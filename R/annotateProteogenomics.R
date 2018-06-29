@@ -21,6 +21,7 @@ annotateLeadingIsoform <- function(traces, isoform_col="isoform_id", output_col=
   }
 
 #' @describeIn annotateLeadingIsoform Annotate the Leading Isoform in a tracesList object
+#' @export
 annotateLeadingIsoform.tracesList <- function(tracesList, isoform_col="isoform_id",
                                               output_col="LeadingIsoform"){
 
@@ -34,6 +35,7 @@ annotateLeadingIsoform.tracesList <- function(tracesList, isoform_col="isoform_i
 }
 
 #' @describeIn annotateLeadingIsoform Annotate the Leading Isoform in a single traces object
+#' @export
 annotateLeadingIsoform.traces <- function(traces, isoform_col="isoform_id", output_col="LeadingIsoform"){
   .tracesTest(traces, type = "peptide")
   ann <- copy(traces$trace_annotation)
@@ -115,6 +117,7 @@ annotateRelativePepPos <- function(traces, mappingTable, multimatch=c("first", "
   }
 
 #' @describeIn annotateRelativePepPos Annotate the relative Position of all peptides in a tracesList object.
+#' @export
 
 annotateRelativePepPos.tracesList <- function(tracesList, mappingTable, multimatch=c("first", "skip"), verbose=F){
   .tracesListTest(tracesList)
@@ -132,6 +135,7 @@ annotateRelativePepPos.tracesList <- function(tracesList, mappingTable, multimat
 }
 
 #' @describeIn annotateRelativePepPos Annotate the relative Position of all peptides in a single traces object.
+#' @export
 
 annotateRelativePepPos.traces <- function(traces, mappingTable, multimatch=c("first", "skip"), verbose=F){
   multimatch <- match.arg(multimatch)
@@ -236,6 +240,7 @@ proteinToGenomeFast <- function (x, db, id = "name", idType = "protein_id") {
 
 
 #' Annotate the genomic position of peptides in traces
+#' @description uses simple grep in the protein that was found in the mapping table.
 #' @param traces Object of class traces with annotated relative peptide positions
 #' (see =annotateRelativePepPos=).
 #' @param db An EnsDb object containing the CDS mappings of the proteins in question.
@@ -244,9 +249,10 @@ proteinToGenomeFast <- function (x, db, id = "name", idType = "protein_id") {
 #' @param verbose boolean whether to print warning messages.
 #' @import ensembldb
 #' @import GenomicRanges
-#' @export
 #' @return Object of class traces or tracesList with an additional item 'genomic_coord'
 #' containing a GRangesList with one entry for each peptide containing the genomic coordinates.
+#' @export
+
 annotateGenomicCoordinates <- function(traces,
                                        db=system.file("extdata/EnsDb.Hsapiens.v86.sqlite",
                                                       package = "EnsDb.Hsapiens.v86"),
@@ -256,6 +262,7 @@ annotateGenomicCoordinates <- function(traces,
 }
 
 #' @describeIn annotateGenomicCoordinates Annotate the relative Position of all peptides in a tracesList object.
+#' @export
 annotateGenomicCoordinates.tracesList <- function(tracesList,
                                        db=system.file("extdata/EnsDb.Hsapiens.v86.sqlite",
                                                       package = "EnsDb.Hsapiens.v86"),
@@ -276,6 +283,7 @@ annotateGenomicCoordinates.tracesList <- function(tracesList,
 }
 
 #' @describeIn annotateGenomicCoordinates Annotate the relative Position of all peptides in a single traces object.
+#' @export
 
 annotateGenomicCoordinates.traces <- function(traces,
                                          db=system.file("extdata/EnsDb.Hsapiens.v86.sqlite",

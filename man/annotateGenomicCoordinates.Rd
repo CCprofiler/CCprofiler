@@ -37,7 +37,7 @@ Object of class traces or tracesList with an additional item 'genomic_coord'
 containing a GRangesList with one entry for each peptide containing the genomic coordinates.
 }
 \description{
-Annotate the genomic position of peptides in traces
+uses simple grep in the protein that was found in the mapping table.
 }
 \section{Methods (by class)}{
 \itemize{
