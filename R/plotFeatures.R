@@ -240,6 +240,7 @@ plotFeatures.traces <- function(feature_table,
     p <- p + theme(legend.position="none")
   }
 
+  ## @TODO Implement the MW axis from plot.traces for more robustness
   if ("molecular_weight" %in% names(traces$fraction_annotation)) {
     grid.newpage()
     p2 <- p
@@ -568,15 +569,4 @@ plotFeatures.tracesList <- function(feature_table,
   if(PDF){
     dev.off()
   }
-}
-
-
-#' Create a reproducible color map for a set of ids by ordering
-#' them alphabetically
-#' @importFrom scales hue_pal
-createGGplotColMap <- function(ids){
-  ids <- sort(unique(ids))
-  colormap <- hue_pal()(length(ids))
-  names(colormap) <- ids
-  colormap
 }

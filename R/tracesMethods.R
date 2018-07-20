@@ -247,7 +247,8 @@ plot.traces <- function(traces,
     legend_peps <- unique(traces.long[outlier == TRUE, id])
     if(is.null(highlight_col)){
       p <- p +
-        geom_line(data = traces.long[outlier == TRUE], aes_string(x='fraction', y='intensity', color='id'), lwd=2) +
+        geom_line(data = traces.long[outlier == TRUE],
+                  aes_string(x='fraction', y='intensity', color='id'), lwd=2) +
         scale_color_manual(values=colorMap, breaks = legend_peps)
         ## scale_color_discrete(breaks = legend_peps)
     }else{
@@ -256,7 +257,9 @@ plot.traces <- function(traces,
       ## legend_map[legend_peps] <- highlight_col
       ## legend_vals <- rep(highlight_col, ceiling(length(legend_peps)/ length(highlight_col)))[1:length(legend_peps)]
       p <- p +
-        geom_line(data = traces.long[outlier == TRUE], aes_string(x='fraction', y='intensity', lty = 'id'), color = highlight_col, lwd=2)
+        geom_line(data = traces.long[outlier == TRUE],
+                  aes_string(x='fraction', y='intensity', lty = 'id'),
+                  color = highlight_col, lwd=2)
         # scale_color_discrete(guide = F)
         ## scale_color_manual(values = legend_map, limits = legend_peps)
       # guides(lty = FALSE)
@@ -265,68 +268,24 @@ plot.traces <- function(traces,
     }
   }
 
-
   if ("molecular_weight" %in% names(traces$fraction_annotation)) {
-    p2 <- p
-    p <- p + scale_x_continuous(name="fraction",
-                                breaks=seq(min(traces$fraction_annotation$id),
-                                           max(traces$fraction_annotation$id),10),
-                                labels=seq(min(traces$fraction_annotation$id),
-                                           max(traces$fraction_annotation$id),10))
-    p2 <- p2 + scale_x_continuous(name="molecular weight (kDa)",
-                                  breaks=seq(min(traces$fraction_annotation$id),max(traces$fraction_annotation$id),10),
-                                  labels=round(traces$fraction_annotation$molecular_weight,digits=0)[seq(1,length(traces$fraction_annotation$id),10)]
-    )
-    ## extract gtable
-    g1 <- ggplot_gtable(ggplot_build(p))
-    g2 <- ggplot_gtable(ggplot_build(p2))
-    ## overlap the panel of the 2nd plot on that of the 1st plot
-    pp <- c(subset(g1$layout, name=="panel", se=t:r))
+    mwtransform <- getMWcalibration(traces$fraction_annotation)
+    mw <- traces$fraction_annotation$molecular_weight
+    breaks <- mw[seq(1,length(mw), length.out = 8)]
+    p <- p + scale_x_continuous(sec.axis = sec_axis(trans = mwtransform,
+                                                    breaks = breaks))
+  }
 
-    g <- gtable_add_grob(g1, g2$grobs[[which(g2$layout$name=="panel")]], pp$t, pp$l, pp$b, pp$l)
-    ## steal axis from second plot and modify
-    ia <- which(g2$layout$name == "axis-b")
-    ga <- g2$grobs[[ia]]
-    ax <- ga$children[[2]]
-    ## switch position of ticks and labels
-    ax$heights <- rev(ax$heights)
-    ax$grobs <- rev(ax$grobs)
-    ## modify existing row to be tall enough for axis
-    g$heights[[2]] <- g$heights[g2$layout[ia,]$t]
-    ## add new axis
-    g <- gtable_add_grob(g, ax, 2, 4, 2, 4)
-    ## add new row for upper axis label
-    g <- gtable_add_rows(g, g2$heights[1], 1)
-    ## steal axis label from second plot
-    ia2 <- which(g2$layout$name == "xlab-b")
-    ga2 <- g2$grobs[[ia2]]
-    g <- gtable_add_grob(g,ga2, 3, 4, 2, 4)
-
-    if(PDF){
-      pdf(paste0(name,".pdf"))
-    }
-    if(plot){
-      grid.draw(g)
-    }else{
-      return(g)
-    }
-
-    if(PDF){
-      dev.off()
-    }
+  if(PDF){
+    pdf(paste0(name,".pdf"))
+  }
+  if(plot){
+    plot(p)
   }else{
-    if(PDF){
-      pdf(paste0(name,".pdf"))
-    }
-    if(plot){
-      plot(p)
-    }else{
-      return(ggplot_gtable(ggplot_build(p)))
-    }
-
-    if(PDF){
-      dev.off()
-    }
+    return(ggplot_gtable(ggplot_build(p)))
+  }
+  if(PDF){
+    dev.off()
   }
 }
 
@@ -386,9 +345,11 @@ plot.tracesList <- function(traces,
     traces_long <- merge(traces_long,isoform_annotation, by.x="id",by.y="id")
     traces_long[,line:=paste0(isoform_id,id)]
   }
+  ## Create a common fraction annotation
   traces_frac <- unique(do.call("rbind", lapply(traces, "[[", "fraction_annotation")))
   traces_frac <- unique(subset(traces_frac, select = names(traces_frac) %in% c("id","molecular_weight")))
   traces_long <- merge(traces_long,traces_frac,by.x="fraction",by.y="id")
+
   if(!is.null(highlight)){
     traces_long$outlier <- gsub("\\(.*?\\)","",traces_long$id) %in% gsub("\\(.*?\\)","",highlight)
     if(!any(traces_long$outlier)) highlight <- NULL
@@ -472,6 +433,16 @@ plot.tracesList <- function(traces,
       }
 
     }
+  }
+
+  if ("molecular_weight" %in% names(traces_frac)) {
+    mwtransform <- getMWcalibration(traces_frac)
+    mw <- traces_frac$molecular_weight
+                                        # frbreaks <-ggplot_build(p)$layout$panel_ranges[[1]]$x.major_source
+                                        # breaks <- mw[frbreaks]
+    breaks <- mw[seq(1,length(mw), length.out = 8)]
+    p <- p + scale_x_continuous(sec.axis = sec_axis(trans = mwtransform,
+                                                    breaks = breaks))
   }
 
   if (log) {
