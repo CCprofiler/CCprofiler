@@ -15,6 +15,7 @@ plotPeptidesInGenome <- function(traces,
                                  ensdb=NULL,
                                  colorMap=NULL,
                                  highlight=NULL,
+                                 highligt_detected_transcripts=TRUE,
                                  ...){
 
 
@@ -72,7 +73,14 @@ plotPeptidesInGenome <- function(traces,
   ## Plot the gene model
   if(!is.null(ensdb)){
     edb <- validateEnsDB(ensdb)
-    p_gm <- plotGeneModel(edb, geneId)
+    ## get transcripts to highlight
+    hl_transcripts <- NULL
+    if(highligt_detected_transcripts){
+      ensProtIds <- getEnsemblProteins(tr_sub)
+      ensTxIds <- ensembldb::select(ensdb, keys = ~protein_id == ensProtIds, columns = c("TXID"))$TXID
+      hl_transcripts <- ~ tx_id == ensTxIds
+    }
+    p_gm <- plotGeneModel(edb, geneId, highlight = hl_transcripts)
     if(class(p_gm) != "try-error"){
       h <- tr@heights
       tr <- tracks(Gene_model = p_gm) + tr
@@ -90,23 +98,39 @@ plotPeptidesInGenome <- function(traces,
 #' for the specified geneId will be plotted.
 #' @param geneId character, the geneId of the protein to be plotted
 #' @param filter formula, Filtering expression to be passed to AnnotationFilter
-#' @import ensembldb
+#' @importFrom ensembldb select
 #' @export
 
 plotGeneModel <- function(ensdb, geneId,
-                          filter=~ gene_id == geneId & tx_biotype == "protein_coding"){
+                          filter=~ gene_id == geneId & tx_biotype == "protein_coding",
+                          highlight=NULL){
   ## TODO explore truncate.gaps to make the exons bigger
   ## see https://bioconductor.org/packages/release/bioc/vignettes/biovizBase/inst/doc/intro.pdf
-  fillMap <- c(cds="white", exon="black", utr="grey")
+  fillMap <- c(cds="white", exon="black", utr="blue")
+  alphaMap <- c(a=1, b=0.5)
+
   p_gm <- try({
     gene_filt <- AnnotationFilter(filter)
-    ggbio::autoplot(ensdb, gene_filt, aes(fill=type),
-             cds.rect.h=0.25,
-             exon.rect.h=0.25,
-             utr.rect.h=0.25) +
-      theme(legend.position = "None") +
-      scale_fill_manual(values = fillMap) +
-      theme_bw()
+    p <- ggbio::autoplot(ensdb, gene_filt, aes(fill=type),
+                         cds.rect.h=0.25,
+                         exon.rect.h=0.25,
+                         utr.rect.h=0.25) +
+      theme_bw() +
+      theme(legend.position="none") +
+      scale_fill_manual(values = fillMap)
+
+    if(!is.null(highlight)){
+      hl_ids <- ensembldb::select(ensdb, keys = highlight, columns = c("ENTREZID","TXID"))$TXID
+
+      ## ggplot uses the .GlobalEnv for aes evaluation by default, here we want to use a local Env
+      ## Pass all external variables via eval(substitute)
+      eval(substitute(
+        expr =
+          p <- p + aes(alpha=ifelse(tx_id %in% hl_ids, "a", "b")) +
+            scale_alpha_manual(values = alphaMap),
+        env = list(hl_ids=hl_ids)))
+    }
+    p
   })
   return(p_gm)
 }

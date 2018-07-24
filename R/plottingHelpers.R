@@ -16,3 +16,14 @@ getMWcalibration <- function(fr_ann){
   FractionToMW <- as.formula(paste0("~exp(",slope, "* . + ", intercept, ")"))
   return(FractionToMW)
 }
+
+getEnsemblProteins <- function(traces, geneId = NULL){
+  
+  if(!is.null(geneId)){
+    traces <- subset.traces(traces, geneId, "gene_id")
+  }
+  ensProtIds <- strsplit(traces$trace_annotation$ensembl_protein_id, split = "/")
+  ensProtIds <- unlist(lapply(ensProtIds, function(x) x[2:length(x)]))
+  ensProtIds <- gsub("\\-.*", "", ensProtIds)
+  return(unique(ensProtIds))
+}
