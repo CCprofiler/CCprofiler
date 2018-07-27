@@ -25,4 +25,3 @@ Multiple plots summarizing the MS coverage.
 \description{
 Generate plots that describe the coverage of the complex hypotheses in the PCP data.
 }
-

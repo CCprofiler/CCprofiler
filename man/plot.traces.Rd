@@ -4,8 +4,9 @@
 \alias{plot.traces}
 \title{Plot traces}
 \usage{
-\method{plot}{traces}(traces, log = FALSE, legend = TRUE, PDF = FALSE,
-  name = "Traces", plot = TRUE, highlight = NULL, highlight_col = NULL)
+plot.traces(traces, log = FALSE, legend = TRUE, PDF = FALSE,
+  name = "Traces", plot = TRUE, highlight = NULL, highlight_col = NULL,
+  colorMap = NULL)
 }
 \arguments{
 \item{traces}{Object of class traces.}
@@ -19,6 +20,9 @@ if many chromatograms are plotted. Default is \code{TRUE}.}
 
 \item{name}{Character string with name of the plot, only used if \code{PDF=TRUE}.
 PDF file is saved under name.pdf. Default is "Traces".}
+
+\item{colorMap}{named character vector containing valid color specifications for plotting.
+The names of the vector must correspond to the ids of the peptides to be plotted.}
 }
 \description{
 Plot all chromatograms in a traces object. Most generic plotting function.
@@ -39,4 +43,3 @@ peptideTraces <- examplePeptideTraces
 subsetPeptideTraces <- subset(peptideTraces,trace_subset_ids="Q9UHV9",trace_subset_type="protein_id",fraction_ids=c(30:70))
 plot(subsetPeptideTraces,legend=FALSE)
 }
-

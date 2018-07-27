@@ -24,4 +24,3 @@ data.table with scored and filtered features
 \description{
 Score protein or complex features and filter by q-value/FDR
 }
-

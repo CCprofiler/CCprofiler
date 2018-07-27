@@ -38,4 +38,3 @@ plotSummarizedComplexes(complexFeatures=complexFeatures,
                         hypotheses=complexHypotheses,
                         protTraces=proteinTraces)
 }
-

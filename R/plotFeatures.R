@@ -13,6 +13,8 @@
 #' @param estimated_complex_MW Logical if estimated complex MW should be indicated
 #' @param monomer_MW Logical if monomer MWs should be indicated
 #' @param log Logical if intensities should be log transformed, default is \code{fFALSE}.
+#' @param colorMap named character vector containing valid color specifications for plotting.
+#' The names of the vector must correspond to the ids of the peptides to be plotted.
 #' @export
 #' @examples
 #'
@@ -51,22 +53,44 @@
 #'
 
 plotFeatures <- function(feature_table,
-                               traces,
-                               feature_id,
-                               calibration = NULL,
-                               annotation_label="protein_id",
-                               onlyBest = TRUE,
-                               apex=TRUE,
-                               peak_area=FALSE,
-                               sliding_window_area=FALSE,
-                               estimated_complex_MW=FALSE,
-                               highlight=NULL,
-                               highlight_col=NULL,
-                               monomer_MW=FALSE,
-                               log=FALSE,
-                               legend = TRUE,
-                               PDF=FALSE,
-                               name = "Traces") {
+                                traces,
+                                feature_id,
+                                calibration = NULL,
+                                annotation_label="protein_id",
+                                onlyBest = TRUE,
+                                apex=TRUE,
+                                peak_area=FALSE,
+                                sliding_window_area=FALSE,
+                                estimated_complex_MW=FALSE,
+                                highlight=NULL,
+                                highlight_col=NULL,
+                                monomer_MW=FALSE,
+                                log=FALSE,
+                                legend = TRUE,
+                                PDF=FALSE,
+                                name = "Traces",
+                                colorMap=NULL) {
+  UseMethod("plotFeatures", traces)
+}
+
+plotFeatures.traces <- function(feature_table,
+                         traces,
+                         feature_id,
+                         calibration = NULL,
+                         annotation_label="protein_id",
+                         onlyBest = TRUE,
+                         apex=TRUE,
+                         peak_area=FALSE,
+                         sliding_window_area=FALSE,
+                         estimated_complex_MW=FALSE,
+                         highlight=NULL,
+                         highlight_col=NULL,
+                         monomer_MW=FALSE,
+                         log=FALSE,
+                         legend = TRUE,
+                         PDF=FALSE,
+                         name = "Traces",
+                         colorMap=NULL) {
   .tracesTest(traces)
   features <- copy(feature_table)
   if (traces$trace_type == "protein") {
@@ -157,7 +181,14 @@ plotFeatures <- function(feature_table,
     }
   }
 
-
+  ## Create a reproducible coloring for the peptides plotted
+  if(!is.null(colorMap)){
+    if(!all(unique(traces.long$id) %in% names(colorMap))){
+      stop("Invalid colorMap specified. Not all traces to be plotted are contained in the colorMap")
+    }
+  }else{
+    colorMap <- createGGplotColMap(unique(traces.long$id))
+  }
 
   p <- ggplot(traces.long) +
     geom_line(aes_string(x='fraction', y='intensity', color='id')) +
@@ -168,14 +199,15 @@ plotFeatures <- function(feature_table,
     theme(plot.margin = unit(c(1.5,.5,.5,.5),"cm")) +
     ggtitle(title) +
     theme(plot.title = element_text(vjust=19,size=10, face="bold")) +
-    guides(fill=FALSE)
+    guides(fill=FALSE) +
+    scale_color_manual(values=colorMap)
 
   if(!is.null(highlight)){
     legend_peps <- unique(traces.long[outlier == TRUE, id])
     if(is.null(highlight_col)){
       p <- p +
         geom_line(data = traces.long[outlier == TRUE], aes_string(x='fraction', y='intensity', color='id'), lwd=2) +
-        scale_color_discrete(breaks = legend_peps)
+        scale_color_manual(values=colorMap, breaks = legend_peps)
     }else{
       p <- p +
         geom_line(data = traces.long[outlier == TRUE], aes_string(x='fraction', y='intensity', group = 'id'), color = highlight_col, lwd=2)
@@ -208,6 +240,7 @@ plotFeatures <- function(feature_table,
     p <- p + theme(legend.position="none")
   }
 
+  ## @TODO Implement the MW axis from plot.traces for more robustness
   if ("molecular_weight" %in% names(traces$fraction_annotation)) {
     grid.newpage()
     p2 <- p
@@ -278,6 +311,8 @@ plotFeatures <- function(feature_table,
 #' @param estimated_complex_MW Logical if estimated complex MW should be indicated
 #' @param monomer_MW Logical if monomer MWs should be indicated
 #' @param log Logical if intensities should be log transformed, default is \code{fFALSE}.
+#' @param colorMap named character vector containing valid color specifications for plotting.
+#' The names of the vector must correspond to the ids of the peptides to be plotted.
 #' @export
 plotFeatures.tracesList <- function(feature_table,
                                traces,
@@ -296,7 +331,8 @@ plotFeatures.tracesList <- function(feature_table,
                                log=FALSE,
                                legend = TRUE,
                                PDF=FALSE,
-                               name = "Traces") {
+                               name = "Traces",
+                               colorMap=NULL) {
   ## .tracesListTest(traces)
   features <- copy(feature_table)
 
@@ -411,6 +447,14 @@ plotFeatures.tracesList <- function(feature_table,
     }
   }
 
+  ## Create a reproducible coloring for the peptides plotted
+  if(!is.null(colorMap)){
+    if(!all(unique(traces_long$id) %in% names(colorMap))){
+      stop("Invalid colorMap specified. Not all traces to be plotted are contained in the colorMap")
+    }
+  }else{
+    colorMap <- createGGplotColMap(unique(traces_long$id))
+  }
 
   p <- ggplot(traces_long) +
     geom_line(aes_string(x='fraction', y='intensity', color='id')) +
@@ -421,6 +465,7 @@ plotFeatures.tracesList <- function(feature_table,
     theme(plot.margin = unit(c(1.5,.5,.5,.5),"cm")) +
     ggtitle(title) +
     theme(plot.title = element_text(vjust=15,size=10, face="bold")) +
+    scale_color_manual(values=colorMap) +
     guides(fill=FALSE)
 
   ## Split the plot with design matrix
@@ -435,7 +480,8 @@ plotFeatures.tracesList <- function(feature_table,
     if(is.null(highlight_col)){
       p <- p +
         geom_line(data = traces_long[outlier == TRUE], aes_string(x='fraction', y='intensity', color='id'), lwd=2) +
-        scale_color_discrete(breaks = legend_peps)
+        scale_color_manual(values=colorMap, breaks = legend_peps)
+        ## scale_color_discrete(breaks = legend_peps)
     }else{
       p <- p +
         geom_line(data = traces_long[outlier == TRUE], aes_string(x='fraction', y='intensity', group = 'id'), color = highlight_col, lwd=2)

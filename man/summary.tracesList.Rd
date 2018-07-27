@@ -4,7 +4,7 @@
 \alias{summary.tracesList}
 \title{Summarize a tracesList object}
 \usage{
-\method{summary}{tracesList}(traces)
+summary.tracesList(traces)
 }
 \arguments{
 \item{traces}{Object of class tracesList}
@@ -23,4 +23,3 @@ A summary list with following entries:
 \description{
 Summarize a tracesList object to get an overview.
 }
-

@@ -9,4 +9,3 @@ annotateFractionIdCounts(traces)
 \description{
 Calculates and annotates the number of ids in every fraction
 }
-

@@ -30,4 +30,3 @@ Replicate Peptide Correlation (RepPepCorr). This function can be called if
 one has replicate measurements of one experimental Condition. Trustworthy peptides should
 show robust elution behaviour over these replicates.
 }
-

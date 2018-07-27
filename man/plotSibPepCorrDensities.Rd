@@ -24,4 +24,3 @@ peptideTraces <- examplePeptideTracesFiltered
 ## Plot the SibPepCorr density plot
 plotSibPepCorrDensities(peptideTraces)
 }
-

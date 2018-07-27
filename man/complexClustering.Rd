@@ -19,4 +19,3 @@ cluster object
 \description{
 complexClustering.
 }
-

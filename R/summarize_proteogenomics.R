@@ -89,7 +89,8 @@ annotateNonMajorIsoformPeptides <- function(traces){
   UseMethod("annotateNonMajorIsoformPeptides", traces)
 }
 
-#' @describeIn annotateNonMajorIsoformPeptides
+#' @describeIn annotateNonMajorIsoformPeptides Annotate a single traces object
+#' @export
 annotateNonMajorIsoformPeptides.traces <- function(traces){
   ann <- traces$trace_annotation
   isotable <- ann[, .(isoid= paste(ensembl_protein_id, collapse = "/")), by=gene_id]
@@ -109,7 +110,8 @@ annotateNonMajorIsoformPeptides.traces <- function(traces){
 
 }
 
-#' @describeIn annotateNonMajorIsoformPeptides
+#' @describeIn annotateNonMajorIsoformPeptides Annotate a tracesList object
+#' @export
 annotateNonMajorIsoformPeptides.tracesList <- function(tracesList){
   res <- lapply(names(tracesList), function(sample){
     message(paste("Annotating isoforms of sample", sample))
