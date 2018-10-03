@@ -193,7 +193,12 @@ separateProteinNamesToGeneLevel <- function(ann_table){
 }
 
 mapSinglePeptide <- function(proteins){
-  protein_map <- proteins[-1]
+  idx_junc <- grep("^JUNC",proteins)
+  if (length(idx_junc) > 0) {
+    protein_map <- proteins[-idx_junc]
+  } else {
+    protein_map <- proteins
+  }
   protein_map <- gsub("^cf\\|","",protein_map)
   isoform_map <- gsub("\\|.*$","",protein_map)
   gene_map <- unique(gsub("\\-.*$","",isoform_map))
