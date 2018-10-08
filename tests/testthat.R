@@ -1,4 +1,4 @@
 library(testthat)
-library(SECprofiler)
+library(CCprofiler)
 
-test_check("SECprofiler")
+test_check("CCprofiler")
