@@ -213,6 +213,10 @@ proteinQuantification.tracesList <- function(traces,
   }
 
   traces_integrated <- integrateTraceIntensities(traces_subs, aggr_corr_fun = "sum")
+  if (is.null(traces_integrated$trace_annotation$sumRepPepCorr)) {
+    traces_integrated$trace_annotation$sumRepPepCorr = 1
+    message("No RepPepCorr found. RepPepCorr was set to 1 for all peptides.")
+  }
   peptideTracesTable <- data.table(protein_id = traces_integrated$trace_annotation$protein_id,
                                    peptide_id = traces_integrated$trace_annotation$id,
                                    SibPepCorr = round(traces_integrated$trace_annotation$sumSibPepCorr,digits=1),
