@@ -57,8 +57,9 @@ extractFeatureVals.traces <- function(traces, features,
     perturb_cutoff <- quantile(measuredVals, qt)
   }
   set.seed(123) # set seed to always get same results
-  traceMatImputed[traceMatImputed == 0] <- sample(1:perturb_cutoff,size = nZero,
-                                                      replace = TRUE)
+  traceMatImputed[traceMatImputed == 0] <- sample(min(1,perturb_cutoff):perturb_cutoff,
+                                                  size = nZero,
+                                                  replace = TRUE)
   # Calculate correlation in Peak boundaries for every detected trace
   
   featureVals <- apply(features, 1, function(hyp){
@@ -189,7 +190,8 @@ fillFeatureVals <- function(featureVals,
                   all.x= T)
   fvComp[, filled_in := is.na(intensity)]
   n_filled <- fvComp[filled_in == T, .N]
-  fvComp[filled_in == T, intensity := as.double(sample(1:perturb_cutoff, n_filled, replace = T))]
+  fvComp[filled_in == T, intensity := as.double(sample(min(1,perturb_cutoff):perturb_cutoff,
+                                                       n_filled, replace = T))]
   fvComp[, Condition := NULL]
   fvComp[, Replicate := NULL]
   fvComp <- merge(fvComp, design_matrix[,.(Sample_name, Condition)],
