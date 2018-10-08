@@ -5,14 +5,28 @@
 #' holding the Conditions between which differential expression should be tested.
 #' @param level Character string, return tests on peptide level or aggregate to protein level.
 #' Must be one of c("protein","peptide"). Defaults to "protein".
+#' @param transformation arithmetic function, the mathematical operation to transform the
+#' 'intensity' values with. E.g. log, sqrt, etc. If set to NULL no transformation
+#'  is performed (default).
 #' @return A data.table containing the differential testing results for every protein/peptide.
 #' @import qvalue
 #' @export
 testDifferentialExpression <- function(featureVals, 
                                        compare_between = "Condition",
-                                       level = c("protein","peptide")){
+                                       level = c("protein","peptide"),
+                                       transformation = NULL){
   level <- match.arg(level)
   featVals <- copy(featureVals)
+  
+  if(!is.null(transform)){
+    if(class(transformation) == "character"){
+      message(paste("Transforming intensities with", transformation, "..."))
+      transformation <- get(transformation)
+    } else{
+      message(paste("Transforming intensities..."))
+    }
+    featVals[, intensityTr := transformation(intensity+1)]
+  }
   setkeyv(featVals, c("feature_id", "apex", "id", "fraction"))
   message("Excluding peptides only found in one condition...")
   featureValsBoth <- filterValsByOverlap(featVals, compare_between)
@@ -23,12 +37,12 @@ testDifferentialExpression <- function(featureVals,
   pb <- txtProgressBar(min = 0, max = grpn, style = 3)
   tests <- featureValsBoth[, {
     setTxtProgressBar(pb, .GRP)
-    a = t.test(formula = intensity ~ get(compare_between) , paired = T, var.equal = FALSE)
+    a = t.test(formula = intensityTr ~ get(compare_between) , paired = T, var.equal = FALSE)
     ints = .SD[, .(s = sum(intensity)), by = .(get(compare_between))]$s
     int1 = ints[1]
     int2 = ints[2]
     .(pVal = a$p.value, int1 = int1, int2 = int2, meanDiff = a$estimate,
-      log2FC =  log2(int1/int2),n_fractions = a$parameter + 1, Tstat = a$statistic)},
+      FC =  int1/int2, n_fractions = a$parameter + 1, Tstat = a$statistic)},
     by = .(id, feature_id, apex)]
   close(pb)
   
@@ -63,9 +77,9 @@ aggregatePeptideTests <- function(tests){
 
 getFCadjustedMedian <- function(tests){
   test <- copy(tests)
-  test[, FCpVal := (1-pVal) * sign(log2FC)]
+  test[, FCpVal := (1-pVal) * sign(log2(FC))]
   medianPval <- test[ ,{mPval = median(FCpVal)
-  .(medianPVal = 1-(mPval * sign(mPval)), Npeptides = .N, medianLog2FC = median(log2FC), medianTstat = median(Tstat))},
+  .(medianPVal = 1-(mPval * sign(mPval)), Npeptides = .N, medianFC = median(FC), medianTstat = median(Tstat))},
   by = .(feature_id, apex)]
   }
 
