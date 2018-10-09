@@ -244,7 +244,7 @@ fitGammaDist <- function(traces, prot_names = NULL, distr = "gamma",
 estimateProteoformPval <- function(traces,
                           prot_names = NULL, adj.method = "fdr",
                           plot = FALSE, PDF=FALSE, name="SplicePval", ...){
-  UseMethod("calculateMinCorr", traces)
+  UseMethod("estimateProteoformPval", traces)
 }
 
 #' @describeIn estimateProteoformPval Estimate p-values of whether a
@@ -287,7 +287,7 @@ estimateProteoformPval.traces <- function(traces,
 #' @describeIn estimateProteoformPval Estimate p-values of whether a
 #' gene is likely to have >1 proteoforms
 #' @export
-estimateProteoformPval.tracesList <- function(traces,
+estimateProteoformPval.tracesList <- function(tracesList,
                           prot_names = NULL, adj.method = "fdr",
                           plot = FALSE, PDF=FALSE, name="SplicePval", ...) {
 
