@@ -307,7 +307,7 @@ estimateProteoformPval.tracesList <- function(tracesList,
 #' Cluster peptides of gene to unique proteoforms
 #' @param traces Object of class traces or tracesList.
 #' @param method Character string defining method for clustering
-#' Default is "single".
+#' Default is "complete".
 #' @param clusterH Numeric Cluster hight for cutree. Default is 0.5.
 #' @param clusterN Integer Number of clusters. Default is NULL.
 #' @param index Character string for method of cluster number estimation
@@ -320,7 +320,7 @@ estimateProteoformPval.tracesList <- function(tracesList,
 #' '\code{PDF=TRUE}.PDF file is saved under name.pdf. Default is "hclust".
 #' @return Object of class traces with proteoform annotation
 #' @export
-clusterPeptides <- function(traces, method = "single", clusterH = 0.5,
+clusterPeptides <- function(traces, method = c("complete","single"), clusterH = 0.5,
                     clusterN = NULL, index = "silhouette",
                     plot = FALSE, PDF=FALSE, name="hclust", ...) {
   UseMethod("clusterPeptides", traces)
@@ -328,9 +328,10 @@ clusterPeptides <- function(traces, method = "single", clusterH = 0.5,
 
 #' @describeIn clusterPeptides Cluster peptides of gene to unique proteoforms
 #' @export
-clusterPeptides.traces <- function(traces, method = "single", clusterH = 0.5,
+clusterPeptides.traces <- function(traces, method = c("complete","single"), clusterH = 0.5,
                     clusterN = NULL, index = "silhouette",
                     plot = FALSE, PDF=FALSE, name="hclust", ...) {
+  method <- match.arg(method)
   if (PDF) {
     pdf(paste0(name,".pdf"))
   }
@@ -372,7 +373,7 @@ clusterPeptides.traces <- function(traces, method = "single", clusterH = 0.5,
 #' @param traces Object of class traces or tracesList.
 #' @return Object of class traces with proteoform annotation
 #' @export
-clusterPeptides.tracesList <- function(tracesList, method = "single", clusterH = 0.5,
+clusterPeptides.tracesList <- function(tracesList, method = c("complete","single"), clusterH = 0.5,
                     clusterN = NULL, index = "silhouette",
                     plot = FALSE, PDF=FALSE, name="hclust", ...) {
 
