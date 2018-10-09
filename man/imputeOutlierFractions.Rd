@@ -49,8 +49,8 @@ is set to 0.
 
 \item \code{tracesList}: Impute outlier fractions in multiple traces objects
 }}
-
 \examples{
 intensityMatrix <- getIntensityMatrix(examplePeptideTraces)
 head(intensityMatrix)
 }
+

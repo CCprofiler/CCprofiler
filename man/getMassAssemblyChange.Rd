@@ -15,3 +15,4 @@ annotation as produced by \code{annotateMassDistribution}.}
 \description{
 Estimates change of assembled vs. monomeric mass per id.
 }
+

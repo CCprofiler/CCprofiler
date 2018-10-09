@@ -10,3 +10,4 @@ annotateFractionMissingValues(traces, bound_left = 2, bound_right = 2,
 \description{
 Calculates and annotates the number of missing values in every fraction
 }
+

@@ -4,7 +4,7 @@
 \alias{plot.traces}
 \title{Plot traces}
 \usage{
-plot.traces(traces, log = FALSE, legend = TRUE, PDF = FALSE,
+\method{plot}{traces}(traces, log = FALSE, legend = TRUE, PDF = FALSE,
   name = "Traces", plot = TRUE, highlight = NULL, highlight_col = NULL,
   colorMap = NULL)
 }
@@ -43,3 +43,4 @@ peptideTraces <- examplePeptideTraces
 subsetPeptideTraces <- subset(peptideTraces,trace_subset_ids="Q9UHV9",trace_subset_type="protein_id",fraction_ids=c(30:70))
 plot(subsetPeptideTraces,legend=FALSE)
 }
+

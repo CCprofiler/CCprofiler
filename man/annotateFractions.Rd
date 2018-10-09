@@ -20,3 +20,4 @@ inputTraces <- examplePeptideTraces
 exampleTracesAnnotatedFractions <- annotateFractions(inputTraces)
 exampleTracesAnnotatedFractions$fraction_annotation
 }
+

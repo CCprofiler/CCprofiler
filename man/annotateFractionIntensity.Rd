@@ -9,3 +9,4 @@ annotateFractionIntensity(traces)
 \description{
 Calculates and annotates the total intensity in every fraction
 }
+

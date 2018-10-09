@@ -32,9 +32,9 @@ Annotate outlier fractions
 
 \item \code{tracesList}: Detect outlier fractions in multiple traces objects
 }}
-
 \examples{
 inputTraces <- examplePeptideTraces
 exampleTracesAnnotatedOutliers <- annotateOutlierFractions(inputTraces)
 exampleTracesAnnotatedOutliers$fraction_annotation
 }
+

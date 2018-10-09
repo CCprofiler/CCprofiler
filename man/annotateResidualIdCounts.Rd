@@ -9,3 +9,4 @@ annotateResidualIdCounts(traces)
 \description{
 Calculate loess residuals
 }
+

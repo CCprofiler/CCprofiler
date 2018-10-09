@@ -2,8 +2,8 @@
 % Please edit documentation in R/annotateProteogenomics.R
 \name{annotateRelativePepPos}
 \alias{annotateRelativePepPos}
-\alias{annotateRelativePepPos.tracesList}
 \alias{annotateRelativePepPos.traces}
+\alias{annotateRelativePepPos.tracesList}
 \title{Align peptides to reference proteins to get the relative position}
 \usage{
 annotateRelativePepPos(traces, mappingTable, multimatch = c("first", "skip"),

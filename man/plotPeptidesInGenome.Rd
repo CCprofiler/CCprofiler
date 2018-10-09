@@ -4,22 +4,25 @@
 \alias{plotPeptidesInGenome}
 \title{Plot peptides in their genomic context}
 \usage{
-plotPeptidesInGenome(traces, gene_id, ensdb = NULL, colorMap = NULL,
-  highlight = NULL, plot = T)
+plotPeptidesInGenome(traces, geneId, ensdb = NULL, colorMap = NULL,
+  highlight = NULL, highligt_detected_transcripts = TRUE, ...)
 }
 \arguments{
 \item{traces}{Object of class traces with an additional item =genomic_coord=}
 
-\item{gene_id}{character, the gene_id of the protein to be plotted}
+\item{geneId}{character, the geneId of the protein to be plotted}
 
 \item{ensdb}{EnsDb object or path to EnsDb database. If not NULL, all transcripts
-for the specified gene_id will be plotted.}
+for the specified geneId will be plotted.}
 
 \item{colorMap}{named character vector containing valid color specifications for plotting.
 The names of the vector must correspond to the ids of the peptides to be plotted.}
+
+\item{...}{Additional arguments to be passed to plot.traces}
 
 \item{plot}{boolean, whether to plot or to return the plot.}
 }
 \description{
 Plot peptides in their genomic context
 }
+

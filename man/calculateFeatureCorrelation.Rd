@@ -26,3 +26,4 @@ detection with sliding window.
 The mean correlation of all detected subunits and total peak area is calculated.
          This is a helper function for FindComplexFeatures.
 }
+
