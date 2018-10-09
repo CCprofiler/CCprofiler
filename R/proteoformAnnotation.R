@@ -336,6 +336,8 @@ clusterPeptides.traces <- function(traces, method = "single", clusterH = 0.5,
 }
 
 #' @describeIn clusterPeptides Cluster peptides of gene to unique proteoforms
+#' @param traces Object of class traces or tracesList.
+#' @return Object of class traces with proteoform annotation
 #' @export
 clusterPeptides.tracesList <- function(tracesList, method = "single", clusterH = 0.5,
                     clusterN = NULL, index = "silhouette",
@@ -348,6 +350,33 @@ clusterPeptides.tracesList <- function(tracesList, method = "single", clusterH =
                         clusterN = clusterN, index = index,
                         plot = plot, PDF=F, name=name, ...)
   if (PDF) {dev.off()}
+  class(res) <- "tracesList"
+  .tracesListTest(res)
+  return(res)
+}
+
+
+#' Remove proteins with single peptides
+#' @export
+filterSinglePeptideHits <- function(traces){
+  UseMethod("filterSinglePeptideHits", traces)
+}
+
+#' @describeIn filterSinglePeptideHits Remove proteins with single peptides
+#' @export
+filterSinglePeptideHits.traces <- function(traces){
+  traces$trace_annotation[,n_peptides := .N, by="protein_id"]
+  mult_pep_proteins <- unique(traces$trace_annotation[n_peptides > 1]$protein_id)
+  traces <- subset(traces, trace_subset_ids=mult_pep_proteins,
+    trace_subset_type="protein_id")
+  return(traces)
+}
+
+#' @describeIn filterSinglePeptideHits Remove proteins with single peptides
+#' @export
+filterSinglePeptideHits.tracesList <- function(tracesList){
+  .tracesListTest(tracesList)
+  res <- lapply(tracesList, filterSinglePeptideHits.traces)
   class(res) <- "tracesList"
   .tracesListTest(res)
   return(res)
