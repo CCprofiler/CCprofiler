@@ -108,18 +108,20 @@ iterativeMaxCorrFilter <- function(traces, cutoff = 0.85,
                         plot = FALSE, PDF=FALSE, name="maxCorrHist", ...) {
   print(nrow(traces[[1]]$trace_annotation))
   print(nrow(traces[[2]]$trace_annotation))
-  res <- filterByMaxCorr(traces, cutoff = cutoff,
+  res <- list()
+  res[[1]] <- traces
+  i=2
+  res[[i]] <- filterByMaxCorr(res[[1]], cutoff = cutoff,
                           plot = plot, PDF=PDF, name=name)
-  i=1
-  while (!identical(traces,res)) {
+  while (!identical(summary(res[[i-1]]),summary(res[[i]]))) {
     print(i)
-    print(nrow(res[[1]]$trace_annotation))
-    print(nrow(res[[2]]$trace_annotation))
+    print(nrow(res[[i]][[1]]$trace_annotation))
+    print(nrow(res[[i]][[2]]$trace_annotation))
     i=i+1
-    res <- filterByMaxCorr(res, cutoff = cutoff,
+    res[[i]] <- filterByMaxCorr(res[[i-1]], cutoff = cutoff,
                             plot = plot, PDF=PDF, name=name)
   }
-  return(res)
+  return(res[[i]])
 }
 
 
