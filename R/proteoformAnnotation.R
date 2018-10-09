@@ -92,6 +92,37 @@ filterByMaxCorr.tracesList <- function(tracesList, cutoff = 0.85,
   return(res)
 }
 
+#' Filter iteratively by maxCorr until all outliers are removed
+#' @param traces Object of class traces or tracesList.
+#' @param cutoff Numeric between 0 and 1. Minimum correlation of a peptide
+#' width any sibling peptide.
+#' @param plot logical,wether to print SibPepCorr density plot to R console.
+#' Deafult is \code{FALSE}.
+#' @param PDF logical, wether to print SibPepCorr density plot to a PDF file.
+#' Deafult is \code{FALSE}.
+#' @param name Character string with name of the plot, only used if
+#' '\code{PDF=TRUE}.PDF file is saved under name.pdf. Default is "maxCorrHist".
+#' @return Object of class traces filtered for peptide correlation.
+#' @export
+iterativeMaxCorrFilter <- function(traces, cutoff = 0.85,
+                        plot = FALSE, PDF=FALSE, name="maxCorrHist", ...) {
+  print(nrow(traces[[1]]$trace_annotation))
+  print(nrow(traces[[2]]$trace_annotation))
+  res <- filterByMaxCorr(traces, cutoff = cutoff,
+                          plot = plot, PDF=PDF, name=name)
+  i=1
+  while (!identical(traces,res)) {
+    print(i)
+    print(nrow(res[[1]]$trace_annotation))
+    print(nrow(res[[2]]$trace_annotation))
+    i=i+1
+    res <- filterByMaxCorr(res, cutoff = cutoff,
+                            plot = plot, PDF=PDF, name=name)
+  }
+  return(res)
+}
+
+
 #' Calculate minimum correlation of each peptide
 #' to all of its sibling peptides
 #' @param traces Object of class traces or tracesList.
