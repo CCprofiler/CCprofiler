@@ -415,3 +415,66 @@ filterSinglePeptideHits.tracesList <- function(tracesList){
   .tracesListTest(res)
   return(res)
 }
+
+
+combineTracesMutiCond <- function(tracesList){
+  .tracesListTest(tracesList)
+  cond <- names(tracesList)
+  idx <- seq_along(cond)
+  traces <- lapply(idx, function(i){
+    t <- tracesList[[i]]
+    trac <- t$traces
+    trac.m <- melt(trac,id.vars="id")
+    trac.m[, cond := cond[[i]]]
+    return(trac.m)
+    })
+  traces_combi <- rbindlist(traces)
+  traces_all <- dcast(traces_combi,id ~ variable+cond,value.var="value",fill=0)
+  names(traces_all) <- c("id",seq(1,ncol(traces_all)-1,1))
+  setcolorder(traces_all, c(seq(1,ncol(traces_all)-1,1),"id"))
+
+  trace_type_all <- tracesList[[1]]$trace_type
+
+  trace_annotation <- lapply(tracesList, function(t){
+    res <- subset(t$trace_annotation,select=c("id","protein_id"))
+    return(res)
+    })
+  trace_annotation_combi <- rbindlist(trace_annotation)
+  trace_annotation_combi <- unique(trace_annotation_combi)
+  trace_annotation_combi <- trace_annotation_combi[order(match(id, traces_all$id))]
+
+  fraction_annotation_all <- data.table(id=seq(1,ncol(traces_all)-1,1))
+
+  combi_traces <- list(
+    traces = traces_all,
+    trace_type = trace_type_all,
+    trace_annotation = trace_annotation_combi,
+    fraction_annotation = fraction_annotation_all
+  )
+  class(combi_traces) <- "traces"
+  .tracesTest(combi_traces)
+  return(combi_traces)
+}
+
+clustPepMultiCond <- function(tracesList, tracesListRaw=NULL, method = c("complete","single"), clusterH = 0.5,
+                    clusterN = NULL, index = "silhouette",
+                    plot = FALSE, PDF=FALSE, name="hclustMultiCond", ...) {
+  .tracesListTest(tracesList)
+  if (!is.null(tracesListRaw)){
+    .tracesListTest(tracesListRaw)
+  } else {
+    tracesListRaw <- tracesList
+  }
+  traces <- combineTracesMutiCond(tracesListRaw)
+  clustered_traces <- clusterPeptides(traces,method = method, clusterH = clusterH,
+                      clusterN = clusterN, index = index,
+                      plot = plot, PDF=PDF, name=name)
+  clust_info <- subset(clustered_traces$trace_annotation, select=c("id","protein_id","cluster","proteoform_id"))
+  res <- lapply(tracesList, function(t){
+   t$trace_annotation <- merge(t$trace_annotation,clust_info,all.x=T,all.y=F,by=c("id","protein_id"))
+   return(t)
+  })
+  class(res) <- "tracesList"
+  .tracesListTest(res)
+  return(res)
+}
