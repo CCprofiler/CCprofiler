@@ -208,7 +208,8 @@ fitGammaDist <- function(traces, prot_names = NULL, distr = "gamma",
                       split_value = 0.2, plot = FALSE,
                       PDF=FALSE, name="GammaFitted") {
   if (!is.null(prot_names)){
-    traces <- subset(traces, trace_subset_ids=prot_names,trace_subset_type="protein_id")
+    traces <- subset(traces,
+      trace_subset_ids=prot_names,trace_subset_type="protein_id")
   }
   if(! "mincorr" %in% names(traces$trace_annotation)){
     message("no mincorr available: calculating mincorr...")
@@ -302,8 +303,6 @@ estimateProteoformPval.tracesList <- function(tracesList,
   return(res)
 }
 
-
-
 #' Cluster peptides of gene to unique proteoforms
 #' @param traces Object of class traces or tracesList.
 #' @param method Character string defining method for clustering
@@ -320,7 +319,8 @@ estimateProteoformPval.tracesList <- function(tracesList,
 #' '\code{PDF=TRUE}.PDF file is saved under name.pdf. Default is "hclust".
 #' @return Object of class traces with proteoform annotation
 #' @export
-clusterPeptides <- function(traces, method = c("complete","single"), clusterH = 0.5,
+clusterPeptides <- function(traces,
+                    method = c("complete","single"), clusterH = 0.5,
                     clusterN = NULL, index = "silhouette",
                     plot = FALSE, PDF=FALSE, name="hclust", ...) {
   UseMethod("clusterPeptides", traces)
@@ -328,7 +328,8 @@ clusterPeptides <- function(traces, method = c("complete","single"), clusterH = 
 
 #' @describeIn clusterPeptides Cluster peptides of gene to unique proteoforms
 #' @export
-clusterPeptides.traces <- function(traces, method = c("complete","single"), clusterH = 0.5,
+clusterPeptides.traces <- function(traces,
+                    method = c("complete","single"), clusterH = 0.5,
                     clusterN = NULL, index = "silhouette",
                     plot = FALSE, PDF=FALSE, name="hclust", ...) {
   method <- match.arg(method)
@@ -373,7 +374,8 @@ clusterPeptides.traces <- function(traces, method = c("complete","single"), clus
 #' @param traces Object of class traces or tracesList.
 #' @return Object of class traces with proteoform annotation
 #' @export
-clusterPeptides.tracesList <- function(tracesList, method = c("complete","single"), clusterH = 0.5,
+clusterPeptides.tracesList <- function(tracesList,
+                    method = c("complete","single"), clusterH = 0.5,
                     clusterN = NULL, index = "silhouette",
                     plot = FALSE, PDF=FALSE, name="hclust", ...) {
 
@@ -391,6 +393,9 @@ clusterPeptides.tracesList <- function(tracesList, method = c("complete","single
 
 
 #' Remove proteins with single peptides
+#' @param traces Object of class traces or tracesList.
+#' @return Object of class traces containing only proteins
+#' with multiple peptides
 #' @export
 filterSinglePeptideHits <- function(traces){
   UseMethod("filterSinglePeptideHits", traces)
@@ -400,7 +405,7 @@ filterSinglePeptideHits <- function(traces){
 #' @export
 filterSinglePeptideHits.traces <- function(traces){
   traces$trace_annotation[,n_peptides := .N, by="protein_id"]
-  mult_pep_proteins <- unique(traces$trace_annotation[n_peptides > 1]$protein_id)
+  mult_pep_proteins <- unique(traces$trace_annotation[n_peptides >1]$protein_id)
   traces <- subset(traces, trace_subset_ids=mult_pep_proteins,
     trace_subset_type="protein_id")
   return(traces)
@@ -417,6 +422,12 @@ filterSinglePeptideHits.tracesList <- function(tracesList){
 }
 
 
+#' Combine tracesList across conditions to one traces object with all
+#' the traces of all conditions added as additional fractions for
+#' peptide clustering across conditions.
+#' @param tracesList Object of class tracesList.
+#' @return Object of class traces
+#' @export
 combineTracesMutiCond <- function(tracesList){
   .tracesListTest(tracesList)
   cond <- names(tracesList)
@@ -441,7 +452,8 @@ combineTracesMutiCond <- function(tracesList){
     })
   trace_annotation_combi <- rbindlist(trace_annotation)
   trace_annotation_combi <- unique(trace_annotation_combi)
-  trace_annotation_combi <- trace_annotation_combi[order(match(id, traces_all$id))]
+  trace_annotation_combi <- trace_annotation_combi[order(match(id,
+                                                          traces_all$id))]
 
   fraction_annotation_all <- data.table(id=seq(1,ncol(traces_all)-1,1))
 
@@ -456,22 +468,46 @@ combineTracesMutiCond <- function(tracesList){
   return(combi_traces)
 }
 
-clustPepMultiCond <- function(tracesList, tracesListRaw=NULL, method = c("complete","single"), clusterH = 0.5,
+#' Cluster peptides of gene to unique proteoforms across conditions
+#' @param tracesList Object of class tracesList.
+#' @param tracesListRaw Object of class tracesList. Default is NULL.
+#' @param method Character string defining method for clustering
+#' Default is "complete".
+#' @param clusterH Numeric Cluster hight for cutree. Default is 0.5.
+#' @param clusterN Integer Number of clusters. Default is NULL.
+#' @param index Character string for method of cluster number estimation
+#' Default is "silhouette".
+#' @param plot logical,wether to print SibPepCorr density plot to R console.
+#' Deafult is \code{FALSE}.
+#' @param PDF logical, wether to print SibPepCorr density plot to a PDF file.
+#' Deafult is \code{FALSE}.
+#' @param name Character string with name of the plot, only used if
+#' '\code{PDF=TRUE}.PDF file is saved under name.pdf.
+#' Default is "hclustMultiCond".
+#' @return Object of class tracesList with proteoform annotation
+#' across conditions
+#' @export
+clustPepMultiCond <- function(tracesList, tracesListRaw=NULL,
+                    method = c("complete","single"), clusterH = 0.5,
                     clusterN = NULL, index = "silhouette",
                     plot = FALSE, PDF=FALSE, name="hclustMultiCond", ...) {
   .tracesListTest(tracesList)
+  method <- match.arg(method)
   if (!is.null(tracesListRaw)){
     .tracesListTest(tracesListRaw)
   } else {
     tracesListRaw <- tracesList
   }
   traces <- combineTracesMutiCond(tracesListRaw)
-  clustered_traces <- clusterPeptides(traces,method = method, clusterH = clusterH,
+  clustered_traces <- clusterPeptides(traces,
+                      method = method, clusterH = clusterH,
                       clusterN = clusterN, index = index,
                       plot = plot, PDF=PDF, name=name)
-  clust_info <- subset(clustered_traces$trace_annotation, select=c("id","protein_id","cluster","proteoform_id"))
+  clust_info <- subset(clustered_traces$trace_annotation,
+                  select=c("id","protein_id","cluster","proteoform_id"))
   res <- lapply(tracesList, function(t){
-   t$trace_annotation <- merge(t$trace_annotation,clust_info,all.x=T,all.y=F,by=c("id","protein_id"))
+   t$trace_annotation <- merge(t$trace_annotation,clust_info,
+                          all.x=T,all.y=F,by=c("id","protein_id"))
    return(t)
   })
   class(res) <- "tracesList"

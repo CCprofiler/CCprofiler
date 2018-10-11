@@ -12,6 +12,13 @@ filterSinglePeptideHits(traces)
 
 \method{filterSinglePeptideHits}{tracesList}(tracesList)
 }
+\arguments{
+\item{traces}{Object of class traces or tracesList.}
+}
+\value{
+Object of class traces containing only proteins
+with multiple peptides
+}
 \description{
 Remove proteins with single peptides
 }
