@@ -4,7 +4,7 @@
 \alias{subset.tracesList}
 \title{Subset traces or fractions in tracesList object}
 \usage{
-\method{subset}{tracesList}(tracesList, trace_subset_ids = NULL,
+subset.tracesList(tracesList, trace_subset_ids = NULL,
   trace_subset_type = "id", fraction_ids = NULL)
 }
 \arguments{

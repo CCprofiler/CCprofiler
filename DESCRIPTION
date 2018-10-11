@@ -18,7 +18,10 @@ Depends:
     igraph,
     pracma,
     gridExtra,
-    Rmpfr
+    Rmpfr,
+    matrixStats,
+    fitdistrplus,
+    NbClust
 RoxygenNote: 5.0.1
 Imports:
     igraph

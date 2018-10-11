@@ -4,7 +4,7 @@
 \alias{summary.traces}
 \title{Summarize a traces object}
 \usage{
-\method{summary}{traces}(traces)
+summary.traces(traces)
 }
 \arguments{
 \item{traces}{Object of class traces.}
