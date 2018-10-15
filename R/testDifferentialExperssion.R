@@ -17,15 +17,31 @@ testDifferentialExpression <- function(featureVals,
                                        transformation = NULL){
   level <- match.arg(level)
   featVals <- copy(featureVals)
-  
-  if(!is.null(transform)){
-    if(class(transformation) == "character"){
-      message(paste("Transforming intensities with", transformation, "..."))
+
+  setkeyv(featVals, c("feature_id", "apex", "id", "fraction"))
+  message("Excluding peptides only found in one condition...")
+  featureValsBoth <- filterValsByOverlap(featVals, compare_between)
+
+  message("Summarizing peptides on feature level")
+  featureValsBothSum <- unique(featureValsBoth[,.(intensity=sum(intensity),
+                                                  get(compare_between)),
+                                        by=.(Sample, id, feature_id, apex)])
+  setnames(featureValsBothSum, "V2", compare_between)
+
+  ## Transformation with specified function
+  if (!is.null(transformation)) { #fix 1 10.5.18 MH
+    if (class(transformation) == "character") {
+      message(paste("Transforming intensities with", transformation, 
+                    "..."))
       transformation <- get(transformation)
-    } else{
+    }
+    else {
       message(paste("Transforming intensities..."))
     }
-    featVals[, intensityTr := transformation(intensity+1)]
+    featureValsBothSum[, `:=`(intensityTr, transformation(intensity + 1))]
+  }
+  else {
+    featureValsBothSum[, intensityTr:=intensity+1] # fix2 10.5.18 MH
   }
   setkeyv(featVals, c("feature_id", "apex", "id", "fraction"))
   message("Excluding peptides only found in one condition...")
@@ -35,24 +51,24 @@ testDifferentialExpression <- function(featureVals,
   
   grpn = uniqueN(featureValsBoth[,.(id, feature_id, apex)])
   pb <- txtProgressBar(min = 0, max = grpn, style = 3)
-  tests <- featureValsBoth[, {
+  tests <- featureValsBothSum[, {
     setTxtProgressBar(pb, .GRP)
-    a = t.test(formula = intensityTr ~ get(compare_between) , paired = T, var.equal = FALSE)
+    a = t.test(formula = intensityTr ~ get(compare_between), 
+               paired = F, var.equal = FALSE)
     ints = .SD[, .(s = sum(intensity)), by = .(get(compare_between))]$s
     int1 = ints[1]
     int2 = ints[2]
-    .(pVal = a$p.value, int1 = int1, int2 = int2, meanDiff = a$estimate,
-      FC =  int1/int2, n_fractions = a$parameter + 1, Tstat = a$statistic)},
-    by = .(id, feature_id, apex)]
+    .(pVal = a$p.value, int1 = int1, int2 = int2, meanDiff = a$estimate, 
+      FC = int1/int2, log2FC = log2(int1/int2), # Fix3: make log2FC column for downstream plot
+      n_fractions = a$parameter + 1, Tstat = a$statistic)
+  }, by = .(id, feature_id, apex)]
   close(pb)
-  
-  if(level == "peptide"){
+  if (level == "peptide") {
     tests$pBHadj <- p.adjust(tests$pVal, method = "BH")
     pQv <- qvalue::qvalue(tests$pVal, lambda = 0.4)
     tests$QVal <- pQv$qvalues
     return(tests)
-  } 
-  
+  }
   message("Aggregating to protein-level...")
   prottests <- aggregatePeptideTests(tests)
   return(prottests)
