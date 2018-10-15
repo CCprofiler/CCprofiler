@@ -105,6 +105,35 @@ filterByMaxCorr.tracesList <- function(tracesList, cutoff = 0.85,
 #' @return Object of class traces filtered for peptide correlation.
 #' @export
 iterativeMaxCorrFilter <- function(traces, cutoff = 0.85,
+                            plot = FALSE, PDF=FALSE, name="maxCorrHist"){
+  UseMethod("iterativeMaxCorrFilter", traces)
+}
+
+#' @describeIn iterativeMaxCorrFilter Filter peptides for having
+#' at least one high correlating sibling peptide
+#' @export
+iterativeMaxCorrFilter.traces <- function(traces, cutoff = 0.85,
+                        plot = FALSE, PDF=FALSE, name="maxCorrHist", ...) {
+  print(nrow(traces$trace_annotation))
+  res <- list()
+  res[[1]] <- traces
+  i=2
+  res[[i]] <- filterByMaxCorr(res[[1]], cutoff = cutoff,
+                          plot = plot, PDF=PDF, name=name)
+  while (!identical(summary(res[[i-1]]),summary(res[[i]]))) {
+    print(i)
+    print(nrow(res[[i]]$trace_annotation))
+    i=i+1
+    res[[i]] <- filterByMaxCorr(res[[i-1]], cutoff = cutoff,
+                            plot = plot, PDF=PDF, name=name)
+  }
+  return(res[[i]])
+}
+
+#' @describeIn iterativeMaxCorrFilter Filter peptides for having
+#' at least one high correlating sibling peptide
+#' @export
+iterativeMaxCorrFilter.tracesList <- function(traces, cutoff = 0.85,
                         plot = FALSE, PDF=FALSE, name="maxCorrHist", ...) {
   print(nrow(traces[[1]]$trace_annotation))
   print(nrow(traces[[2]]$trace_annotation))
@@ -447,7 +476,9 @@ combineTracesMutiCond <- function(tracesList){
   trace_type_all <- tracesList[[1]]$trace_type
 
   trace_annotation <- lapply(tracesList, function(t){
-    res <- subset(t$trace_annotation,select=c("id","protein_id"))
+    cols <- names(tracesList$minus$trace_annotation)
+    cols <- cols[which(!cols %in% c("SibPepCorr","RepPepCorr"))]
+    res <- subset(t$trace_annotation,select=cols)
     return(res)
     })
   trace_annotation_combi <- rbindlist(trace_annotation)
@@ -509,6 +540,29 @@ clustPepMultiCond <- function(tracesList, tracesListRaw=NULL,
    t$trace_annotation <- merge(t$trace_annotation,clust_info,
                           all.x=T,all.y=F,by=c("id","protein_id"))
    return(t)
+  })
+  class(res) <- "tracesList"
+  .tracesListTest(res)
+  return(res)
+}
+
+#' Annotate tracesList of multiple conditions with proteoforms that were
+#' assigned for a combined traces object.
+#' @param tracesList Object of class tracesList.
+#' @param combinedTraces Object of class traces with annotated proteoforms.
+#' @return Object of class tracesList witha nnotated proteoforms.
+#' @export
+annotateProteoformsAcrossConditions <- function(tracesList,combinedTraces){
+  .tracesListTest(tracesList)
+  .tracesTest(combinedTraces)
+  if (!"proteoform_id" %in% names(combinedTraces$trace_annotation)){
+    stop("CombinedTraces have not been annotated!")
+  }
+  res <- lapply(tracesList, function(t){
+    cols <- names(t$trace_annotation)[which(names(t$trace_annotation) %in% names(combinedTraces$trace_annotation))]
+    t$trace_annotation <- merge(t$trace_annotation,combinedTraces$trace_annotation,
+                          all.x=T,all.y=F,by=cols,sort=F)
+    return(t)
   })
   class(res) <- "tracesList"
   .tracesListTest(res)
