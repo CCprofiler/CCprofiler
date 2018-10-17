@@ -58,8 +58,17 @@ extractFeatureVals.traces <- function(traces, features,
     } else {
       stop("Could not detect if traces object is of type peptide. Aborting...")
     }
+  } else if("proteoform_id" %in% featureColnames){
+    complexLevel <- FALSE
+    if (traces$trace_type == "peptide") {
+      tracesType <- "peptide"
+      .tracesTest(traces, type = "peptide")
+      allIds <- features$proteoform_id
+    } else {
+      stop("Could not detect if traces object is of type peptide. Aborting...")
+    }
   } else {
-    stop("Could not detect if feature table is for protein or complex Features. Aborting...")
+    stop("Could not detect if feature table is for protein, proteoform or complex Features. Aborting...")
   }
 
   #if(!("peak_corr" %in% featureColnames)) stop("No column peak_corr found. peak_corr must be
@@ -107,8 +116,13 @@ extractFeatureVals.traces <- function(traces, features,
       id <- as.character(hyp["complex_id"])
       name <- as.character(hyp["complex_name"])
     }else{
-      id <- as.character(hyp["protein_id"])
-      name <- as.character(hyp["protein_name"])
+      if("protein_id" %in% featureColnames){
+        id <- as.character(hyp["protein_id"])
+        name <- as.character(hyp["protein_name"])
+      } else if ("proteoform_id" %in% featureColnames) {
+        id <- as.character(hyp["proteoform_id"])
+        name <- as.character(hyp["proteoform_id"])
+      }
     }
     bound_left <- as.numeric(hyp["left_pp"])
     bound_right <- as.numeric(hyp["right_pp"])
