@@ -10,7 +10,7 @@
 #' @param parallelized Logical, wether the computation should be done in parallel, default=FALSE
 #' @param n_cores Integer, the number of cores to use for parallel processing
 #' (only applies if parallelized is TRUE), default=1
-#' @param collapse_method Method for collapsing multiple features into one feature: 
+#' @param collapse_method Method for collapsing multiple features into one feature:
 #' \itemize{
 #' \item "apex_only": collapses by apex
 #' \item "apex_network": collapses by apex and connected network cluster
@@ -24,18 +24,20 @@
 #' @param rt_height Numeric, RT cutoff for collapsing features, default is 5
 #' @param smoothing_length Numeric, smoothing length of Savitzky-Golay filter, default is 7
 #' @param useRandomDecoyModel Logical, wether random peptide protein associations should be used as decoy model, default = TRUE
+#' @param quantLevel Character string, which level to do feature finding on.
+#' Options are protein_id pf proteoform_id. Default is protein_id.
 #' @return A data.table containing protein features.
 #' @export
-#' @examples 
+#' @examples
 #' ## Load example data
 #' peptideTraces <- examplePeptideTracesFiltered
 #' ## Subset traces for shorter processing time
 #' testProteins = unique(peptideTraces$trace_annotation$protein_id)[1:5]
 #' peptideTracesSubset = subset(peptideTraces,trace_subset_ids = testProteins, trace_subset_type = "protein_id")
-#' 
+#'
 #' ## Perform co-elution signal detection
 #' proteinFeatures <- findProteinFeatures(traces=peptideTracesSubset)
-#' 
+#'
 #' ## Inspect complex features
 #' head(proteinFeatures,n=3)
 
@@ -48,7 +50,17 @@ findProteinFeatures <- function(traces,
                                 perturb_cutoff= "5%",
                                 rt_height=5,
                                 smoothing_length=9,
-                                useRandomDecoyModel=TRUE){
+                                useRandomDecoyModel=TRUE,
+                                quantLevel = "protein_id"){
+  #quantLevel <- match.arg(quantLevel)
+  if (! quantLevel %in% c("protein_id","proteoform_id")) {
+    stop("findProteinFeatures is only available on protein_id or proteoform_id level.")
+  }
+  if (quantLevel == "proteoform_id") {
+    message("Feature detection based on 'proteoform_id'.")
+    traces$trace_annotation[,protein_id_original := protein_id]
+    traces$trace_annotation[,protein_id := proteoform_id]
+  }
   protein.peptide.association.table = traces$trace_annotation
   protein.peptide.association.table=copy(protein.peptide.association.table) # to prevent updates by reference
   setorder(protein.peptide.association.table, "protein_id")
@@ -78,7 +90,7 @@ findProteinFeatures <- function(traces,
                                          smoothing_length=smoothing_length)
 
   names(ProteinFeatures) <- gsub("complex","protein",names(ProteinFeatures))
-  
+
   if ("protein_mw" %in% colnames(traces$trace_annotation)) {
     fun <- function(x) {strsplit(x,split=";")[[1]][1]}
     ProteinFeatures$monomer_mw <- as.numeric(unlist(lapply(ProteinFeatures$monomer_mw,fun)))
@@ -98,6 +110,9 @@ findProteinFeatures <- function(traces,
     } else {
       ProteinFeatures <- subset(ProteinFeatures,select=c("protein_id","protein_name","subunits_annotated","n_subunits_annotated","subunits_detected","n_subunits_detected","completeness","left_pp","right_pp","apex","area","peak_corr"))
     }
+  }
+  if (quantLevel == "proteoform_id") {
+    setnames(ProteinFeatures,c("protein_id","protein_name"),c("proteoform_id","proteoform_name"))
   }
   return(ProteinFeatures[])
 }
