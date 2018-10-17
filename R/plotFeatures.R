@@ -116,13 +116,23 @@ plotFeatures.traces <- function(feature_table,
       title=paste0(features$complex_name,"\n ","\n ","\n ")
     }
   } else {
-    features <- subset(features, protein_id == feature_id)
+    if ("protein_id" %in% names(features)) {
+      features <- subset(features, protein_id == feature_id)
+    } else if ("proteoform_id" %in% names(features)) {
+      features <- subset(features, proteoform_id == feature_id)
+    } else {
+      stop("Features are not protein or proteoform level.")
+    }
     proteins <- unique(unlist(strsplit(features$subunits_annotated, split = ";")))
     traces <- subset(traces, trace_subset_ids = proteins)
     if (annotation_label %in% names(traces$trace_annotation)) {
       complexName = traces$trace_annotation[,get(annotation_label)][1]
     } else {
-      complexName = traces$trace_annotation$protein_id[1]
+      if ("protein_id" %in% names(features)) {
+        complexName = traces$trace_annotation$protein_id[1]
+      } else if ("proteoform_id" %in% names(features)) {
+        complexName = traces$trace_annotation$proteoform_id[1]
+      }
     }
     n_annotatedSubunits = features$n_subunits_annotated[1]
     n_detectedSubunits = features$n_subunits_detected[1]
