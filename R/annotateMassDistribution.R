@@ -53,11 +53,12 @@ annotateMassDistribution.tracesList <- function(tracesList){
 
 #' getMassAssemblyChange
 #' @description Estimates change of assembled vs. monomeric mass per id.
-#' @param tracesList An object of type traces.list including assembled mass 
+#' @param tracesList An object of type traces.list including assembled mass
 #' annotation as produced by \code{annotateMassDistribution}.
 #' @param design_matrix data.table, design matrix describing the architecture of the tracesList object.
 #' @export
-getMassAssemblyChange <- function(tracesList, design_matrix){
+getMassAssemblyChange <- function(tracesList, design_matrix,
+                                  quantLevel = "protein_id"){
   .tracesListTest(tracesList)
   samples <- unique(design_matrix$Sample)
   if(length(samples) != 2) {
@@ -69,13 +70,24 @@ getMassAssemblyChange <- function(tracesList, design_matrix){
   if (! "sum_assembled_norm" %in% names(tracesList[[1]]$trace_annotation)) {
     stop("No assembled mass annotation available, please run annotateMassDistribution first.")
   }
+  if (! quantLevel %in% names(tracesList[[1]]$trace_annotation)) {
+    stop("quantLevel not available in provided traces.")
+  }
+
   res <- lapply(names(tracesList), function(tr){
-    vals <- subset(tracesList[[tr]]$trace_annotation,select=c("protein_id","sum_assembled_norm"))
+    vals <- subset(tracesList[[tr]]$trace_annotation,select=c(quantLevel,"sum_assembled_norm"))
     vals[,Sample := tr]
     return(vals)
   })
+
   res <- do.call(rbind, res)
-  res_cast <- dcast(res, formula = protein_id ~ Sample, value.var=c("sum_assembled_norm"))
+  if (quantLevel == "protein_id") {
+    res_cast <- dcast(res, formula = protein_id ~ Sample, value.var=c("sum_assembled_norm"))
+  } else if (quantLevel == "proteoform_id") {
+    res_cast <- dcast(res, formula = proteoform_id ~ Sample, value.var=c("sum_assembled_norm"))
+  } else {
+    stop("Functionality only available for quantLevel proetin_id or proteoform_id.")
+  }
   res_cast[, change := log2(get(samples[1])/(get(samples[2])))]
   res_cast[is.nan(change), change := 0]
   res_cast[, testOrder := paste0(samples[1],".vs.",samples[2])]
@@ -102,11 +114,10 @@ plotMassAssemblyChange <- function(assamblyTest, FC_cutoff=2, name="massAssembly
                paste0("more assembled \n log2FC < -",FC_cutoff,"\n",more_assembled),
                paste0("less assembled \n log2FC > ",FC_cutoff,"\n",less_assembled)),
       main = paste0(unique(assamblyTest$testOrder)))
-  
+
   h <- ggplot(assamblyTest, aes(x=change)) + geom_histogram(binwidth = 1) + theme_classic()
   print(h)
   if (PDF) {
     dev.off()
   }
 }
-
