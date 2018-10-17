@@ -28,8 +28,11 @@ summarizeFeatures <- function(feature_table,
     setnames(features,"protein_id","complex_id")
   } else if ("complex_id" %in% names(features)){
     type <- "complex"
+  } else if ("proteoform_id" %in% names(features)){
+    type <- "proteoform"
+    setnames(features,"proteoform_id","complex_id")
   } else {
-    stop("This is no protein or complex feature table. Please provide features from findComplexFeatures or findProteinFeatures.")
+    stop("This is no protein, proteoform or complex feature table. Please provide features from findComplexFeatures or findProteinFeatures.")
   }
   features <- features[grep("DECOY",features$complex_id,invert=TRUE)]
   totalConfirmedHypotheses <- length(unique(features$complex_id))
@@ -142,8 +145,12 @@ getBestFeatures <- function(feature_table){
     feature_table <- feature_table[order(protein_id,-n_subunits_detected,-peak_corr,-area)]
     res_best <- unique(feature_table,by="protein_id")
     return(res_best)
+  } else if ("proteoform_id" %in% names(feature_table)) {
+    feature_table <- feature_table[order(proteoform_id,-n_subunits_detected,-peak_corr,-area)]
+    res_best <- unique(feature_table,by="proteoform_id")
+    return(res_best)
   } else {
-    stop("This is no protein or complex feature table. Please provide features from findComplexFeatures or findProteinFeatures.")
+    stop("This is no protein, proteoform or complex feature table. Please provide features from findComplexFeatures or findProteinFeatures.")
   }
 }
 
@@ -192,8 +199,10 @@ filterFeatures <- function(feature_table,
     type="complex"
   } else if ("protein_id" %in% names(feature_table)) {
     type="protein"
-  } else {
-    stop("This is neither a complex or a protein feature table. Please check the input data.")
+  } else if ("proteoform_id" %in% names(feature_table)) {
+    type="proteoform"
+  }else {
+    stop("This is neither a complex, proteoform or a protein feature table. Please check the input data.")
   }
   if(!is.null(complex_ids)){
     if(type=="complex"){
@@ -219,6 +228,9 @@ filterFeatures <- function(feature_table,
     } else if (type=="protein") {
       allowed_ids <- feature_table[completeness>=min_hypothesis_completeness, unique(protein_id)]
       feature_table <- subset(feature_table,protein_id %in% allowed_ids)
+    } else if (type=="proteoform") {
+      allowed_ids <- feature_table[completeness>=min_hypothesis_completeness, unique(proteoform_id)]
+      feature_table <- subset(feature_table,proteoform_id %in% allowed_ids)
     }
   }
   if(!is.null(min_subunits)){

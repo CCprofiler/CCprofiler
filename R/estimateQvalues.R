@@ -57,6 +57,8 @@ calculateQvalue <- function(features,lambda=0.5,plot=TRUE,PDF=FALSE,name="q_valu
     features$decoy[grep("DECOY",features$complex_id)] = 1
   } else if ("protein_id" %in% names(features)) {
     features$decoy[grep("DECOY",features$protein_id)] = 1
+  } else if ("proteoform_id" %in% names(features)) {
+    features$decoy[grep("DECOY",features$proteoform_id)] = 1
   } else {
     stop("Not a complex of protein feature table.")
   }
@@ -129,6 +131,8 @@ plotScoreDistribution <- function(features,PDF=TRUE,name="scoreDistribution"){
     features$decoy[grep("DECOY",features$complex_id)] = 1
   } else if ("protein_id" %in% names(features)) {
     features$decoy[grep("DECOY",features$protein_id)] = 1
+  } else if ("proteoform_id" %in% names(features)) {
+    features$decoy[grep("DECOY",features$proteoform_id)] = 1
   } else {
     stop("Not a complex of protein feature table.")
   }
@@ -226,7 +230,7 @@ scoreFeatures <- function(features, FDR = 0.05, plot = T, PDF = FALSE, name = "q
 #' Append secondary features to scored filtered primary feature table
 #' @param scoredPrimaryFeatures data.table output from scoreFeatures function
 #' @param allFeatures data.table, output from findComplexFeatures or findProteinFeatures function including primary and secondary features
-#' @param peakCorr_cutoff numeric, minimum required peak orrelation for a secondary feature. Between 0 and 1, default = 0.05 
+#' @param peakCorr_cutoff numeric, minimum required peak orrelation for a secondary feature. Between 0 and 1, default = 0.05
 #' @return data.table with scored and filtered features
 #' @export
 appendSecondaryComplexFeatures <- function(scoredPrimaryFeatures, allFeatures, peakCorr_cutoff = 0.5){
