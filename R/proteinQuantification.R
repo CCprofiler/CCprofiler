@@ -43,7 +43,8 @@ proteinQuantification <- function(traces,
                                   rm_decoys = TRUE,
                                   use_sibPepCorr = FALSE,
                                   use_repPepCorr = FALSE,
-                                  full_intersect_only = FALSE){
+                                  full_intersect_only = FALSE,
+                                  quantLevel = "protein_id"){
   UseMethod("proteinQuantification", traces)
 }
 
@@ -55,7 +56,8 @@ proteinQuantification.traces <- function(traces,
                                   rm_decoys = TRUE,
                                   use_sibPepCorr = FALSE,
                                   use_repPepCorr = FALSE,
-                                  full_intersect_only = FALSE){
+                                  full_intersect_only = FALSE,
+                                  quantLevel = "protein_id"){
 
   ## Check if it's a peptide level table
   .tracesTest(traces, "peptide")
@@ -79,6 +81,22 @@ proteinQuantification.traces <- function(traces,
               Function uses only intensity to select TopN peptides instead.")
       use_sibPepCorr = FALSE
     }
+  }
+
+  if(quantLevel == "protein_id"){
+    message("Quantification based on 'protein_id'.")
+  } else if (quantLevel == "proteoform_id") {
+    if(quantLevel %in% names(traces$trace_annotation)){
+      message("Quantification based on 'proteoform_id'.")
+      traces$trace_annotation[,protein_id_original := protein_id]
+      traces$trace_annotation[,protein_id := proteoform_id]
+    } else {
+      stop(paste0(quantLevel," not avilable in traces object.
+      Run 'clusterPeptides' first."))
+    }
+  } else {
+    message("The quantification level you prvided is not available.
+    Quantification based on 'protein_id'.")
   }
 
   ## Extract wide table for calculations
@@ -143,7 +161,7 @@ proteinQuantification.traces <- function(traces,
       if(class(col) == "numeric"){
         mean(col)
       }else { #if(class(col) == "character")
-        warning(paste0("muliple entries for protein_id ", protein_id, ": ", ". Picking the first", collapse = ""))
+        warning(paste0("muliple entries for ",quantLevel," ", protein_id, ": ", ". Picking the first", collapse = ""))
         col[1]
       }
     }else{
@@ -172,9 +190,13 @@ proteinQuantification.traces <- function(traces,
   #   oldAnnotationPeptidelevel = unique(subset(oldAnnotationPeptidelevel, select =-meanRepPepCorr))
   # }
   new_annotation = unique(peptideTracesLong[,.(protein_id, n_peptides, quant_peptides_used)])
+  if (quantLevel == "proteoform_id") {
+    setnames(new_annotation, "n_peptides", "n_peptides_perProteoform")
+  }
+  common_cols <- intersect(names(oldAnnotationPeptidelevel),names(new_annotation))
   peptideTracesTopNsumWideAnnotation <- merge(oldAnnotationPeptidelevel,
                                               new_annotation,
-                                              by = "protein_id", all.x = FALSE, all.y = TRUE)
+                                              by = common_cols, all.x = FALSE, all.y = TRUE)
 
   peptideTracesTopNsumWideAnnotation <- unique(peptideTracesTopNsumWideAnnotation)
   peptideTracesTopNsumWideAnnotation[, id:=protein_id]
@@ -184,10 +206,18 @@ proteinQuantification.traces <- function(traces,
   ## assemble result protein level traces object
   traces$traces <- peptideTracesTopNsumWide
   traces$trace_annotation <- peptideTracesTopNsumWideAnnotation
-  traces$trace_type <- "protein"
 
   ## Test and return
-  .tracesTest(traces, type = "protein")
+  if(quantLevel == "protein_id"){
+    traces$trace_type <- "protein"
+    .tracesTest(traces, type = "protein")
+  } else if (quantLevel == "proteoform_id") {
+    traces$trace_annotation[,proteoform_id := protein_id]
+    traces$trace_annotation[,protein_id := protein_id_original]
+    traces$trace_annotation[,protein_id_original := NULL]
+    traces$trace_type <- "proteoform"
+    .tracesTest(traces, type = "proteoform")
+  }
   return(traces)
 }
 
@@ -202,7 +232,8 @@ proteinQuantification.tracesList <- function(traces,
                                          rm_decoys = TRUE,
                                          use_sibPepCorr = FALSE,
                                          use_repPepCorr = FALSE,
-                                         full_intersect_only = FALSE){
+                                         full_intersect_only = FALSE,
+                                         quantLevel = "protein_id"){
   .tracesListTest(traces, type = "peptide")
 
   if (full_intersect_only == TRUE) {
@@ -210,6 +241,13 @@ proteinQuantification.tracesList <- function(traces,
     traces_subs <- subset(traces, trace_subset_ids = intersection_peptides)
   } else {
     traces_subs <- traces
+  }
+
+  if (quantLevel != "protein_id") {
+    use_sibPepCorr = FALSE
+    use_repPepCorr = FALSE
+    message(paste0("Using ",quantLevel," as quantLevel doesn't support the use of
+    of sibPepCorr or repPepCorr for peptide selection. Setting both options to FALSE."))
   }
 
   traces_integrated <- integrateTraceIntensities(traces_subs, aggr_corr_fun = "sum")
@@ -255,7 +293,8 @@ proteinQuantification.tracesList <- function(traces,
   res <- lapply(traces_selected, proteinQuantification.traces,
                 topN = topN,
                 keep_less = keep_less,
-                rm_decoys = rm_decoys)
+                rm_decoys = rm_decoys,
+                quantLevel = quantLevel)
   class(res) <- "tracesList"
   .tracesListTest(res)
   return(res)
