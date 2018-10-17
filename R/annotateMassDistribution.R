@@ -88,8 +88,9 @@ getMassAssemblyChange <- function(tracesList, design_matrix,
   } else {
     stop("Functionality only available for quantLevel proetin_id or proteoform_id.")
   }
-  res_cast[, change := log2(get(samples[1])/(get(samples[2])))]
-  res_cast[is.nan(change), change := 0]
+  #res_cast[, change := log2(get(samples[1])/(get(samples[2])))]
+  #res_cast[change=="NaN", change := 0]
+  res_cast[, change := get(samples[1])-(get(samples[2]))]
   res_cast[, testOrder := paste0(samples[1],".vs.",samples[2])]
   return(res_cast[])
 }
@@ -97,25 +98,25 @@ getMassAssemblyChange <- function(tracesList, design_matrix,
 #' plotMassAssemblyChange between 2 conditions
 #' @param assamblyTest data.table, a data.table with test statistics.
 #' An assamblyTest can be produced with \code{getMassAssemblyChange}.
-#' @param FC_cutoff Numeric fold change cutoff, default is 2.
+#' @param change_cutoff Numeric fold change cutoff, default is 0.2.
 #' @param name character string specifying the name of output if PDF=TRUE, default is "massAssemblyChange".
 #' @param PDF logical if PDF should be created, default is FALSE.
 #' @return plot
 #' @export
-plotMassAssemblyChange <- function(assamblyTest, FC_cutoff=2, name="massAssemblyChange", PDF=FALSE){
+plotMassAssemblyChange <- function(assamblyTest, change_cutoff=0.2, name="massAssemblyChange", PDF=FALSE){
   if (PDF) {
     pdf(paste0(name,".pdf"))
   }
-  no_change <- nrow(subset(assamblyTest, abs(change) <= FC_cutoff))
-  more_assembled <- nrow(subset(assamblyTest, change < -FC_cutoff))
-  less_assembled <- nrow(subset(assamblyTest, change > FC_cutoff))
+  no_change <- nrow(subset(assamblyTest, abs(change) <= change_cutoff))
+  more_assembled <- nrow(subset(assamblyTest, change < -change_cutoff))
+  less_assembled <- nrow(subset(assamblyTest, change > change_cutoff))
   pie(c(no_change,more_assembled,less_assembled),
-      labels=c(paste("no assembly change \n abs(log2FC) < ",FC_cutoff,"\n",no_change),
-               paste0("more assembled \n log2FC < -",FC_cutoff,"\n",more_assembled),
-               paste0("less assembled \n log2FC > ",FC_cutoff,"\n",less_assembled)),
+      labels=c(paste("no assembly change \n abs(change) < ",change_cutoff,"\n",no_change),
+               paste0("more assembled \n change < -",change_cutoff,"\n",more_assembled),
+               paste0("less assembled \n change > ",change_cutoff,"\n",less_assembled)),
       main = paste0(unique(assamblyTest$testOrder)))
 
-  h <- ggplot(assamblyTest, aes(x=change)) + geom_histogram(binwidth = 1) + theme_classic()
+  h <- ggplot(assamblyTest, aes(x=change)) + geom_histogram(binwidth = 0.05) + theme_classic()
   print(h)
   if (PDF) {
     dev.off()
