@@ -6,20 +6,20 @@
 #' @return An object of type traces, trace_type is peptide.
 #' @export
 summarizeAlternativePeptideSequences <- function(traces,
-                                  topN = 1){
+                                  topN = 1,position="PeptidePositionStart"){
   UseMethod("summarizeAlternativePeptideSequences", traces)
 }
 
 #' @describeIn summarizeAlternativePeptideSequences
 #' @export
-summarizeAlternativePeptideSequences.traces <- function(traces,topN=1){
+summarizeAlternativePeptideSequences.traces <- function(traces,topN=1,position="PeptidePositionStart"){
   .tracesTest(traces, "peptide")
-  if (! "PeptidePositionStart" %in% names(traces$trace_annotation)) {
+  if (! position %in% names(traces$trace_annotation)) {
     stop("This function is only available for traces annotated by the
     relative protein sequence position (annotateRelativePepPos).")
   }
   traces$trace_annotation[,protein_id_original := protein_id]
-  traces$trace_annotation[,protein_id := paste0(protein_id,"_",PeptidePositionStart)]
+  traces$trace_annotation[,protein_id := paste0(protein_id,"_",get(position))]
   traces_summed <- proteinQuantification.traces(traces,
                                   topN = topN,
                                   keep_less = TRUE,
@@ -52,9 +52,9 @@ summarizeAlternativePeptideSequences.traces <- function(traces,topN=1){
 #' @describeIn summarizeAlternativePeptideSequences
 #' @export
 summarizeAlternativePeptideSequences.tracesList <- function(tracesList,topN=1){
-  .tracesListTest(tracesList, type = "peptide")
+  .tracesListTest(tracesList, type = "peptide",position="PeptidePositionStart")
   res_list <- lapply(tracesList, summarizeAlternativePeptideSequences.traces,
-                topN=topN)
+                topN=topN,position=position)
   class(res) <- "tracesList"
   .tracesListTest(res)
   return(res)
