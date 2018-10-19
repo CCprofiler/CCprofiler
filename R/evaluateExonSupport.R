@@ -70,12 +70,12 @@ plotRealVsRandomPerProtein <- function(protein,res){
     ggtitle(paste0(protein,
       "\n p-rand = ",p_rand))
   print(p)
-  out <- data.table(protein_id=protein,exon_pval=p_rand)
+  out <- data.table(protein_id=protein,exon_pval=p_rand,nExonMistakes=real)
   return(out)
 }
 
 
-evaluateProteoformLocation <- function(traces, adj.method = "fdr"){
+evaluateExonLocation <- function(traces, adj.method = "fdr"){
   traces$trace_annotation[, n_proteoforms := length(unique(proteoform_id)), by=c("protein_id")]
   proteins_withoutProteoforms <- unique(traces$trace_annotation[n_proteoforms==1]$protein_id)
   proteins_withProteoforms <- unique(traces$trace_annotation[n_proteoforms!=1]$protein_id)
