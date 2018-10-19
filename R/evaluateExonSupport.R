@@ -73,3 +73,29 @@ plotRealVsRandomPerProtein <- function(protein,res){
   out <- data.table(protein_id=protein,exon_pval=p_rand)
   return(out)
 }
+
+
+evaluateProteoformLocation <- function(traces, adj.method = "fdr"){
+  traces$trace_annotation[, n_proteoforms := length(unique(proteoform_id)), by=c("protein_id")]
+  proteins_withoutProteoforms <- unique(traces$trace_annotation[n_proteoforms==1]$protein_id)
+  proteins_withProteoforms <- unique(traces$trace_annotation[n_proteoforms!=1]$protein_id)
+  traces_toTest <- subset(traces, trace_subset_ids=proteins_withProteoforms, trace_subset_type="protein_id")
+
+  exonRes <- evaluateExonSupport(traces_toTest)
+  exonStats <- plotRealVsRandomSwaps(exonRes)
+  exonStats$exon_pval_adj <- p.adjust(exonStats$exon_pval, adj.method)
+
+  pdf("RealVsRandomSwaps_hist.pdf")
+    p <- ggplot(exonStats,aes(x=exon_pval)) +
+    geom_histogram(bins=100)
+    print(p)
+    q <- ggplot(exonStats,aes(x=exon_pval_adj)) +
+    geom_histogram(bins=100)
+    print(q)
+  dev.off()
+
+  traces$trace_annotation <- merge(traces$trace_annotation, exonStats,
+    all.x=T,all.y=F,by=c("protein_id"),sort=F)
+  .tracesTest(traces)
+  return(traces)
+}
