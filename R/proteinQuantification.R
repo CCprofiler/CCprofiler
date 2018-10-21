@@ -18,6 +18,7 @@
 #' @param full_intersect_only Logical, specify if only peptides detected across all traces in tracesList object should
 #' should be used for quantification. Be aware that this might significantly reduce the number of quantifyable proteins.
 #' This argument is only used for tracesList objects.
+#' @param verbose Logical if warning messages should be printed. Default is TRUE.
 #' @return An object of type traces, trace_type is protein.
 #' @export
 #' @examples
@@ -44,7 +45,8 @@ proteinQuantification <- function(traces,
                                   use_sibPepCorr = FALSE,
                                   use_repPepCorr = FALSE,
                                   full_intersect_only = FALSE,
-                                  quantLevel = "protein_id"){
+                                  quantLevel = "protein_id",
+                                  verbose = TRUE){
   UseMethod("proteinQuantification", traces)
 }
 
@@ -57,7 +59,8 @@ proteinQuantification.traces <- function(traces,
                                   use_sibPepCorr = FALSE,
                                   use_repPepCorr = FALSE,
                                   full_intersect_only = FALSE,
-                                  quantLevel = "protein_id"){
+                                  quantLevel = "protein_id",
+                                  verbose = TRUE){
 
   ## Check if it's a peptide level table
   .tracesTest(traces, "peptide")
@@ -161,7 +164,9 @@ proteinQuantification.traces <- function(traces,
       if(class(col) == "numeric"){
         mean(col)
       }else { #if(class(col) == "character")
-        warning(paste0("muliple entries for ",quantLevel," ", protein_id, ": ", ". Picking the first", collapse = ""))
+        if (verbose) {
+          warning(paste0("muliple entries for ",quantLevel," ", protein_id, ": ", ". Picking the first", collapse = ""))
+        }
         col[1]
       }
     }else{
@@ -233,7 +238,8 @@ proteinQuantification.tracesList <- function(traces,
                                          use_sibPepCorr = FALSE,
                                          use_repPepCorr = FALSE,
                                          full_intersect_only = FALSE,
-                                         quantLevel = "protein_id"){
+                                         quantLevel = "protein_id",
+                                         verbose = TRUE){
   .tracesListTest(traces, type = "peptide")
 
   if (full_intersect_only == TRUE) {
@@ -294,7 +300,8 @@ proteinQuantification.tracesList <- function(traces,
                 topN = topN,
                 keep_less = keep_less,
                 rm_decoys = rm_decoys,
-                quantLevel = quantLevel)
+                quantLevel = quantLevel,
+                verbose = verbose)
   class(res) <- "tracesList"
   .tracesListTest(res)
   return(res)
