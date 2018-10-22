@@ -537,12 +537,14 @@ combineTracesMutiCond <- function(tracesList){
     fraction_annotation = fraction_annotation_all
   )
 
-  #if(!is.null(tracesList[[1]][["genomic_coord"]])){
-  #        genomic_coordinates <- lapply(tracesList,function(x){
-  #          x$genomic_coord[combi_traces$id]
-  #        })
-  #        traces$genomic_coord <- traces$genomic_coord[trace_ids]
-  #      }
+  if(!is.null(tracesList[[1]][["genomic_coord"]])){
+	coo <- tracesList[[1]][["genomic_coord"]]
+	for (i in c(2:length(tracesList))) {
+		coo <- append(coo, tracesList[[i]][["genomic_coord"]], after = length(coo))
+	}
+	coo <- coo[!duplicated(names(coo))]
+	combi_traces$genomic_coord <- coo
+  }
 
   class(combi_traces) <- "traces"
   .tracesTest(combi_traces)
