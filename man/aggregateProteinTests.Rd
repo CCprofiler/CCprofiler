@@ -17,4 +17,3 @@ A data.table containing the differential testing results for every complex.
 \description{
 Calculate a complex-level significance from protein level differential expression tests
 }
-

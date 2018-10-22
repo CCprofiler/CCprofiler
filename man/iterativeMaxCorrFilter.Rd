@@ -2,10 +2,18 @@
 % Please edit documentation in R/proteoformAnnotation.R
 \name{iterativeMaxCorrFilter}
 \alias{iterativeMaxCorrFilter}
+\alias{iterativeMaxCorrFilter.traces}
+\alias{iterativeMaxCorrFilter.tracesList}
 \title{Filter iteratively by maxCorr until all outliers are removed}
 \usage{
 iterativeMaxCorrFilter(traces, cutoff = 0.85, plot = FALSE, PDF = FALSE,
-  name = "maxCorrHist", ...)
+  name = "maxCorrHist")
+
+\method{iterativeMaxCorrFilter}{traces}(traces, cutoff = 0.85, plot = FALSE,
+  PDF = FALSE, name = "maxCorrHist", ...)
+
+\method{iterativeMaxCorrFilter}{tracesList}(traces, cutoff = 0.85,
+  plot = FALSE, PDF = FALSE, name = "maxCorrHist", ...)
 }
 \arguments{
 \item{traces}{Object of class traces or tracesList.}
@@ -28,4 +36,12 @@ Object of class traces filtered for peptide correlation.
 \description{
 Filter iteratively by maxCorr until all outliers are removed
 }
+\section{Methods (by class)}{
+\itemize{
+\item \code{traces}: Filter peptides for having
+at least one high correlating sibling peptide
+
+\item \code{tracesList}: Filter peptides for having
+at least one high correlating sibling peptide
+}}
 

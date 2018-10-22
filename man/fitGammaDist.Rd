@@ -33,4 +33,3 @@ Fitted gamma distribution
 Fit gamma distributon to minimum correlation of each peptide
 to all of its sibling peptides
 }
-

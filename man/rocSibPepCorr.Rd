@@ -42,4 +42,3 @@ fdrTable <- rocSibPepCorr(traces = tracesRawSpc,
 
 head(fdrTable)
 }
-

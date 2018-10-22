@@ -7,16 +7,18 @@
 \title{Cluster peptides of gene to unique proteoforms}
 \usage{
 clusterPeptides(traces, method = c("complete", "single"), clusterH = 0.5,
-  clusterN = NULL, index = "silhouette", plot = FALSE, PDF = FALSE,
-  name = "hclust", ...)
+  clusterN = NULL, index = "silhouette", nFactorAnalysis = NULL,
+  plot = FALSE, PDF = FALSE, name = "hclust", ...)
 
 \method{clusterPeptides}{traces}(traces, method = c("complete", "single"),
-  clusterH = 0.5, clusterN = NULL, index = "silhouette", plot = FALSE,
-  PDF = FALSE, name = "hclust", ...)
+  clusterH = 0.5, clusterN = NULL, index = "silhouette",
+  nFactorAnalysis = NULL, plot = FALSE, PDF = FALSE, name = "hclust",
+  ...)
 
 \method{clusterPeptides}{tracesList}(tracesList, method = c("complete",
   "single"), clusterH = 0.5, clusterN = NULL, index = "silhouette",
-  plot = FALSE, PDF = FALSE, name = "hclust", ...)
+  nFactorAnalysis = NULL, plot = FALSE, PDF = FALSE, name = "hclust",
+  ...)
 }
 \arguments{
 \item{traces}{Object of class traces or tracesList.}

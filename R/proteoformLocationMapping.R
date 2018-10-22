@@ -1,18 +1,21 @@
 
-evaluateProteoformLocation <- function(traces, lambda=0.5){
+evaluateProteoformLocation <- function(traces, adj.method = "fdr"){
   traces$trace_annotation[, n_proteoforms := length(unique(proteoform_id)), by=c("protein_id")]
   proteins_withoutProteoforms <- unique(traces$trace_annotation[n_proteoforms==1]$protein_id)
   proteins_withProteoforms <- unique(traces$trace_annotation[n_proteoforms!=1]$protein_id)
   traces_toTest <- subset(traces, trace_subset_ids=proteins_withProteoforms, trace_subset_type="protein_id")
   testRandPep <- testRandomPeptides(traces_toTest)
   testRandPepStats <- plotRealVsRandom(testRandPep,score="NormalizedSD")
-  qobj <- qvalue(testRandPepStats$genomLocation_pval,lambda=lambda)
-  testRandPepStats$qvals <- qobj$qvalues
+  testRandPepStats$genomLocation_pval_adj <- p.adjust(testRandPepStats$genomLocation_pval, adj.method)
+  #qobj <- qvalue(testRandPepStats$genomLocation_pval,lambda=lambda)
+  #testRandPepStats$qvals <- qobj$qvalues
   pdf("NormalizedSD_hist.pdf")
     p <- ggplot(testRandPepStats,aes(x=genomLocation_pval)) +
     geom_histogram(bins=100)
     print(p)
-    plot(qobj)
+    q <- ggplot(testRandPepStats,aes(x=genomLocation_pval_adj)) +
+    geom_histogram(bins=100)
+    print(q)
   dev.off()
   traces$trace_annotation <- merge(traces$trace_annotation, testRandPepStats,
     all.x=T,all.y=F,by=c("protein_id","proteoform_id"),sort=F)
@@ -114,14 +117,14 @@ plotRealVsRandomPerProteoform <- function(proteoform,protein,res,score){
   return(out)
 }
 
-plotPeptideCluster <- function(traces,protein){
+plotPeptideClusterOld <- function(traces,protein){
   dt <- subset(traces$trace_annotation,protein_id==protein)
   setkeyv(dt, c("protein_id","PeptidePositionStart"))
   dt[,PeptidePositionStartRank := seq_len(.N), by="protein_id"]
   dt[,genomLocation_sigPval := ifelse(genomLocation_pval <=0.05, "<=0.05", ">0.05")]
   dt$genomLocation_sigPval <- as.factor(dt$genomLocation_sigPval)
   cols <- c("<=0.05" = "darkgreen", ">0.05" = "red")
-  cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+  cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7","#756bb1","#1c9099")
   dt$cluster <- as.factor(dt$cluster)
   pdf(paste0(protein,"_sequence_cluster.pdf"),width=10,height=3)
   p <- ggplot(dt,aes(x=PeptidePositionStartRank,

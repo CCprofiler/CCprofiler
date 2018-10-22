@@ -7,7 +7,7 @@
 findProteinFeatures(traces, corr_cutoff = 0.95, window_size = 12,
   parallelized = FALSE, n_cores = 1, collapse_method = "apex_only",
   perturb_cutoff = "5\%", rt_height = 5, smoothing_length = 9,
-  useRandomDecoyModel = TRUE)
+  useRandomDecoyModel = TRUE, quantLevel = "protein_id")
 }
 \arguments{
 \item{traces}{An object of class traces (type "peptide").}
@@ -22,7 +22,7 @@ peptides are considered to be coeluting, default=0.95.}
 \item{n_cores}{Integer, the number of cores to use for parallel processing
 (only applies if parallelized is TRUE), default=1}
 
-\item{collapse_method}{Method for collapsing multiple features into one feature: 
+\item{collapse_method}{Method for collapsing multiple features into one feature:
 \itemize{
 \item "apex_only": collapses by apex
 \item "apex_network": collapses by apex and connected network cluster
@@ -40,6 +40,9 @@ This is nescessary for correlation calculation.}
 \item{smoothing_length}{Numeric, smoothing length of Savitzky-Golay filter, default is 7}
 
 \item{useRandomDecoyModel}{Logical, wether random peptide protein associations should be used as decoy model, default = TRUE}
+
+\item{quantLevel}{Character string, which level to do feature finding on.
+Options are protein_id pf proteoform_id. Default is protein_id.}
 }
 \value{
 A data.table containing protein features.
@@ -60,4 +63,3 @@ proteinFeatures <- findProteinFeatures(traces=peptideTracesSubset)
 ## Inspect complex features
 head(proteinFeatures,n=3)
 }
-

@@ -158,21 +158,28 @@ proteinQuantification.traces <- function(traces,
   setorder(peptideTracesTopNsumWide, -id)
 
   ## assemble updated, protein-level trace_annotation table
-  oldAnnotationPeptidelevel = subset(traces$trace_annotation, select =-id)
+  oldAnnotationPeptidelevel <- copy(traces$trace_annotation)
+  setnames(oldAnnotationPeptidelevel,"id","old_id")
   oldAnnotationPeptidelevel <- oldAnnotationPeptidelevel[, lapply(.SD, function(col){
-    if(length(unique(col)) != 1){
-      if(class(col) == "numeric"){
-        mean(col)
-      }else { #if(class(col) == "character")
-        if (verbose) {
-          warning(paste0("muliple entries for ",quantLevel," ", protein_id, ": ", ". Picking the first", collapse = ""))
+    if (topN > 1) {
+      col = subset(col, select =-id)
+      if(length(unique(col)) != 1){
+        if(class(col) == "numeric"){
+          mean(col)
+        }else { #if(class(col) == "character")
+          if (verbose) {
+            warning(paste0("muliple entries for ",quantLevel," ", protein_id, ": ", ". Picking the first", collapse = ""))
+          }
+          col[1]
         }
+      }else{
         col[1]
       }
-    }else{
-      col[1]
+    } else if (topN == 1) {
+      col[old_id %in% peptideTracesTopNsumWide$id]
     }
   }),by = protein_id]
+  oldAnnotationPeptidelevel[,old_id:=NULL]
 
   # if ("SibPepCorr" %in% names(oldAnnotationPeptidelevel)){
   #   oldAnnotationPeptidelevel[, SibPepCorr_protein_mean:=mean(SibPepCorr), protein_id]

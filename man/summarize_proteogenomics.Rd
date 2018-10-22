@@ -9,4 +9,3 @@ summarize_proteogenomics(traces)
 \description{
 Summarize a traces object
 }
-

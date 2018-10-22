@@ -26,4 +26,3 @@ tracesWide <- examplePeptideTraces$traces
 tracesLong <- toLongFormat(tracesWide)
 tracesLong
 }
-

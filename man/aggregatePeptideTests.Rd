@@ -17,4 +17,3 @@ A data.table containing the differential testing results for every protein.
 \description{
 Calculate a protein-level significance from peptide level differential expression tests
 }
-

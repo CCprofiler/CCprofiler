@@ -2,8 +2,8 @@
 % Please edit documentation in R/annotateProteogenomics.R
 \name{annotateGenomicCoordinates}
 \alias{annotateGenomicCoordinates}
-\alias{annotateGenomicCoordinates.traces}
 \alias{annotateGenomicCoordinates.tracesList}
+\alias{annotateGenomicCoordinates.traces}
 \title{Annotate the genomic position of peptides in traces}
 \usage{
 annotateGenomicCoordinates(traces,

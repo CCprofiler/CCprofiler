@@ -27,4 +27,3 @@ plot
 \description{
 Volcano plot for differential expression of peptides, proteins or complexes between 2 conditions
 }
-

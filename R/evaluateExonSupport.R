@@ -3,6 +3,7 @@ getGenomicCoord <- function(id){
   x <- traces$genomic_coord[[id]]
   return(x$exon_id[1])
 }
+
 countMinSwaps <- function(dt){
   if (length(unique(dt$proteoform_id)) == 1) {
     return(0)
@@ -74,7 +75,12 @@ plotRealVsRandomPerProtein <- function(protein,res){
   return(out)
 }
 
-
+#' Evaluate if proteoforms agree with genomic information of exons
+#' @param traces Object of class traces or tracesList.
+#' @param adj.method Character string which p-value adjustment to use.
+#' Default "fdr".
+#' @return Traces with exon evidence p-value per gene
+#' @export
 evaluateExonLocation <- function(traces, adj.method = "fdr"){
   traces$trace_annotation[, n_proteoforms := length(unique(proteoform_id)), by=c("protein_id")]
   proteins_withoutProteoforms <- unique(traces$trace_annotation[n_proteoforms==1]$protein_id)
@@ -100,4 +106,43 @@ evaluateExonLocation <- function(traces, adj.method = "fdr"){
     all.x=T,all.y=F,by=c("protein_id"),sort=F)
   .tracesTest(traces)
   return(traces)
+}
+
+#' Plot peptide clusters by relative sequence position
+#' @param traces Object of class traces or tracesList.
+#' @param protein Character string of protein_id to plot.
+#' @return plot
+#' @export
+plotPeptideCluster <- function(traces,protein){
+  dt <- subset(traces$trace_annotation,protein_id==protein)
+  setkeyv(dt, c("protein_id","PeptidePositionStart"))
+  dt[,PeptidePositionStartRank := seq_len(.N), by="protein_id"]
+  cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7","#756bb1","#1c9099")
+  dt$cluster <- as.factor(dt$cluster)
+  pdf(paste0(protein,"_sequence_cluster.pdf"),width=10,height=3)
+  p <- ggplot(dt,aes(x=PeptidePositionStartRank,
+    y=1,
+    fill=cluster)) +
+    geom_bar(stat="identity") + theme_classic() +
+    theme(axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title= element_blank(),
+          axis.line = element_blank()) +
+    theme(legend.position="bottom") +
+    scale_fill_manual(values=cbPalette) +
+    ggtitle(paste0(protein," : ",unique(dt$Gene_names)))
+  print(p)
+  q <- ggplot(dt,aes(x=PeptidePositionStart,
+    y=1,
+    fill=cluster)) +
+    geom_bar(stat="identity") + theme_classic() +
+    theme(axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title= element_blank(),
+          axis.line = element_blank()) +
+    theme(legend.position="bottom") +
+    scale_fill_manual(values=cbPalette) +
+    ggtitle(paste0(protein," : ",unique(dt$Gene_names)))
+  print(q)
+  dev.off()
 }

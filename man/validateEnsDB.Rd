@@ -9,4 +9,3 @@ validateEnsDB(ensdb)
 \description{
 Validate if the user specified the database correctly
 }
-

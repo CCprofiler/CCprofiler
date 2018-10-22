@@ -25,4 +25,3 @@ The names of the vector must correspond to the ids of the peptides to be plotted
 \description{
 Plot peptides in their genomic context
 }
-

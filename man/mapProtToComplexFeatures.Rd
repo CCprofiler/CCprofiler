@@ -47,4 +47,3 @@ mappedFeatures <- mapProtToComplexFeatures(proteinFeatures,
 # Inspect mapping result:
 mappedFeatures
 }
-

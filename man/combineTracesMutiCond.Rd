@@ -19,4 +19,3 @@ Combine tracesList across conditions to one traces object with all
 the traces of all conditions added as additional fractions for
 peptide clustering across conditions.
 }
-

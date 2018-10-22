@@ -39,4 +39,3 @@ The names of the vector must correspond to the ids of the peptides to be plotted
 \description{
 Plot all chromatograms in a traces object. Most generic plotting function.
 }
-

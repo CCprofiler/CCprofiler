@@ -18,4 +18,3 @@ for the specified geneId will be plotted.}
 \description{
 Plot the known transcripts for a gene of interest
 }
-

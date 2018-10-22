@@ -144,6 +144,7 @@ annotateRelativePepPos.traces <- function(traces, mappingTable, multimatch=c("fi
   if(!("Sequence" %in% names(ann))){
     ann$Sequence <- gsub("\\(.*?\\)", "", ann$id)
   }
+  ann$Sequence <- gsub("\\.?", "", ann$Sequence)
   mappingTable$IsoformId <- gsub("\\|.*", "", gsub(">.*?\\|","", mappingTable$header))
   ## Find protein and align
   matches <- apply(ann, 1, function(pep){

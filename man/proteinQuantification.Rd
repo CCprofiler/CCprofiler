@@ -8,15 +8,16 @@
 \usage{
 proteinQuantification(traces, topN = 2, keep_less = FALSE,
   rm_decoys = TRUE, use_sibPepCorr = FALSE, use_repPepCorr = FALSE,
-  full_intersect_only = FALSE)
+  full_intersect_only = FALSE, quantLevel = "protein_id", verbose = TRUE)
 
 \method{proteinQuantification}{traces}(traces, topN = 2, keep_less = FALSE,
   rm_decoys = TRUE, use_sibPepCorr = FALSE, use_repPepCorr = FALSE,
-  full_intersect_only = FALSE)
+  full_intersect_only = FALSE, quantLevel = "protein_id", verbose = TRUE)
 
 \method{proteinQuantification}{tracesList}(traces, topN = 2,
   keep_less = FALSE, rm_decoys = TRUE, use_sibPepCorr = FALSE,
-  use_repPepCorr = FALSE, full_intersect_only = FALSE)
+  use_repPepCorr = FALSE, full_intersect_only = FALSE,
+  quantLevel = "protein_id", verbose = TRUE)
 }
 \arguments{
 \item{traces}{An object of type traces, trace_type must be peptide.}
@@ -39,6 +40,8 @@ the top N peptides, default is \code{FALSE}. This argument is only used for trac
 \item{full_intersect_only}{Logical, specify if only peptides detected across all traces in tracesList object should
 should be used for quantification. Be aware that this might significantly reduce the number of quantifyable proteins.
 This argument is only used for tracesList objects.}
+
+\item{verbose}{Logical if warning messages should be printed. Default is TRUE.}
 }
 \value{
 An object of type traces, trace_type is protein.
@@ -53,6 +56,7 @@ Calculate protein quantities basen on the topN peptide intensities.
 \item \code{tracesList}: Protein Quantification multiple traces ojects.
 Uses only peptides present in all traces objects for quantification.
 }}
+
 \examples{
 ## Load example data
 pepTraces <- examplePeptideTracesFiltered
@@ -70,4 +74,3 @@ head(protTraces$trace_annotation)
 # The last 2 columns indicate how many peptides could be observed and which were summed for quantification.
 
 }
-

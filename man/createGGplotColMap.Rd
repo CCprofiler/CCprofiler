@@ -11,4 +11,3 @@ createGGplotColMap(ids)
 Create a reproducible color map for a set of ids by ordering
 them alphabetically
 }
-

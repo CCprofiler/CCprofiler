@@ -35,6 +35,7 @@ is set to 0.
 
 \item \code{tracesList}: Find missing values in all traces within a tracesList
 }}
+
 \examples{
 tracesMiss <- findMissingValues(examplePeptideTraces)
 tracesImp <- imputeMissingVals(tracesMiss)
@@ -45,4 +46,3 @@ require(daff)
 render_diff(diff_data(examplePeptideTraces$traces, tracesImp$traces))
 
 }
-

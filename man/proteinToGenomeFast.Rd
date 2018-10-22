@@ -17,4 +17,3 @@ This is an adapted function of the ensembldb package. It speeds up
 calculations by grouping peptides by proteins and only fetching each CDS once per
 protein.
 }
-

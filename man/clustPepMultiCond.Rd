@@ -6,7 +6,8 @@
 \usage{
 clustPepMultiCond(tracesList, tracesListRaw = NULL, method = c("complete",
   "single"), clusterH = 0.5, clusterN = NULL, index = "silhouette",
-  plot = FALSE, PDF = FALSE, name = "hclustMultiCond", ...)
+  nFactorAnalysis = NULL, plot = FALSE, PDF = FALSE,
+  name = "hclustMultiCond", ...)
 }
 \arguments{
 \item{tracesList}{Object of class tracesList.}
@@ -40,4 +41,3 @@ across conditions
 \description{
 Cluster peptides of gene to unique proteoforms across conditions
 }
-

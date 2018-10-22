@@ -4,10 +4,10 @@
 \alias{getMassAssemblyChange}
 \title{getMassAssemblyChange}
 \usage{
-getMassAssemblyChange(tracesList, design_matrix)
+getMassAssemblyChange(tracesList, design_matrix, quantLevel = "protein_id")
 }
 \arguments{
-\item{tracesList}{An object of type traces.list including assembled mass 
+\item{tracesList}{An object of type traces.list including assembled mass
 annotation as produced by \code{annotateMassDistribution}.}
 
 \item{design_matrix}{data.table, design matrix describing the architecture of the tracesList object.}
@@ -15,4 +15,3 @@ annotation as produced by \code{annotateMassDistribution}.}
 \description{
 Estimates change of assembled vs. monomeric mass per id.
 }
-

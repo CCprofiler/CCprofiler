@@ -21,4 +21,3 @@ Numeric, distance of subunit overlap.
 \description{
 Calculate the distance between 2 complex hypotheses.
 }
-

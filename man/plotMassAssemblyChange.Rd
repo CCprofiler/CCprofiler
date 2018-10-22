@@ -4,14 +4,14 @@
 \alias{plotMassAssemblyChange}
 \title{plotMassAssemblyChange between 2 conditions}
 \usage{
-plotMassAssemblyChange(assamblyTest, FC_cutoff = 2,
+plotMassAssemblyChange(assamblyTest, change_cutoff = 0.2,
   name = "massAssemblyChange", PDF = FALSE)
 }
 \arguments{
 \item{assamblyTest}{data.table, a data.table with test statistics.
 An assamblyTest can be produced with \code{getMassAssemblyChange}.}
 
-\item{FC_cutoff}{Numeric fold change cutoff, default is 2.}
+\item{change_cutoff}{Numeric fold change cutoff, default is 0.2.}
 
 \item{name}{character string specifying the name of output if PDF=TRUE, default is "massAssemblyChange".}
 
@@ -23,4 +23,3 @@ plot
 \description{
 plotMassAssemblyChange between 2 conditions
 }
-
