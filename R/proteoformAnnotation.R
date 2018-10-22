@@ -60,10 +60,13 @@ filterByMaxCorr.traces <- function(traces, cutoff = 0.85,
   names(allMaxCorrs) <- gsub(".*\\.", "", names(allMaxCorrs))
   if (plot == TRUE){
     if (PDF) {
-      pdf(paste0(name,".pdf"))
+      pdf(paste0(name,".pdf"),width=3,height=3)
     }
-    hist(allMaxCorrs, breaks = 30)
-    plot(density(allMaxCorrs))
+    p <- ggplot(data.table(maxCorr=allMaxCorrs),
+                aes(x=maxCorr)) +
+                geom_histogram(bins=30) +
+                theme_classic()
+    plot(p)
     if (PDF) {
       dev.off()
     }
@@ -82,7 +85,7 @@ filterByMaxCorr.tracesList <- function(tracesList, cutoff = 0.85,
                         plot = FALSE, PDF=FALSE, name="maxCorrHist", ...) {
 
   .tracesListTest(tracesList)
-  if (PDF) {pdf(paste0(name,".pdf"))}
+  if (PDF) {pdf(paste0(name,".pdf"),width=3,height=3)}
   res <- lapply(tracesList, filterByMaxCorr.traces,
                 cutoff = cutoff,
                 plot = plot, PDF=F, name=name, ...)
@@ -189,9 +192,14 @@ calculateMinCorr.traces <- function(traces,
   minCorrMatrices[,protein_id := names(genePeptideList)]
   if (plot == TRUE) {
     if (PDF) {
-      pdf(paste0(name,".pdf"))
+      pdf(paste0(name,".pdf"),width=3,height=3)
     }
-    hist(minCorrMatrices$mincorr, breaks = 100)
+    p <- ggplot(data.table(minCorr=minCorrMatrices$mincorr),
+                aes(x=minCorr)) +
+                geom_histogram(bins=30) +
+                theme_classic()
+    plot(p)
+    #hist(minCorrMatrices$mincorr, breaks = 100)
     if (PDF) {
       dev.off()
     }
@@ -301,10 +309,20 @@ estimateProteoformPval.traces <- function(traces,
   pval_adj <- p.adjust(pval, adj.method)
   if (plot == TRUE) {
     if (PDF) {
-      pdf(paste0(name,".pdf"))
+      pdf(paste0(name,".pdf"),width=3,height=3)
     }
-    hist(pval, breaks = 50)
-    hist(pval_adj, breaks = 100)
+    p <- ggplot(data.table(p_value=pval),
+                aes(x=p_value)) +
+                geom_histogram(bins=50) +
+                theme_classic()
+    plot(p)
+    q <- ggplot(data.table(adj_p_value=pval_adj),
+                aes(x=adj_p_value)) +
+                geom_histogram(bins=50) +
+                theme_classic()
+    plot(p)
+    #hist(pval, breaks = 50)
+    #hist(pval_adj, breaks = 100)
     if (PDF) {
       dev.off()
     }
@@ -351,6 +369,7 @@ estimateProteoformPval.tracesList <- function(tracesList,
 clusterPeptides <- function(traces,
                     method = c("complete","single"), clusterH = 0.5,
                     clusterN = NULL, index = "silhouette",
+                    nFactorAnalysis = NULL,
                     plot = FALSE, PDF=FALSE, name="hclust", ...) {
   UseMethod("clusterPeptides", traces)
 }
@@ -360,10 +379,11 @@ clusterPeptides <- function(traces,
 clusterPeptides.traces <- function(traces,
                     method = c("complete","single"), clusterH = 0.5,
                     clusterN = NULL, index = "silhouette",
+                    nFactorAnalysis = NULL,
                     plot = FALSE, PDF=FALSE, name="hclust", ...) {
   method <- match.arg(method)
   if (PDF) {
-    pdf(paste0(name,".pdf"))
+    pdf(paste0(name,".pdf"),width=3,height=3)
   }
   genePeptideList <- getGenePepList(traces)
   idx <- seq_along(genePeptideList)
@@ -373,16 +393,36 @@ clusterPeptides.traces <- function(traces,
     genecorr <- cor(gene)
     if (is.null(clusterH)) {
       if (is.null(clusterN)) {
-        nbClust_res <- NbClust(data=genecorr, diss=as.dist(1-genecorr),
-        distance = NULL, min.nc=2,
-        max.nc=min(4,nrow(genecorr)-1)[1],method = method, index = index)
-        clusterN <- nbClust_res$Best.nc[1]
+        if (is.null(nFactorAnalysis)){
+          nbClust_res <- NbClust(data=genecorr, diss=as.dist(1-genecorr),
+          distance = NULL, min.nc=2,
+          max.nc=min(4,nrow(genecorr)-1)[1],method = method, index = index)
+          clusterN <- nbClust_res$Best.nc[1]
+        }else{
+          ev <- eigen(genecorr) # get eigenvalues
+          ap <- parallel(subject=nrow(gene),var=ncol(gene),
+            rep=100,cent=.05)
+          if(length(ev$values) > 2) {
+            nS <- nScree(x=ev$values, aparallel=ap$eigen$qevpea)
+            #pdf(paste0(gene_name,"nFactors.pdf"))
+            #  plotnScree(nS)
+            #dev.off()
+            clusterN <- nS$Components$nparallel
+          } else {
+            clusterN <- 1
+          }
+        }
       }
     }
     cl <- hclust(as.dist(1-genecorr), method)
     if (plot == TRUE) {
       #plot(cl, labels = FALSE)
-      plot(as.dendrogram(cl), ylim = c(0,1))
+      #plot(as.dendrogram(cl), ylim = c(0,1), cex=0.5)
+      par(cex=0.3, mar=c(18, 5, 5, 1))
+      plot(as.dendrogram(cl), ylim = c(0,1), xlab="", ylab="", main="", sub="", axes=FALSE)
+      par(cex=1)
+      title(xlab="", ylab="", main=gene_name)
+      axis(2)
     }
     groups <- cutree(cl, k = clusterN, h = clusterH)
     groupsDT <- data.table(id=names(groups),cluster=groups,protein_id=gene_name,
@@ -406,13 +446,15 @@ clusterPeptides.traces <- function(traces,
 clusterPeptides.tracesList <- function(tracesList,
                     method = c("complete","single"), clusterH = 0.5,
                     clusterN = NULL, index = "silhouette",
+                    nFactorAnalysis = NULL,
                     plot = FALSE, PDF=FALSE, name="hclust", ...) {
 
   .tracesListTest(tracesList)
-  if (PDF) {pdf(paste0(name,".pdf"))}
+  if (PDF) {pdf(paste0(name,".pdf"),width=3,height=3)}
   res <- lapply(tracesList, clusterPeptides.traces,
                         method = method, clusterH = clusterH,
                         clusterN = clusterN, index = index,
+                        nFactorAnalysis = nFactorAnalysis,
                         plot = plot, PDF=F, name=name, ...)
   if (PDF) {dev.off()}
   class(res) <- "tracesList"
@@ -521,6 +563,7 @@ combineTracesMutiCond <- function(tracesList){
 clustPepMultiCond <- function(tracesList, tracesListRaw=NULL,
                     method = c("complete","single"), clusterH = 0.5,
                     clusterN = NULL, index = "silhouette",
+                    nFactorAnalysis = NULL,
                     plot = FALSE, PDF=FALSE, name="hclustMultiCond", ...) {
   .tracesListTest(tracesList)
   method <- match.arg(method)
@@ -533,6 +576,7 @@ clustPepMultiCond <- function(tracesList, tracesListRaw=NULL,
   clustered_traces <- clusterPeptides(traces,
                       method = method, clusterH = clusterH,
                       clusterN = clusterN, index = index,
+                      nFactorAnalysis = nFactorAnalysis,
                       plot = plot, PDF=PDF, name=name)
   clust_info <- subset(clustered_traces$trace_annotation,
                   select=c("id","protein_id","cluster","proteoform_id"))

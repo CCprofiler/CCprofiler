@@ -49,7 +49,7 @@ evaluateExonSupport <- function(traces,n_random=1000,seed=123){
 
 plotRealVsRandomSwaps <- function(res){
   proteins <- names(res)
-  pdf(paste0("RandomSwaps.pdf"))
+  pdf(paste0("RandomSwaps.pdf"),width=3,height=3)
   res <- lapply(proteins,plotRealVsRandomPerProtein,res=res)
   dev.off()
   out <- do.call(rbind,res)
@@ -64,7 +64,7 @@ plotRealVsRandomPerProtein <- function(protein,res){
   p_rand <- 1/n_rand_total*n_rand_smallerReal
   dt <- data.table(random=random)
   p <- ggplot(dt,aes(x=random)) +
-    geom_histogram(bins=30) +
+    geom_histogram(binwidth = 1) +
     geom_vline(xintercept = real, colour="red") +
     theme_classic() +
     ggtitle(paste0(protein,
@@ -85,12 +85,14 @@ evaluateExonLocation <- function(traces, adj.method = "fdr"){
   exonStats <- plotRealVsRandomSwaps(exonRes)
   exonStats$exon_pval_adj <- p.adjust(exonStats$exon_pval, adj.method)
 
-  pdf("RealVsRandomSwaps_hist.pdf")
+  pdf("RealVsRandomSwaps_hist.pdf",width=3,height=3)
     p <- ggplot(exonStats,aes(x=exon_pval)) +
-    geom_histogram(bins=100)
+    geom_histogram(bins=50)+
+    theme_classic()
     print(p)
     q <- ggplot(exonStats,aes(x=exon_pval_adj)) +
-    geom_histogram(bins=100)
+    geom_histogram(bins=50)+
+    theme_classic()
     print(q)
   dev.off()
 
