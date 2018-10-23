@@ -26,3 +26,4 @@ Summarize a traces object to get an overview.
 \examples{
 summary(examplePeptideTracesFiltered)
 }
+

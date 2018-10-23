@@ -33,3 +33,4 @@ binaryInteractions <- generateBinaryNetwork(complex_hypotheses = complexHypothes
 shortestPaths <- calculatePathlength(binaryInteractions)
 
 }
+

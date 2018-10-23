@@ -22,3 +22,4 @@ traces object that is shifted by the specified fractions.
 \description{
 Shift a traces object by n fractions
 }
+

@@ -46,3 +46,4 @@ gridStats # see function \\code{\\link{estimateGridSearchDecoyFDR}} to see how t
 plotIdFDRspace(gridStats, PDF = F, colour_parameter = "min_peak_corr")
 
 }
+

@@ -4,10 +4,10 @@
 \alias{plot.tracesList}
 \title{Plot traces}
 \usage{
-plot.tracesList(traces, design_matrix = NULL, collapse_conditions = FALSE,
-  log = FALSE, legend = TRUE, PDF = FALSE, name = "Traces",
-  plot = TRUE, isoformAnnotation = FALSE, highlight = NULL,
-  highlight_col = NULL, colorMap = NULL)
+\method{plot}{tracesList}(traces, design_matrix = NULL,
+  collapse_conditions = FALSE, log = FALSE, legend = TRUE, PDF = FALSE,
+  name = "Traces", plot = TRUE, isoformAnnotation = FALSE,
+  highlight = NULL, highlight_col = NULL, colorMap = NULL)
 }
 \arguments{
 \item{traces}{Object of class traces.}
@@ -39,3 +39,4 @@ The names of the vector must correspond to the ids of the peptides to be plotted
 \description{
 Plot all chromatograms in a traces object. Most generic plotting function.
 }
+

@@ -15,3 +15,4 @@ data.table with complex or protein features including an extra coelution_score c
 \description{
 Calculate coelution score for all detected features.
 }
+

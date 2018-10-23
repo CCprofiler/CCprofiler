@@ -28,3 +28,4 @@ gridStats # see function \\code{\\link{estimateGridSearchDecoyFDR}} to see how t
 getBestParameterStats(gridStats)
 
 }
+

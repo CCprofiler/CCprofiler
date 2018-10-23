@@ -75,3 +75,4 @@ An object of type \code{complexFeaturesAnnotated} that is a list
 A helper function to extend a list of complex features with additional
 information.
 }
+

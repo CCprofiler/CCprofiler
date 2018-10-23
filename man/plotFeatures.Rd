@@ -72,3 +72,4 @@ plotFeatures(feature_table = featureTable,
                      legend = FALSE)
 
 }
+

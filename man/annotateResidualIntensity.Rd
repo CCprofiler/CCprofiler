@@ -9,3 +9,4 @@ annotateResidualIntensity(traces)
 \description{
 Calculate loess residuals
 }
+

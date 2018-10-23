@@ -54,3 +54,4 @@ gridList <- performProteinGridSearch(traces = peptideTraces,
  
 lapply(gridList, head, n = 2)
 }
+

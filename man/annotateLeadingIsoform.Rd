@@ -2,8 +2,8 @@
 % Please edit documentation in R/annotateProteogenomics.R
 \name{annotateLeadingIsoform}
 \alias{annotateLeadingIsoform}
-\alias{annotateLeadingIsoform.tracesList}
 \alias{annotateLeadingIsoform.traces}
+\alias{annotateLeadingIsoform.tracesList}
 \title{Find the leading Isoform for each peptide}
 \usage{
 annotateLeadingIsoform(traces, isoform_col = "isoform_id",

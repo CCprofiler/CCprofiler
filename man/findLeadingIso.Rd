@@ -21,3 +21,4 @@ Convert a presence matrix of isoform annotations to a vector of leading Isoforms
 Applies a maximum parsimony approach, where the least number of isoforms
 are used to explain a peptide.
 }
+

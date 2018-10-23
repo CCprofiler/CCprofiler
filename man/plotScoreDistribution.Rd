@@ -16,3 +16,4 @@ plotScoreDistribution(features, PDF = TRUE, name = "scoreDistribution")
 \description{
 plotScoreDistribution
 }
+

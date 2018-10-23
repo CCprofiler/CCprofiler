@@ -38,7 +38,6 @@ This only applies to specific fractionation strategies e.g. SEC)
 
 \item \code{tracesList}: Annotate tracesList object
 }}
-
 \examples{
 # Load relevant data:
 inputTraces <- examplePeptideTraces
@@ -48,3 +47,4 @@ calibration = calibrateMW(calibrationTable)
 # Perform molecular weight annotation:
 mwTraces <- annotateMolecularWeight(inputTraces, calibration)
 }
+
