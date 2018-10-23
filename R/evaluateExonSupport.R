@@ -1,5 +1,5 @@
 
-getGenomicCoord <- function(id){
+getGenomicCoord <- function(id,traces){
   x <- traces$genomic_coord[[id]]
   return(x$exon_id[1])
 }
@@ -15,7 +15,7 @@ countMinSwaps <- function(dt){
 }
 
 evaluateExonSupport <- function(traces,n_random=1000,seed=123){
-  traces$trace_annotation[,exon_id:=lapply(id,getGenomicCoord), by="id"]
+  traces$trace_annotation[,exon_id:=lapply(id,getGenomicCoord, traces=traces), by="id"]
   proteins <- unique(traces$trace_annotation$protein_id)
   res_prot <- lapply(proteins, function(p){
     traces_sub <- subset(traces,trace_subset_ids=p,trace_subset_type="protein_id")
