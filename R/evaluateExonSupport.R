@@ -43,7 +43,8 @@ evaluateExonSupport <- function(traces,n_random=1000,seed=123){
   final_res <- lapply(res_prot,function(l){
     sum_observed <- sum(unlist(lapply(l, `[[`, 1)))
     sum_random <- rowSums(as.data.table(lapply(l, `[[`, 2)))
-    return(list(observed=sum_observed,random=sum_random))
+    nExons <- length(l)
+    return(list(observed=sum_observed,random=sum_random,nExons=nExons))
   })
   return(final_res)
 }
@@ -63,6 +64,7 @@ plotRealVsRandomPerProtein <- function(protein,res){
   n_rand_total <- length(random)
   n_rand_smallerReal <- length(which(random <= real))
   p_rand <- 1/n_rand_total*n_rand_smallerReal
+  nExons <- res[[protein]]$nExons
   dt <- data.table(random=random)
   p <- ggplot(dt,aes(x=random)) +
     geom_histogram(binwidth = 1) +
@@ -71,7 +73,7 @@ plotRealVsRandomPerProtein <- function(protein,res){
     ggtitle(paste0(protein,
       "\n p-rand = ",p_rand))
   print(p)
-  out <- data.table(protein_id=protein,exon_pval=p_rand,nExonMistakes=real)
+  out <- data.table(protein_id=protein,exon_pval=p_rand,nExonMistakes=real,nExons=nExons)
   return(out)
 }
 
