@@ -243,7 +243,7 @@ calculateMinCorr.tracesList <- function(tracesList,
 #' @export
 fitGammaDist <- function(traces, prot_names = NULL, distr = "gamma",
                       split_value = 0.2, plot = FALSE,
-                      PDF=FALSE, name="GammaFitted") {
+                      PDF=FALSE, name="GammaFitted",...) {
   if (!is.null(prot_names)){
     traces <- subset(traces,
       trace_subset_ids=prot_names,trace_subset_type="protein_id")
@@ -300,7 +300,7 @@ estimateProteoformPval.traces <- function(traces,
     traces <- calculateMinCorr(traces, plot = F, PDF=F)
   }
   mincorrs <- traces$trace_annotation$mincorr
-  distr_fitted <- fitGammaDist(traces, plot=plot, PDF=PDF)
+  distr_fitted <- fitGammaDist(traces, plot=plot, PDF=PDF,...)
   # here we use pgamma directly in the function for our gamma distr example,
   # if we want to use other distr, we need a general way to represent
   # all ditribution, e.g., "p + distr abbr."
