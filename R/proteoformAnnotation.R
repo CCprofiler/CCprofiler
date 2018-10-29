@@ -397,7 +397,8 @@ clusterPeptides.traces <- function(traces,
           nbClust_res <- NbClust(data=genecorr, diss=as.dist(1-genecorr),
           distance = NULL, min.nc=2,
           max.nc=min(4,nrow(genecorr)-1)[1],method = method, index = index)
-          clusterN <- nbClust_res$Best.nc[1]
+          # clusterN <- nbClust_res$Best.nc[1] 
+          clusterN <- length(unique(nbClust_res$Best.partition))
         }else{
           ev <- eigen(genecorr) # get eigenvalues
           ap <- parallel(subject=nrow(gene),var=ncol(gene),
