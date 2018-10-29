@@ -197,12 +197,12 @@ proteinQuantification.traces <- function(traces,
 #' @export
 
 proteinQuantification.tracesList <- function(traces,
-                                         topN = 2,
-                                         keep_less = FALSE,
-                                         rm_decoys = TRUE,
-                                         use_sibPepCorr = FALSE,
-                                         use_repPepCorr = FALSE,
-                                         full_intersect_only = FALSE){
+                                             topN = 2,
+                                             keep_less = FALSE,
+                                             rm_decoys = TRUE,
+                                             use_sibPepCorr = FALSE,
+                                             use_repPepCorr = FALSE,
+                                             full_intersect_only = FALSE){
   .tracesListTest(traces, type = "peptide")
 
   if (full_intersect_only == TRUE) {
@@ -213,10 +213,17 @@ proteinQuantification.tracesList <- function(traces,
   }
 
   traces_integrated <- integrateTraceIntensities(traces_subs, aggr_corr_fun = "sum")
+
+  ## Check if SibPepCorr and RepPepCorr are calculated, set to 1 otherwhise
   if (is.null(traces_integrated$trace_annotation$sumRepPepCorr)) {
     traces_integrated$trace_annotation$sumRepPepCorr = 1
-    message("No RepPepCorr found. RepPepCorr was set to 1 for all peptides.")
+    message("No sumRepPepCorr found. RepPepCorr was set to 1 for all peptides.")
   }
+  if (is.null(traces_integrated$trace_annotation$sumSibPepCorr)) {
+    traces_integrated$trace_annotation$sumSibPepCorr = 1
+    message("No sumSibPepCorr found. sumSibPepCorr was set to 1 for all peptides.")
+  }
+
   peptideTracesTable <- data.table(protein_id = traces_integrated$trace_annotation$protein_id,
                                    peptide_id = traces_integrated$trace_annotation$id,
                                    SibPepCorr = round(traces_integrated$trace_annotation$sumSibPepCorr,digits=1),
