@@ -91,7 +91,13 @@ evaluateExonLocation <- function(traces, adj.method = "fdr"){
 
   exonRes <- evaluateExonSupport(traces_toTest)
   exonStats <- plotRealVsRandomSwaps(exonRes)
+  # remove results for proteins with nExons < n_peptides-1
+  nPeps <- unique(subset(traces$trace_annotation,select=c("protein_id","n_peptides")))
+  exonStats <- merge(exonStats, nPeps,
+    all.x=T,all.y=F,by=c("protein_id"),sort=F)
+  exonStats <- subset(exonStats, nExons < n_peptides-1)
   exonStats$exon_pval_adj <- p.adjust(exonStats$exon_pval, adj.method)
+  exonStats[,n_peptides:=NULL]
 
   pdf("RealVsRandomSwaps_hist.pdf",width=3,height=3)
     p <- ggplot(exonStats,aes(x=exon_pval)) +
