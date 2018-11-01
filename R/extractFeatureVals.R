@@ -8,6 +8,7 @@
 #' @param verbose Logical, whether to print messages to console.
 #' @param extract Character string, name ot the feature table column containing the subunits to extract.
 #' @param imputeZero Logical, whether zero values of a fraction within a feature should be imputed, default = FALSE.
+#' @param minValues data.table with minimum values for each peptide, default=NULL.
 #' @return Long format table containing extracted feature values.
 #' @export
 
@@ -16,7 +17,8 @@ extractFeatureVals <- function(traces, features,
                                verbose = TRUE,
                                extract = "subunits_detected",
                                imputeZero = FALSE,
-                               fill = FALSE, ...){
+                               fill = FALSE,
+                               minValues = NULL, ...){
   UseMethod("extractFeatureVals", traces)
 }
 
@@ -27,7 +29,8 @@ extractFeatureVals.traces <- function(traces, features,
                                perturb_cutoff = "5%",
                                verbose = TRUE,
                                extract = "subunits_detected",
-                               imputeZero = FALSE, ...){
+                               imputeZero = FALSE,
+                               minValues = NULL, ...){
 
   if(!is.data.table(features)){
     stop("features must be of type 'data.table'")
@@ -79,14 +82,29 @@ extractFeatureVals.traces <- function(traces, features,
   traceMat <- getIntensityMatrix(traces)
   # Impute noise for missing intensity measurements globally for all traces
   traceMatImputed <- copy(traceMat)
-  nZero <- sum(traceMatImputed == 0) # number of ZERO values in matrix
-  measuredVals <- traceMatImputed[traceMatImputed != 0]
-  if(class(perturb_cutoff) == "character"){
-    qt <- as.numeric(gsub("%","",perturb_cutoff))/100
-    perturb_cutoff <- quantile(measuredVals, qt)
+
+  if(is.null(minValues)) {
+    nZero <- sum(traceMatImputed == 0) # number of ZERO values in matrix
+    measuredVals <- traceMatImputed[traceMatImputed != 0]
+    if(class(perturb_cutoff) == "character"){
+      qt <- as.numeric(gsub("%","",perturb_cutoff))/100
+      perturb_cutoff <- quantile(measuredVals, qt)
+    }
+    set.seed(123) # set seed to always get same results
+    traceMatImputed[traceMatImputed == 0] <- runif(min = 0, max = perturb_cutoff, nZero)
+  } else {
+    ids <- rownames(traceMatImputed)
+    res <- lapply(ids,function(x){
+      y <- traceMatImputed[x,]
+      nZero <- sum(y == 0)
+      min_value <- minValues[id==x]$min_total
+      y[y==0] <- runif(min = 0, max = min_value, nZero)
+      y
+    })
+    res <- do.call(rbind,res)
+    rownames(res) <- ids
+    traceMatImputed <- res
   }
-  set.seed(123) # set seed to always get same results
-  traceMatImputed[traceMatImputed == 0] <- runif(min = 0, max = perturb_cutoff, nZero)
 
   # Calculate correlation in Peak boundaries for every detected trace
 
@@ -151,6 +169,7 @@ extractFeatureVals.traces <- function(traces, features,
         corrSubunits = rep(NA, nSubunits)
       }
         intensities <- rowSums(tracesFeature)
+        intensities_imputed <- rowSums(tracesFeatureImputed)
         rank <- rank(intensities)
         totalIntensity <- sum(intensities)
         totalTop2Intensity <- sum(sort(intensities, decreasing = T)[1:2])
@@ -166,6 +185,7 @@ extractFeatureVals.traces <- function(traces, features,
       pkcorr <- NA
       corrSubunits = NA
       intensities <- sum(tracesFeature)
+      intensities_imputed <- rowSums(tracesFeatureImputed)
       rank <- 1
       totalIntensity <- intensities
       totalTop2Intensity <- NA
@@ -183,26 +203,26 @@ extractFeatureVals.traces <- function(traces, features,
     if (tracesType=="peptide"){
       if (complexLevel){
         info_cols <- c("id","feature_id", "complex_id", "apex", "bound_left", "bound_right",
-                       "corr","peak_cor", "peak_cor_detected", "total_pep_intensity", "total_complex_intensity",
+                       "corr","peak_cor", "peak_cor_detected", "total_pep_intensity", "total_pep_intensity_imputed", "total_complex_intensity",
                        "total_top2_complex_intensity", "global_intensity", "global_intensity_imputed")
         prot_id <- unlist(lapply(subunitsUnion,function(x){pepProtMap[pep_id==x]$prot_id}))
         res <- res[, (info_cols) := .(subunitsUnion, prot_id, id, apex, bound_left, bound_right, corrSubunits,
-                                      pk, pkcorr, intensities, totalIntensity, totalTop2Intensity,
+                                      pk, pkcorr, intensities, intensities_imputed, totalIntensity, totalTop2Intensity,
                                       globalIntensity, globalIntensityImputed)]
       } else {
         info_cols <- c("id","feature_id", "apex", "bound_left", "bound_right",
-                       "corr","peak_cor", "peak_cor_detected", "total_pep_intensity", "total_prot_intensity",
+                       "corr","peak_cor", "peak_cor_detected", "total_pep_intensity", "total_pep_intensity_imputed", "total_prot_intensity",
                        "total_top2_prot_intensity", "global_intensity", "global_intensity_imputed")
         res <- res[, (info_cols) := .(subunitsUnion, id, apex, bound_left, bound_right, corrSubunits,
-                                      pk, pkcorr, intensities, totalIntensity, totalTop2Intensity,
+                                      pk, pkcorr, intensities, intensities_imputed, totalIntensity, totalTop2Intensity,
                                       globalIntensity, globalIntensityImputed)]
       }
     } else {
       info_cols <- c("id","feature_id", "apex", "bound_left", "bound_right",
-                     "corr","peak_cor", "peak_cor_detected", "total_prot_intensity", "total_complex_intensity",
+                     "corr","peak_cor", "peak_cor_detected", "total_prot_intensity", "total_prot_intensity_imputed", "total_complex_intensity",
                      "total_top2_complex_intensity", "global_intensity", "global_intensity_imputed")
       res <- res[, (info_cols) := .(subunitsUnion, id, apex, bound_left, bound_right, corrSubunits,
-                                    pk, pkcorr, intensities, totalIntensity, totalTop2Intensity,
+                                    pk, pkcorr, intensities, intensities_imputed, totalIntensity, totalTop2Intensity,
                                     globalIntensity, globalIntensityImputed)]
     }
     resLong <- melt(res, id.vars = info_cols, variable.name = "fraction", value.name = "intensity")
@@ -253,7 +273,21 @@ extractFeatureVals.tracesList <- function(traces, features,
                                       design_matrix = NULL,
                                       extract = "subunits_detected",
                                       imputeZero = FALSE,
-                                      fill = FALSE, ...){
+                                      fill = FALSE,
+                                      minValues = NULL, ...){
+
+  if (is.null(minValues)){
+    traceMat_list <- lapply(traces, getIntensityMatrix)
+    traceMat_list_dt <- lapply(traceMat_list,as.data.table,keep.rownames = "id")
+    traceMat_list_dt <- lapply(traceMat_list_dt,function(x){x[x == 0] <- NA; x})
+    traceMat_list_dt <- lapply(traceMat_list_dt,function(x){x[, mini := min(.SD,na.rm=T), by = "id"]})
+    traceMat_min <- lapply(traceMat_list_dt,function(x){subset(x,select=c("id","mini"))})
+    traceMat_min_dt <- do.call(rbind,traceMat_min)
+    traceMat_min_dt[,min_total:=min(mini),by="id"]
+    traceMat_min_dt <- unique(traceMat_min_dt[,mini:=NULL])
+    minValues <- traceMat_min_dt
+  }
+
   res <- lapply(names(traces), function(tr){
     message(paste0("Extracting values from ", tr))
     vals <- extractFeatureVals.traces(traces[[tr]],
@@ -261,7 +295,8 @@ extractFeatureVals.tracesList <- function(traces, features,
                                       perturb_cutoff = perturb_cutoff,
                                       verbose = verbose,
                                       extract = extract,
-                                      imputeZero = imputeZero)
+                                      imputeZero = imputeZero,
+                                      minValues = minValues)
     vals[,Sample := tr]
     return(vals)
   })
