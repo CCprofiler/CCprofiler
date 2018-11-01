@@ -52,18 +52,18 @@ testGlobalDifferentialExpression <- function(traces,design_matrix=NULL){
   mock_features_DiffExprProtein <- aggregatePeptideTests(mock_features_DiffExprPep)
 
   diffProteins <- subset(mock_features_DiffExprProtein,select=c("feature_id","pVal","global_int1_imp","global_int2_imp","global_sumLog2FC_imp","pBHadj","qVal"))
-  setnames(diffProteins,"feature_id","protein_id")
+  setnames(diffProteins,c("feature_id","global_sumLog2FC_imp"),c("protein_id","sumLog2FC"))
 
   if("proteoform_id" %in% names(traces[[1]]$trace_annotation)) {
     diffPeptides <- subset(mock_features_DiffExprPep,select=c("id","feature_id","proteoform_id","pVal","global_int1_imp","global_int2_imp","global_log2FC_imp","pBHadj","qVal"))
-    setnames(diffPeptides,"feature_id","protein_id")
+    setnames(diffPeptides,c("feature_id","global_log2FC_imp"),c("protein_id","log2FC"))
     mock_features_DiffExprProteoform <- aggregatePeptideTestsToProteoform(mock_features_DiffExprPep)
     diffProteoforms <- subset(mock_features_DiffExprProteoform,select=c("proteoform_id","feature_id","pVal","global_int1_imp","global_int2_imp","global_sumLog2FC_imp","pBHadj","qVal"))
-    setnames(diffProteoforms,"feature_id","protein_id")
+    setnames(diffProteoforms,c("feature_id","global_sumLog2FC_imp"),c("protein_id","sumLog2FC"))
     return(list(diffPeptides=diffPeptides,diffProteins=diffProteins,diffProteoforms=diffProteoforms))
   } else {
     diffPeptides <- subset(mock_features_DiffExprPep,select=c("id","feature_id","pVal","global_int1_imp","global_int2_imp","global_log2FC_imp","pBHadj","qVal"))
-    setnames(diffProteins,"feature_id","protein_id")
+    setnames(diffPeptides,c("feature_id","global_log2FC_imp"),c("protein_id","log2FC"))
     return(list(diffPeptides=diffPeptides,diffProteins=diffProteins))
   }
 }

@@ -414,6 +414,10 @@ plotVolcano <- function(testResults, highlight=NULL, FC_cutoff=2, pBHadj_cutoff=
       sub <- subset(testResults,feature_id %in% highlight)
     } else if ("complex_id" %in% names(testResults)) {
       sub <- subset(testResults,complex_id %in% highlight)
+    } else if (highlight %in% testResults$protein_id) {
+      sub <- subset(testResults,protein_id %in% highlight)
+    } else if (highlight %in% testResults$proteoform_id) {
+      sub <- subset(testResults,proteoform_id %in% highlight)
     } else {
       stop("The testResults do not have the proper format. Input should be the result from testDifferentialExpression.")
     }
