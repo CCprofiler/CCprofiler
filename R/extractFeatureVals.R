@@ -236,6 +236,12 @@ extractFeatureVals.traces <- function(traces, features,
   } else {
     featureVals[, imputedFraction := FALSE]
   }
+
+  if ("proteoform_id" %in% names(traces$trace_annotation)) {
+    proteoform_ann <- subset(traces$trace_annotation,select=c("id","proteoform_id"))
+    featureVals <- merge(featureVals,proteoform_ann,by=c("id"),all.x=T,all.y=F,sort=F)
+  }
+
   return(featureVals)
 }
 
@@ -305,13 +311,25 @@ fillFeatureVals <- function(featureVals,
   n_samples <- length(samples)
   fv <- copy(featureVals)
   if ("complex_id" %in% names(fv)) {
-    key_v <- c("id", "feature_id", "complex_id", "apex", "fraction", "bound_left", "bound_right", "Sample")
-    setkeyv(fv, key_v)
-    complete_table <- unique(fv[, .(id, feature_id, complex_id, apex, fraction, bound_left, bound_right)])
+    if ("proteoform_id" %in% names(fv)) {
+      key_v <- c("id", "feature_id", "proteoform_id", "complex_id", "apex", "fraction", "bound_left", "bound_right", "Sample")
+      setkeyv(fv, key_v)
+      complete_table <- unique(fv[, .(id, feature_id, proteoform_id, complex_id, apex, fraction, bound_left, bound_right)])
+    } else {
+      key_v <- c("id", "feature_id", "complex_id", "apex", "fraction", "bound_left", "bound_right", "Sample")
+      setkeyv(fv, key_v)
+      complete_table <- unique(fv[, .(id, feature_id, complex_id, apex, fraction, bound_left, bound_right)])
+    }
   } else {
-    key_v <- c("id", "feature_id", "apex", "fraction", "bound_left", "bound_right", "Sample")
-    setkeyv(fv, key_v)
-    complete_table <- unique(fv[, .(id, feature_id, apex, fraction, bound_left, bound_right)])
+    if ("proteoform_id" %in% names(fv)) {
+      key_v <- c("id", "feature_id", "proteoform_id", "apex", "fraction", "bound_left", "bound_right", "Sample")
+      setkeyv(fv, key_v)
+      complete_table <- unique(fv[, .(id, feature_id, proteoform_id, apex, fraction, bound_left, bound_right)])
+    } else {
+      key_v <- c("id", "feature_id", "apex", "fraction", "bound_left", "bound_right", "Sample")
+      setkeyv(fv, key_v)
+      complete_table <- unique(fv[, .(id, feature_id, apex, fraction, bound_left, bound_right)])
+    }
   }
 
   # complete_table_ <- apply(complete_table, 1, function(x) cbind(rbind(rep(x, n_samples)), samples))

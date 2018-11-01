@@ -11,7 +11,7 @@
 #' @export
 testDifferentialExpression <- function(featureVals,
                                        compare_between = "Condition",
-                                       level = c("protein","peptide","complex"),
+                                       level = c("protein","proteoform","peptide","complex"),
                                        measuredOnly = TRUE){
   level <- match.arg(level)
   featVals <- copy(featureVals)
@@ -94,11 +94,20 @@ testDifferentialExpression <- function(featureVals,
   tests[is.na(log2FC) & (int1 == 0 | int2  == 0) & (meanDiff > 0)]$log2FC <- Inf
   tests[is.na(log2FC) & (int1 == 0 | int2  == 0) & (meanDiff < 0)]$log2FC <- -Inf
 
+  if ("proteoform_id" %in% names(featVals)) {
+    proteoform_ann <- unique(subset(featVals,select=c("id","proteoform_id")))
+    tests <- merge(tests,proteoform_ann,by=c("id"),all.x=T,all.y=F,sort=F)
+  }
+
   if(level == "peptide"){
     tests$pBHadj <- p.adjust(tests$pVal, method = "BH")
     pQv <- qvalue::qvalue(tests$pVal, lambda = 0.4)
     tests$qVal <- pQv$qvalues
     return(tests)
+  } else if (level == "proteoform") {
+    message("Aggregating to proteoform-level...")
+    proteoformtests <- aggregatePeptideTestsToProteoform(tests)
+    return(proteoformtests)
   } else if (level == "protein") {
     message("Aggregating to protein-level...")
     prottests <- aggregatePeptideTests(tests)
@@ -136,14 +145,23 @@ aggregateProteinTests <- function(tests){
   return(aggregated)
 }
 
+aggregatePeptideTestsToProteoform <- function(tests){
+  aggregated <- aggregateTests(tests,level="proteoform")
+  return(aggregated)
+}
+
+
+
 aggregateTests <- function(tests,level){
   medianPval <- getFCadjustedMedian(tests, level=level)
   if (level == "protein") {
     medianPval[, pVal := pbeta(medianPVal, Npeptides/2 + 0.5, Npeptides - (Npeptides/2 + 0.5) + 1)]
+  } else if (level == "proteoform") {
+    medianPval[, pVal := pbeta(medianPVal, Npeptides/2 + 0.5, Npeptides - (Npeptides/2 + 0.5) + 1)]
   } else if (level == "complex") {
     medianPval[, pVal := pbeta(medianPVal, Nproteins/2 + 0.5, Nproteins - (Nproteins/2 + 0.5) + 1)]
   } else {
-    stop("Test level must be protein or complex.")
+    stop("Test level must be protein, proteoform or complex.")
   }
   qv <- qvalue::qvalue(medianPval$pVal, lambda = 0.4)
   medianPval$qVal <- qv$qvalues
@@ -217,6 +235,50 @@ getFCadjustedMedian <- function(tests,level){
     local_vs_global_log2FC_imp = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)))
     )},
     by = .(complex_id, apex)]
+  } else if (level == "proteoform") {
+    test[, FCpVal := (1-pVal) * sign(log2FC)]
+    if ("complex_id" %in% names(test)) {
+      medianPval <- test[ ,{mPval = median(FCpVal,na.rm=T)
+      .(medianPVal = 1-(mPval * sign(mPval)),
+      Npeptides = .N,
+      medianLog2FC = median(log2FC,na.rm=T),
+      medianTstat = median(Tstat),
+      medianMeanDiff = median(meanDiff),
+      qint1 = sum(qint1,na.rm=T),
+      qint2 = sum(qint2,na.rm=T),
+      sumLog2FC = log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)),
+      global_int1 = sum(global_int1,na.rm=T),
+      global_int2 = sum(global_int2,na.rm=T),
+      global_sumLog2FC = log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T)),
+      global_int1_imp = sum(global_int1_imp,na.rm=T),
+      global_int2_imp = sum(global_int2_imp,na.rm=T),
+      global_sumLog2FC_imp = log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)),
+      local_vs_global_log2FC = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T))),
+      local_vs_global_log2FC_imp = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)))
+      )},
+      by = .(feature_id, proteoform_id, complex_id, apex)]
+    } else {
+      medianPval <- test[ ,{mPval = median(FCpVal,na.rm=T)
+      .(medianPVal = 1-(mPval * sign(mPval)),
+      Npeptides = .N,
+      medianLog2FC = median(log2FC,na.rm=T),
+      medianTstat = median(Tstat),
+      medianMeanDiff = median(meanDiff),
+      qint1 = sum(qint1,na.rm=T),
+      qint2 = sum(qint2,na.rm=T),
+      sumLog2FC = log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)),
+      global_int1 = sum(global_int1,na.rm=T),
+      global_int2 = sum(global_int2,na.rm=T),
+      global_sumLog2FC = log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T)),
+      global_int1_imp = sum(global_int1_imp,na.rm=T),
+      global_int2_imp = sum(global_int2_imp,na.rm=T),
+      global_sumLog2FC_imp = log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)),
+      local_vs_global_log2FC = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T))),
+      local_vs_global_log2FC_imp = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)))
+      )},
+      by = .(feature_id, proteoform_id, apex)]
+    }
+    medianPval <- subset(medianPval,!is.na(proteoform_id))
   } else {
     stop("Test level must be protein or complex.")
   }
