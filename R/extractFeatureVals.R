@@ -185,7 +185,7 @@ extractFeatureVals.traces <- function(traces, features,
       pkcorr <- NA
       corrSubunits = NA
       intensities <- sum(tracesFeature)
-      intensities_imputed <- rowSums(tracesFeatureImputed)
+      intensities_imputed <- sum(tracesFeatureImputed)
       rank <- 1
       totalIntensity <- intensities
       totalTop2Intensity <- NA
