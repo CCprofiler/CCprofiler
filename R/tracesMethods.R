@@ -302,13 +302,13 @@ plot.traces <- function(traces,
 #' PDF file is saved under name.pdf. Default is "Traces".
 #' @param plot Logical, wether to print or return the plot object
 #' @param isoformAnnotation Logical, wether to colour traces by their isoform annotation
+#' @param colour_by Character string specifying by which column to colour by. Default is id.
 #' @param highlight Character vector, ids of the traces to highlight (can be multiple).
 #'  Default is \code{NULL}.
 #' @param highlight_col Character string, A color to highlight traces in. Must be accepted by ggplot2.
 #' @param colorMap named character vector containing valid color specifications for plotting.
 #' The names of the vector must correspond to the ids of the peptides to be plotted.
 #' @export
-
 plot.tracesList <- function(traces,
                             design_matrix = NULL,
                             collapse_conditions = FALSE,
@@ -318,6 +318,7 @@ plot.tracesList <- function(traces,
                             name="Traces",
                             plot = TRUE,
                             isoformAnnotation = FALSE,
+                            colour_by = "id",
                             highlight=NULL,
                             highlight_col=NULL,
                             colorMap=NULL) {
@@ -338,12 +339,14 @@ plot.tracesList <- function(traces,
     res
   })
   traces_long <- do.call("rbind", tracesList)
-  if(isoformAnnotation==TRUE) {
-    isoform_annotation <- lapply(names(traces), function(tr){subset(traces[[tr]]$trace_annotation,select=c("id","isoform_id"))})
+  if(colour_by!="id") {
+    if(!colour_by %in% names(traces[[1]]$trace_annotation)){
+      stop("colour_by is not availbale in trace_annotation.")
+    }
+    isoform_annotation <- lapply(names(traces), function(tr){subset(traces[[tr]]$trace_annotation,select=c("id",colour_by))})
     isoform_annotation <- unique(do.call("rbind", isoform_annotation))
-    isoform_annotation$isoform_id <- gsub("ENSG[0-9]+-","",isoform_annotation$isoform_id)
     traces_long <- merge(traces_long,isoform_annotation, by.x="id",by.y="id")
-    traces_long[,line:=paste0(isoform_id,id)]
+    traces_long[,line:=paste0(get(colour_by),id)]
   }
   ## Create a common fraction annotation
   traces_frac <- unique(do.call("rbind", lapply(traces, "[[", "fraction_annotation")))
@@ -355,13 +358,23 @@ plot.tracesList <- function(traces,
     if(!any(traces_long$outlier)) highlight <- NULL
   }
 
+  geom.text.size = 3
+  theme.size = (14/5) * geom.text.size
+
   ## Create a reproducible coloring for the peptides plotted
   if(!is.null(colorMap)){
-    if(!all(unique(traces_long$id) %in% names(colorMap))){
+    if(!all(unique(traces_long[[colour_by]]) %in% names(colorMap))){
       stop("Invalid colorMap specified. Not all traces to be plotted are contained in the colorMap")
     }
   }else{
-    colorMap <- createGGplotColMap(unique(traces_long$id))
+    cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7","#999999")
+    ids <- sort(unique(traces_long[[colour_by]]))
+    if (length(ids) <= length(cbPalette)) {
+      colorMap <- cbPalette[1:length(unique(traces_long[[colour_by]]))]
+      names(colorMap) <- ids
+    } else {
+      colorMap <- createGGplotColMap(ids)
+    }
   }
 
   p <- ggplot(traces_long) +
@@ -375,20 +388,20 @@ plot.tracesList <- function(traces,
     theme(plot.title = element_text(vjust=19,size=10))
 
   if(collapse_conditions){
-    if(! isoformAnnotation==TRUE) {
+    if(colour_by == "id") {
       p <- p + facet_grid(~ Replicate) +
         geom_line(aes_string(x='fraction', y='intensity', color='id', lty = 'Condition'))
     } else {
-    p <- p + facet_grid(Condition ~ Replicate) +
-      geom_line(aes_string(x='fraction', y='intensity', color='isoform_id', group='line', lty = 'Condition'))
+      p <- p + facet_grid(Condition ~ Replicate) +
+        geom_line(aes_string(x='fraction', y='intensity', color=colour_by, group='line', lty = 'Condition'))
     }
   }else{
-    if(! isoformAnnotation==TRUE) {
-    p <- p + facet_grid(Condition ~ Replicate) +
-      geom_line(aes_string(x='fraction', y='intensity', color='id'))
+    if(colour_by == "id") {
+      p <- p + facet_grid(Condition ~ Replicate) +
+        geom_line(aes_string(x='fraction', y='intensity', color='id'))
     } else {
-    p <- p + facet_grid(Condition ~ Replicate) +
-      geom_line(aes_string(x='fraction', y='intensity', color='isoform_id', group='line'))
+      p <- p + facet_grid(Condition ~ Replicate) +
+        geom_line(aes_string(x='fraction', y='intensity', color=colour_by, group='line'))
     }
   }
 
@@ -414,7 +427,7 @@ plot.tracesList <- function(traces,
         p <- p +
           geom_line(data = traces_long[outlier == TRUE],
                     aes(x=fraction, y=intensity, lty = Condition, group = interaction(Condition, id), color = id),
-                     lwd=2) +
+                    lwd=2) +
           # scale_color_discrete(guide = F)
           scale_color_manual(values = colorMap, breaks = legend_peps)
         # guides(lty = FALSE)
@@ -426,7 +439,7 @@ plot.tracesList <- function(traces,
                     lwd=2) +
           # scale_color_discrete(guide = F)
           scale_color_manual(values = colorMap, breaks = legend_peps)
-          ## scale_color_manual(values = legend_map, limits = legend_peps)
+        ## scale_color_manual(values = legend_map, limits = legend_peps)
         # guides(lty = FALSE)
         # scale_color_manual(limits = legend_peps, values = rep(highlight_col, length(legend_peps))) +
         # geom_line(aes_string(x='fraction', y='intensity', color='id'))
@@ -437,9 +450,9 @@ plot.tracesList <- function(traces,
 
   if ("molecular_weight" %in% names(traces_frac)) {
     mwtransform <- getMWcalibration(traces_frac)
-    mw <- traces_frac$molecular_weight
-                                        # frbreaks <-ggplot_build(p)$layout$panel_ranges[[1]]$x.major_source
-                                        # breaks <- mw[frbreaks]
+    mw <- round(traces_frac$molecular_weight)
+    # frbreaks <-ggplot_build(p)$layout$panel_ranges[[1]]$x.major_source
+    # breaks <- mw[frbreaks]
     breaks <- mw[seq(1,length(mw), length.out = 8)]
     p <- p + scale_x_continuous(sec.axis = sec_axis(trans = mwtransform,
                                                     breaks = breaks))
@@ -448,11 +461,24 @@ plot.tracesList <- function(traces,
   if (log) {
     p <- p + scale_y_log10('log(intensity)')
   }
+
+  p <- p + theme(axis.text = element_text(size = theme.size, colour="black"))
+
+  p <- p + theme(legend.position="bottom") +
+    theme(legend.text=element_text(size=theme.size)) +
+    theme(legend.title=element_blank()) +
+    guides(col = guide_legend(ncol = 4))
+
   if (!legend) {
     p <- p + theme(legend.position="none")
   }
+
+  if (length(ids) > 40) {
+    p <- p + theme(legend.position="none")
+  }
+
   if(PDF){
-    pdf(paste0(name,".pdf"))
+    pdf(paste0(name,".pdf"),width=5,height=4)
   }
   if(plot){
     plot(p)
@@ -463,6 +489,7 @@ plot.tracesList <- function(traces,
     dev.off()
   }
 }
+
 
 #' Summarize a traces object
 #' @description Summarize a traces object to get an overview.
