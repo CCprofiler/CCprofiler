@@ -392,16 +392,28 @@ plot.tracesList <- function(traces,
       p <- p + facet_grid(~ Replicate) +
         geom_line(aes_string(x='fraction', y='intensity', color='id', lty = 'Condition'))
     } else {
-      p <- p + facet_grid(Condition ~ Replicate) +
-        geom_line(aes_string(x='fraction', y='intensity', color=colour_by, group='line', lty = 'Condition'))
-    }
-  }else{
-    if(colour_by == "id") {
-      p <- p + facet_grid(Condition ~ Replicate) +
-        geom_line(aes_string(x='fraction', y='intensity', color='id'))
-    } else {
+      message("Collapsing of conditions is not jet compatible with colouring by your selected id type.
+      Plot conditions separately instead.")
       p <- p + facet_grid(Condition ~ Replicate) +
         geom_line(aes_string(x='fraction', y='intensity', color=colour_by, group='line'))
+    }
+  }else{
+    if (length(unique(traces_long$Replicate)) > 1) {
+      if(colour_by == "id") {
+        p <- p + facet_grid(Condition ~ Replicate) +
+          geom_line(aes_string(x='fraction', y='intensity', color='id'))
+      } else {
+        p <- p + facet_grid(Condition ~ Replicate) +
+          geom_line(aes_string(x='fraction', y='intensity', color=colour_by, group='line'))
+      }
+    } else {
+      if(colour_by == "id") {
+        p <- p + facet_grid(Condition ~ .) +
+          geom_line(aes_string(x='fraction', y='intensity', color='id'))
+      } else {
+        p <- p + facet_grid(Condition ~ .) +
+          geom_line(aes_string(x='fraction', y='intensity', color=colour_by, group='line'))
+      }
     }
   }
 
