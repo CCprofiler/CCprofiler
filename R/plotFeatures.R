@@ -55,6 +55,7 @@
 plotFeatures <- function(feature_table,
                                 traces,
                                 feature_id,
+                                design_matrix = NULL,
                                 calibration = NULL,
                                 annotation_label="protein_id",
                                 onlyBest = TRUE,
@@ -356,6 +357,8 @@ plotFeatures.tracesList <- function(feature_table,
                                 Replicate = 1:length(traces))
   }
 
+  geom.text.size = 3
+  theme.size = (14/5) * geom.text.size
 
   if (traces[[1]]$trace_type == "protein") {
     features <- subset(features, complex_id == feature_id)
@@ -412,6 +415,10 @@ plotFeatures.tracesList <- function(feature_table,
   traces_long <- do.call("rbind", tracesList)
   ## traces.long <- toLongFormat(traces$traces)
   ## traces.long <- merge(traces.long,traces$fraction_annotation,by.x="fraction",by.y="id")
+
+  traces_frac <- unique(do.call("rbind", lapply(traces, "[[", "fraction_annotation")))
+  traces_frac <- unique(subset(traces_frac, select = names(traces_frac) %in% c("id","molecular_weight")))
+  traces_long <- merge(traces_long,traces_frac,by.x="fraction",by.y="id")
 
   ## Get traces to highlight
   if(!is.null(highlight)){
@@ -472,9 +479,9 @@ plotFeatures.tracesList <- function(feature_table,
     ylab('intensity') +
     theme_bw() +
     theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
-    theme(plot.margin = unit(c(1.5,.5,.5,.5),"cm")) +
+    theme(plot.margin = unit(c(.1,.5,.5,.5),"cm")) +
     ggtitle(title) +
-    theme(plot.title = element_text(vjust=15,size=10, face="bold")) +
+    theme(plot.title = element_text(vjust=1,size=10, face="bold")) +
     scale_color_manual(values=colorMap) +
     guides(fill=FALSE)
 
@@ -524,56 +531,25 @@ plotFeatures.tracesList <- function(feature_table,
     p <- p + theme(legend.position="none")
   }
 
-  if ("molecular_weight" %in% names(traces[[1]]$fraction_annotation)) {
-    message("Molecular weight annotation for multiple conditions not yet implemented")
-    ## grid.newpage()
-    ## p2 <- p
-    ## p <- p + scale_x_continuous(name="fraction",
-    ##                             breaks=seq(min(traces[[1]]$fraction_annotation$id),
-    ##                                        max(traces[[1]]$fraction_annotation$id),10),
-    ##                             labels=seq(min(traces[[1]]$fraction_annotation$id),
-    ##                                        max(traces[[1]]$fraction_annotation$id),10))
-    ## p2 <- p2 + scale_x_continuous(name="molecular weight (kDa)",
-    ##                               breaks=seq(min(traces[[1]]$fraction_annotation$id),max(traces[[1]]$fraction_annotation$id),10),
-    ##                               labels=round(traces[[1]]$fraction_annotation$molecular_weight,digits=0)[seq(1,length(traces[[1]]$fraction_annotation$id),10)]
-    ## )
-    ## ## extract gtable
-    ## g1 <- ggplot_gtable(ggplot_build(p))
-    ## g2 <- ggplot_gtable(ggplot_build(p2))
-    ## ## overlap the panel of the 2nd plot on that of the 1st plot
-    ## pp <- c(subset(g1$layout, name=="panel", se=t:r))
+  p <- p + theme(axis.text = element_text(size = theme.size, colour="black"))
 
-    ## g <- gtable_add_grob(g1
-    ## g <- gtable_add_grob(g1, g2$grobs[[which(g2$layout$name=="panel")]], pp$t, pp$l, pp$b, pp$l)
-    ## ## steal axis from second plot and modify
-    ## ia <- which(g2$layout$name == "axis-b")
-    ## ga <- g2$grobs[[ia]]
-    ## ax <- ga$children[[2]]
-    ## ## switch position of ticks and labels
-    ## ax$heights <- rev(ax$heights)
-    ## ax$grobs <- rev(ax$grobs)
-    ## ## modify existing row to be tall enough for axis
-    ## g$heights[[2]] <- g$heights[g2$layout[ia,]$t]
-    ## ## add new axis
-    ## g <- gtable_add_grob(g, ax, 2, 4, 2, 4)
-    ## ## add new row for upper axis label
-    ## g <- gtable_add_rows(g, g2$heights[1], 1)
-    ## ## steal axis label from second plot
-    ## ia2 <- which(g2$layout$name == "xlab-b")
-    ## ga2 <- g2$grobs[[ia2]]
-    ## g <- gtable_add_grob(g,ga2, 3, 4, 2, 4)
+  p <- p + theme(legend.position="bottom") +
+    theme(legend.text=element_text(size=theme.size)) +
+    theme(legend.title=element_blank()) +
+    guides(col = guide_legend(ncol = 4))
 
-    ## if(PDF){
-    ##   pdf(paste0(name,".pdf"))
-    ## }
-    ## grid.draw(g)
-    ## if(PDF){
-    ##   dev.off()
-    ## }
-  ## }else{
+  if ("molecular_weight" %in% names(traces_frac)) {
+    mwtransform <- getMWcalibration(traces_frac)
+    mw <- round(traces_frac$molecular_weight)
+    # frbreaks <-ggplot_build(p)$layout$panel_ranges[[1]]$x.major_source
+    # breaks <- mw[frbreaks]
+    breaks <- mw[seq(1,length(mw), length.out = 8)]
+    p <- p + scale_x_continuous(sec.axis = sec_axis(trans = mwtransform,
+                                                    breaks = breaks))
   }
+
   if(PDF){
-    pdf(paste0(name,".pdf"))
+    pdf(paste0(name,".pdf"),width=5,height=4)
   }
   plot(p)
   if(PDF){
