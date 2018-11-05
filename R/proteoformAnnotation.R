@@ -57,7 +57,9 @@ filterByMaxCorr.traces <- function(traces, cutoff = 0.85,
 
   names(maxCorrMatrices) <- names(genePeptideList)
   allMaxCorrs <- unlist(maxCorrMatrices)
-  names(allMaxCorrs) <- gsub(".*\\.", "", names(allMaxCorrs))
+  ## When unlisting protein and peptide names are concatenated with a .
+  ## We need to be careful with peptides starting with . (e.g. .(UniMod))
+  names(allMaxCorrs) <- gsub("^.*?\\.", "", names(allMaxCorrs))
   if (plot == TRUE){
     if (PDF) {
       pdf(paste0(name,".pdf"),width=3,height=3)
