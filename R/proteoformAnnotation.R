@@ -518,7 +518,8 @@ combineTracesMutiCond <- function(tracesList){
   trace_type_all <- tracesList[[1]]$trace_type
 
   trace_annotation <- lapply(tracesList, function(t){
-    cols <- names(tracesList$minus$trace_annotation)
+    # Use the first element as a template annotation
+    cols <- names(tracesList[[1]]$trace_annotation)
     cols <- cols[which(!cols %in% c("SibPepCorr","RepPepCorr"))]
     res <- subset(t$trace_annotation,select=cols)
     return(res)
