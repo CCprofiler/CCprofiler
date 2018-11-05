@@ -308,7 +308,7 @@ estimateProteoformPval.traces <- function(traces,
   # all ditribution, e.g., "p + distr abbr."
   pval <- 1-(pgamma(1 - mincorrs, shape = distr_fitted$estimate[1][[1]],
                     rate = distr_fitted$estimate[2][[1]]))
-  pval_adj <- p.adjust(pval, adj.method)
+  pval_adj <- p.adjust(pval, method=adj.method)
   if (plot == TRUE) {
     if (PDF) {
       pdf(paste0(name,".pdf"),width=3,height=3)
@@ -322,14 +322,14 @@ estimateProteoformPval.traces <- function(traces,
                 aes(x=adj_p_value)) +
                 geom_histogram(bins=50) +
                 theme_classic()
-    plot(p)
+    plot(q)
     #hist(pval, breaks = 50)
     #hist(pval_adj, breaks = 100)
     if (PDF) {
       dev.off()
     }
   }
-  traces$trace_annotation[, proteoform_pval := pval_adj]
+  traces$trace_annotation[, proteoform_pval := pval]
   traces$trace_annotation[, proteoform_pval_adj := pval_adj]
   return(traces)
 }
