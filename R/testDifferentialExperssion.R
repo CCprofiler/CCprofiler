@@ -404,27 +404,33 @@ plotVolcano <- function(testResults, highlight=NULL, FC_cutoff=2, pBHadj_cutoff=
     p <- ggplot(testResults, aes(x=log2FC,y=-log10(pBHadj)))
   }
   p <- p +
-      geom_point(size=1) +
-      theme_classic() +
-      geom_hline(yintercept=-log10(pBHadj_cutoff), colour="red", linetype="dashed") +
-      geom_vline(xintercept=-log2(FC_cutoff), colour="red", linetype="dashed") +
-      geom_vline(xintercept=log2(FC_cutoff), colour="red", linetype="dashed")
+    geom_point(size=1) +
+    theme_classic() +
+    geom_hline(yintercept=-log10(pBHadj_cutoff), colour="red", linetype="dashed") +
+    geom_vline(xintercept=-log2(FC_cutoff), colour="red", linetype="dashed") +
+    geom_vline(xintercept=log2(FC_cutoff), colour="red", linetype="dashed")
   if (! is.null(highlight)){
     if ("feature_id" %in% names(testResults)) {
       sub <- subset(testResults,feature_id %in% highlight)
+      col <- "feature_id"
     } else if ("complex_id" %in% names(testResults)) {
       sub <- subset(testResults,complex_id %in% highlight)
+      col <- "complex_id"
     } else if (highlight %in% testResults$protein_id) {
       sub <- subset(testResults,protein_id %in% highlight)
+      col <- "protein_id"
     } else if (highlight %in% testResults$proteoform_id) {
       sub <- subset(testResults,proteoform_id %in% highlight)
+      col <- "proteoform_id"
     } else {
       stop("The testResults do not have the proper format. Input should be the result from testDifferentialExpression.")
     }
     if ("sumLog2FC" %in% names(testResults)) {
-      p <- p + geom_point(data=sub, aes(x=sumLog2FC,y=-log10(pBHadj)), colour="red", fill="red", size=3, shape=23)
+      p <- p + geom_point(data=sub, aes(x=sumLog2FC,y=-log10(pBHadj)), colour="red", fill="red", size=3, shape=23) +
+        geom_text_repel(data=sub, aes(label=get(col)), size=4, vjust=0, hjust=-0.1, colour="red")
     } else {
-      p <- p + geom_point(data=sub, aes(x=log2FC,y=-log10(pBHadj)), colour="red", fill="red", size=3, shape=23)
+      p <- p + geom_point(data=sub, aes(x=log2FC,y=-log10(pBHadj)), colour="red", fill="red", size=3, shape=23)+
+        geom_text_repel(data=sub, aes(label=get(col)), size=4, vjust=0, hjust=-0.1, colour="red")
     }
   }
   print(p)
