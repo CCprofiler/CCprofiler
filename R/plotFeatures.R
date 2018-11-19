@@ -65,6 +65,7 @@ plotFeatures <- function(feature_table,
                                 estimated_complex_MW=FALSE,
                                 highlight=NULL,
                                 highlight_col=NULL,
+                                colour_by = "id",
                                 monomer_MW=FALSE,
                                 log=FALSE,
                                 legend = TRUE,
@@ -107,7 +108,11 @@ plotFeatures.traces <- function(feature_table,
       n_annotatedSubunits = features$n_subunits_annotated[1]
       n_signalSubunits = features$n_subunits_with_signal[1]
       n_detectedSubunits = features$n_subunits_detected[1]
-      complexCompleteness = round(features$completeness[1],digits=2)
+      if(is.character(features$completeness)){
+        complexCompleteness = features$completeness
+      } else {
+        complexCompleteness = round(features$completeness[1],digits=2)
+      }
       title <- paste0(complexName,
                       "\nAnnotated subunits: ",n_annotatedSubunits,
                       "   Subunits with signal: ",n_signalSubunits,
@@ -137,7 +142,11 @@ plotFeatures.traces <- function(feature_table,
     }
     n_annotatedSubunits = features$n_subunits_annotated[1]
     n_detectedSubunits = features$n_subunits_detected[1]
-    complexCompleteness = round(features$completeness[1],digits=2)
+    if(is.character(features$completeness)){
+      complexCompleteness = features$completeness[1]
+    } else {
+      complexCompleteness = round(features$completeness[1],digits=2)
+    }
     title <- paste0(complexName,
                     "\nAnnotated subunits: ",n_annotatedSubunits,
                     "\nMax. coeluting subunits: ",n_detectedSubunits,
@@ -338,6 +347,7 @@ plotFeatures.tracesList <- function(feature_table,
                                estimated_complex_MW=FALSE,
                                highlight=NULL,
                                highlight_col=NULL,
+                               colour_by = "id",
                                monomer_MW=FALSE,
                                log=FALSE,
                                legend = TRUE,
@@ -375,7 +385,11 @@ plotFeatures.tracesList <- function(feature_table,
       n_annotatedSubunits = features$n_subunits_annotated[1]
       n_signalSubunits = features$n_subunits_with_signal[1]
       n_detectedSubunits = features$n_subunits_detected[1]
-      complexCompleteness = round(features$completeness[1],digits=2)
+      if(is.character(features$completeness)){
+        complexCompleteness = features$completeness[1]
+      } else {
+        complexCompleteness = round(features$completeness[1],digits=2)
+      }
       title <- paste0(complexName,
                       "\nAnnotated subunits: ",n_annotatedSubunits,
                       "   Subunits with signal: ",n_signalSubunits,
@@ -385,6 +399,13 @@ plotFeatures.tracesList <- function(feature_table,
       title=paste0(features$complex_name,"\n ","\n ","\n ")
     }
   } else {
+    if (!"protein_id" %in% names(features)) {
+      if ("proteoform_id" %in% names(features)) {
+        features[,protein_id:=proteoform_id]
+      } else {
+        stop("features are not of type complex, protein or proteoform")
+      }
+    }
     features <- subset(features, protein_id == feature_id)
     proteins <- unique(unlist(strsplit(features$subunits_annotated, split = ";")))
     traces <- subset(traces, trace_subset_ids = proteins)
@@ -397,7 +418,11 @@ plotFeatures.tracesList <- function(feature_table,
     }
     n_annotatedSubunits = features$n_subunits_annotated[1]
     n_detectedSubunits = features$n_subunits_detected[1]
-    complexCompleteness = round(features$completeness[1],digits=2)
+    if(is.character(features$completeness)){
+      complexCompleteness = features$completeness[1]
+    } else {
+      complexCompleteness = round(features$completeness[1],digits=2)
+    }
     title <- paste0(complexName,
                     "\nAnnotated subunits: ",n_annotatedSubunits,
                     "\nMax. coeluting subunits: ",n_detectedSubunits,
@@ -413,6 +438,15 @@ plotFeatures.tracesList <- function(feature_table,
     res
   })
   traces_long <- do.call("rbind", tracesList)
+  if(colour_by!="id") {
+    if(!colour_by %in% names(traces[[1]]$trace_annotation)){
+      stop("colour_by is not availbale in trace_annotation.")
+    }
+    isoform_annotation <- lapply(names(traces), function(tr){subset(traces[[tr]]$trace_annotation,select=c("id",colour_by))})
+    isoform_annotation <- unique(do.call("rbind", isoform_annotation))
+    traces_long <- merge(traces_long,isoform_annotation, by.x="id",by.y="id")
+    traces_long[,line:=paste0(get(colour_by),id)]
+  }
   ## traces.long <- toLongFormat(traces$traces)
   ## traces.long <- merge(traces.long,traces$fraction_annotation,by.x="fraction",by.y="id")
 
@@ -427,7 +461,9 @@ plotFeatures.tracesList <- function(feature_table,
 
   ## Generate the plot labels
   if (annotation_label %in% names(traceAnn)) {
-    traces_long <- merge(traces_long, traceAnn, by="id",all.x=TRUE,all.y=FALSE)
+    traceAnn <- unique(subset(traceAnn,select=c("id",annotation_label)))
+    name_i <- names(traces_long)[which(names(traces_long) %in% names(traceAnn))]
+    traces_long <- merge(traces_long, traceAnn, by=name_i,all.x=TRUE,all.y=FALSE)
     if (traces[[1]]$trace_type == "protein") {
       traces_long[,id := get(annotation_label)]
       proteins <- traceAnn[match(proteins,traceAnn$id)][,get(annotation_label)]
@@ -470,11 +506,17 @@ plotFeatures.tracesList <- function(feature_table,
       stop("Invalid colorMap specified. Not all traces to be plotted are contained in the colorMap")
     }
   }else{
-    colorMap <- createGGplotColMap(unique(traces_long$id))
+    cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7","#999999")
+    ids <- sort(unique(traces_long[[colour_by]]))
+    if (length(ids) <= length(cbPalette)) {
+      colorMap <- cbPalette[1:length(unique(traces_long[[colour_by]]))]
+      names(colorMap) <- ids
+    } else {
+      colorMap <- createGGplotColMap(ids)
+    }
   }
 
   p <- ggplot(traces_long) +
-    geom_line(aes_string(x='fraction', y='intensity', color='id')) +
     xlab('fraction') +
     ylab('intensity') +
     theme_bw() +
@@ -487,10 +529,23 @@ plotFeatures.tracesList <- function(feature_table,
 
   ## Split the plot with design matrix
   if (length(unique(traces_long$Replicate)) > 1) {
-    p <- p + facet_grid(Condition ~ Replicate)
+    if(colour_by == "id") {
+      p <- p + facet_grid(Condition ~ Replicate) +
+      geom_line(aes_string(x='fraction', y='intensity', color='id'))
+    } else {
+      p <- p + facet_grid(Condition ~ Replicate) +
+      geom_line(aes_string(x='fraction', y='intensity', color=colour_by, group='line'))
+    }
   } else {
-    p <- p + facet_grid(Condition ~ .)
+    if(colour_by == "id") {
+      p <- p + facet_grid(Condition ~ .) +
+      geom_line(aes_string(x='fraction', y='intensity', color='id'))
+    } else {
+      p <- p + facet_grid(Condition ~ .) +
+      geom_line(aes_string(x='fraction', y='intensity', color=colour_by, group='line'))
+    }
   }
+
   ## Highlight traces
   if(!is.null(highlight)){
     legend_peps <- unique(traces_long[outlier == TRUE, id])
@@ -537,6 +592,10 @@ plotFeatures.tracesList <- function(feature_table,
     theme(legend.text=element_text(size=theme.size)) +
     theme(legend.title=element_blank()) +
     guides(col = guide_legend(ncol = 4))
+
+  if (length(ids) > 20) {
+    p <- p + theme(legend.position="none")
+  }
 
   if ("molecular_weight" %in% names(traces_frac)) {
     mwtransform <- getMWcalibration(traces_frac)
