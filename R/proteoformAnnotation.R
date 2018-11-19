@@ -57,7 +57,9 @@ filterByMaxCorr.traces <- function(traces, cutoff = 0.85,
 
   names(maxCorrMatrices) <- names(genePeptideList)
   allMaxCorrs <- unlist(maxCorrMatrices)
-  names(allMaxCorrs) <- gsub(".*\\.", "", names(allMaxCorrs))
+  ## When unlisting protein and peptide names are concatenated with a .
+  ## We need to be careful with peptides starting with . (e.g. .(UniMod))
+  names(allMaxCorrs) <- gsub("^.*?\\.", "", names(allMaxCorrs))
   if (plot == TRUE){
     if (PDF) {
       pdf(paste0(name,".pdf"),width=3,height=3)
@@ -306,7 +308,7 @@ estimateProteoformPval.traces <- function(traces,
   # all ditribution, e.g., "p + distr abbr."
   pval <- 1-(pgamma(1 - mincorrs, shape = distr_fitted$estimate[1][[1]],
                     rate = distr_fitted$estimate[2][[1]]))
-  pval_adj <- p.adjust(pval, adj.method)
+  pval_adj <- p.adjust(pval, method=adj.method)
   if (plot == TRUE) {
     if (PDF) {
       pdf(paste0(name,".pdf"),width=3,height=3)
@@ -320,14 +322,14 @@ estimateProteoformPval.traces <- function(traces,
                 aes(x=adj_p_value)) +
                 geom_histogram(bins=50) +
                 theme_classic()
-    plot(p)
+    plot(q)
     #hist(pval, breaks = 50)
     #hist(pval_adj, breaks = 100)
     if (PDF) {
       dev.off()
     }
   }
-  traces$trace_annotation[, proteoform_pval := pval_adj]
+  traces$trace_annotation[, proteoform_pval := pval]
   traces$trace_annotation[, proteoform_pval_adj := pval_adj]
   return(traces)
 }
@@ -518,7 +520,8 @@ combineTracesMutiCond <- function(tracesList){
   trace_type_all <- tracesList[[1]]$trace_type
 
   trace_annotation <- lapply(tracesList, function(t){
-    cols <- names(tracesList$minus$trace_annotation)
+    # Use the first element as a template annotation
+    cols <- names(tracesList[[1]]$trace_annotation)
     cols <- cols[which(!cols %in% c("SibPepCorr","RepPepCorr"))]
     res <- subset(t$trace_annotation,select=cols)
     return(res)
