@@ -274,11 +274,71 @@ proteinQuantification.tracesList <- function(traces,
     traces_selected <- traces_subs
   } else {
     traces_integrated <- integrateTraceIntensities(traces_subs, aggr_corr_fun = "sum")
-    peptideTracesTable <- data.table(protein_id = traces_integrated$trace_annotation$protein_id,
-                                     peptide_id = traces_integrated$trace_annotation$id,
-                                     SibPepCorr = round(traces_integrated$trace_annotation$sumSibPepCorr,digits=1),
-                                     RepPepCorr = round(traces_integrated$trace_annotation$sumRepPepCorr,digits=1),
-                                     subset(traces_integrated$traces, select =-id))
+    if("sumSibPepCorr" %in% names(traces_integrated$trace_annotation)) {
+      if("sumRepPepCorr" %in% names(traces_integrated$trace_annotation)) {
+        peptideTracesTable <- data.table(protein_id = traces_integrated$trace_annotation$protein_id,
+                                         peptide_id = traces_integrated$trace_annotation$id,
+                                         SibPepCorr = round(traces_integrated$trace_annotation$sumSibPepCorr,digits=1),
+                                         RepPepCorr = round(traces_integrated$trace_annotation$sumRepPepCorr,digits=1),
+                                         subset(traces_integrated$traces, select =-id))
+      } else if ("meanRepPepCorr" %in% names(traces_integrated$trace_annotation)){
+        peptideTracesTable <- data.table(protein_id = traces_integrated$trace_annotation$protein_id,
+                                         peptide_id = traces_integrated$trace_annotation$id,
+                                         SibPepCorr = round(traces_integrated$trace_annotation$sumSibPepCorr,digits=1),
+                                         RepPepCorr = round(traces_integrated$trace_annotation$meanRepPepCorr,digits=1),
+                                         subset(traces_integrated$traces, select =-id))
+      } else {
+        traces_integrated$trace_annotation$sumRepPepCorr = 1
+        peptideTracesTable <- data.table(protein_id = traces_integrated$trace_annotation$protein_id,
+                                         peptide_id = traces_integrated$trace_annotation$id,
+                                         SibPepCorr = round(traces_integrated$trace_annotation$sumSibPepCorr,digits=1),
+                                         RepPepCorr = round(traces_integrated$trace_annotation$sumRepPepCorr,digits=1),
+                                         subset(traces_integrated$traces, select =-id))
+      }
+    } else if ("meanSibPepCorr" %in% names(traces_integrated$trace_annotation)) {
+      if("sumRepPepCorr" %in% names(traces_integrated$trace_annotation)) {
+        peptideTracesTable <- data.table(protein_id = traces_integrated$trace_annotation$protein_id,
+                                         peptide_id = traces_integrated$trace_annotation$id,
+                                         SibPepCorr = round(traces_integrated$trace_annotation$meanSibPepCorr,digits=1),
+                                         RepPepCorr = round(traces_integrated$trace_annotation$sumRepPepCorr,digits=1),
+                                         subset(traces_integrated$traces, select =-id))
+      } else if ("meanRepPepCorr" %in% names(traces_integrated$trace_annotation)){
+        peptideTracesTable <- data.table(protein_id = traces_integrated$trace_annotation$protein_id,
+                                         peptide_id = traces_integrated$trace_annotation$id,
+                                         SibPepCorr = round(traces_integrated$trace_annotation$meanSibPepCorr,digits=1),
+                                         RepPepCorr = round(traces_integrated$trace_annotation$meanRepPepCorr,digits=1),
+                                         subset(traces_integrated$traces, select =-id))
+       } else {
+         traces_integrated$trace_annotation$sumRepPepCorr = 1
+         peptideTracesTable <- data.table(protein_id = traces_integrated$trace_annotation$protein_id,
+                                          peptide_id = traces_integrated$trace_annotation$id,
+                                          SibPepCorr = round(traces_integrated$trace_annotation$meanSibPepCorr,digits=1),
+                                          RepPepCorr = round(traces_integrated$trace_annotation$sumRepPepCorr,digits=1),
+                                          subset(traces_integrated$traces, select =-id))
+       }
+    } else {
+      traces_integrated$trace_annotation$sumSibPepCorr = 1
+      if("sumRepPepCorr" %in% names(traces_integrated$trace_annotation)) {
+        peptideTracesTable <- data.table(protein_id = traces_integrated$trace_annotation$protein_id,
+                                         peptide_id = traces_integrated$trace_annotation$id,
+                                         SibPepCorr = round(traces_integrated$trace_annotation$sumSibPepCorr,digits=1),
+                                         RepPepCorr = round(traces_integrated$trace_annotation$sumRepPepCorr,digits=1),
+                                         subset(traces_integrated$traces, select =-id))
+      } else if ("meanRepPepCorr" %in% names(traces_integrated$trace_annotation)){
+        peptideTracesTable <- data.table(protein_id = traces_integrated$trace_annotation$protein_id,
+                                         peptide_id = traces_integrated$trace_annotation$id,
+                                         SibPepCorr = round(traces_integrated$trace_annotation$sumSibPepCorr,digits=1),
+                                         RepPepCorr = round(traces_integrated$trace_annotation$meanRepPepCorr,digits=1),
+                                         subset(traces_integrated$traces, select =-id))
+       } else {
+         traces_integrated$trace_annotation$sumRepPepCorr = 1
+         peptideTracesTable <- data.table(protein_id = traces_integrated$trace_annotation$protein_id,
+                                          peptide_id = traces_integrated$trace_annotation$id,
+                                          SibPepCorr = round(traces_integrated$trace_annotation$sumSibPepCorr,digits=1),
+                                          RepPepCorr = round(traces_integrated$trace_annotation$sumRepPepCorr,digits=1),
+                                          subset(traces_integrated$traces, select =-id))
+       }
+    }
     # Calculations in long format - sum the topN peptides per protein
     peptideTracesLong <- melt(peptideTracesTable,
                               id.vars = c("protein_id", "peptide_id", "SibPepCorr", "RepPepCorr"),
