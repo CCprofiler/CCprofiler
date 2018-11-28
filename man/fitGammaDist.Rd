@@ -6,7 +6,8 @@
 to all of its sibling peptides}
 \usage{
 fitGammaDist(traces, prot_names = NULL, distr = "gamma",
-  split_value = 0.2, plot = FALSE, PDF = FALSE, name = "GammaFitted")
+  split_value = 0.2, plot = FALSE, PDF = FALSE, name = "GammaFitted",
+  ...)
 }
 \arguments{
 \item{traces}{Object of class traces or tracesList.}
