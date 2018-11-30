@@ -63,7 +63,9 @@ plotRealVsRandomPerProtein <- function(protein,res){
   random <- res[[protein]]$random
   n_rand_total <- length(random)
   n_rand_smallerReal <- length(which(random <= real))
+  n_min_mistake <- length(which(random == 0))
   p_rand <- 1/n_rand_total*n_rand_smallerReal
+  min_possible_pval <- 1/n_rand_total*n_min_mistake
   nExons <- res[[protein]]$nExons
   dt <- data.table(random=random)
   p <- ggplot(dt,aes(x=random)) +
@@ -73,7 +75,7 @@ plotRealVsRandomPerProtein <- function(protein,res){
     ggtitle(paste0(protein,
       "\n p-rand = ",p_rand))
   print(p)
-  out <- data.table(protein_id=protein,exon_pval=p_rand,nExonMistakes=real,nExons=nExons)
+  out <- data.table(protein_id=protein,exon_pval=p_rand,nExonMistakes=real,nExons=nExons,min_possible_pval = min_possible_pval)
   return(out)
 }
 
@@ -97,6 +99,7 @@ evaluateExonLocation <- function(traces, adj.method = "fdr"){
     all.x=T,all.y=F,by=c("protein_id"),sort=F)
   exonStats <- subset(exonStats, nExons < n_peptides-1)
   exonStats$exon_pval_adj <- p.adjust(exonStats$exon_pval, adj.method)
+  exonStats$min_possible_pval_adj <- p.adjust(exonStats$min_possible_pval, adj.method)
   exonStats[,n_peptides:=NULL]
 
   pdf("RealVsRandomSwaps_hist.pdf",width=3,height=3)
