@@ -371,7 +371,7 @@ estimateProteoformPval.tracesList <- function(tracesList,
 clusterPeptides <- function(traces,
                     method = c("complete","single"), clusterH = 0.5,
                     clusterN = NULL, index = "silhouette",
-                    nFactorAnalysis = NULL,
+                    nFactorAnalysis = NULL, pvclust=FALSE,
                     plot = FALSE, PDF=FALSE, name="hclust", ...) {
   UseMethod("clusterPeptides", traces)
 }
@@ -379,66 +379,108 @@ clusterPeptides <- function(traces,
 #' @describeIn clusterPeptides Cluster peptides of gene to unique proteoforms
 #' @export
 clusterPeptides.traces <- function(traces,
-                    method = c("complete","single"), clusterH = 0.5,
-                    clusterN = NULL, index = "silhouette",
-                    nFactorAnalysis = NULL,
-                    plot = FALSE, PDF=FALSE, name="hclust", ...) {
+                                   method = c("complete","single"), clusterH = 0.5,
+                                   clusterN = NULL, index = "silhouette",
+                                   nFactorAnalysis = NULL, pvclust=FALSE,
+                                   plot = FALSE, PDF=FALSE, name="hclust", ...) {
   method <- match.arg(method)
   if (PDF) {
-    pdf(paste0(name,".pdf"),width=3,height=3)
+    if(pvclust==FALSE) {
+      pdf(paste0(name,".pdf"),width=3,height=3)
+    } else {
+      pdf(paste0(name,".pdf"))
+    }
   }
+
+  #tracesMatrix <- getIntensityMatrix(traces)
+  #trace_mat_imputed <- imputeMissingValues(tracesMatrix,"5%")
+  #trace_mat_imputed_DT <- as.data.table(trace_mat_imputed, keep.rownames="id",sorted=F)
+  #setcolorder(trace_mat_imputed_DT, c(setdiff(names(trace_mat_imputed_DT), "id"),"id"))
+
+  #traces_imputed <- copy(traces)
+  #traces_imputed$traces <- trace_mat_imputed_DT
+
+  #genePeptideList <- getGenePepList(traces_imputed)
+
   genePeptideList <- getGenePepList(traces)
   idx <- seq_along(genePeptideList)
-  clustMatricesMethod <- lapply(idx, function(i){
-    gene <- genePeptideList[[i]]
-    gene_name <- names(genePeptideList)[[i]]
-    genecorr <- cor(gene)
-    if (is.null(clusterH)) {
-      if (is.null(clusterN)) {
-        if (is.null(nFactorAnalysis)){
-          nbClust_res <- NbClust(data=genecorr, diss=as.dist(1-genecorr),
-          distance = NULL, min.nc=2,
-          max.nc=min(4,nrow(genecorr)-1)[1],method = method, index = index)
-          # clusterN <- nbClust_res$Best.nc[1] 
-          clusterN <- length(unique(nbClust_res$Best.partition))
-        }else{
-          ev <- eigen(genecorr) # get eigenvalues
-          ap <- parallel(subject=nrow(gene),var=ncol(gene),
-            rep=100,cent=.05)
-          if(length(ev$values) > 2) {
-            nS <- nScree(x=ev$values, aparallel=ap$eigen$qevpea)
-            #pdf(paste0(gene_name,"nFactors.pdf"))
-            #  plotnScree(nS)
-            #dev.off()
-            clusterN <- nS$Components$nparallel
-          } else {
-            clusterN <- 1
+  if (pvclust==FALSE) {
+    clustMatricesMethod <- lapply(idx, function(i){
+      gene <- genePeptideList[[i]]
+      gene_name <- names(genePeptideList)[[i]]
+      genecorr <- cor(gene)
+      if (is.null(clusterH)) {
+        if (is.null(clusterN)) {
+          if (is.null(nFactorAnalysis)){
+            nbClust_res <- NbClust(data=genecorr, diss=as.dist(1-genecorr),
+                                   distance = NULL, min.nc=2,
+                                   max.nc=min(4,nrow(genecorr)-1)[1],method = method, index = index)
+            # clusterN <- nbClust_res$Best.nc[1]
+            clusterN <- length(unique(nbClust_res$Best.partition))
+          }else{
+            ev <- eigen(genecorr) # get eigenvalues
+            ap <- parallel(subject=nrow(gene),var=ncol(gene),
+                           rep=100,cent=.05)
+            if(length(ev$values) > 2) {
+              nS <- nScree(x=ev$values, aparallel=ap$eigen$qevpea)
+              #pdf(paste0(gene_name,"nFactors.pdf"))
+              #  plotnScree(nS)
+              #dev.off()
+              clusterN <- nS$Components$nparallel
+            } else {
+              clusterN <- 1
+            }
           }
         }
       }
-    }
-    cl <- hclust(as.dist(1-genecorr), method)
-    if (plot == TRUE) {
-      #plot(cl, labels = FALSE)
-      #plot(as.dendrogram(cl), ylim = c(0,1), cex=0.5)
-      par(cex=0.3, mar=c(18, 5, 5, 1))
-      plot(as.dendrogram(cl), ylim = c(0,1), xlab="", ylab="", main="", sub="", axes=FALSE)
-      par(cex=1)
-      title(xlab="", ylab="", main=gene_name)
-      axis(2)
-    }
-    groups <- cutree(cl, k = clusterN, h = clusterH)
-    groupsDT <- data.table(id=names(groups),cluster=groups,protein_id=gene_name,
-                          proteoform_id = paste0(gene_name,"_",groups))
-    return(groupsDT)
-  })
+      cl <- hclust(as.dist(1-genecorr), method)
+      if (plot == TRUE) {
+        #plot(cl, labels = FALSE)
+        #plot(as.dendrogram(cl), ylim = c(0,1), cex=0.5)
+        par(cex=0.3, mar=c(18, 5, 5, 1))
+        plot(as.dendrogram(cl), ylim = c(0,1), xlab="", ylab="", main="", sub="", axes=FALSE)
+        par(cex=1)
+        title(xlab="", ylab="", main=gene_name)
+        axis(2)
+      }
+      groups <- cutree(cl, k = clusterN, h = clusterH)
+      groupsDT <- data.table(id=names(groups),cluster=groups,protein_id=gene_name,
+                             proteoform_id = paste0(gene_name,"_",groups))
+      return(groupsDT)
+    })
+  } else {
+    clustMatricesMethod <- lapply(idx, function(i){
+      gene <- genePeptideList[[i]]
+      gene_name <- names(genePeptideList)[[i]]
+      cl <- pvclust(gene, method.hclust = method,
+                    method.dist = "correlation",
+                    use.cor="pairwise.complete.obs",
+                    r=seq(.5,1,by=.1),
+                    nboot=2000,
+                    iseed=123)
+      if (plot == TRUE) {
+        plot(cl)
+        pvrect(cl, alpha=0.9)
+      }
+      groups <- pvpick(cl, alpha=0.9)$clusters
+      groupsDT <- lapply(seq(1,length(groups),1), function(x){
+        data.table(cluster=x,
+                   id=groups[[x]],
+                   protein_id=gene_name,
+                   proteoform_id = paste0(gene_name,"_",x))
+      })
+      groupsDT <- do.call(rbind,groupsDT)
+      return(groupsDT)
+    })
+  }
   if (PDF) {
     dev.off()
   }
   #return(clustMatricesMethod)
   clustMatrices <- do.call(rbind, clustMatricesMethod)
   traces$trace_annotation <- merge(traces$trace_annotation,
-    clustMatrices,by=c("id","protein_id"),sort=F)
+                                   clustMatrices,by=c("id","protein_id"),sort=F,all.x=T,all.y=F)
+  traces$trace_annotation[,proteoform_id.y:=ifelse(is.na(proteoform_id.y),0,proteoform_id.y)]
   return(traces)
 }
 
@@ -449,7 +491,7 @@ clusterPeptides.traces <- function(traces,
 clusterPeptides.tracesList <- function(tracesList,
                     method = c("complete","single"), clusterH = 0.5,
                     clusterN = NULL, index = "silhouette",
-                    nFactorAnalysis = NULL,
+                    nFactorAnalysis = NULL, pvclust=FALSE,
                     plot = FALSE, PDF=FALSE, name="hclust", ...) {
 
   .tracesListTest(tracesList)
@@ -457,7 +499,7 @@ clusterPeptides.tracesList <- function(tracesList,
   res <- lapply(tracesList, clusterPeptides.traces,
                         method = method, clusterH = clusterH,
                         clusterN = clusterN, index = index,
-                        nFactorAnalysis = nFactorAnalysis,
+                        nFactorAnalysis = nFactorAnalysis, pvclust=pvclust,
                         plot = plot, PDF=F, name=name, ...)
   if (PDF) {dev.off()}
   class(res) <- "tracesList"
