@@ -206,6 +206,7 @@ plot.traces <- function(traces,
                         PDF=FALSE,
                         name="Traces",
                         plot = TRUE,
+                        colour_by = "id",
                         highlight=NULL,
                         highlight_col=NULL,
                         colorMap=NULL) {
@@ -218,18 +219,41 @@ plot.traces <- function(traces,
     if(!any(traces.long$outlier)) highlight <- NULL
   }
 
+  if(colour_by!="id") {
+    if(!colour_by %in% names(traces$trace_annotation)){
+      stop("colour_by is not availbale in trace_annotation.")
+    }
+    isoform_annotation <- subset(traces$trace_annotation,select=c("id",colour_by))
+    traces.long <- merge(traces.long,isoform_annotation, by.x="id",by.y="id")
+    traces.long[,line:=paste0(get(colour_by),id)]
+  }
+  
   ## Create a reproducible coloring for the peptides plotted
   if(!is.null(colorMap)){
     if(!all(unique(traces.long$id) %in% names(colorMap))){
       stop("Invalid colorMap specified. Not all traces to be plotted are contained in the colorMap")
     }
   }else{
-    colorMap <- createGGplotColMap(unique(traces.long$id))
+    cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7","#999999")
+    ids <- sort(unique(traces.long[[colour_by]]))
+    if (length(ids) <= length(cbPalette)) {
+      colorMap <- cbPalette[1:length(unique(traces.long[[colour_by]]))]
+      names(colorMap) <- ids
+    } else {
+      colorMap <- createGGplotColMap(unique(traces.long$id))
+    }
   }
 
-  p <- ggplot(traces.long) +
-    geom_line(aes_string(x='fraction', y='intensity', color='id')) +
-    xlab('fraction') +
+  if(colour_by == "id") {
+    p <- ggplot(traces.long) + 
+      geom_line(aes_string(x='fraction', y='intensity', colour='id', group='id'))
+  } else {
+    
+    p <- ggplot(traces.long) +
+      geom_line(aes_string(x='fraction', y='intensity', colour=colour_by, group='line'))
+  }
+  
+  p <- p + xlab('fraction') +
     ylab('intensity') +
     theme_bw() +
     theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
@@ -243,6 +267,7 @@ plot.traces <- function(traces,
   if (!legend) {
     p <- p + theme(legend.position="none")
   }
+  
   if(!is.null(highlight)){
     legend_peps <- unique(traces.long[outlier == TRUE, id])
     if(is.null(highlight_col)){
