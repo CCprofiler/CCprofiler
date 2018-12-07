@@ -480,7 +480,7 @@ clusterPeptides.traces <- function(traces,
   clustMatrices <- do.call(rbind, clustMatricesMethod)
   traces$trace_annotation <- merge(traces$trace_annotation,
                                    clustMatrices,by=c("id","protein_id"),sort=F,all.x=T,all.y=F)
-  traces$trace_annotation[,proteoform_id.y:=ifelse(is.na(proteoform_id.y),0,proteoform_id.y)]
+  traces$trace_annotation[,proteoform_id:=ifelse(is.na(proteoform_id),0,proteoform_id)]
   return(traces)
 }
 
