@@ -556,7 +556,7 @@ combineTracesMutiCond <- function(tracesList){
     return(trac.m)
     })
   traces_combi <- rbindlist(traces)
-  traces_all <- dcast(traces_combi,id ~ variable+cond,value.var="value",fill=0)
+  traces_all <- dcast(traces_combi,id ~ cond+variable,value.var="value",fill=0)
   names(traces_all) <- c("id",seq(1,ncol(traces_all)-1,1))
   setcolorder(traces_all, c(seq(1,ncol(traces_all)-1,1),"id"))
 
