@@ -87,6 +87,7 @@ plotFeatures.traces <- function(feature_table,
                          estimated_complex_MW=FALSE,
                          highlight=NULL,
                          highlight_col=NULL,
+                         colour_by = "id",
                          monomer_MW=FALSE,
                          log=FALSE,
                          legend = TRUE,
@@ -157,6 +158,14 @@ plotFeatures.traces <- function(feature_table,
   }
   traces.long <- toLongFormat(traces$traces)
   traces.long <- merge(traces.long,traces$fraction_annotation,by.x="fraction",by.y="id")
+  if(colour_by!="id") {
+    if(!colour_by %in% names(traces$trace_annotation)){
+      stop("colour_by is not availbale in trace_annotation.")
+    }
+    isoform_annotation <- subset(traces$trace_annotation,select=c("id",colour_by))
+    traces.long <- merge(traces.long,isoform_annotation, by.x="id",by.y="id")
+    traces.long[,line:=paste0(get(colour_by),id)]
+  }
 
   ## Get traces to highlight
   if(!is.null(highlight)){
@@ -164,7 +173,7 @@ plotFeatures.traces <- function(feature_table,
   }
 
   if (annotation_label %in% names(traces$trace_annotation)) {
-    traces.long <- merge(traces.long,traces$trace_annotation,by="id",all.x=TRUE,all.y=FALSE)
+    traces.long <- merge(traces.long,traces$trace_annotation,by=intersect(names(traces.long),names(traces$trace_annotation)),all.x=TRUE,all.y=FALSE)
     if (traces$trace_type == "protein") {
       traces.long[,id := get(annotation_label)]
       proteins <- traces$trace_annotation[match(proteins,traces$trace_annotation$id)][,get(annotation_label)]
@@ -203,15 +212,22 @@ plotFeatures.traces <- function(feature_table,
 
   ## Create a reproducible coloring for the peptides plotted
   if(!is.null(colorMap)){
-    if(!all(unique(traces.long$id) %in% names(colorMap))){
+    if(!all(unique(traces_long$id) %in% names(colorMap))){
       stop("Invalid colorMap specified. Not all traces to be plotted are contained in the colorMap")
     }
   }else{
-    colorMap <- createGGplotColMap(unique(traces.long$id))
+    cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7","#999999")
+    ids <- sort(unique(traces.long[[colour_by]]))
+    if (length(ids) <= length(cbPalette)) {
+      colorMap <- cbPalette[1:length(unique(traces.long[[colour_by]]))]
+      names(colorMap) <- ids
+    } else {
+      colorMap <- createGGplotColMap(ids)
+    }
   }
 
   p <- ggplot(traces.long) +
-    geom_line(aes_string(x='fraction', y='intensity', color='id')) +
+    #geom_line(aes_string(x='fraction', y='intensity', color='id')) +
     xlab('fraction') +
     ylab('intensity') +
     theme_bw() +
@@ -222,6 +238,13 @@ plotFeatures.traces <- function(feature_table,
     guides(fill=FALSE) +
     scale_color_manual(values=colorMap)
 
+  if(colour_by == "id") {
+    p <- p + geom_line(aes_string(x='fraction', y='intensity', color='id'))
+  } else {
+    p <- p + geom_line(aes_string(x='fraction', y='intensity', color=colour_by, group='line'))
+  }
+  
+  
   if(!is.null(highlight)){
     legend_peps <- unique(traces.long[outlier == TRUE, id])
     if(is.null(highlight_col)){
