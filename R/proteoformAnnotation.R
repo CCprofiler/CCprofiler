@@ -658,6 +658,9 @@ annotateProteoformsAcrossConditions <- function(tracesList,combinedTraces){
   if (!"proteoform_id" %in% names(combinedTraces$trace_annotation)){
     stop("CombinedTraces have not been annotated!")
   }
+  if ("proteoform_id" %in% names(tracesList[[1]]$trace_annotation)) {
+    tracesList <- lapply(tracesList, removeInitialProteoforms)
+  }
   res <- lapply(tracesList, function(t){
     cols <- names(t$trace_annotation)[which(names(t$trace_annotation) %in% names(combinedTraces$trace_annotation))]
     t$trace_annotation <- merge(t$trace_annotation,combinedTraces$trace_annotation,
@@ -665,7 +668,7 @@ annotateProteoformsAcrossConditions <- function(tracesList,combinedTraces){
     return(t)
   })
   if ("proteoform_id" %in% names(res[[1]]$trace_annotation)) {
-    lapply(res, removeUnassignedPeptides)
+    res <- lapply(res, removeUnassignedPeptides)
   }
   class(res) <- "tracesList"
   .tracesListTest(res)
@@ -677,4 +680,11 @@ removeUnassignedPeptides <- function(traces){
   proteoforms_assigned <- unique(traces$trace_annotation[!is.na(proteoform_id)]$id)
   traces_new <- subset(traces, trace_subset_ids = proteoforms_assigned)
   return(traces_new)
+}
+
+removeInitialProteoforms <- function(traces){
+  traces$trace_annotation[,proteoform_id:=NULL]
+  traces$trace_annotation[,n_proteoforms:=NULL]
+  traces$trace_annotation[,cluster:=NULL]
+  return(traces)
 }
