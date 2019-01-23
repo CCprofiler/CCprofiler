@@ -664,7 +664,17 @@ annotateProteoformsAcrossConditions <- function(tracesList,combinedTraces){
                           all.x=T,all.y=F,by=cols,sort=F)
     return(t)
   })
+  if ("proteoform_id" %in% names(res[[1]]$trace_annotation)) {
+    lapply(res, removeUnassignedPeptides)
+  }
   class(res) <- "tracesList"
   .tracesListTest(res)
   return(res)
+}
+
+#' helpter function
+removeUnassignedPeptides <- function(traces){
+  proteoforms_assigned <- unique(traces$trace_annotation[!is.na(proteoform_id)]$id)
+  traces_new <- subset(traces, trace_subset_ids = proteoforms_assigned)
+  return(traces_new)
 }
