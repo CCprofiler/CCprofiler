@@ -85,7 +85,7 @@ plotRealVsRandomPerProtein <- function(protein,res){
 #' Default "fdr".
 #' @return Traces with exon evidence p-value per gene
 #' @export
-evaluateExonLocation <- function(traces, adj.method = "fdr"){
+evaluateExonLocation <- function(traces, adj.method = "fdr", optional_filter = F){
   traces$trace_annotation[, n_proteoforms := length(unique(proteoform_id)), by=c("protein_id")]
   proteins_withoutProteoforms <- unique(traces$trace_annotation[n_proteoforms==1]$protein_id)
   proteins_withProteoforms <- unique(traces$trace_annotation[n_proteoforms!=1]$protein_id)
@@ -101,6 +101,13 @@ evaluateExonLocation <- function(traces, adj.method = "fdr"){
   exonStats$exon_pval_adj <- p.adjust(exonStats$exon_pval, adj.method)
   exonStats$min_possible_pval_adj <- p.adjust(exonStats$min_possible_pval, adj.method)
   exonStats[,n_peptides:=NULL]
+  # filter proteins with exon_pvals == 1 or (optional) remove proteins
+  # with low powers as well as exon_pvals == 1
+  if (optional_filter == FALSE) {
+    exonStats <- subset(exonStats, exon_pval != 1)
+  } else {
+    exonStats <- subset(exonStats, min_possible_pval < 0.05 | exon_pval != 1)
+  }
 
   pdf("RealVsRandomSwaps_hist.pdf",width=3,height=3)
     p <- ggplot(exonStats,aes(x=exon_pval)) +
@@ -111,6 +118,17 @@ evaluateExonLocation <- function(traces, adj.method = "fdr"){
     geom_histogram(bins=50)+
     theme_classic()
     print(q)
+  dev.off()
+  
+  pdf("min_possible_pval_hist.pdf",width=3,height=3)
+    r <- ggplot(exonStats,aes(x=min_possible_pval)) +
+    geom_histogram(bins=50)+
+    theme_classic()
+    print(r)
+    s <- ggplot(exonStats,aes(x=min_possible_pval_adj)) +
+    geom_histogram(bins=50)+
+    theme_classic()
+    print(s)
   dev.off()
 
   traces$trace_annotation <- merge(traces$trace_annotation, exonStats,
