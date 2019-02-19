@@ -34,10 +34,13 @@ getGenePepList <- function(traces){
 #' Deafult is \code{FALSE}.
 #' @param name Character string with name of the plot, only used if
 #' '\code{PDF=TRUE}.PDF file is saved under name.pdf. Default is "maxCorrHist".
+#' @param acrossConditions logical, if traces across replicates and conditions 
+#' should be integrated for filtering to ensure minimal data loss. 
+#' Deafult is \code{TRUE}.
 #' @return Object of class traces filtered for peptide correlation.
 #' @export
 filterByMaxCorr <- function(traces, cutoff = 0.85,
-                            plot = FALSE, PDF=FALSE, name="maxCorrHist"){
+                            plot = FALSE, PDF=FALSE, name="maxCorrHist", acrossConditions=TRUE){
   UseMethod("filterByMaxCorr", traces)
 }
 
@@ -84,15 +87,24 @@ filterByMaxCorr.traces <- function(traces, cutoff = 0.85,
 #' at least one high correlating sibling peptide
 #' @export
 filterByMaxCorr.tracesList <- function(tracesList, cutoff = 0.85,
-                        plot = FALSE, PDF=FALSE, name="maxCorrHist", ...) {
+                        plot = FALSE, PDF=FALSE, name="maxCorrHist", acrossConditions=TRUE, ...) {
 
   .tracesListTest(tracesList)
-  if (PDF) {pdf(paste0(name,".pdf"),width=3,height=3)}
-  res <- lapply(tracesList, filterByMaxCorr.traces,
-                cutoff = cutoff,
-                plot = plot, PDF=F, name=name, ...)
-  if (PDF) {dev.off()}
-  class(res) <- "tracesList"
+  if (acrossConditions) {
+    traces_combined <- combineTracesMutiCond(tracesList)
+    traces_maxCorr <- filterByMaxCorr(traces_combined,
+                                      cutoff = cutoff, 
+                                      plot = plot, 
+                                      PDF=PDF, name=name)
+    res <- subset(tracesList, trace_subset_ids = unique(traces_maxCorr$trace_annotation$id))
+  } else {
+    if (PDF) {pdf(paste0(name,".pdf"),width=3,height=3)}
+    res <- lapply(tracesList, filterByMaxCorr.traces,
+                  cutoff = cutoff,
+                  plot = plot, PDF=F, name=name, ...)
+    if (PDF) {dev.off()}
+    class(res) <- "tracesList"
+  }
   .tracesListTest(res)
   return(res)
 }
