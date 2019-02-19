@@ -177,7 +177,7 @@ proteinQuantification.traces <- function(traces,
         col[1]
       }
     } else if (topN == 1) {
-      col[old_id %in% peptideTracesTopNsumWide$id]
+      col[id %in% peptideTracesTopNsumWide$id]
     }
   }),by = protein_id]
   #oldAnnotationPeptidelevel[,old_id:=NULL]
