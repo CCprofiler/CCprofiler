@@ -119,7 +119,7 @@ evaluateExonLocation <- function(traces, adj.method = "fdr", optional_filter = F
     theme_classic()
     print(q)
   dev.off()
-  
+
   pdf("min_possible_pval_hist.pdf",width=3,height=3)
     r <- ggplot(exonStats,aes(x=min_possible_pval)) +
     geom_histogram(bins=50)+
@@ -140,15 +140,18 @@ evaluateExonLocation <- function(traces, adj.method = "fdr", optional_filter = F
 #' Plot peptide clusters by relative sequence position
 #' @param traces Object of class traces or tracesList.
 #' @param protein Character string of protein_id to plot.
+#' @param PDF logical if PDF should written, default=FALSE.
 #' @return plot
 #' @export
-plotPeptideCluster <- function(traces,protein){
+plotPeptideCluster <- function(traces,protein, PDF=FALSE){
   dt <- subset(traces$trace_annotation,protein_id==protein)
   setkeyv(dt, c("protein_id","PeptidePositionStart"))
   dt[,PeptidePositionStartRank := seq_len(.N), by="protein_id"]
   cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7","#756bb1","#1c9099")
   dt$cluster <- as.factor(dt$cluster)
-  pdf(paste0(protein,"_sequence_cluster.pdf"),width=10,height=3)
+  if (PDF){
+    pdf(paste0(protein,"_sequence_cluster.pdf"),width=10,height=3)
+  }
   p <- ggplot(dt,aes(x=PeptidePositionStartRank,
     y=1,
     fill=cluster)) +
@@ -173,5 +176,7 @@ plotPeptideCluster <- function(traces,protein){
     scale_fill_manual(values=cbPalette) +
     ggtitle(paste0(protein," : ",unique(dt$Gene_names)))
   print(q)
-  dev.off()
+  if (PDF){
+    dev.off()
+  }
 }
