@@ -34,8 +34,8 @@ getGenePepList <- function(traces){
 #' Deafult is \code{FALSE}.
 #' @param name Character string with name of the plot, only used if
 #' '\code{PDF=TRUE}.PDF file is saved under name.pdf. Default is "maxCorrHist".
-#' @param acrossConditions logical, if traces across replicates and conditions 
-#' should be integrated for filtering to ensure minimal data loss. 
+#' @param acrossConditions logical, if traces across replicates and conditions
+#' should be integrated for filtering to ensure minimal data loss.
 #' Deafult is \code{TRUE}.
 #' @return Object of class traces filtered for peptide correlation.
 #' @export
@@ -93,8 +93,8 @@ filterByMaxCorr.tracesList <- function(tracesList, cutoff = 0.85,
   if (acrossConditions) {
     traces_combined <- combineTracesMutiCond(tracesList)
     traces_maxCorr <- filterByMaxCorr(traces_combined,
-                                      cutoff = cutoff, 
-                                      plot = plot, 
+                                      cutoff = cutoff,
+                                      plot = plot,
                                       PDF=PDF, name=name)
     res <- subset(tracesList, trace_subset_ids = unique(traces_maxCorr$trace_annotation$id))
   } else {
@@ -675,8 +675,10 @@ annotateProteoformsAcrossConditions <- function(tracesList,combinedTraces){
   }
   res <- lapply(tracesList, function(t){
     cols <- names(t$trace_annotation)[which(names(t$trace_annotation) %in% names(combinedTraces$trace_annotation))]
+    cols <- cols[!cols %in% c("n_peptides","cluster","n_proteoforms",
+                              "proteoform_id","n_proteoforms_beforeReassignment")]
     t$trace_annotation <- merge(t$trace_annotation,combinedTraces$trace_annotation,
-                          all.x=T,all.y=F,by=cols,sort=F)
+                                all.x=T,all.y=F,by=cols,sort=F, suffixes = c("", ".total"))
     return(t)
   })
   if ("proteoform_id" %in% names(res[[1]]$trace_annotation)) {
