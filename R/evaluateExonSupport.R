@@ -141,9 +141,10 @@ evaluateExonLocation <- function(traces, adj.method = "fdr", optional_filter = F
 #' @param traces Object of class traces or tracesList.
 #' @param protein Character string of protein_id to plot.
 #' @param PDF logical if PDF should written, default=FALSE.
+#' @param closeGaps logical position gaps should be ignored, default=FALSE.
 #' @return plot
 #' @export
-plotPeptideCluster <- function(traces,protein, PDF=FALSE){
+plotPeptideCluster <- function(traces,protein, PDF=FALSE, closeGaps=FALSE){
   dt <- subset(traces$trace_annotation,protein_id==protein)
   setkeyv(dt, c("protein_id","PeptidePositionStart"))
   dt[,PeptidePositionStartRank := seq_len(.N), by="protein_id"]
@@ -152,30 +153,33 @@ plotPeptideCluster <- function(traces,protein, PDF=FALSE){
   if (PDF){
     pdf(paste0(protein,"_sequence_cluster.pdf"),width=10,height=3)
   }
-  p <- ggplot(dt,aes(x=PeptidePositionStartRank,
-    y=1,
-    fill=cluster)) +
-    geom_bar(stat="identity") + theme_classic() +
-    theme(axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          axis.title= element_blank(),
-          axis.line = element_blank()) +
-    theme(legend.position="bottom") +
-    scale_fill_manual(values=cbPalette) +
-    ggtitle(paste0(protein," : ",unique(dt$Gene_names)))
-  print(p)
-  q <- ggplot(dt,aes(x=PeptidePositionStart,
-    y=1,
-    fill=cluster)) +
-    geom_bar(stat="identity") + theme_classic() +
-    theme(axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          axis.title= element_blank(),
-          axis.line = element_blank()) +
-    theme(legend.position="bottom") +
-    scale_fill_manual(values=cbPalette) +
-    ggtitle(paste0(protein," : ",unique(dt$Gene_names)))
-  print(q)
+  if (closeGaps) {
+    p <- ggplot(dt,aes(x=PeptidePositionStartRank,
+      y=1,
+      fill=cluster)) +
+      geom_bar(stat="identity") + theme_classic() +
+      theme(axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            axis.title= element_blank(),
+            axis.line = element_blank()) +
+      theme(legend.position="bottom") +
+      scale_fill_manual(values=cbPalette) +
+      ggtitle(paste0(protein," : ",unique(dt$Gene_names)))
+    print(p)
+  } else {
+    q <- ggplot(dt,aes(x=PeptidePositionStart,
+      y=1,
+      fill=cluster)) +
+      geom_bar(stat="identity") + theme_classic() +
+      theme(axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            axis.title= element_blank(),
+            axis.line = element_blank()) +
+      theme(legend.position="bottom") +
+      scale_fill_manual(values=cbPalette) +
+      ggtitle(paste0(protein," : ",unique(dt$Gene_names)))
+    print(q)
+  }
   if (PDF){
     dev.off()
   }
