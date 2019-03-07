@@ -320,8 +320,8 @@ extractFeatureVals.tracesList <- function(traces, features,
     if(fill){
       if(verbose) message("Filling in missing values across Features...")
       res <- fillFeatureVals(featureVals = res,
-                                     design_matrix = design_matrix,
-                                     perturb_cutoff = perturb_cutoff)
+                             tracesList = traces,
+                            design_matrix = design_matrix)
     }
   }else if(fill){
     message("Cannot fill values without a design matrix. Please specify.")
@@ -334,20 +334,25 @@ extractFeatureVals.tracesList <- function(traces, features,
 #' @description Fill in traces that are not detected in certain conditions with noise values
 #' @param featureVals data.table, a long-format table of intensity values within feature boundaries.
 #' A featureVals table can be produced with \code{extractFeatureVals}.
+#' @param tracesList object of class tracesList
 #' @param design_matrix data.table, design matrix describing the architecture of the tracesList object.
-#' @param perturb_cutoff Character string or numeric, the quantile of values that noise is sampled from.
-#' Noise needs to be imputed to calculate the correlations.
 #' @return Long format table containing filled feature values.
 #' @export
 
 fillFeatureVals <- function(featureVals,
-                            design_matrix,
-                            perturb_cutoff = "5%"){
-
-  if(class(perturb_cutoff) == "character"){
-    qt <- as.numeric(gsub("%","",perturb_cutoff))/100
-    perturb_cutoff <- quantile(featureVals$intensity, qt)
-  }
+                            tracesList,
+                            design_matrix){
+  
+  traceMat_list <- lapply(tracesList, getIntensityMatrix)
+  traceMat_list_dt <- lapply(traceMat_list,as.data.table,keep.rownames = "id")
+  traceMat_list_dt <- lapply(traceMat_list_dt,function(x){x[x == 0] <- NA; x})
+  traceMat_list_dt <- lapply(traceMat_list_dt,function(x){x[, mini := min(.SD,na.rm=T), by = "id"]})
+  traceMat_min <- lapply(traceMat_list_dt,function(x){subset(x,select=c("id","mini"))})
+  traceMat_min_dt <- do.call(rbind,traceMat_min)
+  traceMat_min_dt[,min_total:=min(mini),by="id"]
+  traceMat_min_dt <- unique(traceMat_min_dt[,mini:=NULL])
+  minValues <- traceMat_min_dt
+  
   set.seed(123) # set seed to always get same results
   samples <- unique(design_matrix$Sample)
   n_samples <- length(samples)
@@ -373,7 +378,7 @@ fillFeatureVals <- function(featureVals,
       complete_table <- unique(fv[, .(id, feature_id, apex, fraction, bound_left, bound_right)])
     }
   }
-
+  
   # complete_table_ <- apply(complete_table, 1, function(x) cbind(rbind(rep(x, n_samples)), samples))
   complete_table_ <- do.call(rbind,lapply(samples, function(x) cbind(complete_table, x)))
   setnames(complete_table_, "x", "Sample")
@@ -385,21 +390,33 @@ fillFeatureVals <- function(featureVals,
   fvComp[is.na(imputedFeature)]$imputedFeature <- TRUE
   ## Remove any traces that are found in no condition
   fvComp <- fvComp[fvComp[, .I[!all(imputedFraction)], by=c("id","feature_id","apex")]$V1]
-
+  
   fvComp[, imputedCondition := is.na(intensity)]
   n_filled <- fvComp[imputedCondition == T, .N]
-  ## Impute missing features with the minimum Value with the perturbation cutoff
-  fvComp[imputedCondition == T, intensity := as.double(runif(min = 0, max = perturb_cutoff, n_filled))]
+  
   ## Impute missing traces with the feature minimum of the other fraction
-  fvComp[, min_int := min(intensity[imputedFraction == F & intensity > 0],na.rm=TRUE), by=c("id","feature_id","apex")]
-  fvComp[imputedCondition  == T, intensity := runif(min=0, max = min_int, n=n_filled)]
-
+  #fvComp[, min_int := min(intensity[imputedFraction == F & intensity > 0],na.rm=TRUE), by=c("id","feature_id","apex")]
+  #fvComp[imputedCondition  == T, intensity := runif(min=0, max = min_int, n=n_filled)]
+  
+  ## Impute missing traces with the global minimum of the other sample
+  get_min <- function(x){minValues[id==x]$min_total}
+  fvComp[imputedCondition  == T, min_int := lapply(.SD,get_min), by=c("id","feature_id","apex","fraction"), .SDcols="id"]
+  fvComp[imputedCondition  == T, intensity := runif(min=0, max = min_int, n=1), by=c("id","feature_id","apex","fraction")]
+  fvComp[imputedCondition  == T, total_pep_intensity:=0]
+  fvComp[imputedCondition  == T, total_prot_intensity:=0]
+  fvComp[imputedCondition  == T, total_top2_prot_intensity:=0]
+  fvComp[imputedCondition  == T, global_intensity:=0]
+  fvComp[imputedCondition  == T, total_pep_intensity_imputed:=sum(intensity), by=c("id","feature_id","apex")]
+  n_fractions <- max(tracesList[[1]]$fraction_annotation$id)
+  fvComp[imputedCondition  == T, global_intensity_imputed := sum(runif(min=0, max = min_int, n=n_fractions)), by=c("id","feature_id")]
+  
+  
   fvComp[, Condition := NULL]
   fvComp[, Replicate := NULL]
   fvComp <- merge(fvComp, design_matrix[,.(Sample_name, Condition)],
                   by.x = "Sample", by.y = "Sample_name", sort = F)
   fvComp <- merge(fvComp, design_matrix[,.(Sample_name, Replicate)],
                   by.x = "Sample", by.y = "Sample_name", sort = F)
-
+  
   return(fvComp[])
 }
