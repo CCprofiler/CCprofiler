@@ -94,6 +94,7 @@ extractFeatureVals.traces <- function(traces, features,
     traceMatImputed[traceMatImputed == 0] <- runif(min = 0, max = perturb_cutoff, nZero)
   } else {
     ids <- rownames(traceMatImputed)
+    set.seed(123) # set seed to always get same results
     res <- lapply(ids,function(x){
       y <- traceMatImputed[x,]
       nZero <- sum(y == 0)
@@ -236,23 +237,29 @@ extractFeatureVals.traces <- function(traces, features,
   ## Zero Value imputation
   if (imputeZero) {
     if(verbose) message("Filling in fractions with zero values within features...")
-    set.seed(123)
-    featureVals[, imputedFraction := (intensity == 0)]
-    ## Completely absent features are imputed below the minimum value of that trace
-    featureVals[, imputedFeature := (sum(intensity) == 0), by=.(id, apex)]
-    if (TRUE %in% unique(featureVals$imputedFeature)) {
-      featureVals[imputedFeature == TRUE,
-                  min_int := unlist(lapply(id, function(x) min(traceMat[x,][traceMat[x,]>0])))]
-      featureVals[imputedFeature == TRUE, intensity := runif(min = 0, max = min_int, .N)]
+    if(is.null(minValues)) {
+      set.seed(123)
+      featureVals[, imputedFraction := (intensity == 0)]
+      ## Completely absent features are imputed below the minimum value of that trace
+      featureVals[, imputedFeature := (sum(intensity) == 0), by=.(id, apex)]
+      if (TRUE %in% unique(featureVals$imputedFeature)) {
+        featureVals[imputedFeature == TRUE,
+                    min_int := unlist(lapply(id, function(x) min(traceMat[x,][traceMat[x,]>0])))]
+        featureVals[imputedFeature == TRUE, intensity := runif(min = 0, max = min_int, .N)]
+      }
+      ## Features with some zeroes are imputed below the smallest value of that feature
+      featureVals[intensity==0]$intensity <- NA
+      featureVals[imputedFeature == FALSE, min_int := min(intensity,na.rm=TRUE), by=c("id","feature_id","apex")]
+      ## featureVals[,new := unlist(lapply(min_int,function(x){sample(x,1)}))]
+      ## featureVals[,intensity := ifelse(imputedFraction == TRUE, new, intensity)]
+      featureVals[is.na(intensity), intensity := runif(min = 0, max = min_int, .N)]
+      featureVals[, min_int := NULL]
+      ## featureVals[, new := NULL]
+    } else {
+      featureVals[, imputedFraction := (intensity == 0)]
+      featureVals[, imputedFeature := (sum(intensity) == 0), by=.(id, apex)]
+      featureVals[imputedFraction==TRUE, intensity := traceMatImputed[id,fraction], by=c("id","feature_id","apex","fraction")]
     }
-    ## Features with some zeroes are imputed below the smallest value of that feature
-    featureVals[intensity==0]$intensity <- NA
-    featureVals[imputedFeature == FALSE, min_int := min(intensity,na.rm=TRUE), by=c("id","feature_id","apex")]
-    ## featureVals[,new := unlist(lapply(min_int,function(x){sample(x,1)}))]
-    ## featureVals[,intensity := ifelse(imputedFraction == TRUE, new, intensity)]
-    featureVals[is.na(intensity), intensity := runif(min = 0, max = min_int, .N)]
-    featureVals[, min_int := NULL]
-    ## featureVals[, new := NULL]
   } else {
     featureVals[, imputedFraction := FALSE]
   }
