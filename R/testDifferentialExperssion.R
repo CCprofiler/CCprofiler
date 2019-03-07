@@ -40,7 +40,8 @@ testDifferentialExpression <- function(featureVals,
       setTxtProgressBar(pb, .GRP)
       samples = unique(.SD[,get(compare_between)])
       a = t.test(formula = intensity ~ get(compare_between) , paired = T, var.equal = FALSE)
-      qints = .SD[useForQuant == T, .(s = sum(intensity)), by = .(get(compare_between))]
+      # qints = .SD[useForQuant == T, .(s = sum(intensity)), by = .(get(compare_between))] # this disables a lot of comparisons
+      qints = .SD[, .(s = sum(intensity)), by = .(get(compare_between))] 
       ints = .SD[imputedFraction == F, .(s = sum(intensity)), by = .(get(compare_between))] # this creates quantitative discrepancies depending on how many fractions are used
       int1 = max(0, ints[get==samples[1]]$s, na.rm=T)
       int2 = max(0, ints[get==samples[2]]$s, na.rm=T)
@@ -68,7 +69,8 @@ testDifferentialExpression <- function(featureVals,
       setTxtProgressBar(pb, .GRP)
       samples = unique(.SD[,get(compare_between)])
       a = t.test(formula = intensity ~ get(compare_between) , paired = T, var.equal = FALSE)
-      qints = .SD[useForQuant == T, .(s = sum(intensity)), by = .(get(compare_between))]
+      qints = .SD[, .(s = sum(intensity)), by = .(get(compare_between))] 
+      # qints = .SD[useForQuant == T, .(s = sum(intensity)), by = .(get(compare_between))] # this disables a lot of comparisons
       ints = .SD[imputedFraction == F, .(s = sum(intensity)), by = .(get(compare_between))] # this creates quantitative discrepancies depending on how many fractions are used
       int1 = max(0, ints[get==samples[1]]$s, na.rm=T)
       int2 = max(0, ints[get==samples[2]]$s, na.rm=T)
