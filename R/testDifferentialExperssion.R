@@ -400,8 +400,8 @@ plotVolcano <- function(testResults, highlight=NULL, FC_cutoff=2, pBHadj_cutoff=
   if (PDF) {
     pdf(paste0(name,".pdf"), height=4, width=4)
   }
-  if ("sumLog2FC" %in% names(testResults)) {
-    p <- ggplot(testResults, aes(x=sumLog2FC,y=-log10(pBHadj)))
+  if ("medianLog2FC" %in% names(testResults)) {
+    p <- ggplot(testResults, aes(x=medianLog2FC,y=-log10(pBHadj)))
   } else {
     p <- ggplot(testResults, aes(x=log2FC,y=-log10(pBHadj)))
   }
@@ -427,8 +427,8 @@ plotVolcano <- function(testResults, highlight=NULL, FC_cutoff=2, pBHadj_cutoff=
     } else {
       stop("The testResults do not have the proper format. Input should be the result from testDifferentialExpression.")
     }
-    if ("sumLog2FC" %in% names(testResults)) {
-      p <- p + geom_point(data=sub, aes(x=sumLog2FC,y=-log10(pBHadj)), colour="red", fill="red", size=3, shape=23) +
+    if ("medianLog2FC" %in% names(testResults)) {
+      p <- p + geom_point(data=sub, aes(x=medianLog2FC,y=-log10(pBHadj)), colour="red", fill="red", size=3, shape=23) +
         geom_text_repel(data=sub, aes(label=get(col)), size=4, vjust=0, hjust=-0.1, colour="red")
     } else {
       p <- p + geom_point(data=sub, aes(x=log2FC,y=-log10(pBHadj)), colour="red", fill="red", size=3, shape=23)+
