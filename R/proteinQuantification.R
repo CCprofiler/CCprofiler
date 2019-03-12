@@ -206,8 +206,9 @@ proteinQuantification.traces <- function(traces,
   if (quantLevel == "proteoform_id") {
     setnames(new_annotation, "n_peptides", "n_peptides_perProteoform")
   }
-  common_cols <- intersect(names(oldAnnotationPeptidelevel),names(new_annotation))
-  peptideTracesTopNsumWideAnnotation <- merge(oldAnnotationPeptidelevel,
+  oldAnnotationPeptidelevel <- subset(oldAnnotationPeptidelevel, select = !names(oldAnnotationPeptidelevel) %in% c("n_peptides"))
+   common_cols <- intersect(names(oldAnnotationPeptidelevel),names(new_annotation))
+   peptideTracesTopNsumWideAnnotation <- merge(oldAnnotationPeptidelevel,
                                               new_annotation,
                                               by = common_cols, all.x = FALSE, all.y = TRUE)
 
