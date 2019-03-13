@@ -53,4 +53,3 @@ filteredComplexFeatures <- filterFeatures(complexFeatures,
 ## Run summary function on filtered data:
 summarizeFeatures(filteredComplexFeatures)
 }
-

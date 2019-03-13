@@ -12,4 +12,3 @@ exampleOpenSWATHinput
 A sample data.table representing the output format of the OpenSWATH workflow
 }
 \keyword{datasets}
-

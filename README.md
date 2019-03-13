@@ -8,5 +8,7 @@ Install the dependencies:
 ```
 cran_deps <- c('proxy', 'doSNOW', 'igraph', 'pracma', 'Rmpfr') 
 install.packages(cran_deps)
+BiocManager::install("qvalue")
+
 ```
 

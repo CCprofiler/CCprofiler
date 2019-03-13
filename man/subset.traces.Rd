@@ -45,4 +45,3 @@ summary(proteinSubsettedPeptideTraces)
 proteinSubsettedProteinTraces <- subset(inputProteinTraces,trace_subset_ids=subsetProtein)
 summary(proteinSubsettedProteinTraces)
 }
-

@@ -5,8 +5,8 @@
 \title{Filter by sibling peptide correlation}
 \usage{
 filterBySibPepCorr(traces, fdr_cutoff = 0.01, fdr_type = "protein",
-  FFT = 1, absolute_spcCutoff = NULL, rm_decoys = FALSE, plot = TRUE,
-  PDF = FALSE, CSV = FALSE)
+  FFT = 1, absolute_spcCutoff = NULL, rm_decoys = FALSE,
+  plot = TRUE, PDF = FALSE, CSV = FALSE)
 }
 \arguments{
 \item{traces}{An object of class traces (the trace_type must be "peptide").}
@@ -82,4 +82,3 @@ summary(tracesRaw)
 summary(tracesFiltered)
 
 }
-

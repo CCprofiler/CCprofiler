@@ -39,4 +39,3 @@ traces <- importPCPdata(input_data = pcpData,
 
 summary(traces)
 }
-

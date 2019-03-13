@@ -45,4 +45,3 @@ traces_id_column = "protein_id",
 trace_annotation_id_column = "Entry")
 annotatedTraces$trace_annotation
 }
-

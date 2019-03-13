@@ -29,4 +29,3 @@ complexHypotheses <- complexHypotheses[, .(subunits_detected = paste0(protein_id
 distMat <- getDistanceMatrix(complexHypotheses)
 
 }
-
