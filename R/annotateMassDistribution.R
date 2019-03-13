@@ -58,12 +58,10 @@ annotateMassDistribution.tracesList <- function(tracesList){
 #' @param design_matrix data.table, design matrix describing the architecture of the tracesList object.
 #' @export
 getMassAssemblyChange <- function(tracesList, design_matrix,
+                                  compare_between = "Condition",
                                   quantLevel = "protein_id"){
   .tracesListTest(tracesList)
   samples <- unique(design_matrix$Sample)
-  if(length(samples) != 2) {
-    stop("This function is only available for comparing 2 conditions.")
-  }
   if(! all(samples %in% names(tracesList))) {
     stop("tracesList and design_matrix do not match. Pleas check sample names.")
   }
@@ -81,18 +79,57 @@ getMassAssemblyChange <- function(tracesList, design_matrix,
   })
 
   res <- do.call(rbind, res)
-  if (quantLevel == "protein_id") {
-    res_cast <- dcast(res, formula = protein_id ~ Sample, value.var=c("sum_assembled_norm"))
-  } else if (quantLevel == "proteoform_id") {
-    res_cast <- dcast(res, formula = proteoform_id ~ Sample, value.var=c("sum_assembled_norm"))
+  
+  if(length(unique(design_matrix$Replicate)) < 2) {
+    if (quantLevel == "protein_id") {
+      res_cast <- dcast(res, formula = protein_id ~ Sample, value.var=c("sum_assembled_norm"))
+    } else if (quantLevel == "proteoform_id") {
+      res_cast <- dcast(res, formula = proteoform_id ~ Sample, value.var=c("sum_assembled_norm"))
+    } else {
+      stop("Functionality only available for quantLevel proetin_id or proteoform_id.")
+    }
+    #res_cast[, change := log2(get(samples[1])/(get(samples[2])))]
+    #res_cast[change=="NaN", change := 0]
+    res_cast[, medianDiff := get(samples[1])-(get(samples[2]))]
+    res_cast[, pVal := 1]
+    res_cast[, testOrder := paste0(samples[1],".vs.",samples[2])]
+    res_cast <- subset(res_cast, select = c("protein_id","medianDiff","pVal","testOrder"))
+    return(res_cast[])
   } else {
-    stop("Functionality only available for quantLevel proetin_id or proteoform_id.")
+    res <- merge(res, design_matrix, by.x="Sample", by.y="Sample_name")
+    if (quantLevel == "protein_id") {
+      tests <- res[, {
+        samples = unique(.SD[,get(compare_between)])
+        a = try(t.test(formula = sum_assembled_norm ~ get(compare_between) , paired = F, var.equal = FALSE), silent=TRUE)
+        if (is(a, "try-error")) {
+          pvalue=1
+        } else {
+          pvalue = a$p.value
+        }
+        median = .SD[, .(m = median(sum_assembled_norm)), by = .(get(compare_between))]
+        medianDiff = median[get==samples[1]]$m - median[get==samples[2]]$m
+        .(medianDiff=medianDiff, pVal = pvalue, testOrder=paste0(samples[1],".vs.",samples[2]))
+      },
+      by = .(protein_id)]
+    } else if (quantLevel == "proteoform_id") {
+      tests <- res[, {
+        samples = unique(.SD[,get(compare_between)])
+        a = try(t.test(formula = sum_assembled_norm ~ get(compare_between) , paired = F, var.equal = FALSE), silent=TRUE)
+        if (is(a, "try-error")) {
+          pvalue=1
+        } else {
+          pvalue = a$p.value
+        }
+        median = .SD[, .(m = median(sum_assembled_norm)), by = .(get(compare_between))]
+        medianDiff = median[get==samples[1]]$m - median[get==samples[2]]$m
+        .(medianDiff=medianDiff, pVal = pvalue, testOrder=paste0(samples[1],".vs.",samples[2]))
+      },
+      by = .(proteoform_id)]
+    } else {
+      stop("Functionality only available for quantLevel proetin_id or proteoform_id.")
+    }
+    return(tests[])
   }
-  #res_cast[, change := log2(get(samples[1])/(get(samples[2])))]
-  #res_cast[change=="NaN", change := 0]
-  res_cast[, change := get(samples[1])-(get(samples[2]))]
-  res_cast[, testOrder := paste0(samples[1],".vs.",samples[2])]
-  return(res_cast[])
 }
 
 #' plotMassAssemblyChange between 2 conditions
@@ -107,16 +144,16 @@ plotMassAssemblyChange <- function(assamblyTest, change_cutoff=0.2, name="massAs
   if (PDF) {
     pdf(paste0(name,".pdf"))
   }
-  no_change <- nrow(subset(assamblyTest, abs(change) <= change_cutoff))
-  more_assembled <- nrow(subset(assamblyTest, change < -change_cutoff))
-  less_assembled <- nrow(subset(assamblyTest, change > change_cutoff))
+  no_change <- nrow(subset(assamblyTest, abs(medianDiff) <= change_cutoff))
+  more_assembled <- nrow(subset(assamblyTest, medianDiff < -change_cutoff))
+  less_assembled <- nrow(subset(assamblyTest, medianDiff > change_cutoff))
   pie(c(no_change,more_assembled,less_assembled),
       labels=c(paste("no assembly change \n abs(change) < ",change_cutoff,"\n",no_change),
                paste0("more assembled \n change < -",change_cutoff,"\n",more_assembled),
                paste0("less assembled \n change > ",change_cutoff,"\n",less_assembled)),
       main = paste0(unique(assamblyTest$testOrder)))
 
-  h <- ggplot(assamblyTest, aes(x=change)) + geom_histogram(binwidth = 0.05) + theme_classic()
+  h <- ggplot(assamblyTest, aes(x=medianDiff)) + geom_histogram(binwidth = 0.05) + theme_classic()
   print(h)
   if (PDF) {
     dev.off()
