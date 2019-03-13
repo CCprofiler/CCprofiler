@@ -41,24 +41,33 @@ testDifferentialExpression <- function(featureVals,
       samples = unique(.SD[,get(compare_between)])
       a = t.test(formula = intensity ~ get(compare_between) , paired = T, var.equal = FALSE)
       # qints = .SD[useForQuant == T, .(s = sum(intensity)), by = .(get(compare_between))] # this disables a lot of comparisons
-      qints = .SD[, .(s = sum(intensity)), by = .(get(compare_between))] 
+      qints = .SD[, .(s = sum(intensity)), by = .(get(compare_between), Replicate)] 
       ints = .SD[imputedFraction == F, .(s = sum(intensity)), by = .(get(compare_between))] # this creates quantitative discrepancies depending on how many fractions are used
-      int1 = max(0, ints[get==samples[1]]$s, na.rm=T)
-      int2 = max(0, ints[get==samples[2]]$s, na.rm=T)
-      qint1 = qints[get==samples[1]]$s
-      qint2 = qints[get==samples[2]]$s
-      global_ints = .SD[, .(s = unique(global_intensity)), by = .(get(compare_between))]
-      global_int1 = global_ints[get==samples[1]]$s
-      global_int2 = global_ints[get==samples[2]]$s
-      global_ints_imp = .SD[, .(s = unique(global_intensity_imputed)), by = .(get(compare_between))]
-      global_int1_imp = global_ints_imp[get==samples[1]]$s
-      global_int2_imp = global_ints_imp[get==samples[2]]$s
-      .(pVal = a$p.value, int1 = int1, int2 = int2, meanDiff = a$estimate,
+      int1 = max(0, median(ints[get==samples[1]]$s), na.rm=T)
+      int2 = max(0, median(ints[get==samples[2]]$s), na.rm=T)
+      qint1 = median(qints[get==samples[1]]$s)
+      qint2 = median(qints[get==samples[2]]$s)
+      global_ints = .SD[, .(s = unique(global_intensity)), by = .(get(compare_between), Replicate)]
+      global_ints_imp = .SD[, .(s = unique(global_intensity_imputed)), by = .(get(compare_between), Replicate)]
+      global_int1 = median(global_ints[get==samples[1]]$s)
+      global_int2 = median(global_ints[get==samples[2]]$s)
+      global_int1_imp = median(global_ints_imp[get==samples[1]]$s)
+      global_int2_imp = median(global_ints_imp[get==samples[2]]$s)
+      if (length(unique(design_matrix$Replicate)) < 2) {
+        b = t.test(formula = global_ints_imp$s ~ global_ints_imp$get , paired = F, var.equal = FALSE) 
+        global_Pval = b$p.value
+      } else {
+        global_Pval = 1
+      }
+      .(pVal = a$p.value, 
+        int1 = int1, int2 = int2, 
+        meanDiff = a$estimate,
         qint1 = qint1, qint2 = qint2, log2FC =  log2(qint1/qint2),
         n_fractions = a$parameter + 1,  Tstat = a$statistic, testOrder = paste0(samples[1],".vs.",samples[2]),
         global_int1 = global_int1, global_int2 = global_int2, global_log2FC = log2(global_int1/global_int2),
         global_int1_imp = global_int1_imp, global_int2_imp = global_int2_imp, global_log2FC_imp = log2(global_int1_imp/global_int2_imp),
-        local_vs_global_log2FC = log2(qint1/qint2)-log2(global_int1/global_int2), local_vs_global_log2FC_imp = log2(qint1/qint2)-log2(global_int1_imp/global_int2_imp)
+        local_vs_global_log2FC = log2(qint1/qint2)-log2(global_int1/global_int2), local_vs_global_log2FC_imp = log2(qint1/qint2)-log2(global_int1_imp/global_int2_imp),
+        global_Pval = global_Pval
        )},
       by = .(id, feature_id, complex_id, apex)]
     close(pb)
@@ -69,25 +78,33 @@ testDifferentialExpression <- function(featureVals,
       setTxtProgressBar(pb, .GRP)
       samples = unique(.SD[,get(compare_between)])
       a = t.test(formula = intensity ~ get(compare_between) , paired = T, var.equal = FALSE)
-      qints = .SD[, .(s = sum(intensity)), by = .(get(compare_between))] 
-      # qints = .SD[useForQuant == T, .(s = sum(intensity)), by = .(get(compare_between))] # this disables a lot of comparisons
+      qints = .SD[, .(s = sum(intensity)), by = .(get(compare_between), Replicate)] 
       ints = .SD[imputedFraction == F, .(s = sum(intensity)), by = .(get(compare_between))] # this creates quantitative discrepancies depending on how many fractions are used
-      int1 = max(0, ints[get==samples[1]]$s, na.rm=T)
-      int2 = max(0, ints[get==samples[2]]$s, na.rm=T)
-      qint1 = qints[get==samples[1]]$s
-      qint2 = qints[get==samples[2]]$s
-      global_ints = .SD[, .(s = unique(global_intensity)), by = .(get(compare_between))]
-      global_int1 = global_ints[get==samples[1]]$s
-      global_int2 = global_ints[get==samples[2]]$s
-      global_ints_imp = .SD[, .(s = unique(global_intensity_imputed)), by = .(get(compare_between))]
-      global_int1_imp = global_ints_imp[get==samples[1]]$s
-      global_int2_imp = global_ints_imp[get==samples[2]]$s
-      .(pVal = a$p.value, int1 = int1, int2 = int2, meanDiff = a$estimate,
+      int1 = max(0, median(ints[get==samples[1]]$s), na.rm=T)
+      int2 = max(0, median(ints[get==samples[2]]$s), na.rm=T)
+      qint1 = median(qints[get==samples[1]]$s)
+      qint2 = median(qints[get==samples[2]]$s)
+      global_ints = .SD[, .(s = unique(global_intensity)), by = .(get(compare_between), Replicate)]
+      global_ints_imp = .SD[, .(s = unique(global_intensity_imputed)), by = .(get(compare_between), Replicate)]
+      global_int1 = median(global_ints[get==samples[1]]$s)
+      global_int2 = median(global_ints[get==samples[2]]$s)
+      global_int1_imp = median(global_ints_imp[get==samples[1]]$s)
+      global_int2_imp = median(global_ints_imp[get==samples[2]]$s)
+      if (length(unique(design_matrix$Replicate)) > 2) {
+        b = t.test(formula = global_ints_imp$s ~ global_ints_imp$get , paired = F, var.equal = FALSE) 
+        global_Pval = b$p.value
+      } else {
+        global_Pval = 1
+      }
+      .(pVal = a$p.value, 
+        int1 = int1, int2 = int2, 
+        meanDiff = a$estimate,
         qint1 = qint1, qint2 = qint2, log2FC =  log2(qint1/qint2),
-        n_fractions = a$parameter + 1, Tstat = a$statistic, testOrder = paste0(samples[1],".vs.",samples[2]),
+        n_fractions = a$parameter + 1,  Tstat = a$statistic, testOrder = paste0(samples[1],".vs.",samples[2]),
         global_int1 = global_int1, global_int2 = global_int2, global_log2FC = log2(global_int1/global_int2),
         global_int1_imp = global_int1_imp, global_int2_imp = global_int2_imp, global_log2FC_imp = log2(global_int1_imp/global_int2_imp),
-        local_vs_global_log2FC = log2(qint1/qint2)-log2(global_int1/global_int2), local_vs_global_log2FC_imp = log2(qint1/qint2)-log2(global_int1_imp/global_int2_imp)
+        local_vs_global_log2FC = log2(qint1/qint2)-log2(global_int1/global_int2), local_vs_global_log2FC_imp = log2(qint1/qint2)-log2(global_int1_imp/global_int2_imp),
+        global_Pval = global_Pval
       )},
       by = .(id, feature_id, apex)]
     close(pb)
@@ -400,8 +417,8 @@ plotVolcano <- function(testResults, highlight=NULL, FC_cutoff=2, pBHadj_cutoff=
   if (PDF) {
     pdf(paste0(name,".pdf"), height=4, width=4)
   }
-  if ("medianLog2FC" %in% names(testResults)) {
-    p <- ggplot(testResults, aes(x=medianLog2FC,y=-log10(pBHadj)))
+  if ("sumLog2FC" %in% names(testResults)) {
+    p <- ggplot(testResults, aes(x=sumLog2FC,y=-log10(pBHadj)))
   } else {
     p <- ggplot(testResults, aes(x=log2FC,y=-log10(pBHadj)))
   }
@@ -427,8 +444,8 @@ plotVolcano <- function(testResults, highlight=NULL, FC_cutoff=2, pBHadj_cutoff=
     } else {
       stop("The testResults do not have the proper format. Input should be the result from testDifferentialExpression.")
     }
-    if ("medianLog2FC" %in% names(testResults)) {
-      p <- p + geom_point(data=sub, aes(x=medianLog2FC,y=-log10(pBHadj)), colour="red", fill="red", size=3, shape=23) +
+    if ("sumLog2FC" %in% names(testResults)) {
+      p <- p + geom_point(data=sub, aes(x=sumLog2FC,y=-log10(pBHadj)), colour="red", fill="red", size=3, shape=23) +
         geom_text_repel(data=sub, aes(label=get(col)), size=4, vjust=0, hjust=-0.1, colour="red")
     } else {
       p <- p + geom_point(data=sub, aes(x=log2FC,y=-log10(pBHadj)), colour="red", fill="red", size=3, shape=23)+
