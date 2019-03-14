@@ -200,16 +200,28 @@ aggregateTests <- function(tests,level){
   medianPval <- getFCadjustedMedian(tests, level=level)
   if (level == "protein") {
     medianPval[, pVal := pbeta(medianPVal, Npeptides/2 + 0.5, Npeptides - (Npeptides/2 + 0.5) + 1)]
+    medianPval[, global_pVal := pbeta(global_medianPVal, Npeptides/2 + 0.5, Npeptides - (Npeptides/2 + 0.5) + 1)]
+    medianPval[, local_vs_global_pVal := pbeta(local_vs_global_medianPVal, Npeptides/2 + 0.5, Npeptides - (Npeptides/2 + 0.5) + 1)]
   } else if (level == "proteoform") {
     medianPval[, pVal := pbeta(medianPVal, Npeptides/2 + 0.5, Npeptides - (Npeptides/2 + 0.5) + 1)]
+    medianPval[, global_pVal := pbeta(global_medianPVal, Npeptides/2 + 0.5, Npeptides - (Npeptides/2 + 0.5) + 1)]
+    medianPval[, local_vs_global_pVal := pbeta(local_vs_global_medianPVal, Npeptides/2 + 0.5, Npeptides - (Npeptides/2 + 0.5) + 1)]
   } else if (level == "complex") {
     medianPval[, pVal := pbeta(medianPVal, Nproteins/2 + 0.5, Nproteins - (Nproteins/2 + 0.5) + 1)]
+    medianPval[, global_pVal := pbeta(global_medianPVal, Nproteins/2 + 0.5, Nproteins - (Nproteins/2 + 0.5) + 1)]
+    medianPval[, local_vs_global_pVal := pbeta(local_vs_global_medianPVal, Nproteins/2 + 0.5, Nproteins - (Nproteins/2 + 0.5) + 1)]
   } else {
     stop("Test level must be protein, proteoform or complex.")
   }
   qv <- qvalue::qvalue(medianPval$pVal, lambda = 0.4)
   medianPval$qVal <- qv$qvalues
   medianPval[, pBHadj := p.adjust(pVal, method = "fdr")]
+  global_qv <- qvalue::qvalue(medianPval$global_pVal, lambda = 0.4)
+  medianPval$global_qVal <- global_qv$qvalues
+  medianPval[, global_pBHadj := p.adjust(global_pVal, method = "fdr")]
+  local_vs_global_qv <- qvalue::qvalue(medianPval$local_vs_global_pVal, lambda = 0.4)
+  medianPval$local_vs_global_qVal <- local_vs_global_qv$qvalues
+  medianPval[, local_vs_global_pBHadj := p.adjust(local_vs_global_pVal, method = "fdr")]
   return(medianPval)
 }
 
@@ -217,117 +229,108 @@ getFCadjustedMedian <- function(tests,level){
   test <- copy(tests)
   if (level == "protein") {
     test[, FCpVal := (1-pVal) * sign(log2FC)]
+    test[, global_FCpVal := (1-global_pVal) * sign(global_log2FC)]
+    test[, local_vs_global_FCpVal := (1-local_vs_global_pVal) * sign(local_vs_global_log2FC)]
     if ("complex_id" %in% names(test)) {
       medianPval <- test[ ,{mPval = median(FCpVal,na.rm=T)
+      global_mPval = median(global_FCpVal,na.rm=T)
+      local_vs_global_mPval = median(local_vs_global_FCpVal,na.rm=T)
       .(medianPVal = 1-(mPval * sign(mPval)),
       Npeptides = .N,
       medianLog2FC = median(log2FC,na.rm=T),
       medianTstat = median(Tstat),
       medianMeanDiff = median(meanDiff),
-      qint1 = sum(qint1,na.rm=T),
-      qint2 = sum(qint2,na.rm=T),
-      sumLog2FC = log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)),
-      global_int1 = sum(global_int1,na.rm=T),
-      global_int2 = sum(global_int2,na.rm=T),
-      global_sumLog2FC = log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T)),
-      global_int1_imp = sum(global_int1_imp,na.rm=T),
-      global_int2_imp = sum(global_int2_imp,na.rm=T),
-      global_sumLog2FC_imp = log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)),
-      local_vs_global_log2FC = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T))),
-      local_vs_global_log2FC_imp = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)))
+      global_medianLog2FC = median(global_log2FC,na.rm=T),
+      global_medianLog2FC_imp = median(global_log2FC_imp,na.rm=T),
+      global_medianPVal = 1-(global_mPval * sign(global_mPval)),
+      local_vs_global_medianlog2FC = median(local_vs_global_log2FC,na.rm=T),
+      local_vs_global_medianlog2FC_imp = median(local_vs_global_log2FC_imp,na.rm=T),
+      local_vs_global_medianPVal = 1-(local_vs_global_mPval * sign(local_vs_global_mPval))
       )},
       by = .(feature_id, complex_id, apex)]
     } else {
       medianPval <- test[ ,{mPval = median(FCpVal,na.rm=T)
+      global_mPval = median(global_FCpVal,na.rm=T)
+      local_vs_global_mPval = median(local_vs_global_FCpVal,na.rm=T)
       .(medianPVal = 1-(mPval * sign(mPval)),
-      Npeptides = .N,
-      medianLog2FC = median(log2FC,na.rm=T),
-      medianTstat = median(Tstat),
-      medianMeanDiff = median(meanDiff),
-      qint1 = sum(qint1,na.rm=T),
-      qint2 = sum(qint2,na.rm=T),
-      sumLog2FC = log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)),
-      global_int1 = sum(global_int1,na.rm=T),
-      global_int2 = sum(global_int2,na.rm=T),
-      global_sumLog2FC = log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T)),
-      global_int1_imp = sum(global_int1_imp,na.rm=T),
-      global_int2_imp = sum(global_int2_imp,na.rm=T),
-      global_sumLog2FC_imp = log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)),
-      local_vs_global_log2FC = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T))),
-      local_vs_global_log2FC_imp = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)))
+        Npeptides = .N,
+        medianLog2FC = median(log2FC,na.rm=T),
+        medianTstat = median(Tstat),
+        medianMeanDiff = median(meanDiff),
+        global_medianLog2FC = median(global_log2FC,na.rm=T),
+        global_medianLog2FC_imp = median(global_log2FC_imp,na.rm=T),
+        global_medianPVal = 1-(global_mPval * sign(global_mPval)),
+        local_vs_global_medianlog2FC = median(local_vs_global_log2FC,na.rm=T),
+        local_vs_global_medianlog2FC_imp = median(local_vs_global_log2FC_imp,na.rm=T),
+        local_vs_global_medianPVal = 1-(local_vs_global_mPval * sign(local_vs_global_mPval))
       )},
       by = .(feature_id, apex)]
     }
   } else if (level == "complex") {
-    test[, FCpVal := (1-pVal) * sign(sumLog2FC)]
+    test[, FCpVal := (1-pVal) * sign(medianLog2FC)]
+    test[, global_FCpVal := (1-global_pVal) * sign(global_medianLog2FC)]
+    test[, local_vs_global_FCpVal := (1-local_vs_global_pVal) * sign(local_vs_global_medianLog2FC)]
     medianPval <- test[ ,{mPval = median(FCpVal,na.rm=T)
+    global_mPval = median(global_FCpVal,na.rm=T)
+    local_vs_global_mPval = median(local_vs_global_FCpVal,na.rm=T)
     .(medianPVal = 1-(mPval * sign(mPval)),
-    Nproteins = .N,
-    medianLog2FC = median(sumLog2FC,na.rm=T),
-    medianTstat = median(medianTstat),
-    medianMeanDiff = median(medianMeanDiff),
-    qint1 = sum(qint1,na.rm=T),
-    qint2 = sum(qint2,na.rm=T),
-    sumLog2FC = log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)),
-    global_int1 = sum(global_int1,na.rm=T),
-    global_int2 = sum(global_int2,na.rm=T),
-    global_sumLog2FC = log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T)),
-    global_int1_imp = sum(global_int1_imp,na.rm=T),
-    global_int2_imp = sum(global_int2_imp,na.rm=T),
-    global_sumLog2FC_imp = log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)),
-    local_vs_global_log2FC = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T))),
-    local_vs_global_log2FC_imp = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)))
-    )},
+      Npeptides = .N,
+      medianLog2FC = median(log2FC,na.rm=T),
+      medianTstat = median(Tstat),
+      medianMeanDiff = median(meanDiff),
+      global_medianLog2FC = median(global_log2FC,na.rm=T),
+      global_medianLog2FC_imp = median(global_log2FC_imp,na.rm=T),
+      global_medianPVal = 1-(global_mPval * sign(global_mPval)),
+     local_vs_global_medianlog2FC = median(local_vs_global_log2FC,na.rm=T),
+     local_vs_global_medianlog2FC_imp = median(local_vs_global_log2FC_imp,na.rm=T),
+     local_vs_global_medianPVal = 1-(local_vs_global_mPval * sign(local_vs_global_mPval))
+     )},
     by = .(complex_id, apex)]
   } else if (level == "proteoform") {
     test[, FCpVal := (1-pVal) * sign(log2FC)]
+    test[, global_FCpVal := (1-global_pVal) * sign(global_log2FC)]
+    test[, local_vs_global_FCpVal := (1-local_vs_global_pVal) * sign(local_vs_global_log2FC)]
     if ("complex_id" %in% names(test)) {
       medianPval <- test[ ,{mPval = median(FCpVal,na.rm=T)
+      global_mPval = median(global_FCpVal,na.rm=T)
+      local_vs_global_mPval = median(local_vs_global_FCpVal,na.rm=T)
       .(medianPVal = 1-(mPval * sign(mPval)),
-      Npeptides = .N,
-      medianLog2FC = median(log2FC,na.rm=T),
-      medianTstat = median(Tstat),
-      medianMeanDiff = median(meanDiff),
-      qint1 = sum(qint1,na.rm=T),
-      qint2 = sum(qint2,na.rm=T),
-      sumLog2FC = log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)),
-      global_int1 = sum(global_int1,na.rm=T),
-      global_int2 = sum(global_int2,na.rm=T),
-      global_sumLog2FC = log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T)),
-      global_int1_imp = sum(global_int1_imp,na.rm=T),
-      global_int2_imp = sum(global_int2_imp,na.rm=T),
-      global_sumLog2FC_imp = log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)),
-      local_vs_global_log2FC = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T))),
-      local_vs_global_log2FC_imp = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)))
-      )},
+        Npeptides = .N,
+        medianLog2FC = median(log2FC,na.rm=T),
+        medianTstat = median(Tstat),
+        medianMeanDiff = median(meanDiff),
+        global_medianLog2FC = median(global_log2FC,na.rm=T),
+        global_medianLog2FC_imp = median(global_log2FC_imp,na.rm=T),
+        global_medianPVal = 1-(global_mPval * sign(global_mPval)),
+       local_vs_global_medianlog2FC = median(local_vs_global_log2FC,na.rm=T),
+       local_vs_global_medianlog2FC_imp = median(local_vs_global_log2FC_imp,na.rm=T),
+       local_vs_global_medianPVal = 1-(local_vs_global_mPval * sign(local_vs_global_mPval))
+       )},
       by = .(feature_id, proteoform_id, complex_id, apex)]
     } else {
       medianPval <- test[ ,{mPval = median(FCpVal,na.rm=T)
+      global_mPval = median(global_FCpVal,na.rm=T)
+      local_vs_global_mPval = median(local_vs_global_FCpVal,na.rm=T)
       .(medianPVal = 1-(mPval * sign(mPval)),
-      Npeptides = .N,
-      medianLog2FC = median(log2FC,na.rm=T),
-      medianTstat = median(Tstat),
-      medianMeanDiff = median(meanDiff),
-      qint1 = sum(qint1,na.rm=T),
-      qint2 = sum(qint2,na.rm=T),
-      sumLog2FC = log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)),
-      global_int1 = sum(global_int1,na.rm=T),
-      global_int2 = sum(global_int2,na.rm=T),
-      global_sumLog2FC = log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T)),
-      global_int1_imp = sum(global_int1_imp,na.rm=T),
-      global_int2_imp = sum(global_int2_imp,na.rm=T),
-      global_sumLog2FC_imp = log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)),
-      local_vs_global_log2FC = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1,na.rm=T)/sum(global_int2,na.rm=T))),
-      local_vs_global_log2FC_imp = (log2(sum(qint1,na.rm=T)/sum(qint2,na.rm=T)))-(log2(sum(global_int1_imp,na.rm=T)/sum(global_int2_imp,na.rm=T)))
-      )},
+        Npeptides = .N,
+        medianLog2FC = median(log2FC,na.rm=T),
+        medianTstat = median(Tstat),
+        medianMeanDiff = median(meanDiff),
+        global_medianLog2FC = median(global_log2FC,na.rm=T),
+        global_medianLog2FC_imp = median(global_log2FC_imp,na.rm=T),
+        global_medianPVal = 1-(global_mPval * sign(global_mPval)),
+       local_vs_global_medianlog2FC = median(local_vs_global_log2FC,na.rm=T),
+       local_vs_global_medianlog2FC_imp = median(local_vs_global_log2FC_imp,na.rm=T),
+       local_vs_global_medianPVal = 1-(local_vs_global_mPval * sign(local_vs_global_mPval))
+       )},
       by = .(feature_id, proteoform_id, apex)]
     }
     medianPval <- subset(medianPval,!is.na(proteoform_id))
   } else {
     stop("Test level must be protein or complex.")
   }
-  medianPval[is.nan(sumLog2FC) & (medianLog2FC == "Inf")]$sumLog2FC <- Inf
-  medianPval[is.nan(sumLog2FC) & (medianLog2FC == "-Inf")]$sumLog2FC <- -Inf
+  #medianPval[is.nan(sumLog2FC) & (medianLog2FC == "Inf")]$sumLog2FC <- Inf
+  #medianPval[is.nan(sumLog2FC) & (medianLog2FC == "-Inf")]$sumLog2FC <- -Inf
   return(medianPval)
   }
 
@@ -438,47 +441,98 @@ normalizeVals <- function(featureVals,
 #' @param PDF logical if PDF should be created, default is FALSE.
 #' @return plot
 #' @export
-plotVolcano <- function(testResults, highlight=NULL, FC_cutoff=2, pBHadj_cutoff=0.01,name="volcanoPlot", PDF=FALSE) {
-  if (PDF) {
-    pdf(paste0(name,".pdf"), height=4, width=4)
-  }
-  if ("sumLog2FC" %in% names(testResults)) {
-    p <- ggplot(testResults, aes(x=sumLog2FC,y=-log10(pBHadj)))
+plotVolcano <- function(testResults, 
+                        highlight=NULL, 
+                        FC_cutoff=2, 
+                        pBHadj_cutoff=0.01,
+                        name="volcanoPlot", 
+                        PDF=FALSE,
+                        level=c("feature","global")) {
+  level <- match.arg(level)
+  if (level=="feature"){
+    if (PDF) {
+      pdf(paste0(name,".pdf"), height=4, width=4)
+    }
+    if ("medianLog2FC" %in% names(testResults)) {
+      p <- ggplot(testResults, aes(x=medianLog2FC,y=-log10(pBHadj)))
+    } else {
+      p <- ggplot(testResults, aes(x=log2FC,y=-log10(pBHadj)))
+    }
+    p <- p +
+      geom_point(size=1) +
+      theme_classic() +
+      geom_hline(yintercept=-log10(pBHadj_cutoff), colour="red", linetype="dashed") +
+      geom_vline(xintercept=-log2(FC_cutoff), colour="red", linetype="dashed") +
+      geom_vline(xintercept=log2(FC_cutoff), colour="red", linetype="dashed")
+    if (! is.null(highlight)){
+      if ("feature_id" %in% names(testResults)) {
+        sub <- subset(testResults,feature_id %in% highlight)
+        col <- "feature_id"
+      } else if ("complex_id" %in% names(testResults)) {
+        sub <- subset(testResults,complex_id %in% highlight)
+        col <- "complex_id"
+      } else if (highlight %in% testResults$protein_id) {
+        sub <- subset(testResults,protein_id %in% highlight)
+        col <- "protein_id"
+      } else if (highlight %in% testResults$proteoform_id) {
+        sub <- subset(testResults,proteoform_id %in% highlight)
+        col <- "proteoform_id"
+      } else {
+        stop("The testResults do not have the proper format. Input should be the result from testDifferentialExpression.")
+      }
+      if ("medianLog2FC" %in% names(testResults)) {
+        p <- p + geom_point(data=sub, aes(x=medianLog2FC,y=-log10(pBHadj)), colour="red", fill="red", size=3, shape=23) +
+          geom_text_repel(data=sub, aes(label=get(col)), size=4, vjust=0, hjust=-0.1, colour="red")
+      } else {
+        p <- p + geom_point(data=sub, aes(x=log2FC,y=-log10(pBHadj)), colour="red", fill="red", size=3, shape=23)+
+          geom_text_repel(data=sub, aes(label=get(col)), size=4, vjust=0, hjust=-0.1, colour="red")
+      }
+    }
+  } else if (level=="global"){
+    if (PDF) {
+      pdf(paste0(name,"_",level,".pdf"), height=4, width=4)
+    }
+    if ("medianLog2FC" %in% names(testResults)) {
+      p <- ggplot(testResults, aes(x=global_medianLog2FC,y=-log10(global_pBHadj)))
+    } else {
+      p <- ggplot(testResults, aes(x=global_log2FC,y=-log10(global_pBHadj)))
+    }
+    p <- p +
+      geom_point(size=1) +
+      theme_classic() +
+      geom_hline(yintercept=-log10(pBHadj_cutoff), colour="red", linetype="dashed") +
+      geom_vline(xintercept=-log2(FC_cutoff), colour="red", linetype="dashed") +
+      geom_vline(xintercept=log2(FC_cutoff), colour="red", linetype="dashed")
+    if (! is.null(highlight)){
+      if ("feature_id" %in% names(testResults)) {
+        sub <- subset(testResults,feature_id %in% highlight)
+        col <- "feature_id"
+      } else if ("complex_id" %in% names(testResults)) {
+        sub <- subset(testResults,complex_id %in% highlight)
+        col <- "complex_id"
+      } else if (highlight %in% testResults$protein_id) {
+        sub <- subset(testResults,protein_id %in% highlight)
+        col <- "protein_id"
+      } else if (highlight %in% testResults$proteoform_id) {
+        sub <- subset(testResults,proteoform_id %in% highlight)
+        col <- "proteoform_id"
+      } else {
+        stop("The testResults do not have the proper format. Input should be the result from testDifferentialExpression.")
+      }
+      if ("global_medianLog2FC" %in% names(testResults)) {
+        p <- p + geom_point(data=sub, aes(x=global_medianLog2FC,y=-log10(global_pBHadj)), colour="red", fill="red", size=3, shape=23) +
+          geom_text_repel(data=sub, aes(label=get(col)), size=4, vjust=0, hjust=-0.1, colour="red")
+      } else {
+        p <- p + geom_point(data=sub, aes(x=global_log2FC,y=-log10(global_pBHadj)), colour="red", fill="red", size=3, shape=23)+
+          geom_text_repel(data=sub, aes(label=get(col)), size=4, vjust=0, hjust=-0.1, colour="red")
+      }
+    }
   } else {
-    p <- ggplot(testResults, aes(x=log2FC,y=-log10(pBHadj)))
-  }
-  p <- p +
-    geom_point(size=1) +
-    theme_classic() +
-    geom_hline(yintercept=-log10(pBHadj_cutoff), colour="red", linetype="dashed") +
-    geom_vline(xintercept=-log2(FC_cutoff), colour="red", linetype="dashed") +
-    geom_vline(xintercept=log2(FC_cutoff), colour="red", linetype="dashed")
-  if (! is.null(highlight)){
-    if ("feature_id" %in% names(testResults)) {
-      sub <- subset(testResults,feature_id %in% highlight)
-      col <- "feature_id"
-    } else if ("complex_id" %in% names(testResults)) {
-      sub <- subset(testResults,complex_id %in% highlight)
-      col <- "complex_id"
-    } else if (highlight %in% testResults$protein_id) {
-      sub <- subset(testResults,protein_id %in% highlight)
-      col <- "protein_id"
-    } else if (highlight %in% testResults$proteoform_id) {
-      sub <- subset(testResults,proteoform_id %in% highlight)
-      col <- "proteoform_id"
-    } else {
-      stop("The testResults do not have the proper format. Input should be the result from testDifferentialExpression.")
-    }
-    if ("sumLog2FC" %in% names(testResults)) {
-      p <- p + geom_point(data=sub, aes(x=sumLog2FC,y=-log10(pBHadj)), colour="red", fill="red", size=3, shape=23) +
-        geom_text_repel(data=sub, aes(label=get(col)), size=4, vjust=0, hjust=-0.1, colour="red")
-    } else {
-      p <- p + geom_point(data=sub, aes(x=log2FC,y=-log10(pBHadj)), colour="red", fill="red", size=3, shape=23)+
-        geom_text_repel(data=sub, aes(label=get(col)), size=4, vjust=0, hjust=-0.1, colour="red")
-    }
+    stop("Level can only be feature or global.")
   }
   print(p)
   if (PDF) {
     dev.off()
   }
 }
+
