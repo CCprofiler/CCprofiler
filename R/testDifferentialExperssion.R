@@ -53,11 +53,17 @@ testDifferentialExpression <- function(featureVals,
       global_int2 = median(global_ints[get==samples[2]]$s)
       global_int1_imp = median(global_ints_imp[get==samples[1]]$s)
       global_int2_imp = median(global_ints_imp[get==samples[2]]$s)
-      if (length(unique(design_matrix$Replicate)) < 2) {
+      local_FC_all = log2(qints[get==samples[1]]$s/qints[get==samples[2]]$s)
+      global_FC_all = log2(global_ints_imp[get==samples[1]]$s/global_ints_imp[get==samples[2]]$s)
+      local_vs_global_FC_all = data.table(fc=c(local_FC_all,global_FC_all),sam=c(rep("local",length(local_FC_all)),rep("global",length(global_FC_all))))
+      if (length(unique(design_matrix$Replicate)) > 2) {
         b = t.test(formula = global_ints_imp$s ~ global_ints_imp$get , paired = F, var.equal = FALSE) 
-        global_Pval = b$p.value
+        global_pVal = b$p.value
+        c = t.test(formula = local_vs_global_FC_all$fc ~ local_vs_global_FC_all$sam , paired = F, var.equal = FALSE) 
+        local_vs_global_pVal = b$p.value
       } else {
-        global_Pval = 1
+        global_pVal = 1
+        local_vs_global_pVal = 1
       }
       .(pVal = a$p.value, 
         int1 = int1, int2 = int2, 
@@ -67,7 +73,7 @@ testDifferentialExpression <- function(featureVals,
         global_int1 = global_int1, global_int2 = global_int2, global_log2FC = log2(global_int1/global_int2),
         global_int1_imp = global_int1_imp, global_int2_imp = global_int2_imp, global_log2FC_imp = log2(global_int1_imp/global_int2_imp),
         local_vs_global_log2FC = log2(qint1/qint2)-log2(global_int1/global_int2), local_vs_global_log2FC_imp = log2(qint1/qint2)-log2(global_int1_imp/global_int2_imp),
-        global_Pval = global_Pval
+        global_pVal = global_pVal
        )},
       by = .(id, feature_id, complex_id, apex)]
     close(pb)
@@ -90,11 +96,17 @@ testDifferentialExpression <- function(featureVals,
       global_int2 = median(global_ints[get==samples[2]]$s)
       global_int1_imp = median(global_ints_imp[get==samples[1]]$s)
       global_int2_imp = median(global_ints_imp[get==samples[2]]$s)
+      local_FC_all = log2(qints[get==samples[1]]$s/qints[get==samples[2]]$s)
+      global_FC_all = log2(global_ints_imp[get==samples[1]]$s/global_ints_imp[get==samples[2]]$s)
+      local_vs_global_FC_all = data.table(fc=c(local_FC_all,global_FC_all),sam=c(rep("local",length(local_FC_all)),rep("global",length(global_FC_all))))
       if (length(unique(design_matrix$Replicate)) > 2) {
         b = t.test(formula = global_ints_imp$s ~ global_ints_imp$get , paired = F, var.equal = FALSE) 
-        global_Pval = b$p.value
+        global_pVal = b$p.value
+        c = t.test(formula = local_vs_global_FC_all$fc ~ local_vs_global_FC_all$sam , paired = F, var.equal = FALSE) 
+        local_vs_global_pVal = b$p.value
       } else {
-        global_Pval = 1
+        global_pVal = 1
+        local_vs_global_pVal = 1
       }
       .(pVal = a$p.value, 
         int1 = int1, int2 = int2, 
@@ -104,7 +116,7 @@ testDifferentialExpression <- function(featureVals,
         global_int1 = global_int1, global_int2 = global_int2, global_log2FC = log2(global_int1/global_int2),
         global_int1_imp = global_int1_imp, global_int2_imp = global_int2_imp, global_log2FC_imp = log2(global_int1_imp/global_int2_imp),
         local_vs_global_log2FC = log2(qint1/qint2)-log2(global_int1/global_int2), local_vs_global_log2FC_imp = log2(qint1/qint2)-log2(global_int1_imp/global_int2_imp),
-        global_Pval = global_Pval
+        global_pVal = global_pVal, local_vs_global_pVal = local_vs_global_pVal
       )},
       by = .(id, feature_id, apex)]
     close(pb)
@@ -122,6 +134,19 @@ testDifferentialExpression <- function(featureVals,
     tests$pBHadj <- p.adjust(tests$pVal, method = "BH")
     pQv <- qvalue::qvalue(tests$pVal, lambda = 0.4)
     tests$qVal <- pQv$qvalues
+    if (length(unique(design_matrix$Replicate)) > 2) {
+      tests$global_pBHadj <- p.adjust(tests$global_pVal, method = "BH")
+      global_pQv <- qvalue::qvalue(tests$global_pVal, lambda = 0.4)
+      tests$global_qVal <- global_pQv$qvalues
+      tests$local_vs_global_pBHadj <- p.adjust(tests$local_vs_global_pVal, method = "BH")
+      local_vs_global_pQv <- qvalue::qvalue(tests$local_vs_global_pVal, lambda = 0.4)
+      tests$local_vs_global_qVal <- local_vs_global_pQv$qvalues
+    } else {
+      tests$global_pBHadj <- 1
+      tests$global_qVal <- 1
+      tests$local_vs_global_pBHadj <- 1
+      tests$local_vs_global_qVal <- 1
+    }
     return(tests)
   } else if (level == "proteoform") {
     message("Aggregating to proteoform-level...")
