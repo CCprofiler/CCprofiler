@@ -39,9 +39,13 @@ testDifferentialExpression <- function(featureVals,
     tests <- featureValsBoth[, {
       setTxtProgressBar(pb, .GRP)
       samples = unique(.SD[,get(compare_between)])
-      a = t.test(formula = intensity ~ get(compare_between) , paired = T, var.equal = FALSE)
       # qints = .SD[useForQuant == T, .(s = sum(intensity)), by = .(get(compare_between))] # this disables a lot of comparisons
       qints = .SD[, .(s = sum(intensity)), by = .(get(compare_between), Replicate)] 
+      if (length(unique(design_matrix$Replicate)) > 1) {
+        a = t.test(formula = qints$s ~ qints$get , paired = F, var.equal = FALSE)
+      } else {
+        a = t.test(formula = intensity ~ get(compare_between) , paired = T, var.equal = FALSE)
+      }
       ints = .SD[imputedFraction == F, .(s = sum(intensity)), by = .(get(compare_between))] # this creates quantitative discrepancies depending on how many fractions are used
       int1 = max(0, median(ints[get==samples[1]]$s), na.rm=T)
       int2 = max(0, median(ints[get==samples[2]]$s), na.rm=T)
@@ -56,11 +60,11 @@ testDifferentialExpression <- function(featureVals,
       local_FC_all = log2(qints[get==samples[1]]$s/qints[get==samples[2]]$s)
       global_FC_all = log2(global_ints_imp[get==samples[1]]$s/global_ints_imp[get==samples[2]]$s)
       local_vs_global_FC_all = data.table(fc=c(local_FC_all,global_FC_all),sam=c(rep("local",length(local_FC_all)),rep("global",length(global_FC_all))))
-      if (length(unique(design_matrix$Replicate)) > 2) {
+      if (length(unique(design_matrix$Replicate)) > 1) {
         b = t.test(formula = global_ints_imp$s ~ global_ints_imp$get , paired = F, var.equal = FALSE) 
         global_pVal = b$p.value
         c = t.test(formula = local_vs_global_FC_all$fc ~ local_vs_global_FC_all$sam , paired = F, var.equal = FALSE) 
-        local_vs_global_pVal = b$p.value
+        local_vs_global_pVal = c$p.value
       } else {
         global_pVal = 1
         local_vs_global_pVal = 1
@@ -73,7 +77,7 @@ testDifferentialExpression <- function(featureVals,
         global_int1 = global_int1, global_int2 = global_int2, global_log2FC = log2(global_int1/global_int2),
         global_int1_imp = global_int1_imp, global_int2_imp = global_int2_imp, global_log2FC_imp = log2(global_int1_imp/global_int2_imp),
         local_vs_global_log2FC = log2(qint1/qint2)-log2(global_int1/global_int2), local_vs_global_log2FC_imp = log2(qint1/qint2)-log2(global_int1_imp/global_int2_imp),
-        global_pVal = global_pVal
+        global_pVal = global_pVal, local_vs_global_pVal = local_vs_global_pVal
        )},
       by = .(id, feature_id, complex_id, apex)]
     close(pb)
@@ -83,8 +87,12 @@ testDifferentialExpression <- function(featureVals,
     tests <- featureValsBoth[, {
       setTxtProgressBar(pb, .GRP)
       samples = unique(.SD[,get(compare_between)])
-      a = t.test(formula = intensity ~ get(compare_between) , paired = T, var.equal = FALSE)
       qints = .SD[, .(s = sum(intensity)), by = .(get(compare_between), Replicate)] 
+      if (length(unique(design_matrix$Replicate)) > 1) {
+        a = t.test(formula = qints$s ~ qints$get , paired = F, var.equal = FALSE)
+      } else {
+        a = t.test(formula = intensity ~ get(compare_between) , paired = T, var.equal = FALSE)
+      }
       ints = .SD[imputedFraction == F, .(s = sum(intensity)), by = .(get(compare_between))] # this creates quantitative discrepancies depending on how many fractions are used
       int1 = max(0, median(ints[get==samples[1]]$s), na.rm=T)
       int2 = max(0, median(ints[get==samples[2]]$s), na.rm=T)
@@ -99,11 +107,11 @@ testDifferentialExpression <- function(featureVals,
       local_FC_all = log2(qints[get==samples[1]]$s/qints[get==samples[2]]$s)
       global_FC_all = log2(global_ints_imp[get==samples[1]]$s/global_ints_imp[get==samples[2]]$s)
       local_vs_global_FC_all = data.table(fc=c(local_FC_all,global_FC_all),sam=c(rep("local",length(local_FC_all)),rep("global",length(global_FC_all))))
-      if (length(unique(design_matrix$Replicate)) > 2) {
+      if (length(unique(design_matrix$Replicate)) > 1) {
         b = t.test(formula = global_ints_imp$s ~ global_ints_imp$get , paired = F, var.equal = FALSE) 
         global_pVal = b$p.value
         c = t.test(formula = local_vs_global_FC_all$fc ~ local_vs_global_FC_all$sam , paired = F, var.equal = FALSE) 
-        local_vs_global_pVal = b$p.value
+        local_vs_global_pVal = c$p.value
       } else {
         global_pVal = 1
         local_vs_global_pVal = 1
@@ -134,13 +142,17 @@ testDifferentialExpression <- function(featureVals,
     tests$pBHadj <- p.adjust(tests$pVal, method = "BH")
     pQv <- qvalue::qvalue(tests$pVal, lambda = 0.4)
     tests$qVal <- pQv$qvalues
-    if (length(unique(design_matrix$Replicate)) > 2) {
+    if (length(unique(design_matrix$Replicate)) > 1) {
       tests$global_pBHadj <- p.adjust(tests$global_pVal, method = "BH")
       global_pQv <- qvalue::qvalue(tests$global_pVal, lambda = 0.4)
       tests$global_qVal <- global_pQv$qvalues
       tests$local_vs_global_pBHadj <- p.adjust(tests$local_vs_global_pVal, method = "BH")
-      local_vs_global_pQv <- qvalue::qvalue(tests$local_vs_global_pVal, lambda = 0.4)
-      tests$local_vs_global_qVal <- local_vs_global_pQv$qvalues
+      local_vs_global_pQv <- try(qvalue::qvalue(tests$local_vs_global_pVal, lambda = 0.4), silent = T)
+      if (is(local_vs_global_pQv, "try-error")) {
+        tests$local_vs_global_qVal <- NA
+      } else {
+        tests$local_vs_global_qVal <- local_vs_global_pQv$qvalues
+      }
     } else {
       tests$global_pBHadj <- 1
       tests$global_qVal <- 1
@@ -243,8 +255,8 @@ getFCadjustedMedian <- function(tests,level){
       global_medianLog2FC = median(global_log2FC,na.rm=T),
       global_medianLog2FC_imp = median(global_log2FC_imp,na.rm=T),
       global_medianPVal = 1-(global_mPval * sign(global_mPval)),
-      local_vs_global_medianlog2FC = median(local_vs_global_log2FC,na.rm=T),
-      local_vs_global_medianlog2FC_imp = median(local_vs_global_log2FC_imp,na.rm=T),
+      local_vs_global_medianLog2FC = median(local_vs_global_log2FC,na.rm=T),
+      local_vs_global_medianLog2FC_imp = median(local_vs_global_log2FC_imp,na.rm=T),
       local_vs_global_medianPVal = 1-(local_vs_global_mPval * sign(local_vs_global_mPval))
       )},
       by = .(feature_id, complex_id, apex)]
@@ -260,8 +272,8 @@ getFCadjustedMedian <- function(tests,level){
         global_medianLog2FC = median(global_log2FC,na.rm=T),
         global_medianLog2FC_imp = median(global_log2FC_imp,na.rm=T),
         global_medianPVal = 1-(global_mPval * sign(global_mPval)),
-        local_vs_global_medianlog2FC = median(local_vs_global_log2FC,na.rm=T),
-        local_vs_global_medianlog2FC_imp = median(local_vs_global_log2FC_imp,na.rm=T),
+        local_vs_global_medianLog2FC = median(local_vs_global_log2FC,na.rm=T),
+        local_vs_global_medianLog2FC_imp = median(local_vs_global_log2FC_imp,na.rm=T),
         local_vs_global_medianPVal = 1-(local_vs_global_mPval * sign(local_vs_global_mPval))
       )},
       by = .(feature_id, apex)]
@@ -274,15 +286,15 @@ getFCadjustedMedian <- function(tests,level){
     global_mPval = median(global_FCpVal,na.rm=T)
     local_vs_global_mPval = median(local_vs_global_FCpVal,na.rm=T)
     .(medianPVal = 1-(mPval * sign(mPval)),
-      Npeptides = .N,
-      medianLog2FC = median(log2FC,na.rm=T),
-      medianTstat = median(Tstat),
-      medianMeanDiff = median(meanDiff),
-      global_medianLog2FC = median(global_log2FC,na.rm=T),
-      global_medianLog2FC_imp = median(global_log2FC_imp,na.rm=T),
+      Nproteins = .N,
+      medianLog2FC = median(medianLog2FC,na.rm=T),
+      medianTstat = median(medianTstat),
+      medianMeanDiff = median(medianMeanDiff),
+      global_medianLog2FC = median(global_medianLog2FC,na.rm=T),
+      global_medianLog2FC_imp = median(global_medianLog2FC_imp,na.rm=T),
       global_medianPVal = 1-(global_mPval * sign(global_mPval)),
-     local_vs_global_medianlog2FC = median(local_vs_global_log2FC,na.rm=T),
-     local_vs_global_medianlog2FC_imp = median(local_vs_global_log2FC_imp,na.rm=T),
+     local_vs_global_medianLog2FC = median(local_vs_global_medianLog2FC,na.rm=T),
+     local_vs_global_medianLog2FC_imp = median(local_vs_global_medianLog2FC_imp,na.rm=T),
      local_vs_global_medianPVal = 1-(local_vs_global_mPval * sign(local_vs_global_mPval))
      )},
     by = .(complex_id, apex)]
@@ -302,8 +314,8 @@ getFCadjustedMedian <- function(tests,level){
         global_medianLog2FC = median(global_log2FC,na.rm=T),
         global_medianLog2FC_imp = median(global_log2FC_imp,na.rm=T),
         global_medianPVal = 1-(global_mPval * sign(global_mPval)),
-       local_vs_global_medianlog2FC = median(local_vs_global_log2FC,na.rm=T),
-       local_vs_global_medianlog2FC_imp = median(local_vs_global_log2FC_imp,na.rm=T),
+       local_vs_global_medianLog2FC = median(local_vs_global_log2FC,na.rm=T),
+       local_vs_global_medianLog2FC_imp = median(local_vs_global_log2FC_imp,na.rm=T),
        local_vs_global_medianPVal = 1-(local_vs_global_mPval * sign(local_vs_global_mPval))
        )},
       by = .(feature_id, proteoform_id, complex_id, apex)]
@@ -319,8 +331,8 @@ getFCadjustedMedian <- function(tests,level){
         global_medianLog2FC = median(global_log2FC,na.rm=T),
         global_medianLog2FC_imp = median(global_log2FC_imp,na.rm=T),
         global_medianPVal = 1-(global_mPval * sign(global_mPval)),
-       local_vs_global_medianlog2FC = median(local_vs_global_log2FC,na.rm=T),
-       local_vs_global_medianlog2FC_imp = median(local_vs_global_log2FC_imp,na.rm=T),
+       local_vs_global_medianLog2FC = median(local_vs_global_log2FC,na.rm=T),
+       local_vs_global_medianLog2FC_imp = median(local_vs_global_log2FC_imp,na.rm=T),
        local_vs_global_medianPVal = 1-(local_vs_global_mPval * sign(local_vs_global_mPval))
        )},
       by = .(feature_id, proteoform_id, apex)]
