@@ -421,8 +421,6 @@ fillFeatureVals <- function(featureVals,
 
   fvComp[imputedCondition  == T, intensity := fakeIntensity]
   fvComp[imputedCondition  == T, total_pep_intensity:=0]
-  fvComp[imputedCondition  == T, total_complex_intensity:=0]
-  fvComp[imputedCondition  == T, total_top2_complex_intensity:=0]
   fvComp[imputedCondition  == T, global_intensity:=0]
   fvComp[imputedCondition  == T, global_intensity_imputed := fakeIntensitySum]
   
@@ -431,14 +429,22 @@ fillFeatureVals <- function(featureVals,
   if ("complex_id" %in% names(fv)) {
     if ("proteoform_id" %in% names(fv)) { 
       fvComp[imputedCondition  == T, total_pep_intensity_imputed:=sum(intensity), by=c("id", "feature_id", "proteoform_id", "complex_id", "apex", "bound_left", "bound_right")]
+      fvComp[imputedCondition  == T, total_complex_intensity:=0]
+      fvComp[imputedCondition  == T, total_top2_complex_intensity:=0]
     } else {
       fvComp[imputedCondition  == T, total_pep_intensity_imputed:=sum(intensity), by=c("id", "feature_id", "complex_id", "apex", "bound_left", "bound_right")]
+      fvComp[imputedCondition  == T, total_complex_intensity:=0]
+      fvComp[imputedCondition  == T, total_top2_complex_intensity:=0]
     }
   } else {
     if ("proteoform_id" %in% names(fv)) { 
       fvComp[imputedCondition  == T, total_pep_intensity_imputed:=sum(intensity), by=c("id", "feature_id", "proteoform_id", "apex", "bound_left", "bound_right")]
+      fvComp[imputedCondition  == T, total_prot_intensity:=0]
+      fvComp[imputedCondition  == T, total_top2_prot_intensity:=0]
     } else {
       fvComp[imputedCondition  == T, total_pep_intensity_imputed:=sum(intensity), by=c("id", "feature_id", "apex", "bound_left", "bound_right")]
+      fvComp[imputedCondition  == T, total_prot_intensity:=0]
+      fvComp[imputedCondition  == T, total_top2_prot_intensity:=0]
     }
   }
   
