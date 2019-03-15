@@ -42,7 +42,7 @@ testDifferentialExpression <- function(featureVals,
       # qints = .SD[useForQuant == T, .(s = sum(intensity)), by = .(get(compare_between))] # this disables a lot of comparisons
       qints = .SD[, .(s = sum(intensity)), by = .(get(compare_between), Replicate)] 
       if (length(unique(design_matrix$Replicate)) > 1) {
-        a = t.test(formula = qints$s ~ qints$get , paired = F, var.equal = FALSE)
+        a = t.test(formula = log(qints$s) ~ qints$get , paired = F, var.equal = FALSE)
       } else {
         a = t.test(formula = intensity ~ get(compare_between) , paired = T, var.equal = FALSE)
       }
@@ -61,7 +61,7 @@ testDifferentialExpression <- function(featureVals,
       global_FC_all = log2(global_ints_imp[get==samples[1]]$s/global_ints_imp[get==samples[2]]$s)
       local_vs_global_FC_all = data.table(fc=c(local_FC_all,global_FC_all),sam=c(rep("local",length(local_FC_all)),rep("global",length(global_FC_all))))
       if (length(unique(design_matrix$Replicate)) > 1) {
-        b = t.test(formula = global_ints_imp$s ~ global_ints_imp$get , paired = F, var.equal = FALSE) 
+        b = t.test(formula = log(global_ints_imp$s) ~ global_ints_imp$get , paired = F, var.equal = FALSE) 
         global_pVal = b$p.value
         c = t.test(formula = local_vs_global_FC_all$fc ~ local_vs_global_FC_all$sam , paired = F, var.equal = FALSE) 
         local_vs_global_pVal = c$p.value
@@ -89,7 +89,7 @@ testDifferentialExpression <- function(featureVals,
       samples = unique(.SD[,get(compare_between)])
       qints = .SD[, .(s = sum(intensity)), by = .(get(compare_between), Replicate)] 
       if (length(unique(design_matrix$Replicate)) > 1) {
-        a = t.test(formula = qints$s ~ qints$get , paired = F, var.equal = FALSE)
+        a = t.test(formula = log(qints$s) ~ qints$get , paired = F, var.equal = FALSE)
       } else {
         a = t.test(formula = intensity ~ get(compare_between) , paired = T, var.equal = FALSE)
       }
@@ -108,7 +108,7 @@ testDifferentialExpression <- function(featureVals,
       global_FC_all = log2(global_ints_imp[get==samples[1]]$s/global_ints_imp[get==samples[2]]$s)
       local_vs_global_FC_all = data.table(fc=c(local_FC_all,global_FC_all),sam=c(rep("local",length(local_FC_all)),rep("global",length(global_FC_all))))
       if (length(unique(design_matrix$Replicate)) > 1) {
-        b = t.test(formula = global_ints_imp$s ~ global_ints_imp$get , paired = F, var.equal = FALSE) 
+        b = t.test(formula = log(global_ints_imp$s) ~ global_ints_imp$get , paired = F, var.equal = FALSE) 
         global_pVal = b$p.value
         c = t.test(formula = local_vs_global_FC_all$fc ~ local_vs_global_FC_all$sam , paired = F, var.equal = FALSE) 
         local_vs_global_pVal = c$p.value
