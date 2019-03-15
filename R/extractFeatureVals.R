@@ -353,9 +353,9 @@ fillFeatureVals <- function(featureVals,
   traceMat_min_dt <- unique(traceMat_min_dt[,mini:=NULL])
   minValues <- traceMat_min_dt
   
-  set.seed(123) # set seed to always get same results
   samples <- unique(design_matrix$Sample)
   n_samples <- length(samples)
+  
   fv <- copy(featureVals)
   if ("complex_id" %in% names(fv)) {
     if ("proteoform_id" %in% names(fv)) {
@@ -398,52 +398,47 @@ fillFeatureVals <- function(featureVals,
   #fvComp[, min_total := min(intensity[imputedFraction == F & intensity > 0],na.rm=TRUE), by=c("id","feature_id","apex")]
   #fvComp[imputedCondition  == T, intensity := runif(min=0, max = min_total, n=n_filled)]
   
+  set.seed(123) # set seed to always get same results
+  
+  imputedIds <- unique(fvComp[imputedCondition==T]$id)
+  
+  fakeTraces <- lapply(samples, function(s){
+    n_frac <- max(tracesList[[s]]$fraction_annotation$id)
+    fake <- lapply(imputedIds, function(m){
+      runif(min=0, max = minValues[id==m]$min_total, n=n_frac)
+    })
+    names(fake) <- imputedIds
+    fakeDT <- as.data.table(fake)
+    fakeDT[, Sample:=s]
+    fakeDT[, fraction:=.I]
+    fakeDT <- melt(fakeDT, id.vars=c("Sample","fraction"), variable.name = "id", value.name = "fakeIntensity")
+    fakeDT[, fakeIntensitySum := sum(fakeIntensity), by=c("Sample","id")]
+    fakeDT
+  })
+  fakeTraces <- do.call(rbind,fakeTraces)
+  
+  fvComp <- merge(fvComp, fakeTraces, by=c("id", "fraction", "Sample"), all.x=T, all.y=F)
+
+  fvComp[imputedCondition  == T, intensity := fakeIntensity]
+  fvComp[imputedCondition  == T, total_pep_intensity:=0]
+  fvComp[imputedCondition  == T, total_complex_intensity:=0]
+  fvComp[imputedCondition  == T, total_top2_complex_intensity:=0]
+  fvComp[imputedCondition  == T, global_intensity:=0]
+  fvComp[imputedCondition  == T, global_intensity_imputed := fakeIntensitySum]
+  
   ## Impute missing traces with the global minimum of the other sample
   #get_min <- function(x){minValues$min_total[which(minValues[,1]==x)]}
   if ("complex_id" %in% names(fv)) {
     if ("proteoform_id" %in% names(fv)) { 
-      #fvComp[imputedCondition  == T, min_total := lapply(id,get_min), by=c("id")]
-      fvComp <- merge(fvComp, minValues, by="id", all.x=T, all.y=F)
-      fvComp[imputedCondition  == T, intensity := runif(min=0, max = min_total, n=1), by=c("id", "feature_id", "proteoform_id", "complex_id", "apex", "fraction", "bound_left", "bound_right")]
-      fvComp[imputedCondition  == T, total_pep_intensity:=0]
-      fvComp[imputedCondition  == T, total_complex_intensity:=0]
-      fvComp[imputedCondition  == T, total_top2_complex_intensity:=0]
-      fvComp[imputedCondition  == T, global_intensity:=0]
       fvComp[imputedCondition  == T, total_pep_intensity_imputed:=sum(intensity), by=c("id", "feature_id", "proteoform_id", "complex_id", "apex", "bound_left", "bound_right")]
-      n_fractions <- max(tracesList[[1]]$fraction_annotation$id)
-      fvComp[imputedCondition  == T, global_intensity_imputed := sum(runif(min=0, max = min_total, n=n_fractions)), by=c("id","feature_id", "proteoform_id", "complex_id")]
     } else {
-      fvComp <- merge(fvComp, minValues, by="id", all.x=T, all.y=F)
-      fvComp[imputedCondition  == T, intensity := runif(min=0, max = min_total, n=1), by=c("id")]
-      fvComp[imputedCondition  == T, total_pep_intensity:=0]
-      fvComp[imputedCondition  == T, total_complex_intensity:=0]
-      fvComp[imputedCondition  == T, total_top2_complex_intensity:=0]
-      fvComp[imputedCondition  == T, global_intensity:=0]
       fvComp[imputedCondition  == T, total_pep_intensity_imputed:=sum(intensity), by=c("id", "feature_id", "complex_id", "apex", "bound_left", "bound_right")]
-      n_fractions <- max(tracesList[[1]]$fraction_annotation$id)
-      fvComp[imputedCondition  == T, global_intensity_imputed := sum(runif(min=0, max = min_total, n=n_fractions)), by=c("id","feature_id")]
     }
   } else {
     if ("proteoform_id" %in% names(fv)) { 
-      fvComp <- merge(fvComp, minValues, by="id", all.x=T, all.y=F)
-      fvComp[imputedCondition  == T, intensity := runif(min=0, max = min_total, n=1), by=c("id", "feature_id", "proteoform_id", "apex", "fraction", "bound_left", "bound_right")]
-      fvComp[imputedCondition  == T, total_pep_intensity:=0]
-      fvComp[imputedCondition  == T, total_prot_intensity:=0]
-      fvComp[imputedCondition  == T, total_top2_prot_intensity:=0]
-      fvComp[imputedCondition  == T, global_intensity:=0]
       fvComp[imputedCondition  == T, total_pep_intensity_imputed:=sum(intensity), by=c("id", "feature_id", "proteoform_id", "apex", "bound_left", "bound_right")]
-      n_fractions <- max(tracesList[[1]]$fraction_annotation$id)
-      fvComp[imputedCondition  == T, global_intensity_imputed := sum(runif(min=0, max = min_total, n=n_fractions)), by=c("id","feature_id", "proteoform_id")]
     } else {
-      fvComp <- merge(fvComp, minValues, by="id", all.x=T, all.y=F)
-      fvComp[imputedCondition  == T, intensity := runif(min=0, max = min_total, n=1), by=c("id", "feature_id", "apex", "fraction", "bound_left", "bound_right")]
-      fvComp[imputedCondition  == T, total_pep_intensity:=0]
-      fvComp[imputedCondition  == T, total_prot_intensity:=0]
-      fvComp[imputedCondition  == T, total_top2_prot_intensity:=0]
-      fvComp[imputedCondition  == T, global_intensity:=0]
       fvComp[imputedCondition  == T, total_pep_intensity_imputed:=sum(intensity), by=c("id", "feature_id", "apex", "bound_left", "bound_right")]
-      n_fractions <- max(tracesList[[1]]$fraction_annotation$id)
-      fvComp[imputedCondition  == T, global_intensity_imputed := sum(runif(min=0, max = min_total, n=n_fractions)), by=c("id","feature_id")]
     }
   }
   
