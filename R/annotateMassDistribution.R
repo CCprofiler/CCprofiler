@@ -105,9 +105,11 @@ getMassAssemblyChange <- function(tracesList, design_matrix,
   } else {
     res <- merge(res, design_matrix, by.x="Sample", by.y="Sample_name")
     res[,n_conditions:=length(unique(Condition)), by=c("protein_id")]
+    res[,n:=.N, by=c("protein_id")]
     res[,replicates_perCondition:=.N, by=c("protein_id", "Condition")]
-    res[,sum_assembled_norm := ifelse(sum_assembled_norm>0.999,sum_assembled_norm-0.001,sum_assembled_norm)]
-    res[,sum_assembled_norm := ifelse(sum_assembled_norm<0.001,sum_assembled_norm+0.001,sum_assembled_norm)]
+    #res[,sum_assembled_norm := ifelse(sum_assembled_norm>0.999,sum_assembled_norm-0.001,sum_assembled_norm)]
+    #res[,sum_assembled_norm := ifelse(sum_assembled_norm<0.001,sum_assembled_norm+0.001,sum_assembled_norm)]
+    res[,sum_assembled_norm_t := (sum_assembled_norm * (n - 1) + 0.5)/n, by=c("protein_id")]
     res[,unique_perCondition := length(unique(round(sum_assembled_norm, digits = 3))), by=c("protein_id","Condition")]
     
     diff <- res[, { 
@@ -118,7 +120,7 @@ getMassAssemblyChange <- function(tracesList, design_matrix,
       n_perCondition <- min(.SD$replicates_perCondition)
       n_unique_perCondition <- min(.SD$unique_perCondition)
       if( (n_conditions > 1) & (n_perCondition > 1) & (n_unique_perCondition > 1) ) {
-        model = betareg(.SD$sum_assembled_norm ~ .SD$Condition)
+        model = betareg(.SD$sum_assembled_norm_t ~ .SD$Condition)
         stat = lrtest(model)
         p = stat$`Pr(>Chisq)`[2]
       } else {
