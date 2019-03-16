@@ -56,10 +56,16 @@ annotateMassDistribution.tracesList <- function(tracesList){
 #' @param tracesList An object of type traces.list including assembled mass
 #' annotation as produced by \code{annotateMassDistribution}.
 #' @param design_matrix data.table, design matrix describing the architecture of the tracesList object.
+#' @param plot logical if plot should be created, default is FALSE.
+#' @param name character string specifying the name of output if PDF=TRUE, default is "beta_pvalue_histogram".
+#' @param PDF logical if PDF should be created, default is FALSE.
 #' @export
 getMassAssemblyChange <- function(tracesList, design_matrix,
                                   compare_between = "Condition",
-                                  quantLevel = "protein_id"){
+                                  quantLevel = "protein_id",
+                                  plot = FALSE,
+                                  PDF = FALSE,
+                                  name = "beta_pvalue_histogram"){
   .tracesListTest(tracesList)
   samples <- unique(design_matrix$Sample)
   if(! all(samples %in% names(tracesList))) {
@@ -91,44 +97,54 @@ getMassAssemblyChange <- function(tracesList, design_matrix,
     #res_cast[, change := log2(get(samples[1])/(get(samples[2])))]
     #res_cast[change=="NaN", change := 0]
     res_cast[, medianDiff := get(samples[1])-(get(samples[2]))]
-    res_cast[, pVal := 1]
+    res_cast[, betaPval := 1]
+    res_cast[, betaPval_BHadj := 1]
     res_cast[, testOrder := paste0(samples[1],".vs.",samples[2])]
-    res_cast <- subset(res_cast, select = c("protein_id","medianDiff","pVal","testOrder"))
+    res_cast <- subset(res_cast, select = c("protein_id","medianDiff","betaPval", "betaPval_BHadj","testOrder"))
     return(res_cast[])
   } else {
     res <- merge(res, design_matrix, by.x="Sample", by.y="Sample_name")
-    if (quantLevel == "protein_id") {
-      tests <- res[, {
-        samples = unique(.SD[,get(compare_between)])
-        a = try(t.test(formula = sum_assembled_norm ~ get(compare_between) , paired = F, var.equal = FALSE), silent=TRUE)
-        if (is(a, "try-error")) {
-          pvalue=1
-        } else {
-          pvalue = a$p.value
-        }
-        median = .SD[, .(m = median(sum_assembled_norm)), by = .(get(compare_between))]
-        medianDiff = median[get==samples[1]]$m - median[get==samples[2]]$m
-        .(medianDiff=medianDiff, pVal = pvalue, testOrder=paste0(samples[1],".vs.",samples[2]))
-      },
-      by = .(protein_id)]
-    } else if (quantLevel == "proteoform_id") {
-      tests <- res[, {
-        samples = unique(.SD[,get(compare_between)])
-        a = try(t.test(formula = sum_assembled_norm ~ get(compare_between) , paired = F, var.equal = FALSE), silent=TRUE)
-        if (is(a, "try-error")) {
-          pvalue=1
-        } else {
-          pvalue = a$p.value
-        }
-        median = .SD[, .(m = median(sum_assembled_norm)), by = .(get(compare_between))]
-        medianDiff = median[get==samples[1]]$m - median[get==samples[2]]$m
-        .(medianDiff=medianDiff, pVal = pvalue, testOrder=paste0(samples[1],".vs.",samples[2]))
-      },
-      by = .(proteoform_id)]
-    } else {
-      stop("Functionality only available for quantLevel proetin_id or proteoform_id.")
+    res[,n_conditions:=length(unique(Condition)), by=c("protein_id")]
+    res[,replicates_perCondition:=.N, by=c("protein_id", "Condition")]
+    res[,sum_assembled_norm := ifelse(sum_assembled_norm>0.999,sum_assembled_norm-0.001,sum_assembled_norm)]
+    res[,sum_assembled_norm := ifelse(sum_assembled_norm<0.001,sum_assembled_norm+0.001,sum_assembled_norm)]
+    res[,unique_perCondition := length(unique(round(sum_assembled_norm, digits = 3))), by=c("protein_id","Condition")]
+    
+    diff <- res[, { 
+      samples = unique(.SD[,get(compare_between)])
+      median = .SD[, .(m = median(sum_assembled_norm)), by = .(get(compare_between))]
+      medianDiff = median[get==samples[1]]$m - median[get==samples[2]]$m
+      n_conditions <- unique(.SD$n_conditions)
+      n_perCondition <- min(.SD$replicates_perCondition)
+      n_unique_perCondition <- min(.SD$unique_perCondition)
+      if( (n_conditions > 1) & (n_perCondition > 1) & (n_unique_perCondition > 1) ) {
+        model = betareg(.SD$sum_assembled_norm ~ .SD$Condition)
+        stat = lrtest(model)
+        p = stat$`Pr(>Chisq)`[2]
+      } else {
+        p = 2
+      }
+      .(medianDiff = medianDiff, betaPval = p, testOrder = paste0(samples[1],".vs.",samples[2]))}, 
+      by = .(get(quantLevel))]
+    
+    diff[betaPval==2, betaPval := NA ]
+    diff[, betaPval_BHadj := p.adjust(betaPval, method = "fdr")]
+    
+    if(plot==TRUE){
+      if(PDF){
+        pdf(paste0(name,".pdf"))
+      }
+      hist(diff$betaPval, breaks = 100)
+      if(PDF){
+        dev.off()
+      }
     }
+    
+    setnames(diff, "get(quantLevel)", quantLevel)
+    tests <- subset(diff, select = c("protein_id","medianDiff","betaPval", "betaPval_BHadj","testOrder"))
+    
     return(tests[])
+    
   }
 }
 
