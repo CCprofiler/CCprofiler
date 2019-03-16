@@ -65,13 +65,16 @@ testDifferentialExpression <- function(featureVals,
         global_pVal = b$p.value
         #c = t.test(formula = local_vs_global_FC_all$fc ~ local_vs_global_FC_all$sam , paired = F, var.equal = FALSE) 
         #local_vs_global_pVal = c$p.value
+        meanDiff=a$estimate[1]-a$estimate[2]
       } else {
         global_pVal = 1
         #local_vs_global_pVal = 1
+        meanDiff=a$estimate
       }
+      
       .(pVal = a$p.value, 
         int1 = int1, int2 = int2, 
-        meanDiff = a$estimate,
+        meanDiff = meanDiff,
         qint1 = qint1, qint2 = qint2, log2FC =  log2(qint1/qint2),
         n_replicates = a$parameter + 1,  Tstat = a$statistic, testOrder = paste0(samples[1],".vs.",samples[2]),
         global_int1 = global_int1, global_int2 = global_int2, global_log2FC = log2(global_int1/global_int2),
@@ -112,13 +115,15 @@ testDifferentialExpression <- function(featureVals,
         global_pVal = b$p.value
         #c = t.test(formula = local_vs_global_FC_all$fc ~ local_vs_global_FC_all$sam , paired = F, var.equal = FALSE) 
         #local_vs_global_pVal = c$p.value
+        meanDiff=a$estimate[1]-a$estimate[2]
       } else {
         global_pVal = 1
         #local_vs_global_pVal = 1
+        meanDiff=a$estimate
       }
       .(pVal = a$p.value, 
         int1 = int1, int2 = int2, 
-        meanDiff = a$estimate,
+        meanDiff = meanDiff,
         qint1 = qint1, qint2 = qint2, log2FC =  log2(qint1/qint2),
         n_replicates = a$parameter + 1,  Tstat = a$statistic, testOrder = paste0(samples[1],".vs.",samples[2]),
         global_int1 = global_int1, global_int2 = global_int2, global_log2FC = log2(global_int1/global_int2),
