@@ -210,7 +210,7 @@ plot.traces <- function(traces,
                         highlight=NULL,
                         highlight_col=NULL,
                         colorMap=NULL) {
-
+  
   .tracesTest(traces)
   traces.long <- toLongFormat(traces$traces)
   traces.long <- merge(traces.long,traces$fraction_annotation,by.x="fraction",by.y="id")
@@ -218,7 +218,7 @@ plot.traces <- function(traces,
     traces.long$outlier <- gsub("\\(.*?\\)","",traces.long$id) %in% gsub("\\(.*?\\)","",highlight)
     if(!any(traces.long$outlier)) highlight <- NULL
   }
-
+  
   if(colour_by!="id") {
     if(!colour_by %in% names(traces$trace_annotation)){
       stop("colour_by is not availbale in trace_annotation.")
@@ -243,7 +243,7 @@ plot.traces <- function(traces,
       colorMap <- createGGplotColMap(unique(traces.long$id))
     }
   }
-
+  
   if(colour_by == "id") {
     p <- ggplot(traces.long) + 
       geom_line(aes_string(x='fraction', y='intensity', colour='id', group='id'))
@@ -275,7 +275,7 @@ plot.traces <- function(traces,
         geom_line(data = traces.long[outlier == TRUE],
                   aes_string(x='fraction', y='intensity', color='id'), lwd=2) +
         scale_color_manual(values=colorMap, breaks = legend_peps)
-        ## scale_color_discrete(breaks = legend_peps)
+      ## scale_color_discrete(breaks = legend_peps)
     }else{
       ## legend_map <- unique(ggplot_build(p)$data[[1]]$colour)
       ## names(legend_map) <- unique(p$data$id)
@@ -285,22 +285,42 @@ plot.traces <- function(traces,
         geom_line(data = traces.long[outlier == TRUE],
                   aes_string(x='fraction', y='intensity', lty = 'id'),
                   color = highlight_col, lwd=2)
-        # scale_color_discrete(guide = F)
-        ## scale_color_manual(values = legend_map, limits = legend_peps)
+      # scale_color_discrete(guide = F)
+      ## scale_color_manual(values = legend_map, limits = legend_peps)
       # guides(lty = FALSE)
       # scale_color_manual(limits = legend_peps, values = rep(highlight_col, length(legend_peps))) +
       # geom_line(aes_string(x='fraction', y='intensity', color='id'))
     }
   }
-
+  
   if ("molecular_weight" %in% names(traces$fraction_annotation)) {
-    mwtransform <- getMWcalibration(traces$fraction_annotation)
-    mw <- traces$fraction_annotation$molecular_weight
-    breaks <- mw[seq(1,length(mw), length.out = 8)]
-    p <- p + scale_x_continuous(sec.axis = sec_axis(trans = mwtransform,
-                                                    breaks = breaks))
+    fraction_ann <- traces$fraction_annotation
+    tr <- lm(log(fraction_ann$molecular_weight) ~ fraction_ann$id)
+    intercept <- as.numeric(tr$coefficients[1])
+    slope <- as.numeric(tr$coefficients[2])
+    mwtransform <- function(x){exp(slope*x + intercept)}
+    MWtoFraction <- function(x){round((log(x)-intercept)/(slope), digits = 0)}
+    mw <- round(fraction_ann$molecular_weight, digits = 0)
+    breaks_MW <- mw[seq(1,length(mw), length.out = length(seq(min(traces$fraction_annotation$id),
+                                                              max(traces$fraction_annotation$id),10)))]
+    p <- p + scale_x_continuous(name="fraction",
+                                breaks=seq(min(traces$fraction_annotation$id),
+                                           max(traces$fraction_annotation$id),10),
+                                labels=seq(min(traces$fraction_annotation$id),
+                                           max(traces$fraction_annotation$id),10),
+                                sec.axis = dup_axis(trans = ~.,
+                                                    breaks=seq(min(traces$fraction_annotation$id),
+                                                               max(traces$fraction_annotation$id),10),
+                                                    labels = breaks_MW,
+                                                    name = "MW (kDa)"))
+  } else {
+    p <- p + scale_x_continuous(name="fraction",
+                                breaks=seq(min(traces$fraction_annotation$id),
+                                           max(traces$fraction_annotation$id),10),
+                                labels=seq(min(traces$fraction_annotation$id),
+                                           max(traces$fraction_annotation$id),10))
   }
-
+  
   if(PDF){
     pdf(paste0(name,".pdf"))
   }
@@ -486,13 +506,31 @@ plot.tracesList <- function(traces,
   }
 
   if ("molecular_weight" %in% names(traces_frac)) {
-    mwtransform <- getMWcalibration(traces_frac)
-    mw <- round(traces_frac$molecular_weight)
-    # frbreaks <-ggplot_build(p)$layout$panel_ranges[[1]]$x.major_source
-    # breaks <- mw[frbreaks]
-    breaks <- mw[seq(1,length(mw), length.out = 8)]
-    p <- p + scale_x_continuous(sec.axis = sec_axis(trans = mwtransform,
-                                                    breaks = breaks))
+    fraction_ann <- traces_frac
+    tr <- lm(log(fraction_ann$molecular_weight) ~ fraction_ann$id)
+    intercept <- as.numeric(tr$coefficients[1])
+    slope <- as.numeric(tr$coefficients[2])
+    mwtransform <- function(x){exp(slope*x + intercept)}
+    MWtoFraction <- function(x){round((log(x)-intercept)/(slope), digits = 0)}
+    mw <- round(fraction_ann$molecular_weight, digits = 0)
+    breaks_MW <- mw[seq(1,length(mw), length.out = length(seq(min(traces_frac$id),
+                                                              max(traces_frac$id),10)))]
+    p <- p + scale_x_continuous(name="fraction",
+                                breaks=seq(min(traces_frac$id),
+                                           max(traces_frac$id),10),
+                                labels=seq(min(traces_frac$id),
+                                           max(traces_frac$id),10),
+                                sec.axis = dup_axis(trans = ~.,
+                                                    breaks=seq(min(traces_frac$id),
+                                                               max(traces_frac$id),10),
+                                                    labels = breaks_MW,
+                                                    name = "MW (kDa)"))
+  } else {
+    p <- p + scale_x_continuous(name="fraction",
+                                breaks=seq(min(traces_frac$id),
+                                           max(traces_frac$id),10),
+                                labels=seq(min(traces_frac$id),
+                                           max(traces_frac$id),10))
   }
 
   if (log) {
