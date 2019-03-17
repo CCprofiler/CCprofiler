@@ -76,24 +76,24 @@ plotFeatures <- function(feature_table,
 }
 
 plotFeatures.traces <- function(feature_table,
-                         traces,
-                         feature_id,
-                         calibration = NULL,
-                         annotation_label="protein_id",
-                         onlyBest = TRUE,
-                         apex=TRUE,
-                         peak_area=FALSE,
-                         sliding_window_area=FALSE,
-                         estimated_complex_MW=FALSE,
-                         highlight=NULL,
-                         highlight_col=NULL,
-                         colour_by = "id",
-                         monomer_MW=FALSE,
-                         log=FALSE,
-                         legend = TRUE,
-                         PDF=FALSE,
-                         name = "Traces",
-                         colorMap=NULL) {
+                                traces,
+                                feature_id,
+                                calibration = NULL,
+                                annotation_label="protein_id",
+                                onlyBest = TRUE,
+                                apex=TRUE,
+                                peak_area=FALSE,
+                                sliding_window_area=FALSE,
+                                estimated_complex_MW=FALSE,
+                                highlight=NULL,
+                                highlight_col=NULL,
+                                colour_by = "id",
+                                monomer_MW=FALSE,
+                                log=FALSE,
+                                legend = TRUE,
+                                PDF=FALSE,
+                                name = "Traces",
+                                colorMap=NULL) {
   .tracesTest(traces)
   features <- copy(feature_table)
   if (traces$trace_type == "protein") {
@@ -166,12 +166,12 @@ plotFeatures.traces <- function(feature_table,
     traces.long <- merge(traces.long,isoform_annotation, by.x="id",by.y="id")
     traces.long[,line:=paste0(get(colour_by),id)]
   }
-
+  
   ## Get traces to highlight
   if(!is.null(highlight)){
     traces.long$outlier <- gsub("\\(.*?\\)","",traces.long$id) %in% gsub("\\(.*?\\)","",highlight)
   }
-
+  
   if (annotation_label %in% names(traces$trace_annotation)) {
     traces.long <- merge(traces.long,traces$trace_annotation,by=intersect(names(traces.long),names(traces$trace_annotation)),all.x=TRUE,all.y=FALSE)
     if (traces$trace_type == "protein") {
@@ -209,7 +209,7 @@ plotFeatures.traces <- function(feature_table,
       monomer_MW <- FALSE
     }
   }
-
+  
   ## Create a reproducible coloring for the peptides plotted
   if(!is.null(colorMap)){
     if(!all(unique(traces_long$id) %in% names(colorMap))){
@@ -225,7 +225,7 @@ plotFeatures.traces <- function(feature_table,
       colorMap <- createGGplotColMap(ids)
     }
   }
-
+  
   p <- ggplot(traces.long) +
     #geom_line(aes_string(x='fraction', y='intensity', color='id')) +
     xlab('fraction') +
@@ -237,7 +237,7 @@ plotFeatures.traces <- function(feature_table,
     theme(plot.title = element_text(vjust=19,size=10, face="bold")) +
     guides(fill=FALSE) +
     scale_color_manual(values=colorMap)
-
+  
   if(colour_by == "id") {
     p <- p + geom_line(aes_string(x='fraction', y='intensity', color='id'))
   } else {
@@ -257,7 +257,7 @@ plotFeatures.traces <- function(feature_table,
       # scale_color_discrete(breaks = legend_peps)
     }
   }
-
+  
   if (log) {
     p <- p + scale_y_log10('log(intensity)')
   }
@@ -282,61 +282,43 @@ plotFeatures.traces <- function(feature_table,
   if (!legend) {
     p <- p + theme(legend.position="none")
   }
-
-  ## @TODO Implement the MW axis from plot.traces for more robustness
+  
   if ("molecular_weight" %in% names(traces$fraction_annotation)) {
-    grid.newpage()
-    p2 <- p
+    fraction_ann <- traces$fraction_annotation
+    tr <- lm(log(fraction_ann$molecular_weight) ~ fraction_ann$id)
+    intercept <- as.numeric(tr$coefficients[1])
+    slope <- as.numeric(tr$coefficients[2])
+    mwtransform <- function(x){exp(slope*x + intercept)}
+    MWtoFraction <- function(x){round((log(x)-intercept)/(slope), digits = 0)}
+    mw <- round(fraction_ann$molecular_weight, digits = 0)
+    breaks_MW <- mw[seq(1,length(mw), length.out = length(seq(min(traces$fraction_annotation$id),
+                                                              max(traces$fraction_annotation$id),10)))]
+    p <- p + scale_x_continuous(name="fraction",
+                                breaks=seq(min(traces$fraction_annotation$id),
+                                           max(traces$fraction_annotation$id),10),
+                                labels=seq(min(traces$fraction_annotation$id),
+                                           max(traces$fraction_annotation$id),10),
+                                sec.axis = dup_axis(trans = ~.,
+                                                    breaks=seq(min(traces$fraction_annotation$id),
+                                                               max(traces$fraction_annotation$id),10),
+                                                    labels = breaks_MW,
+                                                    name = "MW (kDa)"))
+  } else {
     p <- p + scale_x_continuous(name="fraction",
                                 breaks=seq(min(traces$fraction_annotation$id),
                                            max(traces$fraction_annotation$id),10),
                                 labels=seq(min(traces$fraction_annotation$id),
                                            max(traces$fraction_annotation$id),10))
-    p2 <- p2 + scale_x_continuous(name="molecular weight (kDa)",
-                                  breaks=seq(min(traces$fraction_annotation$id),max(traces$fraction_annotation$id),10),
-                                  labels=round(traces$fraction_annotation$molecular_weight,digits=0)[seq(1,length(traces$fraction_annotation$id),10)]
-    )
-    ## extract gtable
-    g1 <- ggplot_gtable(ggplot_build(p))
-    g2 <- ggplot_gtable(ggplot_build(p2))
-    ## overlap the panel of the 2nd plot on that of the 1st plot
-    pp <- c(subset(g1$layout, name=="panel", se=t:r))
-
-    g <- gtable_add_grob(g1, g2$grobs[[which(g2$layout$name=="panel")]], pp$t, pp$l, pp$b, pp$l)
-    ## steal axis from second plot and modify
-    ia <- which(g2$layout$name == "axis-b")
-    ga <- g2$grobs[[ia]]
-    ax <- ga$children[[2]]
-    ## switch position of ticks and labels
-    ax$heights <- rev(ax$heights)
-    ax$grobs <- rev(ax$grobs)
-    ## modify existing row to be tall enough for axis
-    g$heights[[2]] <- g$heights[g2$layout[ia,]$t]
-    ## add new axis
-    g <- gtable_add_grob(g, ax, 2, 4, 2, 4)
-    ## add new row for upper axis label
-    g <- gtable_add_rows(g, g2$heights[1], 1)
-    ## steal axis label from second plot
-    ia2 <- which(g2$layout$name == "xlab-b")
-    ga2 <- g2$grobs[[ia2]]
-    g <- gtable_add_grob(g,ga2, 3, 4, 2, 4)
-
-    if(PDF){
-      pdf(paste0(name,".pdf"))
-    }
-    grid.draw(g)
-    if(PDF){
-      dev.off()
-    }
-  }else{
-    if(PDF){
-      pdf(paste0(name,".pdf"))
-    }
-    plot(p)
-    if(PDF){
-      dev.off()
-    }
   }
+  
+  if(PDF){
+    pdf(paste0(name,".pdf"))
+  }
+  plot(p)
+  if(PDF){
+    dev.off()
+  }
+  
 }
 
 #' plotFeatures.tracesList
@@ -621,13 +603,31 @@ plotFeatures.tracesList <- function(feature_table,
   }
 
   if ("molecular_weight" %in% names(traces_frac)) {
-    mwtransform <- getMWcalibration(traces_frac)
-    mw <- round(traces_frac$molecular_weight)
-    # frbreaks <-ggplot_build(p)$layout$panel_ranges[[1]]$x.major_source
-    # breaks <- mw[frbreaks]
-    breaks <- mw[seq(1,length(mw), length.out = 8)]
-    p <- p + scale_x_continuous(sec.axis = sec_axis(trans = mwtransform,
-                                                    breaks = breaks))
+    fraction_ann <- traces_frac
+    tr <- lm(log(fraction_ann$molecular_weight) ~ fraction_ann$id)
+    intercept <- as.numeric(tr$coefficients[1])
+    slope <- as.numeric(tr$coefficients[2])
+    mwtransform <- function(x){exp(slope*x + intercept)}
+    MWtoFraction <- function(x){round((log(x)-intercept)/(slope), digits = 0)}
+    mw <- round(fraction_ann$molecular_weight, digits = 0)
+    breaks_MW <- mw[seq(1,length(mw), length.out = length(seq(min(traces_frac$id),
+                                                              max(traces_frac$id),10)))]
+    p <- p + scale_x_continuous(name="fraction",
+                                breaks=seq(min(traces_frac$id),
+                                           max(traces_frac$id),10),
+                                labels=seq(min(traces_frac$id),
+                                           max(traces_frac$id),10),
+                                sec.axis = dup_axis(trans = ~.,
+                                                    breaks=seq(min(traces_frac$id),
+                                                               max(traces_frac$id),10),
+                                                    labels = breaks_MW,
+                                                    name = "MW (kDa)"))
+  } else {
+    p <- p + scale_x_continuous(name="fraction",
+                                breaks=seq(min(traces_frac$id),
+                                           max(traces_frac$id),10),
+                                labels=seq(min(traces_frac$id),
+                                           max(traces_frac$id),10))
   }
 
   if(PDF){
