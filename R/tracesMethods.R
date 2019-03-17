@@ -184,6 +184,7 @@ annotateMolecularWeight.tracesList <- function(traces, calibration){
 #' PDF file is saved under name.pdf. Default is "Traces".
 #' @param colorMap named character vector containing valid color specifications for plotting.
 #' The names of the vector must correspond to the ids of the peptides to be plotted.
+#' @param monomer_MW Logical if monomer MWs should be indicated
 #' @examples
 #' # Protein traces
 #' proteinTraces=exampleProteinTraces
@@ -209,7 +210,8 @@ plot.traces <- function(traces,
                         colour_by = "id",
                         highlight=NULL,
                         highlight_col=NULL,
-                        colorMap=NULL) {
+                        colorMap=NULL,
+                        monomer_MW=TRUE) {
   
   .tracesTest(traces)
   traces.long <- toLongFormat(traces$traces)
@@ -313,6 +315,21 @@ plot.traces <- function(traces,
                                                                max(traces$fraction_annotation$id),10),
                                                     labels = breaks_MW,
                                                     name = "MW (kDa)"))
+    if (monomer_MW==TRUE){
+      if ("protein_mw" %in% names(traces$trace_annotation)) {
+        subunitMW.dt <- data.table(id=traces$trace_annotation$id,mw=traces$trace_annotation$protein_mw)
+        subunitMW.dt$fraction <- MWtoFraction(subunitMW.dt$mw)
+        subunitMW.dt[,boundary:=MWtoFraction(2*mw)]
+        if (length(unique(subunitMW.dt$mw)) > 1) {
+          p <- p + geom_point(data = subunitMW.dt, mapping = aes(x = fraction, y = Inf, colour=id),shape=18,size=5,alpha=.5)
+        } else {
+          p <- p + geom_vline(data = unique(subunitMW.dt), aes(xintercept = fraction), colour="red", linetype="dashed", size=.5)
+          p <- p + geom_vline(data = unique(subunitMW.dt), aes(xintercept = boundary), colour="red", linetype="dashed", size=.5, alpha=0.5)
+        }
+      } else {
+        message("No molecular weight annotation of the traces. Cannot plot monomer molecular weight.")
+      }
+    }
   } else {
     p <- p + scale_x_continuous(name="fraction",
                                 breaks=seq(min(traces$fraction_annotation$id),
@@ -353,6 +370,7 @@ plot.traces <- function(traces,
 #' @param highlight_col Character string, A color to highlight traces in. Must be accepted by ggplot2.
 #' @param colorMap named character vector containing valid color specifications for plotting.
 #' The names of the vector must correspond to the ids of the peptides to be plotted.
+#' @param monomer_MW Logical if monomer MWs should be indicated
 #' @export
 plot.tracesList <- function(traces,
                             design_matrix = NULL,
@@ -366,7 +384,8 @@ plot.tracesList <- function(traces,
                             colour_by = "id",
                             highlight=NULL,
                             highlight_col=NULL,
-                            colorMap=NULL) {
+                            colorMap=NULL,
+                            monomer_MW=TRUE) {
   .tracesListTest(traces)
   if(!is.null(design_matrix)){
     if(!all(design_matrix$Sample_name %in% names(traces))){
@@ -525,12 +544,29 @@ plot.tracesList <- function(traces,
                                                                max(traces_frac$id),10),
                                                     labels = breaks_MW,
                                                     name = "MW (kDa)"))
+    if (monomer_MW==TRUE){
+      if ("protein_mw" %in% names(traces[[1]]$trace_annotation)) {
+        ann_tab <- lapply(traces, function(t){subset(t$trace_annotation, select=c("id","protein_mw"))})
+        ann_tab <- unique(do.call(rbind,ann_tab))
+        subunitMW.dt <- data.table(id=ann_tab$id,mw=ann_tab$protein_mw)
+        subunitMW.dt$fraction <- MWtoFraction(subunitMW.dt$mw)
+        subunitMW.dt[,boundary:=MWtoFraction(2*mw)]
+        if (length(unique(subunitMW.dt$mw)) > 1) {
+          p <- p + geom_point(data = subunitMW.dt, mapping = aes(x = fraction, y = Inf, colour=id),shape=18,size=5,alpha=.5)
+        } else {
+          p <- p + geom_vline(data = unique(subunitMW.dt), aes(xintercept = fraction), colour="red", linetype="dashed", size=.5)
+          p <- p + geom_vline(data = unique(subunitMW.dt), aes(xintercept = boundary), colour="red", linetype="dashed", size=.5, alpha=0.5)
+        }
+      } else {
+        message("No molecular weight annotation of the traces. Cannot plot monomer molecular weight.")
+      }
+    }
   } else {
     p <- p + scale_x_continuous(name="fraction",
-                                breaks=seq(min(traces_frac$id),
-                                           max(traces_frac$id),10),
-                                labels=seq(min(traces_frac$id),
-                                           max(traces_frac$id),10))
+                                breaks=seq(min(traces$fraction_annotation$id),
+                                           max(traces$fraction_annotation$id),10),
+                                labels=seq(min(traces$fraction_annotation$id),
+                                           max(traces$fraction_annotation$id),10))
   }
 
   if (log) {
@@ -772,3 +808,4 @@ updateTraces.tracesList <- function(traces) {
   .tracesListTest(traces)
   return(traces)
 }
+
