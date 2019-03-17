@@ -274,7 +274,11 @@ plotFeatures.traces <- function(feature_table,
     p <- p + geom_vline(data=features,aes(xintercept=complex_sec_estimated), colour="black",linetype="longdash")
   }
   if (monomer_MW==TRUE){
-    p <- p + geom_point(data = subunitMW.dt, mapping = aes(x = fraction, y = Inf, colour=id),shape=18,size=5,alpha=.5)
+    if (length(unique(subunitMW.dt$id)) > 1) {
+      p <- p + geom_point(data = subunitMW.dt, mapping = aes(x = fraction, y = Inf, colour=id),shape=18,size=5,alpha=.5)
+    } else {
+      p <- p + geom_vline(data = unique(subunitMW.dt), aes(xintercept = fraction), colour="red", linetype="dashed", size=1)
+    }
   }
   if (apex==TRUE){
     p <- p + geom_vline(data=features,aes(xintercept=apex), colour="black",linetype="solid")
@@ -466,12 +470,12 @@ plotFeatures.tracesList <- function(feature_table,
 
   ## Generate the plot labels
   if (annotation_label %in% names(traceAnn)) {
-    traceAnn <- unique(subset(traceAnn,select=c("id",annotation_label)))
-    name_i <- names(traces_long)[which(names(traces_long) %in% names(traceAnn))]
-    traces_long <- merge(traces_long, traceAnn, by=name_i,all.x=TRUE,all.y=FALSE)
+    traceAnn_sub <- unique(subset(traceAnn,select=c("id",annotation_label)))
+    name_i <- names(traces_long)[which(names(traces_long) %in% names(traceAnn_sub))]
+    traces_long <- merge(traces_long, traceAnn_sub, by=name_i,all.x=TRUE,all.y=FALSE)
     if (traces[[1]]$trace_type == "protein") {
       traces_long[,id := get(annotation_label)]
-      proteins <- traceAnn[match(proteins,traceAnn$id)][,get(annotation_label)]
+      proteins <- traceAnn_sub[match(proteins,traceAnn_sub$id)][,get(annotation_label)]
     }
     if ("protein_mw" %in% names(traceAnn)) {
       if (!is.null(calibration)) {
@@ -582,7 +586,11 @@ plotFeatures.tracesList <- function(feature_table,
     p <- p + geom_vline(data=features,aes(xintercept=complex_sec_estimated), colour="black",linetype="longdash")
   }
   if (monomer_MW==TRUE){
-    p <- p + geom_point(data = subunitMW.dt, mapping = aes(x = fraction, y = Inf, colour=id),shape=18,size=5,alpha=.5)
+    if (length(unique(subunitMW.dt$id)) > 1) {
+      p <- p + geom_point(data = subunitMW.dt, mapping = aes(x = fraction, y = Inf, colour=id),shape=18,size=5,alpha=.5)
+    } else {
+      p <- p + geom_vline(data = unique(subunitMW.dt), aes(xintercept = fraction), colour="red", linetype="dashed", size=1)
+    }
   }
   if (apex==TRUE){
     p <- p + geom_vline(data=features,aes(xintercept=apex), colour="black",linetype="solid")
