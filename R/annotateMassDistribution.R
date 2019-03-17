@@ -130,7 +130,14 @@ getMassAssemblyChange <- function(tracesList, design_matrix,
       by = .(get(quantLevel))]
     
     diff[betaPval==2, betaPval := NA ]
-    diff[, betaPval_BHadj := p.adjust(betaPval, method = "fdr")]
+    if (length(unique(design_matrix$Replicate)) > 1) {
+      diff[, betaPval_BHadj := p.adjust(betaPval, method = "fdr")]
+      Qv <- qvalue::qvalue(diff$betaPval, lambda = 0.4)
+      diff[, betaQval := Qv$qvalues]
+    } else {
+      diff[, betaPval_BHadj := 1]
+      diff[, betaQval := 1]
+    }
     
     if(plot==TRUE){
       if(PDF){
@@ -143,7 +150,7 @@ getMassAssemblyChange <- function(tracesList, design_matrix,
     }
     
     setnames(diff, "get(quantLevel)", quantLevel)
-    tests <- subset(diff, select = c("protein_id","medianDiff","betaPval", "betaPval_BHadj","testOrder"))
+    tests <- subset(diff, select = c("protein_id","medianDiff","betaPval", "betaPval_BHadj", "betaQval","testOrder"))
     
     return(tests[])
     
