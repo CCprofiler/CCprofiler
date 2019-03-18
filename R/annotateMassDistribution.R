@@ -24,7 +24,13 @@ annotateMassDistribution.traces <- function(traces){
   max_trace <- max(traces$fraction_annotation$id)
   mw_info[,assembly_boundary := 2*protein_mw]
   mw_info[is.na(assembly_boundary), assembly_boundary := 0]
-  mw_info[,assembly_boundary_fraction := unlist(lapply(assembly_boundary,function(x){max(traces$fraction_annotation[molecular_weight>=x]$id)}))]
+  mw_info[,assembly_boundary_fraction := unlist(lapply(assembly_boundary,function(x){
+    if (x <= max(traces$fraction_annotation$molecular_weight)) {
+      max(traces$fraction_annotation[molecular_weight>=x]$id)
+    } else {
+      1
+    }
+    }))]
 
   # Get intensity sum
   mw_info[,sum_assembled := sum(intMat[id,1:assembly_boundary_fraction-1]), id]
