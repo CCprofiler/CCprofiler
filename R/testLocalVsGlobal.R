@@ -40,8 +40,8 @@ tests <- featureVals_noImpute[, {
   } else {
     feature_mass_fraction_betaPval = 1
   }
-  feature_mass_fraction_1 = median(qints[get==samples[1]]$s_ratio)
-  feature_mass_fraction_2 = median(qints[get==samples[2]]$s_ratio)
+  feature_mass_fraction_1 = mean(qints[get==samples[1]]$s_ratio)
+  feature_mass_fraction_2 = mean(qints[get==samples[2]]$s_ratio)
   feature_mass_fraction_diff = feature_mass_fraction_1-feature_mass_fraction_2
   feature_mass_fraction_FC = feature_mass_fraction_1/feature_mass_fraction_2
   feature_mass_fraction_log2FC = log2(feature_mass_fraction_1/feature_mass_fraction_2)
