@@ -102,11 +102,11 @@ getMassAssemblyChange <- function(tracesList, design_matrix,
     }
     #res_cast[, change := log2(get(samples[1])/(get(samples[2])))]
     #res_cast[change=="NaN", change := 0]
-    res_cast[, medianDiff := get(samples[1])-(get(samples[2]))]
+    res_cast[, meanDiff := get(samples[1])-(get(samples[2]))]
     res_cast[, betaPval := 1]
     res_cast[, betaPval_BHadj := 1]
     res_cast[, testOrder := paste0(samples[1],".vs.",samples[2])]
-    res_cast <- subset(res_cast, select = c("protein_id","medianDiff","betaPval", "betaPval_BHadj","testOrder"))
+    res_cast <- subset(res_cast, select = c("protein_id","meanDiff","betaPval", "betaPval_BHadj","testOrder"))
     return(res_cast[])
   } else {
     res <- merge(res, design_matrix, by.x="Sample", by.y="Sample_name")
@@ -120,8 +120,8 @@ getMassAssemblyChange <- function(tracesList, design_matrix,
     
     diff <- res[, { 
       samples = unique(.SD[,get(compare_between)])
-      median = .SD[, .(m = median(sum_assembled_norm)), by = .(get(compare_between))]
-      medianDiff = median[get==samples[1]]$m - median[get==samples[2]]$m
+      mean = .SD[, .(m = mean(sum_assembled_norm)), by = .(get(compare_between))]
+      meanDiff = mean[get==samples[1]]$m - mean[get==samples[2]]$m
       n_conditions <- unique(.SD$n_conditions)
       n_perCondition <- min(.SD$replicates_perCondition)
       n_unique_perCondition <- min(.SD$unique_perCondition)
@@ -132,7 +132,7 @@ getMassAssemblyChange <- function(tracesList, design_matrix,
       } else {
         p = 2
       }
-      .(medianDiff = medianDiff, betaPval = p, testOrder = paste0(samples[1],".vs.",samples[2]))}, 
+      .(meanDiff = meanDiff, betaPval = p, testOrder = paste0(samples[1],".vs.",samples[2]))}, 
       by = .(get(quantLevel))]
     
     diff[betaPval==2, betaPval := NA ]
@@ -156,7 +156,7 @@ getMassAssemblyChange <- function(tracesList, design_matrix,
     }
     
     setnames(diff, "get(quantLevel)", quantLevel)
-    tests <- subset(diff, select = c("protein_id","medianDiff","betaPval", "betaPval_BHadj", "betaQval","testOrder"))
+    tests <- subset(diff, select = c("protein_id","meanDiff","betaPval", "betaPval_BHadj", "betaQval","testOrder"))
     
     return(tests[])
     
@@ -175,16 +175,16 @@ plotMassAssemblyChange <- function(assamblyTest, change_cutoff=0.2, name="massAs
   if (PDF) {
     pdf(paste0(name,".pdf"))
   }
-  no_change <- nrow(subset(assamblyTest, abs(medianDiff) <= change_cutoff))
-  more_assembled <- nrow(subset(assamblyTest, medianDiff < -change_cutoff))
-  less_assembled <- nrow(subset(assamblyTest, medianDiff > change_cutoff))
+  no_change <- nrow(subset(assamblyTest, abs(meanDiff) <= change_cutoff))
+  more_assembled <- nrow(subset(assamblyTest, meanDiff < -change_cutoff))
+  less_assembled <- nrow(subset(assamblyTest, meanDiff > change_cutoff))
   pie(c(no_change,more_assembled,less_assembled),
       labels=c(paste("no assembly change \n abs(change) < ",change_cutoff,"\n",no_change),
                paste0("more assembled \n change < -",change_cutoff,"\n",more_assembled),
                paste0("less assembled \n change > ",change_cutoff,"\n",less_assembled)),
       main = paste0(unique(assamblyTest$testOrder)))
 
-  h <- ggplot(assamblyTest, aes(x=medianDiff)) + geom_histogram(binwidth = 0.05) + theme_classic()
+  h <- ggplot(assamblyTest, aes(x=meanDiff)) + geom_histogram(binwidth = 0.05) + theme_classic()
   print(h)
   if (PDF) {
     dev.off()
