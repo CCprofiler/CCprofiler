@@ -47,16 +47,16 @@ testDifferentialExpression <- function(featureVals,
         a = t.test(formula = intensity ~ get(compare_between) , paired = T, var.equal = FALSE)
       }
       ints = .SD[imputedFraction == F, .(s = sum(intensity)), by = .(get(compare_between))] # this creates quantitative discrepancies depending on how many fractions are used
-      int1 = max(0, median(ints[get==samples[1]]$s), na.rm=T)
-      int2 = max(0, median(ints[get==samples[2]]$s), na.rm=T)
-      qint1 = median(qints[get==samples[1]]$s)
-      qint2 = median(qints[get==samples[2]]$s)
+      int1 = max(0, mean(ints[get==samples[1]]$s), na.rm=T)
+      int2 = max(0, mean(ints[get==samples[2]]$s), na.rm=T)
+      qint1 = mean(qints[get==samples[1]]$s)
+      qint2 = mean(qints[get==samples[2]]$s)
       global_ints = .SD[, .(s = unique(global_intensity)), by = .(get(compare_between), Replicate)]
       global_ints_imp = .SD[, .(s = unique(global_intensity_imputed)), by = .(get(compare_between), Replicate)]
-      global_int1 = median(global_ints[get==samples[1]]$s)
-      global_int2 = median(global_ints[get==samples[2]]$s)
-      global_int1_imp = median(global_ints_imp[get==samples[1]]$s)
-      global_int2_imp = median(global_ints_imp[get==samples[2]]$s)
+      global_int1 = mean(global_ints[get==samples[1]]$s)
+      global_int2 = mean(global_ints[get==samples[2]]$s)
+      global_int1_imp = mean(global_ints_imp[get==samples[1]]$s)
+      global_int2_imp = mean(global_ints_imp[get==samples[2]]$s)
       #local_FC_all = log2(qints[get==samples[1]]$s/qints[get==samples[2]]$s)
       #global_FC_all = log2(global_ints_imp[get==samples[1]]$s/global_ints_imp[get==samples[2]]$s)
       #local_vs_global_FC_all = data.table(fc=c(local_FC_all,global_FC_all),sam=c(rep("local",length(local_FC_all)),rep("global",length(global_FC_all))))
@@ -97,16 +97,16 @@ testDifferentialExpression <- function(featureVals,
         a = t.test(formula = intensity ~ get(compare_between) , paired = T, var.equal = FALSE)
       }
       ints = .SD[imputedFraction == F, .(s = sum(intensity)), by = .(get(compare_between))] # this creates quantitative discrepancies depending on how many fractions are used
-      int1 = max(0, median(ints[get==samples[1]]$s), na.rm=T)
-      int2 = max(0, median(ints[get==samples[2]]$s), na.rm=T)
-      qint1 = median(qints[get==samples[1]]$s)
-      qint2 = median(qints[get==samples[2]]$s)
+      int1 = max(0, mean(ints[get==samples[1]]$s), na.rm=T)
+      int2 = max(0, mean(ints[get==samples[2]]$s), na.rm=T)
+      qint1 = mean(qints[get==samples[1]]$s)
+      qint2 = mean(qints[get==samples[2]]$s)
       global_ints = .SD[, .(s = unique(global_intensity)), by = .(get(compare_between), Replicate)]
       global_ints_imp = .SD[, .(s = unique(global_intensity_imputed)), by = .(get(compare_between), Replicate)]
-      global_int1 = median(global_ints[get==samples[1]]$s)
-      global_int2 = median(global_ints[get==samples[2]]$s)
-      global_int1_imp = median(global_ints_imp[get==samples[1]]$s)
-      global_int2_imp = median(global_ints_imp[get==samples[2]]$s)
+      global_int1 = mean(global_ints[get==samples[1]]$s)
+      global_int2 = mean(global_ints[get==samples[2]]$s)
+      global_int1_imp = mean(global_ints_imp[get==samples[1]]$s)
+      global_int2_imp = mean(global_ints_imp[get==samples[2]]$s)
       #local_FC_all = log2(qints[get==samples[1]]$s/qints[get==samples[2]]$s)
       #global_FC_all = log2(global_ints_imp[get==samples[1]]$s/global_ints_imp[get==samples[2]]$s)
       #local_vs_global_FC_all = data.table(fc=c(local_FC_all,global_FC_all),sam=c(rep("local",length(local_FC_all)),rep("global",length(global_FC_all))))
