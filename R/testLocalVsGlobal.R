@@ -56,6 +56,9 @@ tests <- featureVals_noImpute[, {
 close(pb)
 
 tests[feature_mass_fraction_betaPval==2, feature_mass_fraction_betaPval := NA ]
+tests[feature_mass_fraction_betaPval==2, feature_mass_fraction_diff := NA ]
+tests[feature_mass_fraction_betaPval==2, feature_mass_fraction_1 := NA ]
+tests[feature_mass_fraction_betaPval==2, feature_mass_fraction_2 := NA ]
 
 if (length(unique(design_matrix$Replicate)) > 1) {
   tests$feature_mass_fraction_pBHadj <- p.adjust(tests$feature_mass_fraction_betaPval, method = "BH")

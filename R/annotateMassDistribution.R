@@ -120,8 +120,8 @@ getMassAssemblyChange <- function(tracesList, design_matrix,
     
     diff <- res[, { 
       samples = unique(.SD[,get(compare_between)])
-      mean = .SD[, .(m = mean(sum_assembled_norm)), by = .(get(compare_between))]
-      meanDiff = mean[get==samples[1]]$m - mean[get==samples[2]]$m
+      meanX = .SD[, .(m = mean(sum_assembled_norm)), by = .(get(compare_between))]
+      meanDiff = meanX[get==samples[1]]$m - meanX[get==samples[2]]$m
       n_conditions <- unique(.SD$n_conditions)
       n_perCondition <- min(.SD$replicates_perCondition)
       n_unique_perCondition <- min(.SD$unique_perCondition)
@@ -129,20 +129,34 @@ getMassAssemblyChange <- function(tracesList, design_matrix,
         model = betareg(.SD$sum_assembled_norm_t ~ .SD$Condition)
         stat = lrtest(model)
         p = stat$`Pr(>Chisq)`[2]
+        w = wilcox.test(formula = .SD$sum_assembled_norm ~ .SD$Condition, paired = F)
+        wilcoxPval = w$p.value
       } else {
         p = 2
+        wilcoxPval = 2
       }
-      .(meanDiff = meanDiff, betaPval = p, testOrder = paste0(samples[1],".vs.",samples[2]))}, 
+      .(meanDiff = meanDiff, 
+        meanAMF1 = meanX[get==samples[1]]$m, 
+        meanAMF2 = meanX[get==samples[2]]$m, 
+        betaPval = p, 
+        wilcoxPval = wilcoxPval,
+        testOrder = paste0(samples[1],".vs.",samples[2]))}, 
       by = .(get(quantLevel))]
     
     diff[betaPval==2, betaPval := NA ]
+    diff[wilcoxPval==2, wilcoxPval := NA ]
     if (length(unique(design_matrix$Replicate)) > 1) {
       diff[, betaPval_BHadj := p.adjust(betaPval, method = "fdr")]
       Qv <- qvalue::qvalue(diff$betaPval, lambda = 0.4)
       diff[, betaQval := Qv$qvalues]
+      #diff[, wilcoxPval_BHadj := p.adjust(wilcoxPval, method = "fdr")]
+      #wilcoxPvalQv <- qvalue::qvalue(diff$wilcoxPval, lambda = 0.4)
+      #diff[, wilcoxQval := wilcoxPvalQv$qvalues]
     } else {
       diff[, betaPval_BHadj := 1]
       diff[, betaQval := 1]
+      #diff[, wilcoxPval_BHadj := 1]
+      #diff[, wilcoxQval := 1]
     }
     
     if(plot==TRUE){
@@ -150,13 +164,20 @@ getMassAssemblyChange <- function(tracesList, design_matrix,
         pdf(paste0(name,".pdf"))
       }
       hist(diff$betaPval, breaks = 100)
+      hist(diff$wilcoxPval, breaks = 100)
+      hist(diff$meanAMF1, breaks = 100)
+      hist(diff$meanAMF2, breaks = 100)
       if(PDF){
         dev.off()
       }
     }
     
     setnames(diff, "get(quantLevel)", quantLevel)
-    tests <- subset(diff, select = c("protein_id","meanDiff","betaPval", "betaPval_BHadj", "betaQval","testOrder"))
+    tests <- subset(diff, select = c("protein_id","meanDiff",
+                                     "meanAMF1","meanAMF2",
+                                     "betaPval", "betaPval_BHadj", 
+                                     "betaQval","testOrder",
+                                     "wilcoxPval"))
     
     return(tests[])
     
