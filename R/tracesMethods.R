@@ -546,13 +546,13 @@ plot.tracesList <- function(traces,
                                                     name = "MW (kDa)"))
     if (monomer_MW==TRUE){
       if ("protein_mw" %in% names(traces[[1]]$trace_annotation)) {
-        ann_tab <- lapply(traces, function(t){subset(t$trace_annotation, select=c("id","protein_mw"))})
+        ann_tab <- lapply(traces, function(t){subset(t$trace_annotation, select=c(colour_by,"protein_mw"))})
         ann_tab <- unique(do.call(rbind,ann_tab))
-        subunitMW.dt <- data.table(id=ann_tab$id,mw=ann_tab$protein_mw)
+        subunitMW.dt <- data.table(id=ann_tab[[colour_by]],mw=ann_tab$protein_mw)
         subunitMW.dt$fraction <- MWtoFraction(subunitMW.dt$mw)
         subunitMW.dt[,boundary:=MWtoFraction(2*mw)]
         if (length(unique(subunitMW.dt$mw)) > 1) {
-          p <- p + geom_point(data = subunitMW.dt, mapping = aes(x = fraction, y = Inf, colour=id),shape=18,size=5,alpha=.5)
+          p <- p + geom_point(data = subunitMW.dt, mapping = aes(x = fraction, y = Inf, colour=id), shape=18,size=5,alpha=.5)
         } else {
           p <- p + geom_vline(data = unique(subunitMW.dt), aes(xintercept = fraction), colour="red", linetype="dashed", size=.5)
           p <- p + geom_vline(data = unique(subunitMW.dt), aes(xintercept = boundary), colour="red", linetype="dashed", size=.5, alpha=0.5)
