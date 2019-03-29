@@ -225,13 +225,16 @@ proteinToGenomeFast <- function (x, db, id = "name", idType = "protein_id") {
                 as(x, "IRangesList"), FUN = function(gnm, cds, prt) {
                   if (is.null(gnm)) {
                     GRanges()
-                  }
-                  else {
+                  } else {
                     maps <- unlist(ensembldb:::.to_genome(gnm, cds))
-                    names(maps) <- NULL
-                    mcols(maps)$protein_start <- start(prt)
-                    mcols(maps)$protein_end <- end(prt)
-                    maps[order(maps$exon_rank)]
+                    if (isEmpty(maps)) {
+                      GRanges()
+                    } else {
+                      names(maps) <- NULL
+                      mcols(maps)$protein_start <- start(prt)
+                      mcols(maps)$protein_end <- end(prt)
+                      maps[order(maps$exon_rank)]
+                    }
                   }
                 })
   lapply(res, function(z) {
