@@ -173,7 +173,10 @@ refineProteoformsByDetectedFeatures <- function(traces, features) {
   conversionTable <- rbindlist(lapply(res, `[[`, 2))
   traces_new$trace_annotation <- merge(traces_new$trace_annotation, conversionTable, 
                                        by.x="proteoform_id", by.y="original_id", all = TRUE, sort = FALSE)
-  traces_new$trace_annotation[, new_id := ifelse(is.na(new_id), proteoform_id, new_id)]
+  traces_new$trace_annotation[, new_id := ifelse((is.na(new_id)) & (n_proteoforms==1), proteoform_id, new_id)]
+  assigned_ids <- unique(traces_new$trace_annotation$new_id)
+  assigned_ids <- assigned_ids[! is.na(assigned_ids)]
+  traces_new <- subset(traces_new, assigned_ids, trace_subset_type = "new_id")
   traces_new$trace_annotation[, proteoform_id := NULL]
   setnames(traces_new$trace_annotation, "new_id", "proteoform_id") 
   traces_new$trace_annotation[, cluster := as.integer(ifelse(length(grep("_",proteoform_id))>0,
