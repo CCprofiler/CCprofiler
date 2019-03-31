@@ -17,7 +17,7 @@ evaluateProteoformLocation <- function(traces, adj.method = "fdr", minPepPerProt
   testRandPepStats$genomLocation_pval_adj <- p.adjust(testRandPepStats$genomLocation_pval, adj.method)
   #qobj <- qvalue(testRandPepStats$genomLocation_pval,lambda=lambda)
   #testRandPepStats$qvals <- qobj$qvalues
-  pdf("NormalizedSD_hist.pdf")
+  pdf("NormalizedSD_hist.pdf",width=3,height=3)
     p <- ggplot(testRandPepStats,aes(x=genomLocation_pval)) +
     geom_histogram(bins=25) +
     theme_classic()
@@ -92,7 +92,7 @@ getNormalizedSD <- function(v){
 
 plotRealVsRandom <- function(res,score="NormalizedSD"){
   proteins <- names(res)
-  pdf(paste0(score,".pdf"))
+  pdf(paste0(score,".pdf"),width=3,height=3)
   res <- lapply(proteins,plotRealVsRandomPerProt,res=res,score=score)
   dev.off()
   out <- do.call(rbind,res)
@@ -118,6 +118,7 @@ plotRealVsRandomPerProteoform <- function(proteoform,protein,res,score){
   p <- ggplot(dt,aes(x=random)) +
     geom_histogram(bins=30) +
     geom_vline(xintercept = real, colour="red") +
+    theme_classic() +
     ggtitle(paste0(proteoform,
       #"\n z-score = ",zscore,
       #"\n z-critical = ",zcritical,
