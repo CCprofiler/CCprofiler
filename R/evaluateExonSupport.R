@@ -161,6 +161,11 @@ plotPeptideCluster <- function(traces,protein, PDF=FALSE, closeGaps=FALSE){
   traces <- subset(traces, protein, trace_subset_type="protein_id")
   if ("genomic_coord" %in% names(traces)) {
     traces$trace_annotation[,exon_id:=lapply(id,getGenomicCoord, traces=traces), by="id"]
+    traces$trace_annotation[,min_exon_id_start:=min(PeptidePositionStart), by="exon_id"]
+    getExonLevels <- unique(subset(traces$trace_annotation, select=c("exon_id","min_exon_id_start")))
+    setorder(getExonLevels, min_exon_id_start)
+    traces$trace_annotation$exon_id <- factor(traces$trace_annotation$exon_id, levels=getExonLevels$exon_id)
+    getPalette = colorRampPalette(brewer.pal(9, "Spectral"))
   }
   dt <- subset(traces$trace_annotation,protein_id==protein)
   setkeyv(dt, c("protein_id","PeptidePositionStart"))
@@ -194,7 +199,8 @@ plotPeptideCluster <- function(traces,protein, PDF=FALSE, closeGaps=FALSE){
               axis.ticks = element_blank(),
               axis.title= element_blank(),
               axis.line = element_blank()) +
-        theme(legend.position="top")
+        theme(legend.position="top") +
+        scale_fill_manual(values = getPalette(length(unique(dt$exon_id))))
       f <- ggarrange(e, q, 
                      labels = c("", ""),
                      ncol = 1, nrow = 2)
@@ -222,7 +228,8 @@ plotPeptideCluster <- function(traces,protein, PDF=FALSE, closeGaps=FALSE){
               axis.ticks = element_blank(),
               axis.title= element_blank(),
               axis.line = element_blank()) +
-        theme(legend.position="top")
+        theme(legend.position="top") +
+        scale_fill_manual(values = getPalette(length(unique(dt$exon_id))))
       f <- ggarrange(e, q, 
                      labels = c("", ""),
                      ncol = 1, nrow = 2)
