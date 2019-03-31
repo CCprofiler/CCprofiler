@@ -158,40 +158,78 @@ evaluateExonLocation <- function(traces, adj.method = "fdr", optional_filter = F
 #' @return plot
 #' @export
 plotPeptideCluster <- function(traces,protein, PDF=FALSE, closeGaps=FALSE){
+  traces <- subset(traces, protein, trace_subset_type="protein_id")
+  if ("genomic_coord" %in% names(traces)) {
+    traces$trace_annotation[,exon_id:=lapply(id,getGenomicCoord, traces=traces), by="id"]
+  }
   dt <- subset(traces$trace_annotation,protein_id==protein)
   setkeyv(dt, c("protein_id","PeptidePositionStart"))
   dt[,PeptidePositionStartRank := seq_len(.N), by="protein_id"]
   cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7","#756bb1","#1c9099")
   dt$cluster <- as.factor(dt$cluster)
   if (PDF){
-    pdf(paste0(protein,"_sequence_cluster.pdf"),width=10,height=3)
+    if ("genomic_coord" %in% names(traces)) {
+      pdf(paste0(protein,"_sequence_cluster.pdf"),width=10,height=5)
+    } else {
+      pdf(paste0(protein,"_sequence_cluster.pdf"),width=10,height=3)
+    }
   }
   if (closeGaps) {
-    p <- ggplot(dt,aes(x=PeptidePositionStartRank,
-      y=1,
-      fill=cluster)) +
+    q <- ggplot(dt,aes(x=PeptidePositionStartRank,
+                       y=1,
+                       fill=cluster)) +
       geom_bar(stat="identity") + theme_classic() +
       theme(axis.text = element_blank(),
             axis.ticks = element_blank(),
             axis.title= element_blank(),
             axis.line = element_blank()) +
       theme(legend.position="bottom") +
-      scale_fill_manual(values=cbPalette) +
-      ggtitle(paste0(protein," : ",unique(dt$Gene_names)))
-    print(p)
+      scale_fill_manual(values=cbPalette) 
+    if ("genomic_coord" %in% names(traces)) {
+      e <- ggplot(dt,aes(x=PeptidePositionStartRank,
+                         y=1,
+                         fill=exon_id)) +
+        geom_bar(stat="identity") + theme_classic() +
+        theme(axis.text = element_blank(),
+              axis.ticks = element_blank(),
+              axis.title= element_blank(),
+              axis.line = element_blank()) +
+        theme(legend.position="top")
+      f <- ggarrange(e, q, 
+                     labels = c("", ""),
+                     ncol = 1, nrow = 2)
+      print(annotate_figure(f, fig.lab = paste0(protein," : ",unique(dt$Gene_names))))
+    } else {
+      print(q + ggtitle(paste0(protein," : ",unique(dt$Gene_names)))) 
+    }
   } else {
     q <- ggplot(dt,aes(x=PeptidePositionStart,
-      y=1,
-      fill=cluster)) +
+                       y=1,
+                       fill=cluster)) +
       geom_bar(stat="identity") + theme_classic() +
       theme(axis.text = element_blank(),
             axis.ticks = element_blank(),
             axis.title= element_blank(),
             axis.line = element_blank()) +
       theme(legend.position="bottom") +
-      scale_fill_manual(values=cbPalette) +
-      ggtitle(paste0(protein," : ",unique(dt$Gene_names)))
-    print(q)
+      scale_fill_manual(values=cbPalette) 
+    if ("genomic_coord" %in% names(traces)) {
+      e <- ggplot(dt,aes(x=PeptidePositionStart,
+                         y=1,
+                         fill=exon_id)) +
+        geom_bar(stat="identity") + theme_classic() +
+        theme(axis.text = element_blank(),
+              axis.ticks = element_blank(),
+              axis.title= element_blank(),
+              axis.line = element_blank()) +
+        theme(legend.position="top")
+      f <- ggarrange(e, q, 
+                     labels = c("", ""),
+                     ncol = 1, nrow = 2)
+      print(annotate_figure(f, fig.lab = paste0(protein," : ",unique(dt$Gene_names))))
+    } else {
+      print(q + ggtitle(paste0(protein," : ",unique(dt$Gene_names)))) 
+    }
   }
   if (PDF){
     dev.off()
