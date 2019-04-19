@@ -476,7 +476,7 @@ plotVolcano <- function(testResults,
       p <- ggplot(testResults, aes(x=log2FC,y=-log10(pBHadj)))
     }
     p <- p +
-      geom_point(size=1) +
+      geom_point(size=1, alpha=.3) +
       theme_classic() +
       geom_hline(yintercept=-log10(pBHadj_cutoff), colour="red", linetype="dashed") +
       geom_vline(xintercept=-log2(FC_cutoff), colour="red", linetype="dashed") +
@@ -484,25 +484,37 @@ plotVolcano <- function(testResults,
     if (! is.null(highlight)){
       if ("feature_id" %in% names(testResults)) {
         sub <- subset(testResults,feature_id %in% highlight)
+        sub_significant <- sub[pBHadj<pBHadj_cutoff][abs(medianLog2FC)>log2(FC_cutoff)]
+        sub_nonSignificant <- sub[(pBHadj>=pBHadj_cutoff) | (abs(medianLog2FC)<=log2(FC_cutoff))]
         col <- "feature_id"
       } else if ("complex_id" %in% names(testResults)) {
         sub <- subset(testResults,complex_id %in% highlight)
+        sub_significant <- sub[pBHadj<pBHadj_cutoff][abs(medianLog2FC)>log2(FC_cutoff)]
+        sub_nonSignificant <- sub[(pBHadj>=pBHadj_cutoff) | (abs(medianLog2FC)<=log2(FC_cutoff))]
         col <- "complex_id"
       } else if (highlight %in% testResults$protein_id) {
         sub <- subset(testResults,protein_id %in% highlight)
+        sub_significant <- sub[pBHadj<pBHadj_cutoff][abs(medianLog2FC)>log2(FC_cutoff)]
+        sub_nonSignificant <- sub[(pBHadj>=pBHadj_cutoff) | (abs(medianLog2FC)<=log2(FC_cutoff))]
         col <- "protein_id"
       } else if (highlight %in% testResults$proteoform_id) {
         sub <- subset(testResults,proteoform_id %in% highlight)
+        sub_significant <- sub[pBHadj<pBHadj_cutoff][abs(medianLog2FC)>log2(FC_cutoff)]
+        sub_nonSignificant <- sub[(pBHadj>=pBHadj_cutoff) | (abs(medianLog2FC)<=log2(FC_cutoff))]
         col <- "proteoform_id"
       } else {
         stop("The testResults do not have the proper format. Input should be the result from testDifferentialExpression.")
       }
       if ("medianLog2FC" %in% names(testResults)) {
-        p <- p + geom_point(data=sub, aes(x=medianLog2FC,y=-log10(pBHadj)), colour="red", fill="red", size=3, shape=23) +
-          geom_text_repel(data=sub, aes(label=get(col)), size=4, vjust=0, hjust=-0.1, colour="red")
+        p <- p + geom_point(data=sub_nonSignificant, aes(x=medianLog2FC,y=-log10(pBHadj)), colour="darkgrey", fill="darkgrey", size=2, shape=23) +
+          geom_text_repel(data=sub_nonSignificant, aes(label=get(col)), size=3, vjust=0, hjust=-0.1, colour="darkgrey")
+        p <- p + geom_point(data=sub_significant, aes(x=medianLog2FC,y=-log10(pBHadj)), colour="red", fill="red", size=3, shape=23) +
+          geom_text_repel(data=sub_significant, aes(label=get(col)), size=4, vjust=0, hjust=-0.1, colour="red")
       } else {
-        p <- p + geom_point(data=sub, aes(x=log2FC,y=-log10(pBHadj)), colour="red", fill="red", size=3, shape=23)+
-          geom_text_repel(data=sub, aes(label=get(col)), size=4, vjust=0, hjust=-0.1, colour="red")
+        p <- p + geom_point(data=sub_nonSignificant, aes(x=log2FC,y=-log10(pBHadj)), colour="darkgrey", fill="darkgrey", size=2, shape=23)+
+          geom_text_repel(data=sub_nonSignificant, aes(label=get(col)), size=3, vjust=0, hjust=-0.1, colour="darkgrey")
+        p <- p + geom_point(data=sub_significant, aes(x=log2FC,y=-log10(pBHadj)), colour="red", fill="red", size=3, shape=23)+
+          geom_text_repel(data=sub_significant, aes(label=get(col)), size=4, vjust=0, hjust=-0.1, colour="red")
       }
     }
   } else if (level=="global"){
@@ -515,7 +527,7 @@ plotVolcano <- function(testResults,
       p <- ggplot(testResults, aes(x=global_log2FC,y=-log10(global_pBHadj)))
     }
     p <- p +
-      geom_point(size=1) +
+      geom_point(size=1, alpha=.3) +
       theme_classic() +
       geom_hline(yintercept=-log10(pBHadj_cutoff), colour="red", linetype="dashed") +
       geom_vline(xintercept=-log2(FC_cutoff), colour="red", linetype="dashed") +
@@ -523,25 +535,37 @@ plotVolcano <- function(testResults,
     if (! is.null(highlight)){
       if ("feature_id" %in% names(testResults)) {
         sub <- subset(testResults,feature_id %in% highlight)
+        sub_significant <- sub[global_pBHadj<pBHadj_cutoff][abs(global_medianLog2FC)>log2(FC_cutoff)]
+        sub_nonSignificant <- sub[(global_pBHadj>=pBHadj_cutoff) | (abs(global_medianLog2FC)<=log2(FC_cutoff))]
         col <- "feature_id"
       } else if ("complex_id" %in% names(testResults)) {
         sub <- subset(testResults,complex_id %in% highlight)
+        sub_significant <- sub[global_pBHadj<pBHadj_cutoff][abs(global_medianLog2FC)>log2(FC_cutoff)]
+        sub_nonSignificant <- sub[(global_pBHadj>=pBHadj_cutoff) | (abs(global_medianLog2FC)<=log2(FC_cutoff))]
         col <- "complex_id"
       } else if (highlight %in% testResults$protein_id) {
         sub <- subset(testResults,protein_id %in% highlight)
+        sub_significant <- sub[global_pBHadj<pBHadj_cutoff][abs(global_medianLog2FC)>log2(FC_cutoff)]
+        sub_nonSignificant <- sub[(global_pBHadj>=pBHadj_cutoff) | (abs(global_medianLog2FC)<=log2(FC_cutoff))]
         col <- "protein_id"
       } else if (highlight %in% testResults$proteoform_id) {
         sub <- subset(testResults,proteoform_id %in% highlight)
+        sub_significant <- sub[global_pBHadj<pBHadj_cutoff][abs(global_medianLog2FC)>log2(FC_cutoff)]
+        sub_nonSignificant <- sub[(global_pBHadj>=pBHadj_cutoff) | (abs(global_medianLog2FC)<=log2(FC_cutoff))]
         col <- "proteoform_id"
       } else {
         stop("The testResults do not have the proper format. Input should be the result from testDifferentialExpression.")
       }
       if ("global_medianLog2FC" %in% names(testResults)) {
-        p <- p + geom_point(data=sub, aes(x=global_medianLog2FC,y=-log10(global_pBHadj)), colour="red", fill="red", size=3, shape=23) +
-          geom_text_repel(data=sub, aes(label=get(col)), size=4, vjust=0, hjust=-0.1, colour="red")
+        p <- p + geom_point(data=sub_nonSignificant, aes(x=global_medianLog2FC,y=-log10(global_pBHadj)), colour="darkgrey", fill="darkgrey", size=2, shape=23) +
+          geom_text_repel(data=sub_nonSignificant, aes(label=get(col)), size=3, vjust=0, hjust=-0.1, colour="darkgrey")
+        p <- p + geom_point(data=sub_significant, aes(x=global_medianLog2FC,y=-log10(global_pBHadj)), colour="red", fill="red", size=3, shape=23) +
+          geom_text_repel(data=sub_significant, aes(label=get(col)), size=4, vjust=0, hjust=-0.1, colour="red")
       } else {
-        p <- p + geom_point(data=sub, aes(x=global_log2FC,y=-log10(global_pBHadj)), colour="red", fill="red", size=3, shape=23)+
-          geom_text_repel(data=sub, aes(label=get(col)), size=4, vjust=0, hjust=-0.1, colour="red")
+        p <- p + geom_point(data=sub_nonSignificant, aes(x=global_log2FC,y=-log10(global_pBHadj)), colour="darkgrey", fill="darkgrey", size=2, shape=23)+
+          geom_text_repel(data=sub_nonSignificant, aes(label=get(col)), size=3, vjust=0, hjust=-0.1, colour="darkgrey")
+        p <- p + geom_point(data=sub_significant, aes(x=global_log2FC,y=-log10(global_pBHadj)), colour="red", fill="red", size=3, shape=23)+
+          geom_text_repel(data=sub_significant, aes(label=get(col)), size=4, vjust=0, hjust=-0.1, colour="red")
       }
     }
   } else {
