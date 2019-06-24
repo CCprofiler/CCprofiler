@@ -4,8 +4,8 @@
 \alias{getUniqueFeatureGroups}
 \title{Determine unique feature groups}
 \usage{
-getUniqueFeatureGroups(feature_table, rt_height = 2, distance_cutoff = 1,
-  plot = FALSE)
+getUniqueFeatureGroups(feature_table, rt_height = 2,
+  distance_cutoff = 1, plot = FALSE)
 }
 \arguments{
 \item{feature_table}{data.table containing filtered complex feature results.}
@@ -32,4 +32,3 @@ complexFeaturesUnique <- getUniqueFeatureGroups(exampleComplexFeatures,
                                                 plot=TRUE)
                                                 
 }
-

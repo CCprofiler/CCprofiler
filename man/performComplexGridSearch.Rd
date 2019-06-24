@@ -4,8 +4,8 @@
 \alias{performComplexGridSearch}
 \title{Perform complex feature grid search}
 \usage{
-performComplexGridSearch(traces, complex_hypothesis, corrs = c(0.5, 0.75, 0.9,
-  0.95), windows = c(8, 10, 12), smoothing = c(7, 9, 11),
+performComplexGridSearch(traces, complex_hypothesis, corrs = c(0.5, 0.75,
+  0.9, 0.95), windows = c(8, 10, 12), smoothing = c(7, 9, 11),
   rt_heights = c(3, 4, 5), n_cores = 1)
 }
 \arguments{
@@ -51,4 +51,3 @@ gridList <- performComplexGridSearch(traces = proteinTraces,
                          
 lapply(gridList, head, n = 2)
 }
-

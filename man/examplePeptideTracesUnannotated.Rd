@@ -19,4 +19,3 @@ rawPeptideTraces <- importPCPdata(input_data = examplePCPdataLong,
 all.equal(rawPeptideTraces,examplePeptideTracesUnannotated)
 }
 \keyword{datasets}
-

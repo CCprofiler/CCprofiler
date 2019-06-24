@@ -17,4 +17,3 @@ runSlidingWindow(complex.id, complex_hypothesis, traces, traces.imputed,
 \description{
 A helper function to execute the sliding window algorithm for a specific query complex.
 }
-

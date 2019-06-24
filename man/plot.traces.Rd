@@ -4,10 +4,13 @@
 \alias{plot.traces}
 \title{Plot traces}
 \usage{
-\method{plot}{traces}(traces, log = FALSE, legend = TRUE, PDF = FALSE,
-  name = "Traces", highlight = NULL, highlight_col = NULL)
+\method{plot}{traces}(traces, log = FALSE, legend = TRUE,
+  PDF = FALSE, name = "Traces", highlight = NULL,
+  highlight_col = NULL)
 }
 \arguments{
+\item{traces}{Object of class traces.}
+
 \item{log}{Logical, whether the intensities should be plotted in log scale. Default is \code{FALSE}.}
 
 \item{legend}{Logical, whether a legend of the traces should be plotted. Should be set to \code{FALSE}
@@ -17,8 +20,6 @@ if many chromatograms are plotted. Default is \code{TRUE}.}
 
 \item{name}{Character string with name of the plot, only used if \code{PDF=TRUE}.
 PDF file is saved under name.pdf. Default is "Traces".}
-
-\item{Object}{of class traces.}
 }
 \description{
 Plot all chromatograms in a traces object. Most generic plotting function.
@@ -39,4 +40,3 @@ peptideTraces <- examplePeptideTraces
 subsetPeptideTraces <- subset(peptideTraces,trace_subset_ids="Q9UHV9",trace_subset_type="protein_id",fraction_ids=c(30:70))
 plot(subsetPeptideTraces,legend=FALSE)
 }
-

@@ -4,7 +4,8 @@
 \alias{generateComplexTargets}
 \title{Generate complex target-hypotheses}
 \usage{
-generateComplexTargets(dist_info, max_distance = 1, redundancy_cutoff = 1)
+generateComplexTargets(dist_info, max_distance = 1,
+  redundancy_cutoff = 1)
 }
 \arguments{
 \item{dist_info}{data.table with three columns containing all possible combinations of proteins:
@@ -49,4 +50,3 @@ targetHypotheses_ <- generateComplexTargets(dist_info = shortestPaths,
                                             redundancy_cutoff = 1)
 
 }
-

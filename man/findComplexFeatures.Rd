@@ -6,8 +6,8 @@
 \usage{
 findComplexFeatures(traces, complex_hypothesis, corr_cutoff = 0.95,
   window_size = 15, parallelized = FALSE, n_cores = 1,
-  collapse_method = "apex_only", perturb_cutoff = "5\%", rt_height = 5,
-  smoothing_length = 11)
+  collapse_method = "apex_only", perturb_cutoff = "5\%",
+  rt_height = 5, smoothing_length = 11)
 }
 \arguments{
 \item{traces}{An object of class traces.}
@@ -65,4 +65,3 @@ complexFeatures <- findComplexFeatures(traces=proteinTraces,
 summarizeComplexFeatures(complexFeatures)
 
 }
-
