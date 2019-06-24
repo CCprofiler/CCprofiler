@@ -2,14 +2,15 @@
 % Please edit documentation in R/plotFeatures.R
 \name{plotFeatures}
 \alias{plotFeatures}
-\title{#' Plot the result of the sliding window algorithm.}
+\title{#' #' Plot the result of the sliding window algorithm.}
 \usage{
-plotFeatures(feature_table, traces, feature_id, calibration = NULL,
-  annotation_label = "protein_id", onlyBest = TRUE, apex = TRUE,
-  peak_area = FALSE, sliding_window_area = FALSE,
-  estimated_complex_MW = FALSE, highlight = NULL,
-  highlight_col = NULL, monomer_MW = FALSE, log = FALSE,
-  legend = TRUE, PDF = FALSE, name = "Traces")
+plotFeatures(feature_table, traces, feature_id, design_matrix = NULL,
+  calibration = NULL, annotation_label = "protein_id",
+  onlyBest = TRUE, apex = TRUE, peak_area = FALSE,
+  sliding_window_area = FALSE, estimated_complex_MW = FALSE,
+  highlight = NULL, highlight_col = NULL, colour_by = "id",
+  monomer_MW = FALSE, log = FALSE, legend = TRUE, PDF = FALSE,
+  name = "Traces", colorMap = NULL)
 }
 \arguments{
 \item{feature_table}{data.table}
@@ -25,6 +26,9 @@ plotFeatures(feature_table, traces, feature_id, calibration = NULL,
 \item{monomer_MW}{Logical if monomer MWs should be indicated}
 
 \item{log}{Logical if intensities should be log transformed, default is \code{fFALSE}.}
+
+\item{colorMap}{named character vector containing valid color specifications for plotting.
+The names of the vector must correspond to the ids of the peptides to be plotted.}
 
 \item{proteinTraces}{traces object of type protein}
 
@@ -54,12 +58,12 @@ plotFeatures(feature_table = featureTable,
 #------------------------
 ## Protein level plotting
 #------------------------
- 
+
 ## Load example data
  featureTable = exampleProteinFeatures
  peptideTraces = examplePeptideTraces
  proteinId = "P61201" # Protein of interest
- 
+
  ## Plot all features found for this Protein
  plotFeatures(feature_table = featureTable,
                      traces = peptideTraces,

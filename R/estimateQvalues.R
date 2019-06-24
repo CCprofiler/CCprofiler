@@ -193,3 +193,52 @@ getBestQvalueParameters <- function(stats,FDR_cutoff=0.05){
   best_stats <- stats_sub[1]
   return(best_stats)
 }
+
+#' Score protein or complex features and filter by q-value/FDR
+#' @param features data.table output from findComplexFeatures or findProteinFeatures function
+#' @param FDR numeric between 0 and 1, default = 0.05
+#' @param plot logical, default = TRUE
+#' @param PDF logical, defalt = FALSE
+#' @param name character strimg specifying pdf name, default = "qvalueStats"
+#' @return data.table with scored and filtered features
+#' @export
+scoreFeatures <- function(features, FDR = 0.05, plot = T, PDF = FALSE, name = "qvalueStats"){
+  if(plot==TRUE){
+  if(PDF==TRUE){
+    pdf(paste0(name,".pdf"))
+  }
+  featuresScored <- calculateCoelutionScore(features)
+  qvalueFeaturesScored <- calculateQvalue(featuresScored, name="qvalueStats", PDF=F)
+  qvalueFeaturesScoredStats <- qvaluePositivesPlot(qvalueFeaturesScored, name="qvaluePositivesPlot",PDF=F)
+  filteredData <- subset(qvalueFeaturesScored, qvalue<=FDR)
+  if(PDF==TRUE){
+    dev.off()
+  }
+  } else {
+    featuresScored <- calculateCoelutionScore(features)
+    qvalueFeaturesScored <- calculateQvalue(featuresScored, name="qvalueStats", PDF=F, plot=F)
+    qvalueFeaturesScoredStats <- qvaluePositivesPlot(qvalueFeaturesScored, name="qvaluePositivesPlot",PDF=F, plot=F)
+    filteredData <- subset(qvalueFeaturesScored, qvalue<=FDR)
+  }
+  filteredData[]
+}
+
+#' Append secondary features to scored filtered primary feature table
+#' @param scoredPrimaryFeatures data.table output from scoreFeatures function
+#' @param allFeatures data.table, output from findComplexFeatures or findProteinFeatures function including primary and secondary features
+#' @param peakCorr_cutoff numeric, minimum required peak orrelation for a secondary feature. Between 0 and 1, default = 0.05
+#' @return data.table with scored and filtered features
+#' @export
+appendSecondaryComplexFeatures <- function(scoredPrimaryFeatures, allFeatures, peakCorr_cutoff = 0.5){
+  allFeatures <- subset(allFeatures,complex_id %in% scoredPrimaryFeatures$complex_id)
+  mergeAll <- merge(allFeatures,scoredPrimaryFeatures,by=names(allFeatures),all.x=TRUE)
+  mergeAll[,feature_id := .I]
+  mergeAll[,best_feature := if (is.na(qvalue)) 0 else 1, by = 1:nrow(mergeAll)]
+  mergeAll[,feature_count := .N,by="complex_id"]
+  mergeAll_filtered <- mergeAll[which(mergeAll$peak_corr>=peakCorr_cutoff | mergeAll$best_feature==1)]
+  mergeAll_filtered <- mergeAll_filtered[order(complex_id, -n_subunits_detected, -peak_corr, -area)]
+  mergeAll_filtered <- mergeAll_filtered[,feature_id:=NULL]
+  mergeAll_filtered <- mergeAll_filtered[,best_feature:=NULL]
+  mergeAll_filtered <- mergeAll_filtered[,feature_count:=NULL]
+  mergeAll_filtered[]
+}
