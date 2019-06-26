@@ -65,7 +65,9 @@ proteinQuantification <- function(traces,
   peptideTracesLong[, peptide_intensity:=sum(intensity), peptide_id]
   peptideTracesLong[, n_peptides:=length(unique(peptide_id)), protein_id]
   ## the ties.method makes sure how to deal with peptides of identical intensity: "first" keeps the order of occurence
-  peptideTracesLong[, peptide_rank:=rank(-peptide_intensity[1:n_peptides[1]],ties.method = "first"), protein_id]
+  peptideRank <- unique(subset(peptideTracesLong, select=c("protein_id","peptide_id","n_peptides","peptide_intensity")))
+  peptideRank[, peptide_rank:=rank(-peptide_intensity[1:n_peptides[1]],ties.method = "first"), protein_id]
+  peptideTracesLong <- merge(peptideTracesLong,peptideRank,all.x=T,by=c("protein_id","peptide_id","n_peptides","peptide_intensity"))
   peptideTracesLong <- peptideTracesLong[peptide_rank <= topN]
   ## collect information which peptides were used for quantification
   peptideTracesLong[, quant_peptides_used:=paste(unique(peptide_id), collapse = ","), protein_id]
