@@ -38,6 +38,7 @@ getGenePepList <- function(traces){
 #' should be integrated for filtering to ensure minimal data loss.
 #' Deafult is \code{TRUE}.
 #' @return Object of class traces filtered for peptide correlation.
+#' @importFrom matrixStats rowMaxs
 #' @export
 
 filterByMaxCorr <- function(traces, cutoff = 0.85,
@@ -46,7 +47,7 @@ filterByMaxCorr <- function(traces, cutoff = 0.85,
   maxCorrMatrices <- lapply(genePeptideList, function(gene){
     genecorr <- cor(gene)
     genecorr[genecorr == 1] <- NA
-    maxcorr <- rowMaxs(genecorr, na.rm = T)
+    maxcorr <- matrixStats::rowMaxs(genecorr, na.rm = T)
     names(maxcorr) <- rownames(genecorr)
     return(maxcorr)
   })

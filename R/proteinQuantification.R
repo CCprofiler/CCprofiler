@@ -78,7 +78,7 @@ proteinQuantification <- function(traces,
   }
 
   ## Sum peptides to protein level (wide) traces table
-  peptideTracesTopNsumWide <- as.data.table(cast(peptideTracesLong,
+  peptideTracesTopNsumWide <- as.data.table(reshape::cast(peptideTracesLong,
                                                  protein_id ~ fraction_number,
                                                  value = "intensity",
                                                  fun.aggregate = sum))

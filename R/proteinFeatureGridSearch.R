@@ -54,15 +54,19 @@ performProteinGridSearch <- function(traces,
     n_cores <- nrow(parameter_grid)
     message(paste0("Only ",n_cores," required for parallelization. Using ",n_cores," cores."))
   }
-  cl <- snow::makeCluster(n_cores)
+  cl <- snow::makeSOCKcluster(rep("localhost",n_cores))
   # setting a seed is absolutely crutial to ensure reproducible results!
-  clusterSetRNGStream(cl,123)
+  parallel::clusterSetRNGStream(cl,123)
   doSNOW::registerDoSNOW(cl)
-  clusterEvalQ(cl,library(CCprofiler,data.table))
-  # clusterExport(cl, list("generateRandomPepTraces"))
+  snow::clusterEvalQ(cl,library(CCprofiler))
+  snow::clusterEvalQ(cl,library(data.table))
+  snow::clusterEvalQ(cl,library(parallel))
+  snow::clusterEvalQ(cl,library(foreach))
+  snow::clusterEvalQ(cl,library(pracma))
+  #clusterExport(cl, list("findProteinFeatures"))
 
-  data <- parRapply(cl,parameter_grid,
-                    FUN = .runGridProteinFeatureFinding,
+  data <- snow::parRapply(cl,parameter_grid,
+                    fun = .runGridProteinFeatureFinding,
                     pepTraces = traces)
   stopCluster(cl)
   data

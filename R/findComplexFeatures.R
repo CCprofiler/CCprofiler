@@ -27,6 +27,11 @@
 #' @param rt_height Numeric, RT cutoff for collapsing features. Defaults to 5.
 #' @param smoothing_length Numeric, smoothing length of Savitzky-Golay filter. Defaults to 11.
 #' @return A data.table containing protein complex features.
+#' @importFrom pracma savgol
+#' @importFrom pracma findpeaks
+#' @import doSNOW
+#' @import foreach 
+#' @import parallel
 #' @export
 #' @examples
 #' ## Load example data
@@ -64,7 +69,7 @@ findComplexFeatures <- function(traces,
   if (parallelized) {
     cl <- snow::makeCluster(n_cores)
     # setting a seed is absolutely crutial to ensure reproducible results!!!!!!!!!!!!!!!!!!!
-    clusterSetRNGStream(cl,123)
+    parallel::clusterSetRNGStream(cl,123)
     doSNOW::registerDoSNOW(cl)
     pb <- txtProgressBar(max = length(inputComplexes), style = 3)
     progress <- function(n) setTxtProgressBar(pb, n)
