@@ -161,8 +161,8 @@ getBestFeatures <- function(feature_table){
 #' @param min_hypothesis_completeness Numeric between 0 and 1, specifying the required completeness
 #' of the most complete feature reltive to the tested hypothesis (keeps all features if at least one feature is bigger than the cutoff).
 #' @param min_subunits Integer specifying minimum number of subunits in a co-elution feature.
-#' @param min_peak_corr Numeric value betwee 0 and 1 specifying minimum peak correlation, defaults to 0.5.
-#' @param min_monomer_distance_factor Numeric value specifying a factor to multiply the largest monomer molecular weight, defaults to \code{NULL}.
+#' @param min_peak_corr Numeric value betwee 0 and 1 specifying minimum peak correlation, defaults to \code{NULL}.
+#' @param min_monomer_distance_factor Numeric value specifying a factor to multiply the largest monomer molecular weight, defaults to 2.
 #' This filters out features that have their apex at a smaller molecular weight than the resulting min_monomer_distance_factor*max(monomer_mw) value.
 #' Using this filtering option can, for example, remove complex features that are likely spontaneous co-elutions of the subunits monomers.
 #' @return The same feture table as teh input, but filtered according to the provided parameters.
@@ -186,8 +186,8 @@ filterFeatures <- function(feature_table,
                            min_feature_completeness=NULL,
                            min_hypothesis_completeness=NULL,
                            min_subunits=NULL,
-                           min_peak_corr=0.5,
-                           min_monomer_distance_factor=NULL){
+                           min_peak_corr=NULL,
+                           min_monomer_distance_factor=2){
   if("complex_id" %in% names(feature_table)){
     type="complex"
   } else if ("protein_id" %in% names(feature_table)) {
