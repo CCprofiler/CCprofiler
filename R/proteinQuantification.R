@@ -129,7 +129,10 @@ proteinQuantification.traces <- function(traces,
   peptideTracesLong[, peptide_intensity:=sum(intensity), peptide_id]
   peptideTracesLong[, n_peptides:=length(unique(peptide_id)), protein_id]
   ## the ties.method makes sure how to deal with peptides of identical intensity: "first" keeps the order of occurence
-  peptideTracesLong[, peptide_intensity_rank:=rank(-peptide_intensity[1:n_peptides[1]],ties.method = "first"), protein_id]
+  # peptideTracesLong[, peptide_intensity_rank:=rank(-peptide_intensity[1:n_peptides[1]],ties.method = "first"), protein_id]
+  peptideRank <- unique(subset(peptideTracesLong, select=c("protein_id","peptide_id","n_peptides","peptide_intensity")))
+  peptideRank[, peptide_intensity_rank:=rank(-peptide_intensity[1:n_peptides[1]],ties.method = "first"), protein_id]
+  peptideTracesLong <- merge(peptideTracesLong,peptideRank,all.x=T,by=c("protein_id","peptide_id","n_peptides","peptide_intensity"))
   if (use_sibPepCorr == TRUE) {
     peptideTracesLong[, peptide_SibPepCorr_rank:=rank(-SibPepCorr[1:n_peptides[1]],ties.method = "first"), protein_id]
     peptideTracesLong[, rank_sum := peptide_intensity_rank+peptide_SibPepCorr_rank]
@@ -147,7 +150,7 @@ proteinQuantification.traces <- function(traces,
   }
 
   ## Sum peptides to protein level (wide) traces table
-  peptideTracesTopNsumWide <- as.data.table(cast(peptideTracesLong,
+  peptideTracesTopNsumWide <- as.data.table(reshape::cast(peptideTracesLong,
                                                  protein_id ~ fraction_number,
                                                  value = "intensity",
                                                  fun.aggregate = sum))
@@ -349,7 +352,10 @@ proteinQuantification.tracesList <- function(traces,
     peptideTracesLong[, peptide_intensity:=sum(intensity), peptide_id]
     peptideTracesLong[, n_peptides:=length(unique(peptide_id)), protein_id]
     ## the ties.method makes sure how to deal with peptides of identical intensity: "first" keeps the order of occurence
-    peptideTracesLong[, peptide_intensity_rank:=rank(-peptide_intensity[1:n_peptides[1]],ties.method = "first"), protein_id]
+    # peptideTracesLong[, peptide_intensity_rank:=rank(-peptide_intensity[1:n_peptides[1]],ties.method = "first"), protein_id]
+    peptideRank <- unique(subset(peptideTracesLong, select=c("protein_id","peptide_id","n_peptides","peptide_intensity")))
+    peptideRank[, peptide_intensity_rank:=rank(-peptide_intensity[1:n_peptides[1]],ties.method = "first"), protein_id]
+    peptideTracesLong <- merge(peptideTracesLong,peptideRank,all.x=T,by=c("protein_id","peptide_id","n_peptides","peptide_intensity"))
     if ((use_sibPepCorr == TRUE) & (use_repPepCorr == TRUE)) {
       peptideTracesLong[, peptide_SibPepCorr_rank:=.narank(-SibPepCorr[1:n_peptides[1]],ties.method = "min",na.last="keep"), protein_id]
       peptideTracesLong[, peptide_RepPepCorr_rank:=.narank(-RepPepCorr[1:n_peptides[1]],ties.method = "min",na.last="keep"), protein_id]
