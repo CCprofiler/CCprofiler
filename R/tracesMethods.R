@@ -162,7 +162,7 @@ plot.traces <- function(traces,
                         highlight_col=NULL,
                         colorMap=NULL,
                         monomer_MW=TRUE) {
-
+  
   .tracesTest(traces)
   traces.long <- toLongFormat(traces$traces)
   traces.long <- merge(traces.long,traces$fraction_annotation,by.x="fraction",by.y="id")
@@ -170,7 +170,7 @@ plot.traces <- function(traces,
     traces.long$outlier <- gsub("\\(.*?\\)","",traces.long$id) %in% gsub("\\(.*?\\)","",highlight)
     if(!any(traces.long$outlier)) highlight <- NULL
   }
-
+  
   if(colour_by!="id") {
     if(!colour_by %in% names(traces$trace_annotation)){
       stop("colour_by is not availbale in trace_annotation.")
@@ -179,7 +179,7 @@ plot.traces <- function(traces,
     traces.long <- merge(traces.long,isoform_annotation, by.x="id",by.y="id")
     traces.long[,line:=paste0(get(colour_by),id)]
   }
-
+  
   ## Create a reproducible coloring for the peptides plotted
   if(!is.null(colorMap)){
     if(!all(unique(traces.long$id) %in% names(colorMap))){
@@ -195,16 +195,16 @@ plot.traces <- function(traces,
       colorMap <- createGGplotColMap(unique(traces.long$id))
     }
   }
-
+  
   if(colour_by == "id") {
     p <- ggplot(traces.long) +
       geom_line(aes_string(x='fraction', y='intensity', colour='id', group='id'))
   } else {
-
+    
     p <- ggplot(traces.long) +
       geom_line(aes_string(x='fraction', y='intensity', colour=colour_by, group='line'))
   }
-
+  
   p <- p + xlab('fraction') +
     ylab('intensity') +
     theme_bw() +
@@ -218,8 +218,10 @@ plot.traces <- function(traces,
   }
   if (!legend) {
     p <- p + theme(legend.position="none")
+  } else {
+    p <- p + theme(legend.position="bottom", legend.text=element_text(size = 5))
   }
-
+  
   if(!is.null(highlight)){
     legend_peps <- unique(traces.long[outlier == TRUE, id])
     if(is.null(highlight_col)){
@@ -244,7 +246,7 @@ plot.traces <- function(traces,
       # geom_line(aes_string(x='fraction', y='intensity', color='id'))
     }
   }
-
+  
   if ("molecular_weight" %in% names(traces$fraction_annotation)) {
     fraction_ann <- traces$fraction_annotation
     tr <- lm(log(fraction_ann$molecular_weight) ~ fraction_ann$id)
@@ -287,9 +289,9 @@ plot.traces <- function(traces,
                                 labels=seq(min(traces$fraction_annotation$id),
                                            max(traces$fraction_annotation$id),10))
   }
-
+  
   if(PDF){
-    pdf(paste0(name,".pdf"))
+    pdf(paste0(name,".pdf"), height = 6, width = 8)
   }
   if(plot){
     plot(p)
