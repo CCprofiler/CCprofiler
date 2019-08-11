@@ -53,24 +53,24 @@
 #'
 
 plotFeatures <- function(feature_table,
-                          traces,
-                          feature_id,
-                          calibration = NULL,
-                          annotation_label="protein_id",
-                          onlyBest = TRUE,
-                          apex=TRUE,
-                          peak_area=FALSE,
-                          sliding_window_area=FALSE,
-                          estimated_complex_MW=FALSE,
-                          highlight=NULL,
-                          highlight_col=NULL,
-                          colour_by = "id",
-                          monomer_MW=FALSE,
-                          log=FALSE,
-                          legend = TRUE,
-                          PDF=FALSE,
-                          name = "Traces",
-                          colorMap=NULL) {
+                         traces,
+                         feature_id,
+                         calibration = NULL,
+                         annotation_label="protein_id",
+                         onlyBest = TRUE,
+                         apex=TRUE,
+                         peak_area=FALSE,
+                         sliding_window_area=FALSE,
+                         estimated_complex_MW=FALSE,
+                         highlight=NULL,
+                         highlight_col=NULL,
+                         colour_by = "id",
+                         monomer_MW=FALSE,
+                         log=FALSE,
+                         legend = TRUE,
+                         PDF=FALSE,
+                         name = "Traces",
+                         colorMap=NULL) {
   .tracesTest(traces)
   features <- copy(feature_table)
   if (traces$trace_type == "protein") {
@@ -143,12 +143,12 @@ plotFeatures <- function(feature_table,
     traces.long <- merge(traces.long,isoform_annotation, by.x="id",by.y="id")
     traces.long[,line:=paste0(get(colour_by),id)]
   }
-
+  
   ## Get traces to highlight
   if(!is.null(highlight)){
     traces.long$outlier <- gsub("\\(.*?\\)","",traces.long$id) %in% gsub("\\(.*?\\)","",highlight)
   }
-
+  
   if (annotation_label %in% names(traces$trace_annotation)) {
     traces.long <- merge(traces.long,traces$trace_annotation,by=intersect(names(traces.long),names(traces$trace_annotation)),all.x=TRUE,all.y=FALSE)
     if (traces$trace_type == "protein") {
@@ -186,7 +186,7 @@ plotFeatures <- function(feature_table,
       monomer_MW <- FALSE
     }
   }
-
+  
   ## Create a reproducible coloring for the peptides plotted
   if(!is.null(colorMap)){
     if(!all(unique(traces_long$id) %in% names(colorMap))){
@@ -202,7 +202,7 @@ plotFeatures <- function(feature_table,
       colorMap <- createGGplotColMap(ids)
     }
   }
-
+  
   p <- ggplot(traces.long) +
     #geom_line(aes_string(x='fraction', y='intensity', color='id')) +
     xlab('fraction') +
@@ -211,17 +211,17 @@ plotFeatures <- function(feature_table,
     theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
     theme(plot.margin = unit(c(1.5,.5,.5,.5),"cm")) +
     ggtitle(title) +
-    theme(plot.title = element_text(vjust=19,size=10, face="bold")) +
+    theme(plot.title = element_text(vjust=15,size=10, face="bold")) +
     guides(fill=FALSE) +
     scale_color_manual(values=colorMap)
-
+  
   if(colour_by == "id") {
     p <- p + geom_line(aes_string(x='fraction', y='intensity', color='id'))
   } else {
     p <- p + geom_line(aes_string(x='fraction', y='intensity', color=colour_by, group='line'))
   }
-
-
+  
+  
   if(!is.null(highlight)){
     legend_peps <- unique(traces.long[outlier == TRUE, id])
     if(is.null(highlight_col)){
@@ -234,7 +234,7 @@ plotFeatures <- function(feature_table,
       # scale_color_discrete(breaks = legend_peps)
     }
   }
-
+  
   if (log) {
     p <- p + scale_y_log10('log(intensity)')
   }
@@ -262,8 +262,14 @@ plotFeatures <- function(feature_table,
   }
   if (!legend) {
     p <- p + theme(legend.position="none")
+  } else {
+    if (length(unique(traces.long$id)) > 25) {
+      p <- p + theme(legend.position="none")
+    } else {
+      p <- p + theme(legend.position="bottom", legend.text=element_text(size = 5))
+    }
   }
-
+  
   if ("molecular_weight" %in% names(traces$fraction_annotation)) {
     fraction_ann <- traces$fraction_annotation
     tr <- lm(log(fraction_ann$molecular_weight) ~ fraction_ann$id)
@@ -291,13 +297,13 @@ plotFeatures <- function(feature_table,
                                 labels=seq(min(traces$fraction_annotation$id),
                                            max(traces$fraction_annotation$id),10))
   }
-
+  
   if(PDF){
-    pdf(paste0(name,".pdf"))
+    pdf(paste0(name,".pdf"), height = 6, width = 8)
   }
   plot(p)
   if(PDF){
     dev.off()
   }
-
+  
 }
