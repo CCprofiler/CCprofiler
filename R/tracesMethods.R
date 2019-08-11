@@ -219,7 +219,11 @@ plot.traces <- function(traces,
   if (!legend) {
     p <- p + theme(legend.position="none")
   } else {
-    p <- p + theme(legend.position="bottom", legend.text=element_text(size = 5))
+    if (length(unique(traces.long$id)) > 25) {
+      p <- p + theme(legend.position="none")
+    } else {
+      p <- p + theme(legend.position="bottom", legend.text=element_text(size = 5), legend.title = element_blank())
+    }
   }
   
   if(!is.null(highlight)){
