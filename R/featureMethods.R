@@ -97,19 +97,28 @@ summarizeFeatures <- function(feature_table,
       theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
       guides(fill=FALSE) +
       ggtitle(paste0(type," feature summary")) +
-      theme(plot.title = element_text(size=14, face="bold"))
-    print(p)
+      theme(plot.title = element_text(size=14, face="bold")) 
     plottingNsubcomplexes <- data.table(n_subcomplexes=feature_count_max)
     q <- ggplot(plottingNsubcomplexes,aes(x=n_subcomplexes)) +
       stat_bin(binwidth=1) +
       stat_bin(binwidth=1, geom="text", aes(label=..count..), vjust=-0.5) +
-      labs(x="N co-elution features",y="N hypotheses") +
+      labs(x="N co-elution features",y=paste0("N ",type," queries")) +
       theme_classic() +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank()) +
       ggtitle(paste0(type," sub-feature summary")) +
       theme(plot.title = element_text(size=14, face="bold"))
     print(q)
+    if (type == "protein") {
+      assembled = unique(features[which(features$in_complex=="TRUE")]$complex_id)
+      all = unique(features$complex_id)
+      assempled_percent = round(100/length(all)*length(assembled),digits=2)
+      pie_plot <- pie(c(length(all)-length(assembled),length(assembled)),
+                      labels=c(paste0(length(all)-length(assembled),"\n monomeric (",100-assempled_percent,"%)"),paste0(length(assembled),"\n assembled (",assempled_percent,"%)")),
+                      main="Protein detection in assembled vs. only monomeric state")
+      print(pie_plot)
+    }
+    print(p)
     if (PDF) {
       dev.off()
     }
