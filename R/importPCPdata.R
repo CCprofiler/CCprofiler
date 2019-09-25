@@ -95,14 +95,14 @@ importPCPdata <- function(input_data,
     if("peptide_id" %in% names(input_data)){
 
       input_dataWide <- data.table(dcast(input_data, protein_id + peptide_id ~ fraction_number,
-                              value.var="intensity", fill = 0))
+                              value.var="intensity",fun.aggregate = sum, fill = 0))
       ## Make sure fractions are in ascending order
       setcolorder(input_dataWide, c("peptide_id", "protein_id", sort(unique(fraction_number))))
 
     }else{
 
       input_dataWide <- data.table(dcast(input_data, protein_id ~ fraction_number,
-                              value.var="intensity", fill = 0))
+                              value.var="intensity",fun.aggregate = sum, fill = 0))
       setcolorder(input_dataWide, c("protein_id", sort(unique(fraction_number))))
 
     }

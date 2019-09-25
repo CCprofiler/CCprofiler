@@ -24,7 +24,13 @@ annotateMassDistribution.traces <- function(traces){
   max_trace <- max(traces$fraction_annotation$id)
   mw_info[,assembly_boundary := 2*protein_mw]
   mw_info[is.na(assembly_boundary), assembly_boundary := 0]
-  mw_info[,assembly_boundary_fraction := unlist(lapply(assembly_boundary,function(x){max(traces$fraction_annotation[molecular_weight>=x]$id)}))]
+  mw_info[,assembly_boundary_fraction := unlist(lapply(assembly_boundary,function(x){
+    if (x <= max(traces$fraction_annotation$molecular_weight)) {
+      max(traces$fraction_annotation[molecular_weight>=x]$id)
+    } else {
+      1
+    }
+    }))]
 
   # Get intensity sum
   mw_info[,sum_assembled := sum(intMat[id,1:assembly_boundary_fraction-1]), id]
@@ -56,14 +62,18 @@ annotateMassDistribution.tracesList <- function(tracesList){
 #' @param tracesList An object of type traces.list including assembled mass
 #' annotation as produced by \code{annotateMassDistribution}.
 #' @param design_matrix data.table, design matrix describing the architecture of the tracesList object.
+#' @param plot logical if plot should be created, default is FALSE.
+#' @param name character string specifying the name of output if PDF=TRUE, default is "beta_pvalue_histogram".
+#' @param PDF logical if PDF should be created, default is FALSE.
 #' @export
 getMassAssemblyChange <- function(tracesList, design_matrix,
-                                  quantLevel = "protein_id"){
+                                  compare_between = "Condition",
+                                  quantLevel = "protein_id",
+                                  plot = FALSE,
+                                  PDF = FALSE,
+                                  name = "beta_pvalue_histogram"){
   .tracesListTest(tracesList)
   samples <- unique(design_matrix$Sample)
-  if(length(samples) != 2) {
-    stop("This function is only available for comparing 2 conditions.")
-  }
   if(! all(samples %in% names(tracesList))) {
     stop("tracesList and design_matrix do not match. Pleas check sample names.")
   }
@@ -81,18 +91,97 @@ getMassAssemblyChange <- function(tracesList, design_matrix,
   })
 
   res <- do.call(rbind, res)
-  if (quantLevel == "protein_id") {
-    res_cast <- dcast(res, formula = protein_id ~ Sample, value.var=c("sum_assembled_norm"))
-  } else if (quantLevel == "proteoform_id") {
-    res_cast <- dcast(res, formula = proteoform_id ~ Sample, value.var=c("sum_assembled_norm"))
+  
+  if(length(unique(design_matrix$Replicate)) < 2) {
+    if (quantLevel == "protein_id") {
+      res_cast <- dcast(res, formula = protein_id ~ Sample, value.var=c("sum_assembled_norm"))
+    } else if (quantLevel == "proteoform_id") {
+      res_cast <- dcast(res, formula = proteoform_id ~ Sample, value.var=c("sum_assembled_norm"))
+    } else {
+      stop("Functionality only available for quantLevel proetin_id or proteoform_id.")
+    }
+    #res_cast[, change := log2(get(samples[1])/(get(samples[2])))]
+    #res_cast[change=="NaN", change := 0]
+    res_cast[, meanDiff := get(samples[1])-(get(samples[2]))]
+    res_cast[, betaPval := 1]
+    res_cast[, betaPval_BHadj := 1]
+    res_cast[, testOrder := paste0(samples[1],".vs.",samples[2])]
+    res_cast <- subset(res_cast, select = c("protein_id","meanDiff","betaPval", "betaPval_BHadj","testOrder"))
+    return(res_cast[])
   } else {
-    stop("Functionality only available for quantLevel proetin_id or proteoform_id.")
+    res <- merge(res, design_matrix, by.x="Sample", by.y="Sample_name")
+    res[,n_conditions:=length(unique(Condition)), by=c("protein_id")]
+    res[,n:=.N, by=c("protein_id")]
+    res[,replicates_perCondition:=.N, by=c("protein_id", "Condition")]
+    #res[,sum_assembled_norm := ifelse(sum_assembled_norm>0.999,sum_assembled_norm-0.001,sum_assembled_norm)]
+    #res[,sum_assembled_norm := ifelse(sum_assembled_norm<0.001,sum_assembled_norm+0.001,sum_assembled_norm)]
+    res[,sum_assembled_norm_t := (sum_assembled_norm * (n - 1) + 0.5)/n, by=c("protein_id")]
+    res[,unique_perCondition := length(unique(round(sum_assembled_norm, digits = 3))), by=c("protein_id","Condition")]
+    
+    diff <- res[, { 
+      samples = unique(.SD[,get(compare_between)])
+      meanX = .SD[, .(m = mean(sum_assembled_norm)), by = .(get(compare_between))]
+      meanDiff = meanX[get==samples[1]]$m - meanX[get==samples[2]]$m
+      n_conditions <- unique(.SD$n_conditions)
+      n_perCondition <- min(.SD$replicates_perCondition)
+      n_unique_perCondition <- min(.SD$unique_perCondition)
+      if( (n_conditions > 1) & (n_perCondition > 1) & (n_unique_perCondition > 1) ) {
+        model = betareg(.SD$sum_assembled_norm_t ~ .SD$Condition)
+        stat = lrtest(model)
+        p = stat$`Pr(>Chisq)`[2]
+        w = wilcox.test(formula = .SD$sum_assembled_norm ~ .SD$Condition, paired = F)
+        wilcoxPval = w$p.value
+      } else {
+        p = 2
+        wilcoxPval = 2
+      }
+      .(meanDiff = meanDiff, 
+        meanAMF1 = meanX[get==samples[1]]$m, 
+        meanAMF2 = meanX[get==samples[2]]$m, 
+        betaPval = p, 
+        wilcoxPval = wilcoxPval,
+        testOrder = paste0(samples[1],".vs.",samples[2]))}, 
+      by = .(get(quantLevel))]
+    
+    diff[betaPval==2, betaPval := NA ]
+    diff[wilcoxPval==2, wilcoxPval := NA ]
+    if (length(unique(design_matrix$Replicate)) > 1) {
+      diff[, betaPval_BHadj := p.adjust(betaPval, method = "fdr")]
+      Qv <- qvalue::qvalue(diff$betaPval, lambda = 0.4)
+      diff[, betaQval := Qv$qvalues]
+      #diff[, wilcoxPval_BHadj := p.adjust(wilcoxPval, method = "fdr")]
+      #wilcoxPvalQv <- qvalue::qvalue(diff$wilcoxPval, lambda = 0.4)
+      #diff[, wilcoxQval := wilcoxPvalQv$qvalues]
+    } else {
+      diff[, betaPval_BHadj := 1]
+      diff[, betaQval := 1]
+      #diff[, wilcoxPval_BHadj := 1]
+      #diff[, wilcoxQval := 1]
+    }
+    
+    if(plot==TRUE){
+      if(PDF){
+        pdf(paste0(name,".pdf"))
+      }
+      hist(diff$betaPval, breaks = 100)
+      hist(diff$wilcoxPval, breaks = 100)
+      hist(diff$meanAMF1, breaks = 100)
+      hist(diff$meanAMF2, breaks = 100)
+      if(PDF){
+        dev.off()
+      }
+    }
+    
+    setnames(diff, "get(quantLevel)", quantLevel)
+    tests <- subset(diff, select = c("protein_id","meanDiff",
+                                     "meanAMF1","meanAMF2",
+                                     "betaPval", "betaPval_BHadj", 
+                                     "betaQval","testOrder",
+                                     "wilcoxPval"))
+    
+    return(tests[])
+    
   }
-  #res_cast[, change := log2(get(samples[1])/(get(samples[2])))]
-  #res_cast[change=="NaN", change := 0]
-  res_cast[, change := get(samples[1])-(get(samples[2]))]
-  res_cast[, testOrder := paste0(samples[1],".vs.",samples[2])]
-  return(res_cast[])
 }
 
 #' plotMassAssemblyChange between 2 conditions
@@ -107,16 +196,16 @@ plotMassAssemblyChange <- function(assamblyTest, change_cutoff=0.2, name="massAs
   if (PDF) {
     pdf(paste0(name,".pdf"))
   }
-  no_change <- nrow(subset(assamblyTest, abs(change) <= change_cutoff))
-  more_assembled <- nrow(subset(assamblyTest, change < -change_cutoff))
-  less_assembled <- nrow(subset(assamblyTest, change > change_cutoff))
+  no_change <- nrow(subset(assamblyTest, abs(meanDiff) <= change_cutoff))
+  more_assembled <- nrow(subset(assamblyTest, meanDiff < -change_cutoff))
+  less_assembled <- nrow(subset(assamblyTest, meanDiff > change_cutoff))
   pie(c(no_change,more_assembled,less_assembled),
       labels=c(paste("no assembly change \n abs(change) < ",change_cutoff,"\n",no_change),
                paste0("more assembled \n change < -",change_cutoff,"\n",more_assembled),
                paste0("less assembled \n change > ",change_cutoff,"\n",less_assembled)),
       main = paste0(unique(assamblyTest$testOrder)))
 
-  h <- ggplot(assamblyTest, aes(x=change)) + geom_histogram(binwidth = 0.05) + theme_classic()
+  h <- ggplot(assamblyTest, aes(x=meanDiff)) + geom_histogram(binwidth = 0.05) + theme_classic()
   print(h)
   if (PDF) {
     dev.off()

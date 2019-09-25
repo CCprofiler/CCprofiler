@@ -34,10 +34,13 @@ getGenePepList <- function(traces){
 #' Deafult is \code{FALSE}.
 #' @param name Character string with name of the plot, only used if
 #' '\code{PDF=TRUE}.PDF file is saved under name.pdf. Default is "maxCorrHist".
+#' @param acrossConditions logical, if traces across replicates and conditions
+#' should be integrated for filtering to ensure minimal data loss.
+#' Deafult is \code{TRUE}.
 #' @return Object of class traces filtered for peptide correlation.
 #' @export
 filterByMaxCorr <- function(traces, cutoff = 0.85,
-                            plot = FALSE, PDF=FALSE, name="maxCorrHist"){
+                            plot = FALSE, PDF=FALSE, name="maxCorrHist", acrossConditions=TRUE){
   UseMethod("filterByMaxCorr", traces)
 }
 
@@ -57,7 +60,9 @@ filterByMaxCorr.traces <- function(traces, cutoff = 0.85,
 
   names(maxCorrMatrices) <- names(genePeptideList)
   allMaxCorrs <- unlist(maxCorrMatrices)
-  names(allMaxCorrs) <- gsub(".*\\.", "", names(allMaxCorrs))
+  ## When unlisting protein and peptide names are concatenated with a .
+  ## We need to be careful with peptides starting with . (e.g. .(UniMod))
+  names(allMaxCorrs) <- gsub("^.*?\\.", "", names(allMaxCorrs))
   if (plot == TRUE){
     if (PDF) {
       pdf(paste0(name,".pdf"),width=3,height=3)
@@ -82,15 +87,24 @@ filterByMaxCorr.traces <- function(traces, cutoff = 0.85,
 #' at least one high correlating sibling peptide
 #' @export
 filterByMaxCorr.tracesList <- function(tracesList, cutoff = 0.85,
-                        plot = FALSE, PDF=FALSE, name="maxCorrHist", ...) {
+                        plot = FALSE, PDF=FALSE, name="maxCorrHist", acrossConditions=TRUE, ...) {
 
   .tracesListTest(tracesList)
-  if (PDF) {pdf(paste0(name,".pdf"),width=3,height=3)}
-  res <- lapply(tracesList, filterByMaxCorr.traces,
-                cutoff = cutoff,
-                plot = plot, PDF=F, name=name, ...)
-  if (PDF) {dev.off()}
-  class(res) <- "tracesList"
+  if (acrossConditions) {
+    traces_combined <- combineTracesMutiCond(tracesList)
+    traces_maxCorr <- filterByMaxCorr(traces_combined,
+                                      cutoff = cutoff,
+                                      plot = plot,
+                                      PDF=PDF, name=name)
+    res <- subset(tracesList, trace_subset_ids = unique(traces_maxCorr$trace_annotation$id))
+  } else {
+    if (PDF) {pdf(paste0(name,".pdf"),width=3,height=3)}
+    res <- lapply(tracesList, filterByMaxCorr.traces,
+                  cutoff = cutoff,
+                  plot = plot, PDF=F, name=name, ...)
+    if (PDF) {dev.off()}
+    class(res) <- "tracesList"
+  }
   .tracesListTest(res)
   return(res)
 }
@@ -305,6 +319,7 @@ estimateProteoformPval.traces <- function(traces, distr = "gamma",
   if(! "mincorr" %in% names(traces$trace_annotation)){
     message("no mincorr available: calculating mincorr...")
     traces <- calculateMinCorr(traces, plot = F, PDF=F)
+
   } 
   mincorrs <- as.vector(unique(subset(traces$trace_annotation,
                                       select=c("protein_id","mincorr")))$mincorr)
@@ -323,6 +338,7 @@ estimateProteoformPval.traces <- function(traces, distr = "gamma",
   pval_adj_df <- data.table(prot_ids,pval_adj)
   colnames(pval_adj_df) <- c("protein_id","proteoform_pval_adj")
   
+
   if (plot == TRUE) {
     if (PDF) {
       pdf(paste0(name,".pdf"),width=3,height=3)
@@ -344,8 +360,10 @@ estimateProteoformPval.traces <- function(traces, distr = "gamma",
       dev.off()
     }
   }
+
   traces$trace_annotation <- merge(traces$trace_annotation, pval_df, by="protein_id", sort=F)
   traces$trace_annotation <- merge(traces$trace_annotation, pval_adj_df, by="protein_id", sort=F)
+
   return(traces)
 }
 
@@ -386,7 +404,7 @@ estimateProteoformPval.tracesList <- function(tracesList, distr = "gamma",
 clusterPeptides <- function(traces,
                     method = c("complete","single"), clusterH = 0.5,
                     clusterN = NULL, index = "silhouette",
-                    nFactorAnalysis = NULL,
+                    nFactorAnalysis = NULL, pvclust=FALSE,
                     plot = FALSE, PDF=FALSE, name="hclust", ...) {
   UseMethod("clusterPeptides", traces)
 }
@@ -394,16 +412,32 @@ clusterPeptides <- function(traces,
 #' @describeIn clusterPeptides Cluster peptides of gene to unique proteoforms
 #' @export
 clusterPeptides.traces <- function(traces,
-                    method = c("complete","single"), clusterH = 0.5,
-                    clusterN = NULL, index = "silhouette",
-                    nFactorAnalysis = NULL,
-                    plot = FALSE, PDF=FALSE, name="hclust", ...) {
+                                   method = c("complete","single"), clusterH = 0.5,
+                                   clusterN = NULL, index = "silhouette",
+                                   nFactorAnalysis = NULL, pvclust=FALSE,
+                                   plot = FALSE, PDF=FALSE, name="hclust", ...) {
   method <- match.arg(method)
   if (PDF) {
-    pdf(paste0(name,".pdf"),width=3,height=3)
+    if(pvclust==FALSE) {
+      pdf(paste0(name,".pdf"),width=3,height=3)
+    } else {
+      pdf(paste0(name,".pdf"))
+    }
   }
+
+  #tracesMatrix <- getIntensityMatrix(traces)
+  #trace_mat_imputed <- imputeMissingValues(tracesMatrix,"5%")
+  #trace_mat_imputed_DT <- as.data.table(trace_mat_imputed, keep.rownames="id",sorted=F)
+  #setcolorder(trace_mat_imputed_DT, c(setdiff(names(trace_mat_imputed_DT), "id"),"id"))
+
+  #traces_imputed <- copy(traces)
+  #traces_imputed$traces <- trace_mat_imputed_DT
+
+  #genePeptideList <- getGenePepList(traces_imputed)
+
   genePeptideList <- getGenePepList(traces)
   idx <- seq_along(genePeptideList)
+
   clustMatricesMethod <- lapply(idx, function(i){
     gene <- genePeptideList[[i]]
     gene_name <- names(genePeptideList)[[i]]
@@ -447,13 +481,15 @@ clusterPeptides.traces <- function(traces,
                           proteoform_id = paste0(gene_name,"_",groups))
     return(groupsDT)
   })
+
   if (PDF) {
     dev.off()
   }
   #return(clustMatricesMethod)
   clustMatrices <- do.call(rbind, clustMatricesMethod)
   traces$trace_annotation <- merge(traces$trace_annotation,
-    clustMatrices,by=c("id","protein_id"),sort=F)
+                                   clustMatrices,by=c("id","protein_id"),sort=F,all.x=T,all.y=F)
+  traces$trace_annotation[,proteoform_id:=ifelse(is.na(proteoform_id),0,proteoform_id)]
   return(traces)
 }
 
@@ -464,7 +500,7 @@ clusterPeptides.traces <- function(traces,
 clusterPeptides.tracesList <- function(tracesList,
                     method = c("complete","single"), clusterH = 0.5,
                     clusterN = NULL, index = "silhouette",
-                    nFactorAnalysis = NULL,
+                    nFactorAnalysis = NULL, pvclust=FALSE,
                     plot = FALSE, PDF=FALSE, name="hclust", ...) {
 
   .tracesListTest(tracesList)
@@ -472,7 +508,7 @@ clusterPeptides.tracesList <- function(tracesList,
   res <- lapply(tracesList, clusterPeptides.traces,
                         method = method, clusterH = clusterH,
                         clusterN = clusterN, index = index,
-                        nFactorAnalysis = nFactorAnalysis,
+                        nFactorAnalysis = nFactorAnalysis, pvclust=pvclust,
                         plot = plot, PDF=F, name=name, ...)
   if (PDF) {dev.off()}
   class(res) <- "tracesList"
@@ -529,15 +565,16 @@ combineTracesMutiCond <- function(tracesList){
     return(trac.m)
     })
   traces_combi <- rbindlist(traces)
-  traces_all <- dcast(traces_combi,id ~ variable+cond,value.var="value",fill=0)
+  traces_all <- dcast(traces_combi,id ~ cond+variable,value.var="value",fill=0)
   names(traces_all) <- c("id",seq(1,ncol(traces_all)-1,1))
   setcolorder(traces_all, c(seq(1,ncol(traces_all)-1,1),"id"))
 
   trace_type_all <- tracesList[[1]]$trace_type
 
   trace_annotation <- lapply(tracesList, function(t){
-    cols <- names(tracesList$minus$trace_annotation)
-    cols <- cols[which(!cols %in% c("SibPepCorr","RepPepCorr"))]
+    # Use the first element as a template annotation
+    cols <- names(tracesList[[1]]$trace_annotation)
+    cols <- cols[which(!cols %in% c("SibPepCorr","RepPepCorr","n_peptides"))]
     res <- subset(t$trace_annotation,select=cols)
     return(res)
     })
@@ -630,13 +667,35 @@ annotateProteoformsAcrossConditions <- function(tracesList,combinedTraces){
   if (!"proteoform_id" %in% names(combinedTraces$trace_annotation)){
     stop("CombinedTraces have not been annotated!")
   }
+  if ("proteoform_id" %in% names(tracesList[[1]]$trace_annotation)) {
+    tracesList <- lapply(tracesList, removeInitialProteoforms)
+  }
   res <- lapply(tracesList, function(t){
     cols <- names(t$trace_annotation)[which(names(t$trace_annotation) %in% names(combinedTraces$trace_annotation))]
+    cols <- cols[!cols %in% c("n_peptides","cluster","n_proteoforms",
+                              "proteoform_id","n_proteoforms_beforeReassignment")]
     t$trace_annotation <- merge(t$trace_annotation,combinedTraces$trace_annotation,
-                          all.x=T,all.y=F,by=cols,sort=F)
+                                all.x=T,all.y=F,by=cols,sort=F, suffixes = c("", ".total"))
     return(t)
   })
+  if ("proteoform_id" %in% names(res[[1]]$trace_annotation)) {
+    res <- lapply(res, removeUnassignedPeptides)
+  }
   class(res) <- "tracesList"
   .tracesListTest(res)
   return(res)
+}
+
+#' helpter function
+removeUnassignedPeptides <- function(traces){
+  proteoforms_assigned <- unique(traces$trace_annotation[!is.na(proteoform_id)]$id)
+  traces_new <- subset(traces, trace_subset_ids = proteoforms_assigned)
+  return(traces_new)
+}
+
+removeInitialProteoforms <- function(traces){
+  traces$trace_annotation[,proteoform_id:=NULL]
+  traces$trace_annotation[,n_proteoforms:=NULL]
+  traces$trace_annotation[,cluster:=NULL]
+  return(traces)
 }

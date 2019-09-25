@@ -8,16 +8,18 @@
 \usage{
 proteinQuantification(traces, topN = 2, keep_less = FALSE,
   rm_decoys = TRUE, use_sibPepCorr = FALSE, use_repPepCorr = FALSE,
-  full_intersect_only = FALSE, quantLevel = "protein_id", verbose = TRUE)
+  full_intersect_only = FALSE, quantLevel = "protein_id", verbose = TRUE,
+  ...)
 
 \method{proteinQuantification}{traces}(traces, topN = 2, keep_less = FALSE,
   rm_decoys = TRUE, use_sibPepCorr = FALSE, use_repPepCorr = FALSE,
-  full_intersect_only = FALSE, quantLevel = "protein_id", verbose = TRUE)
+  full_intersect_only = FALSE, quantLevel = "protein_id", verbose = TRUE,
+  ...)
 
 \method{proteinQuantification}{tracesList}(traces, topN = 2,
   keep_less = FALSE, rm_decoys = TRUE, use_sibPepCorr = FALSE,
   use_repPepCorr = FALSE, full_intersect_only = FALSE,
-  quantLevel = "protein_id", verbose = TRUE)
+  quantLevel = "protein_id", verbose = TRUE, ...)
 }
 \arguments{
 \item{traces}{An object of type traces, trace_type must be peptide.}

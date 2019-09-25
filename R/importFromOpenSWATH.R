@@ -147,12 +147,12 @@ importFromOpenSWATH <- function(data,
     traces_annotation[,ProteinName:=NULL]
   } else {
     ## convert ProteinName to uniprot ids
-    if (length(grep("\\|",data$ProteinName)) > 0) {
+    if (length(grep("\\|",traces_annotation$ProteinName)) > 0) {
       message('converting ProteinName to uniprot ids ...')
-      decoy_idx <- grep("^DECOY_",data$ProteinName)
-      data$ProteinName <- gsub(".*\\|(.*?)\\|.*", "\\1", data$ProteinName)
+      decoy_idx <- grep("^DECOY_",traces_annotation$ProteinName)
+      traces_annotation$ProteinName <- gsub(".*\\|(.*?)\\|.*", "\\1", traces_annotation$ProteinName)
       if(length(decoy_idx>0)) {
-        data$ProteinName[decoy_idx] <- paste0("DECOY_",data$ProteinName[decoy_idx])
+        traces_annotation$ProteinName[decoy_idx] <- paste0("DECOY_",traces_annotation$ProteinName[decoy_idx])
       }
     }
     setnames(traces_annotation,c("FullPeptideName","ProteinName"),c("id","protein_id"))

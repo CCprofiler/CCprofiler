@@ -2,10 +2,18 @@
 % Please edit documentation in R/summarizeRedundantPeptides.R
 \name{summarizeAlternativePeptideSequences}
 \alias{summarizeAlternativePeptideSequences}
+\alias{summarizeAlternativePeptideSequences.traces}
+\alias{summarizeAlternativePeptideSequences.tracesList}
 \title{Summary of alternative peptide sequences}
 \usage{
 summarizeAlternativePeptideSequences(traces, topN = 1,
   position = "PeptidePositionStart", verbose = TRUE)
+
+\method{summarizeAlternativePeptideSequences}{traces}(traces, topN = 1,
+  position = "PeptidePositionStart", verbose = TRUE)
+
+\method{summarizeAlternativePeptideSequences}{tracesList}(tracesList,
+  topN = 1, position = "PeptidePositionStart", verbose = TRUE)
 }
 \arguments{
 \item{traces}{An object of type traces, trace_type must be peptide.}
@@ -21,3 +29,13 @@ An object of type traces, trace_type is peptide.
 Select most abndant peptide for each group of peptides with same
 genomic star position. These are e.g. peptides with missed cleavages.
 }
+\section{Methods (by class)}{
+\itemize{
+\item \code{traces}: Select most abndant
+peptide for each group of peptides with same
+genomic star position. These are e.g. peptides with missed cleavages.
+
+\item \code{tracesList}: Select most abndant
+peptide for each group of peptides with same
+}}
+

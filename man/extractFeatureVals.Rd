@@ -7,14 +7,17 @@
 \title{Extract intensity, correlation etc. within feature boundaries}
 \usage{
 extractFeatureVals(traces, features, perturb_cutoff = "5\%", verbose = TRUE,
-  extract = "subunits_detected", imputeZero = FALSE, fill = FALSE, ...)
+  extract = "subunits_detected", imputeZero = FALSE, fill = FALSE,
+  minValues = NULL, ...)
 
 \method{extractFeatureVals}{traces}(traces, features, perturb_cutoff = "5\%",
-  verbose = TRUE, extract = "subunits_detected", imputeZero = FALSE, ...)
+  verbose = TRUE, extract = "subunits_detected", imputeZero = FALSE,
+  minValues = NULL, ...)
 
 \method{extractFeatureVals}{tracesList}(traces, features,
   perturb_cutoff = "5\%", verbose = TRUE, design_matrix = NULL,
-  extract = "subunits_detected", imputeZero = FALSE, fill = FALSE, ...)
+  extract = "subunits_detected", imputeZero = FALSE, fill = FALSE,
+  minValues = NULL, ...)
 }
 \arguments{
 \item{traces}{object of class traces}
@@ -30,6 +33,8 @@ Noise needs to be imputed to calculate the correlations.}
 \item{extract}{Character string, name ot the feature table column containing the subunits to extract.}
 
 \item{imputeZero}{Logical, whether zero values of a fraction within a feature should be imputed, default = FALSE.}
+
+\item{minValues}{data.table with minimum values for each peptide, default=NULL.}
 }
 \value{
 Long format table containing extracted feature values.

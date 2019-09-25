@@ -214,7 +214,9 @@ proteinToGenomeFast <- function (x, db, id = "name", idType = "protein_id") {
   cds_genome <- ensembldb:::.cds_matching_protein(db, cds_genome)
   are_ok <- unlist(lapply(cds_genome, function(z) {
     if (is(z, "GRangesList"))
-      all(z[[1]]$cds_ok)
+      if (! isEmpty(z))
+        all(z[[1]]$cds_ok)
+      else NA
     else NA
   }))
   are_ok <- are_ok[!is.na(are_ok)]
@@ -223,13 +225,16 @@ proteinToGenomeFast <- function (x, db, id = "name", idType = "protein_id") {
                 as(x, "IRangesList"), FUN = function(gnm, cds, prt) {
                   if (is.null(gnm)) {
                     GRanges()
-                  }
-                  else {
+                  } else {
                     maps <- unlist(ensembldb:::.to_genome(gnm, cds))
-                    names(maps) <- NULL
-                    mcols(maps)$protein_start <- start(prt)
-                    mcols(maps)$protein_end <- end(prt)
-                    maps[order(maps$exon_rank)]
+                    if (isEmpty(maps)) {
+                      GRanges()
+                    } else {
+                      names(maps) <- NULL
+                      mcols(maps)$protein_start <- start(prt)
+                      mcols(maps)$protein_end <- end(prt)
+                      maps[order(maps$exon_rank)]
+                    }
                   }
                 })
   lapply(res, function(z) {

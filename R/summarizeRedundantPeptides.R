@@ -12,7 +12,9 @@ summarizeAlternativePeptideSequences <- function(traces,
   UseMethod("summarizeAlternativePeptideSequences", traces)
 }
 
-#' @describeIn summarizeAlternativePeptideSequences
+#' @describeIn summarizeAlternativePeptideSequences Select most abndant
+#' peptide for each group of peptides with same
+#' genomic star position. These are e.g. peptides with missed cleavages.
 #' @export
 summarizeAlternativePeptideSequences.traces <- function(traces,topN=1,
   position="PeptidePositionStart",
@@ -59,7 +61,8 @@ summarizeAlternativePeptideSequences.traces <- function(traces,topN=1,
   return(traces_summed_new)
 }
 
-#' @describeIn summarizeAlternativePeptideSequences
+#' @describeIn summarizeAlternativePeptideSequences Select most abndant
+#' peptide for each group of peptides with same
 #' @export
 summarizeAlternativePeptideSequences.tracesList <- function(tracesList,topN=1,
   position="PeptidePositionStart",

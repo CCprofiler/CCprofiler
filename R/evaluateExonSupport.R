@@ -16,7 +16,19 @@ countMinSwaps <- function(dt){
 
 evaluateExonSupport <- function(traces,n_random=1000,seed=123){
   traces$trace_annotation[,exon_id:=lapply(id,getGenomicCoord, traces=traces), by="id"]
-  proteins <- unique(traces$trace_annotation$protein_id)
+  traces$trace_annotation[,n_exons:=length(unique(exon_id)), by="protein_id"]
+  traces$trace_annotation[,n_peptides_per_exon := .N, by=c("exon_id","protein_id")]
+  traces$trace_annotation[,min_peptides_per_exon := min(n_peptides_per_exon), by="protein_id"]
+  traces$trace_annotation[,max_peptides_per_exon := max(n_peptides_per_exon), by="protein_id"]
+  medianPerProt <- traces$trace_annotation[, { 
+    sub = unique(subset(.SD, select = c("exon_id","n_peptides_per_exon")))
+    medianN = median(sub$n_peptides_per_exon)
+    .(median_peptides_per_exon = as.double(medianN))}, by="protein_id"]
+  #proteins <- unique(traces$trace_annotation[max_peptides_per_exon>2]$protein_id)
+  # only use proteins with a medium >= 2 peptides per exon
+  proteins <- unique(medianPerProt[median_peptides_per_exon >= 2]$protein_id)
+  # only use genes with > 1 exon
+  proteins <- proteins[proteins %in% traces$trace_annotation[n_exons > 1]$protein_id]
   res_prot <- lapply(proteins, function(p){
     traces_sub <- subset(traces,trace_subset_ids=p,trace_subset_type="protein_id")
     set.seed(seed)
@@ -97,36 +109,37 @@ evaluateExonLocation <- function(traces, adj.method = "fdr", optional_filter = F
   nPeps <- unique(subset(traces$trace_annotation,select=c("protein_id","n_peptides")))
   exonStats <- merge(exonStats, nPeps,
     all.x=T,all.y=F,by=c("protein_id"),sort=F)
-  exonStats <- subset(exonStats, nExons < n_peptides-1)
+  #exonStats <- subset(exonStats, nExons < n_peptides-1)
   exonStats$exon_pval_adj <- p.adjust(exonStats$exon_pval, adj.method)
   exonStats$min_possible_pval_adj <- p.adjust(exonStats$min_possible_pval, adj.method)
   exonStats[,n_peptides:=NULL]
   # filter proteins with exon_pvals == 1 or (optional) remove proteins
   # with low powers as well as exon_pvals == 1
   if (optional_filter == FALSE) {
-    exonStats <- subset(exonStats, exon_pval != 1)
+    exonStats <- exonStats
+    # exonStats <- subset(exonStats, exon_pval != 1)
   } else {
     exonStats <- subset(exonStats, min_possible_pval < 0.05 | exon_pval != 1)
   }
 
   pdf("RealVsRandomSwaps_hist.pdf",width=3,height=3)
     p <- ggplot(exonStats,aes(x=exon_pval)) +
-    geom_histogram(bins=50)+
+    geom_histogram(bins=25)+
     theme_classic()
     print(p)
     q <- ggplot(exonStats,aes(x=exon_pval_adj)) +
-    geom_histogram(bins=50)+
+    geom_histogram(bins=25)+
     theme_classic()
     print(q)
   dev.off()
-  
+
   pdf("min_possible_pval_hist.pdf",width=3,height=3)
     r <- ggplot(exonStats,aes(x=min_possible_pval)) +
-    geom_histogram(bins=50)+
+    geom_histogram(bins=25)+
     theme_classic()
     print(r)
     s <- ggplot(exonStats,aes(x=min_possible_pval_adj)) +
-    geom_histogram(bins=50)+
+    geom_histogram(bins=25)+
     theme_classic()
     print(s)
   dev.off()
@@ -140,38 +153,92 @@ evaluateExonLocation <- function(traces, adj.method = "fdr", optional_filter = F
 #' Plot peptide clusters by relative sequence position
 #' @param traces Object of class traces or tracesList.
 #' @param protein Character string of protein_id to plot.
+#' @param PDF logical if PDF should written, default=FALSE.
+#' @param closeGaps logical position gaps should be ignored, default=FALSE.
 #' @return plot
 #' @export
-plotPeptideCluster <- function(traces,protein){
+plotPeptideCluster <- function(traces,protein, PDF=FALSE, closeGaps=FALSE){
+  traces <- subset(traces, protein, trace_subset_type="protein_id")
+  if ("genomic_coord" %in% names(traces)) {
+    traces$trace_annotation[,exon_id:=lapply(id,getGenomicCoord, traces=traces), by="id"]
+    traces$trace_annotation[,min_exon_id_start:=min(PeptidePositionStart), by="exon_id"]
+    getExonLevels <- unique(subset(traces$trace_annotation, select=c("exon_id","min_exon_id_start")))
+    setorder(getExonLevels, min_exon_id_start)
+    traces$trace_annotation$exon_id <- factor(traces$trace_annotation$exon_id, levels=getExonLevels$exon_id)
+    getPalette = colorRampPalette(brewer.pal(9, "Spectral"))
+  }
   dt <- subset(traces$trace_annotation,protein_id==protein)
   setkeyv(dt, c("protein_id","PeptidePositionStart"))
   dt[,PeptidePositionStartRank := seq_len(.N), by="protein_id"]
   cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7","#756bb1","#1c9099")
   dt$cluster <- as.factor(dt$cluster)
-  pdf(paste0(protein,"_sequence_cluster.pdf"),width=10,height=3)
-  p <- ggplot(dt,aes(x=PeptidePositionStartRank,
-    y=1,
-    fill=cluster)) +
-    geom_bar(stat="identity") + theme_classic() +
-    theme(axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          axis.title= element_blank(),
-          axis.line = element_blank()) +
-    theme(legend.position="bottom") +
-    scale_fill_manual(values=cbPalette) +
-    ggtitle(paste0(protein," : ",unique(dt$Gene_names)))
-  print(p)
-  q <- ggplot(dt,aes(x=PeptidePositionStart,
-    y=1,
-    fill=cluster)) +
-    geom_bar(stat="identity") + theme_classic() +
-    theme(axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          axis.title= element_blank(),
-          axis.line = element_blank()) +
-    theme(legend.position="bottom") +
-    scale_fill_manual(values=cbPalette) +
-    ggtitle(paste0(protein," : ",unique(dt$Gene_names)))
-  print(q)
-  dev.off()
+  if (PDF){
+    if ("genomic_coord" %in% names(traces)) {
+      pdf(paste0(protein,"_sequence_cluster.pdf"),width=10,height=5)
+    } else {
+      pdf(paste0(protein,"_sequence_cluster.pdf"),width=10,height=3)
+    }
+  }
+  if (closeGaps) {
+    q <- ggplot(dt,aes(x=PeptidePositionStartRank,
+                       y=1,
+                       fill=cluster)) +
+      geom_bar(stat="identity") + theme_classic() +
+      theme(axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            axis.title= element_blank(),
+            axis.line = element_blank()) +
+      theme(legend.position="bottom") +
+      scale_fill_manual(values=cbPalette) 
+    if ("genomic_coord" %in% names(traces)) {
+      e <- ggplot(dt,aes(x=PeptidePositionStartRank,
+                         y=1,
+                         fill=exon_id)) +
+        geom_bar(stat="identity") + theme_classic() +
+        theme(axis.text = element_blank(),
+              axis.ticks = element_blank(),
+              axis.title= element_blank(),
+              axis.line = element_blank()) +
+        theme(legend.position="top") +
+        scale_fill_manual(values = getPalette(length(unique(dt$exon_id))))
+      f <- ggarrange(e, q, 
+                     labels = c("", ""),
+                     ncol = 1, nrow = 2)
+      print(annotate_figure(f, fig.lab = paste0(protein," : ",unique(dt$Gene_names))))
+    } else {
+      print(q + ggtitle(paste0(protein," : ",unique(dt$Gene_names)))) 
+    }
+  } else {
+    q <- ggplot(dt,aes(x=PeptidePositionStart,
+                       y=1,
+                       fill=cluster)) +
+      geom_bar(stat="identity") + theme_classic() +
+      theme(axis.text = element_blank(),
+            axis.ticks = element_blank(),
+            axis.title= element_blank(),
+            axis.line = element_blank()) +
+      theme(legend.position="bottom") +
+      scale_fill_manual(values=cbPalette) 
+    if ("genomic_coord" %in% names(traces)) {
+      e <- ggplot(dt,aes(x=PeptidePositionStart,
+                         y=1,
+                         fill=exon_id)) +
+        geom_bar(stat="identity") + theme_classic() +
+        theme(axis.text = element_blank(),
+              axis.ticks = element_blank(),
+              axis.title= element_blank(),
+              axis.line = element_blank()) +
+        theme(legend.position="top") +
+        scale_fill_manual(values = getPalette(length(unique(dt$exon_id))))
+      f <- ggarrange(e, q, 
+                     labels = c("", ""),
+                     ncol = 1, nrow = 2)
+      print(annotate_figure(f, fig.lab = paste0(protein," : ",unique(dt$Gene_names))))
+    } else {
+      print(q + ggtitle(paste0(protein," : ",unique(dt$Gene_names)))) 
+    }
+  }
+  if (PDF){
+    dev.off()
+  }
 }

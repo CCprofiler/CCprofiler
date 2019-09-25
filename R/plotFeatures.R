@@ -55,6 +55,7 @@
 plotFeatures <- function(feature_table,
                                 traces,
                                 feature_id,
+                                design_matrix = NULL,
                                 calibration = NULL,
                                 annotation_label="protein_id",
                                 onlyBest = TRUE,
@@ -64,6 +65,7 @@ plotFeatures <- function(feature_table,
                                 estimated_complex_MW=FALSE,
                                 highlight=NULL,
                                 highlight_col=NULL,
+                                colour_by = "id",
                                 monomer_MW=FALSE,
                                 log=FALSE,
                                 legend = TRUE,
@@ -74,23 +76,24 @@ plotFeatures <- function(feature_table,
 }
 
 plotFeatures.traces <- function(feature_table,
-                         traces,
-                         feature_id,
-                         calibration = NULL,
-                         annotation_label="protein_id",
-                         onlyBest = TRUE,
-                         apex=TRUE,
-                         peak_area=FALSE,
-                         sliding_window_area=FALSE,
-                         estimated_complex_MW=FALSE,
-                         highlight=NULL,
-                         highlight_col=NULL,
-                         monomer_MW=FALSE,
-                         log=FALSE,
-                         legend = TRUE,
-                         PDF=FALSE,
-                         name = "Traces",
-                         colorMap=NULL) {
+                                traces,
+                                feature_id,
+                                calibration = NULL,
+                                annotation_label="protein_id",
+                                onlyBest = TRUE,
+                                apex=TRUE,
+                                peak_area=FALSE,
+                                sliding_window_area=FALSE,
+                                estimated_complex_MW=FALSE,
+                                highlight=NULL,
+                                highlight_col=NULL,
+                                colour_by = "id",
+                                monomer_MW=FALSE,
+                                log=FALSE,
+                                legend = TRUE,
+                                PDF=FALSE,
+                                name = "Traces",
+                                colorMap=NULL) {
   .tracesTest(traces)
   features <- copy(feature_table)
   if (traces$trace_type == "protein") {
@@ -106,7 +109,11 @@ plotFeatures.traces <- function(feature_table,
       n_annotatedSubunits = features$n_subunits_annotated[1]
       n_signalSubunits = features$n_subunits_with_signal[1]
       n_detectedSubunits = features$n_subunits_detected[1]
-      complexCompleteness = round(features$completeness[1],digits=2)
+      if(is.character(features$completeness)){
+        complexCompleteness = features$completeness
+      } else {
+        complexCompleteness = round(features$completeness[1],digits=2)
+      }
       title <- paste0(complexName,
                       "\nAnnotated subunits: ",n_annotatedSubunits,
                       "   Subunits with signal: ",n_signalSubunits,
@@ -136,7 +143,11 @@ plotFeatures.traces <- function(feature_table,
     }
     n_annotatedSubunits = features$n_subunits_annotated[1]
     n_detectedSubunits = features$n_subunits_detected[1]
-    complexCompleteness = round(features$completeness[1],digits=2)
+    if(is.character(features$completeness)){
+      complexCompleteness = features$completeness[1]
+    } else {
+      complexCompleteness = round(features$completeness[1],digits=2)
+    }
     title <- paste0(complexName,
                     "\nAnnotated subunits: ",n_annotatedSubunits,
                     "\nMax. coeluting subunits: ",n_detectedSubunits,
@@ -147,14 +158,22 @@ plotFeatures.traces <- function(feature_table,
   }
   traces.long <- toLongFormat(traces$traces)
   traces.long <- merge(traces.long,traces$fraction_annotation,by.x="fraction",by.y="id")
-
+  if(colour_by!="id") {
+    if(!colour_by %in% names(traces$trace_annotation)){
+      stop("colour_by is not availbale in trace_annotation.")
+    }
+    isoform_annotation <- subset(traces$trace_annotation,select=c("id",colour_by))
+    traces.long <- merge(traces.long,isoform_annotation, by.x="id",by.y="id")
+    traces.long[,line:=paste0(get(colour_by),id)]
+  }
+  
   ## Get traces to highlight
   if(!is.null(highlight)){
     traces.long$outlier <- gsub("\\(.*?\\)","",traces.long$id) %in% gsub("\\(.*?\\)","",highlight)
   }
-
+  
   if (annotation_label %in% names(traces$trace_annotation)) {
-    traces.long <- merge(traces.long,traces$trace_annotation,by="id",all.x=TRUE,all.y=FALSE)
+    traces.long <- merge(traces.long,traces$trace_annotation,by=intersect(names(traces.long),names(traces$trace_annotation)),all.x=TRUE,all.y=FALSE)
     if (traces$trace_type == "protein") {
       traces.long[,id := get(annotation_label)]
       proteins <- traces$trace_annotation[match(proteins,traces$trace_annotation$id)][,get(annotation_label)]
@@ -190,18 +209,25 @@ plotFeatures.traces <- function(feature_table,
       monomer_MW <- FALSE
     }
   }
-
+  
   ## Create a reproducible coloring for the peptides plotted
   if(!is.null(colorMap)){
-    if(!all(unique(traces.long$id) %in% names(colorMap))){
+    if(!all(unique(traces_long$id) %in% names(colorMap))){
       stop("Invalid colorMap specified. Not all traces to be plotted are contained in the colorMap")
     }
   }else{
-    colorMap <- createGGplotColMap(unique(traces.long$id))
+    cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7","#999999")
+    ids <- sort(unique(traces.long[[colour_by]]))
+    if (length(ids) <= length(cbPalette)) {
+      colorMap <- cbPalette[1:length(unique(traces.long[[colour_by]]))]
+      names(colorMap) <- ids
+    } else {
+      colorMap <- createGGplotColMap(ids)
+    }
   }
-
+  
   p <- ggplot(traces.long) +
-    geom_line(aes_string(x='fraction', y='intensity', color='id')) +
+    #geom_line(aes_string(x='fraction', y='intensity', color='id')) +
     xlab('fraction') +
     ylab('intensity') +
     theme_bw() +
@@ -211,7 +237,14 @@ plotFeatures.traces <- function(feature_table,
     theme(plot.title = element_text(vjust=19,size=10, face="bold")) +
     guides(fill=FALSE) +
     scale_color_manual(values=colorMap)
-
+  
+  if(colour_by == "id") {
+    p <- p + geom_line(aes_string(x='fraction', y='intensity', color='id'))
+  } else {
+    p <- p + geom_line(aes_string(x='fraction', y='intensity', color=colour_by, group='line'))
+  }
+  
+  
   if(!is.null(highlight)){
     legend_peps <- unique(traces.long[outlier == TRUE, id])
     if(is.null(highlight_col)){
@@ -224,7 +257,7 @@ plotFeatures.traces <- function(feature_table,
       # scale_color_discrete(breaks = legend_peps)
     }
   }
-
+  
   if (log) {
     p <- p + scale_y_log10('log(intensity)')
   }
@@ -241,7 +274,11 @@ plotFeatures.traces <- function(feature_table,
     p <- p + geom_vline(data=features,aes(xintercept=complex_sec_estimated), colour="black",linetype="longdash")
   }
   if (monomer_MW==TRUE){
-    p <- p + geom_point(data = subunitMW.dt, mapping = aes(x = fraction, y = Inf, colour=id),shape=18,size=5,alpha=.5)
+    if (length(unique(subunitMW.dt$id)) > 1) {
+      p <- p + geom_point(data = subunitMW.dt, mapping = aes(x = fraction, y = Inf, colour=id),shape=18,size=5,alpha=.5)
+    } else {
+      p <- p + geom_vline(data = unique(subunitMW.dt), aes(xintercept = fraction), colour="red", linetype="dashed", size=1)
+    }
   }
   if (apex==TRUE){
     p <- p + geom_vline(data=features,aes(xintercept=apex), colour="black",linetype="solid")
@@ -249,61 +286,43 @@ plotFeatures.traces <- function(feature_table,
   if (!legend) {
     p <- p + theme(legend.position="none")
   }
-
-  ## @TODO Implement the MW axis from plot.traces for more robustness
+  
   if ("molecular_weight" %in% names(traces$fraction_annotation)) {
-    grid.newpage()
-    p2 <- p
+    fraction_ann <- traces$fraction_annotation
+    tr <- lm(log(fraction_ann$molecular_weight) ~ fraction_ann$id)
+    intercept <- as.numeric(tr$coefficients[1])
+    slope <- as.numeric(tr$coefficients[2])
+    mwtransform <- function(x){exp(slope*x + intercept)}
+    MWtoFraction <- function(x){round((log(x)-intercept)/(slope), digits = 0)}
+    mw <- round(fraction_ann$molecular_weight, digits = 0)
+    breaks_MW <- mw[seq(1,length(mw), length.out = length(seq(min(traces$fraction_annotation$id),
+                                                              max(traces$fraction_annotation$id),10)))]
+    p <- p + scale_x_continuous(name="fraction",
+                                breaks=seq(min(traces$fraction_annotation$id),
+                                           max(traces$fraction_annotation$id),10),
+                                labels=seq(min(traces$fraction_annotation$id),
+                                           max(traces$fraction_annotation$id),10),
+                                sec.axis = dup_axis(trans = ~.,
+                                                    breaks=seq(min(traces$fraction_annotation$id),
+                                                               max(traces$fraction_annotation$id),10),
+                                                    labels = breaks_MW,
+                                                    name = "MW (kDa)"))
+  } else {
     p <- p + scale_x_continuous(name="fraction",
                                 breaks=seq(min(traces$fraction_annotation$id),
                                            max(traces$fraction_annotation$id),10),
                                 labels=seq(min(traces$fraction_annotation$id),
                                            max(traces$fraction_annotation$id),10))
-    p2 <- p2 + scale_x_continuous(name="molecular weight (kDa)",
-                                  breaks=seq(min(traces$fraction_annotation$id),max(traces$fraction_annotation$id),10),
-                                  labels=round(traces$fraction_annotation$molecular_weight,digits=0)[seq(1,length(traces$fraction_annotation$id),10)]
-    )
-    ## extract gtable
-    g1 <- ggplot_gtable(ggplot_build(p))
-    g2 <- ggplot_gtable(ggplot_build(p2))
-    ## overlap the panel of the 2nd plot on that of the 1st plot
-    pp <- c(subset(g1$layout, name=="panel", se=t:r))
-
-    g <- gtable_add_grob(g1, g2$grobs[[which(g2$layout$name=="panel")]], pp$t, pp$l, pp$b, pp$l)
-    ## steal axis from second plot and modify
-    ia <- which(g2$layout$name == "axis-b")
-    ga <- g2$grobs[[ia]]
-    ax <- ga$children[[2]]
-    ## switch position of ticks and labels
-    ax$heights <- rev(ax$heights)
-    ax$grobs <- rev(ax$grobs)
-    ## modify existing row to be tall enough for axis
-    g$heights[[2]] <- g$heights[g2$layout[ia,]$t]
-    ## add new axis
-    g <- gtable_add_grob(g, ax, 2, 4, 2, 4)
-    ## add new row for upper axis label
-    g <- gtable_add_rows(g, g2$heights[1], 1)
-    ## steal axis label from second plot
-    ia2 <- which(g2$layout$name == "xlab-b")
-    ga2 <- g2$grobs[[ia2]]
-    g <- gtable_add_grob(g,ga2, 3, 4, 2, 4)
-
-    if(PDF){
-      pdf(paste0(name,".pdf"))
-    }
-    grid.draw(g)
-    if(PDF){
-      dev.off()
-    }
-  }else{
-    if(PDF){
-      pdf(paste0(name,".pdf"))
-    }
-    plot(p)
-    if(PDF){
-      dev.off()
-    }
   }
+  
+  if(PDF){
+    pdf(paste0(name,".pdf"))
+  }
+  plot(p)
+  if(PDF){
+    dev.off()
+  }
+  
 }
 
 #' plotFeatures.tracesList
@@ -337,6 +356,7 @@ plotFeatures.tracesList <- function(feature_table,
                                estimated_complex_MW=FALSE,
                                highlight=NULL,
                                highlight_col=NULL,
+                               colour_by = "id",
                                monomer_MW=FALSE,
                                log=FALSE,
                                legend = TRUE,
@@ -356,6 +376,8 @@ plotFeatures.tracesList <- function(feature_table,
                                 Replicate = 1:length(traces))
   }
 
+  geom.text.size = 3
+  theme.size = (14/5) * geom.text.size
 
   if (traces[[1]]$trace_type == "protein") {
     features <- subset(features, complex_id == feature_id)
@@ -372,7 +394,11 @@ plotFeatures.tracesList <- function(feature_table,
       n_annotatedSubunits = features$n_subunits_annotated[1]
       n_signalSubunits = features$n_subunits_with_signal[1]
       n_detectedSubunits = features$n_subunits_detected[1]
-      complexCompleteness = round(features$completeness[1],digits=2)
+      if(is.character(features$completeness)){
+        complexCompleteness = features$completeness[1]
+      } else {
+        complexCompleteness = round(features$completeness[1],digits=2)
+      }
       title <- paste0(complexName,
                       "\nAnnotated subunits: ",n_annotatedSubunits,
                       "   Subunits with signal: ",n_signalSubunits,
@@ -382,6 +408,13 @@ plotFeatures.tracesList <- function(feature_table,
       title=paste0(features$complex_name,"\n ","\n ","\n ")
     }
   } else {
+    if (!"protein_id" %in% names(features)) {
+      if ("proteoform_id" %in% names(features)) {
+        features[,protein_id:=proteoform_id]
+      } else {
+        stop("features are not of type complex, protein or proteoform")
+      }
+    }
     features <- subset(features, protein_id == feature_id)
     proteins <- unique(unlist(strsplit(features$subunits_annotated, split = ";")))
     traces <- subset(traces, trace_subset_ids = proteins)
@@ -394,7 +427,11 @@ plotFeatures.tracesList <- function(feature_table,
     }
     n_annotatedSubunits = features$n_subunits_annotated[1]
     n_detectedSubunits = features$n_subunits_detected[1]
-    complexCompleteness = round(features$completeness[1],digits=2)
+    if(is.character(features$completeness)){
+      complexCompleteness = features$completeness[1]
+    } else {
+      complexCompleteness = round(features$completeness[1],digits=2)
+    }
     title <- paste0(complexName,
                     "\nAnnotated subunits: ",n_annotatedSubunits,
                     "\nMax. coeluting subunits: ",n_detectedSubunits,
@@ -410,8 +447,21 @@ plotFeatures.tracesList <- function(feature_table,
     res
   })
   traces_long <- do.call("rbind", tracesList)
+  if(colour_by!="id") {
+    if(!colour_by %in% names(traces[[1]]$trace_annotation)){
+      stop("colour_by is not availbale in trace_annotation.")
+    }
+    isoform_annotation <- lapply(names(traces), function(tr){subset(traces[[tr]]$trace_annotation,select=c("id",colour_by))})
+    isoform_annotation <- unique(do.call("rbind", isoform_annotation))
+    traces_long <- merge(traces_long,isoform_annotation, by.x="id",by.y="id")
+    traces_long[,line:=paste0(get(colour_by),id)]
+  }
   ## traces.long <- toLongFormat(traces$traces)
   ## traces.long <- merge(traces.long,traces$fraction_annotation,by.x="fraction",by.y="id")
+
+  traces_frac <- unique(do.call("rbind", lapply(traces, "[[", "fraction_annotation")))
+  traces_frac <- unique(subset(traces_frac, select = names(traces_frac) %in% c("id","molecular_weight")))
+  traces_long <- merge(traces_long,traces_frac,by.x="fraction",by.y="id")
 
   ## Get traces to highlight
   if(!is.null(highlight)){
@@ -420,10 +470,12 @@ plotFeatures.tracesList <- function(feature_table,
 
   ## Generate the plot labels
   if (annotation_label %in% names(traceAnn)) {
-    traces_long <- merge(traces_long, traceAnn, by="id",all.x=TRUE,all.y=FALSE)
+    traceAnn_sub <- unique(subset(traceAnn,select=c("id",annotation_label)))
+    name_i <- names(traces_long)[which(names(traces_long) %in% names(traceAnn_sub))]
+    traces_long <- merge(traces_long, traceAnn_sub, by=name_i,all.x=TRUE,all.y=FALSE)
     if (traces[[1]]$trace_type == "protein") {
       traces_long[,id := get(annotation_label)]
-      proteins <- traceAnn[match(proteins,traceAnn$id)][,get(annotation_label)]
+      proteins <- traceAnn_sub[match(proteins,traceAnn_sub$id)][,get(annotation_label)]
     }
     if ("protein_mw" %in% names(traceAnn)) {
       if (!is.null(calibration)) {
@@ -463,27 +515,46 @@ plotFeatures.tracesList <- function(feature_table,
       stop("Invalid colorMap specified. Not all traces to be plotted are contained in the colorMap")
     }
   }else{
-    colorMap <- createGGplotColMap(unique(traces_long$id))
+    cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7","#999999")
+    ids <- sort(unique(traces_long[[colour_by]]))
+    if (length(ids) <= length(cbPalette)) {
+      colorMap <- cbPalette[1:length(unique(traces_long[[colour_by]]))]
+      names(colorMap) <- ids
+    } else {
+      colorMap <- createGGplotColMap(ids)
+    }
   }
 
   p <- ggplot(traces_long) +
-    geom_line(aes_string(x='fraction', y='intensity', color='id')) +
     xlab('fraction') +
     ylab('intensity') +
     theme_bw() +
     theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
-    theme(plot.margin = unit(c(1.5,.5,.5,.5),"cm")) +
+    theme(plot.margin = unit(c(.1,.5,.5,.5),"cm")) +
     ggtitle(title) +
-    theme(plot.title = element_text(vjust=15,size=10, face="bold")) +
+    theme(plot.title = element_text(vjust=1,size=10, face="bold")) +
     scale_color_manual(values=colorMap) +
     guides(fill=FALSE)
 
   ## Split the plot with design matrix
   if (length(unique(traces_long$Replicate)) > 1) {
-    p <- p + facet_grid(Condition ~ Replicate)
+    if(colour_by == "id") {
+      p <- p + facet_grid(Condition ~ Replicate) +
+      geom_line(aes_string(x='fraction', y='intensity', color='id'))
+    } else {
+      p <- p + facet_grid(Condition ~ Replicate) +
+      geom_line(aes_string(x='fraction', y='intensity', color=colour_by, group='line'))
+    }
   } else {
-    p <- p + facet_grid(Condition ~ .)
+    if(colour_by == "id") {
+      p <- p + facet_grid(Condition ~ .) +
+      geom_line(aes_string(x='fraction', y='intensity', color='id'))
+    } else {
+      p <- p + facet_grid(Condition ~ .) +
+      geom_line(aes_string(x='fraction', y='intensity', color=colour_by, group='line'))
+    }
   }
+
   ## Highlight traces
   if(!is.null(highlight)){
     legend_peps <- unique(traces_long[outlier == TRUE, id])
@@ -515,7 +586,11 @@ plotFeatures.tracesList <- function(feature_table,
     p <- p + geom_vline(data=features,aes(xintercept=complex_sec_estimated), colour="black",linetype="longdash")
   }
   if (monomer_MW==TRUE){
-    p <- p + geom_point(data = subunitMW.dt, mapping = aes(x = fraction, y = Inf, colour=id),shape=18,size=5,alpha=.5)
+    if (length(unique(subunitMW.dt$id)) > 1) {
+      p <- p + geom_point(data = subunitMW.dt, mapping = aes(x = fraction, y = Inf, colour=id),shape=18,size=5,alpha=.5)
+    } else {
+      p <- p + geom_vline(data = unique(subunitMW.dt), aes(xintercept = fraction), colour="red", linetype="dashed", size=1)
+    }
   }
   if (apex==TRUE){
     p <- p + geom_vline(data=features,aes(xintercept=apex), colour="black",linetype="solid")
@@ -524,56 +599,47 @@ plotFeatures.tracesList <- function(feature_table,
     p <- p + theme(legend.position="none")
   }
 
-  if ("molecular_weight" %in% names(traces[[1]]$fraction_annotation)) {
-    message("Molecular weight annotation for multiple conditions not yet implemented")
-    ## grid.newpage()
-    ## p2 <- p
-    ## p <- p + scale_x_continuous(name="fraction",
-    ##                             breaks=seq(min(traces[[1]]$fraction_annotation$id),
-    ##                                        max(traces[[1]]$fraction_annotation$id),10),
-    ##                             labels=seq(min(traces[[1]]$fraction_annotation$id),
-    ##                                        max(traces[[1]]$fraction_annotation$id),10))
-    ## p2 <- p2 + scale_x_continuous(name="molecular weight (kDa)",
-    ##                               breaks=seq(min(traces[[1]]$fraction_annotation$id),max(traces[[1]]$fraction_annotation$id),10),
-    ##                               labels=round(traces[[1]]$fraction_annotation$molecular_weight,digits=0)[seq(1,length(traces[[1]]$fraction_annotation$id),10)]
-    ## )
-    ## ## extract gtable
-    ## g1 <- ggplot_gtable(ggplot_build(p))
-    ## g2 <- ggplot_gtable(ggplot_build(p2))
-    ## ## overlap the panel of the 2nd plot on that of the 1st plot
-    ## pp <- c(subset(g1$layout, name=="panel", se=t:r))
+  p <- p + theme(axis.text = element_text(size = theme.size, colour="black"))
 
-    ## g <- gtable_add_grob(g1
-    ## g <- gtable_add_grob(g1, g2$grobs[[which(g2$layout$name=="panel")]], pp$t, pp$l, pp$b, pp$l)
-    ## ## steal axis from second plot and modify
-    ## ia <- which(g2$layout$name == "axis-b")
-    ## ga <- g2$grobs[[ia]]
-    ## ax <- ga$children[[2]]
-    ## ## switch position of ticks and labels
-    ## ax$heights <- rev(ax$heights)
-    ## ax$grobs <- rev(ax$grobs)
-    ## ## modify existing row to be tall enough for axis
-    ## g$heights[[2]] <- g$heights[g2$layout[ia,]$t]
-    ## ## add new axis
-    ## g <- gtable_add_grob(g, ax, 2, 4, 2, 4)
-    ## ## add new row for upper axis label
-    ## g <- gtable_add_rows(g, g2$heights[1], 1)
-    ## ## steal axis label from second plot
-    ## ia2 <- which(g2$layout$name == "xlab-b")
-    ## ga2 <- g2$grobs[[ia2]]
-    ## g <- gtable_add_grob(g,ga2, 3, 4, 2, 4)
+  p <- p + theme(legend.position="bottom") +
+    theme(legend.text=element_text(size=theme.size)) +
+    theme(legend.title=element_blank()) +
+    guides(col = guide_legend(ncol = 4))
 
-    ## if(PDF){
-    ##   pdf(paste0(name,".pdf"))
-    ## }
-    ## grid.draw(g)
-    ## if(PDF){
-    ##   dev.off()
-    ## }
-  ## }else{
+  if (length(ids) > 20) {
+    p <- p + theme(legend.position="none")
   }
+
+  if ("molecular_weight" %in% names(traces_frac)) {
+    fraction_ann <- traces_frac
+    tr <- lm(log(fraction_ann$molecular_weight) ~ fraction_ann$id)
+    intercept <- as.numeric(tr$coefficients[1])
+    slope <- as.numeric(tr$coefficients[2])
+    mwtransform <- function(x){exp(slope*x + intercept)}
+    MWtoFraction <- function(x){round((log(x)-intercept)/(slope), digits = 0)}
+    mw <- round(fraction_ann$molecular_weight, digits = 0)
+    breaks_MW <- mw[seq(1,length(mw), length.out = length(seq(min(traces_frac$id),
+                                                              max(traces_frac$id),10)))]
+    p <- p + scale_x_continuous(name="fraction",
+                                breaks=seq(min(traces_frac$id),
+                                           max(traces_frac$id),10),
+                                labels=seq(min(traces_frac$id),
+                                           max(traces_frac$id),10),
+                                sec.axis = dup_axis(trans = ~.,
+                                                    breaks=seq(min(traces_frac$id),
+                                                               max(traces_frac$id),10),
+                                                    labels = breaks_MW,
+                                                    name = "MW (kDa)"))
+  } else {
+    p <- p + scale_x_continuous(name="fraction",
+                                breaks=seq(min(traces_frac$id),
+                                           max(traces_frac$id),10),
+                                labels=seq(min(traces_frac$id),
+                                           max(traces_frac$id),10))
+  }
+
   if(PDF){
-    pdf(paste0(name,".pdf"))
+    pdf(paste0(name,".pdf"),width=5,height=4)
   }
   plot(p)
   if(PDF){
