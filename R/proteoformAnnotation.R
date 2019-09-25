@@ -182,25 +182,31 @@ iterativeMaxCorrFilter.tracesList <- function(traces, cutoff = 0.85,
 #' '\code{PDF=TRUE}.PDF file is saved under name.pdf. Default is "minCorrHist".
 #' @return Object of class traces with calculated minimum.
 #' @export
-calculateMinCorr <- function(traces,
+calculateMinCorr <- function(traces, FeatureFinding = NULL,
                             plot = FALSE, PDF=FALSE, name="minCorrHist", ...){
   UseMethod("calculateMinCorr", traces)
 }
 
-#' @describeIn calculateMinCorr Calculate minimum correlation of each peptide
-#' to all of its sibling peptides
-#' @export
-calculateMinCorr.traces <- function(traces,
+#' #' @describeIn calculateMinCorr Calculate minimum correlation of each peptide
+#' #' to all of its sibling peptides
+#' #' @export
+calculateMinCorr.traces <- function(traces, FeatureFinding = NULL,
                             plot = FALSE, PDF=FALSE, name="minCorrHist", ...) {
-  genePeptideList <- getGenePepList(traces)
+  if (is.null(FeatureFinding)){
+    genePeptideList <- getGenePepList(traces)
+  } else {
+    genePeptideList <- getGenePepListFeatured(traces,FeatureFinding)
+  }
   minCorrMatrices <- lapply(genePeptideList, function(gene){
     genecorr <- cor(gene)
     mincorr <- min(genecorr)
     minpeps <- rownames(which(genecorr == min(genecorr), arr.ind=T))
     ints <- apply(gene, 2, max)
     minint <- min(ints)
-    data.table(mincorr = mincorr, minint = minint,
-                      minpep1 = minpeps[1], minpep2 = minpeps[2])[]
+    if (!is.null(minpeps)){
+      data.table(mincorr = mincorr, minint = minint,
+                 minpep1 = minpeps[1], minpep2 = minpeps[2])[]
+    }
   })
   minCorrMatrices <- do.call(rbind, minCorrMatrices)
   minCorrMatrices[,protein_id := names(genePeptideList)]
@@ -224,10 +230,10 @@ calculateMinCorr.traces <- function(traces,
   return(traces)
 }
 
-#' @describeIn calculateMinCorr Calculate minimum correlation of each peptide
-#' to all of its sibling peptides
-#' @export
-calculateMinCorr.tracesList <- function(tracesList,
+#' #' @describeIn calculateMinCorr Calculate minimum correlation of each peptide
+#' #' to all of its sibling peptides
+#' #' @export
+calculateMinCorr.tracesList <- function(tracesList, FeatureFinding = NULL,
                         plot = FALSE, PDF=FALSE, name="minCorrHist", ...) {
 
   .tracesListTest(tracesList)
@@ -241,23 +247,22 @@ calculateMinCorr.tracesList <- function(tracesList,
 }
 
 
-#' Fit gamma distributon to minimum correlation of each peptide
+#' Fit appropriate distributon to minimum correlation of each peptide
 #' to all of its sibling peptides
 #' @param traces Object of class traces or tracesList.
 #' @param prot_names Vactor with protein names to use for fitting. Default NULL.
-#' @param distr Character string which distribution to fit. Default "gamma".
 #' @param split_value Numeric between 0 and 1. Default is 0.2.
 #' @param plot logical,wether to print SibPepCorr density plot to R console.
 #' Deafult is \code{FALSE}.
 #' @param PDF logical, wether to print SibPepCorr density plot to a PDF file.
 #' Deafult is \code{FALSE}.
 #' @param name Character string with name of the plot, only used if
-#' '\code{PDF=TRUE}.PDF file is saved under name.pdf. Default is "GammaFitted".
-#' @return Fitted gamma distribution
+#' '\code{PDF=TRUE}.PDF file is saved under name.pdf. Default is "DistrFitted".
+#' @return Fitted appropriate distribution. Default is gamma distribution.
 #' @export
-fitGammaDist <- function(traces, prot_names = NULL, distr = "gamma",
+fitDist <- function(traces, prot_names = NULL,
                       split_value = 0.2, plot = FALSE,
-                      PDF=FALSE, name="GammaFitted",...) {
+                      PDF=FALSE, name="DistrFitted",...) {
   if (!is.null(prot_names)){
     traces <- subset(traces,
       trace_subset_ids=prot_names,trace_subset_type="protein_id")
@@ -266,22 +271,24 @@ fitGammaDist <- function(traces, prot_names = NULL, distr = "gamma",
     message("no mincorr available: calculating mincorr...")
     traces <- calculateMinCorr(traces, plot = F, PDF=F)
   }
-  mincorrs <- traces$trace_annotation$mincorr
-  GammaFitted <- fitdist(1 - mincorrs[mincorrs > split_value], distr)
+  mincorrs <- as.vector(unique(subset(traces$trace_annotation,
+                                      select=c("protein_id","mincorr")))$mincorr)
+  DistFitted <- fitdist(1 - mincorrs[mincorrs > split_value], distr=distr)
   if (plot == TRUE) {
     if (PDF) {
       pdf(paste0(name,".pdf"))
     }
-    plot(GammaFitted)
+    plot(DistFitted)
     if (PDF) {
       dev.off()
     }
   }
-  return(GammaFitted)
+  return(DistFitted)
 }
 
 #' Estimate p-values of whether a gene is likely to have >1 proteoforms
 #' @param traces Object of class traces or tracesList.
+#' @param distr Character string which distribution to fit. Default "gamma".
 #' @param prot_names Vactor with protein names to use for fitting. Default NULL.
 #' @param adj.method Character string which p-value adjustment to use.
 #' Default "fdr".
@@ -290,10 +297,10 @@ fitGammaDist <- function(traces, prot_names = NULL, distr = "gamma",
 #' @param PDF logical, wether to print SibPepCorr density plot to a PDF file.
 #' Deafult is \code{FALSE}.
 #' @param name Character string with name of the plot, only used if
-#' '\code{PDF=TRUE}.PDF file is saved under name.pdf. Default is "GammaFitted".
-#' @return Fitted gamma distribution
+#' '\code{PDF=TRUE}.PDF file is saved under name.pdf. Default is "DistrFitted".
+#' @return Fitted appropriate distribution. Default is gamma distribution.
 #' @export
-estimateProteoformPval <- function(traces,
+estimateProteoformPval <- function(traces, distr = "gamma",
                           prot_names = NULL, adj.method = "fdr",
                           plot = FALSE, PDF=FALSE, name="SplicePval", ...){
   UseMethod("estimateProteoformPval", traces)
@@ -302,7 +309,7 @@ estimateProteoformPval <- function(traces,
 #' @describeIn estimateProteoformPval Estimate p-values of whether a
 #' gene is likely to have >1 proteoforms
 #' @export
-estimateProteoformPval.traces <- function(traces,
+estimateProteoformPval.traces <- function(traces, distr = "gamma",
                           prot_names = NULL, adj.method = "fdr",
                           plot = FALSE, PDF=FALSE, name="SplicePval", ...) {
   if (!is.null(prot_names)){
@@ -312,15 +319,26 @@ estimateProteoformPval.traces <- function(traces,
   if(! "mincorr" %in% names(traces$trace_annotation)){
     message("no mincorr available: calculating mincorr...")
     traces <- calculateMinCorr(traces, plot = F, PDF=F)
-  }
-  mincorrs <- traces$trace_annotation$mincorr
-  distr_fitted <- fitGammaDist(traces, plot=plot, PDF=PDF,...)
-  # here we use pgamma directly in the function for our gamma distr example,
-  # if we want to use other distr, we need a general way to represent
-  # all ditribution, e.g., "p + distr abbr."
-  pval <- 1-(pgamma(1 - mincorrs, shape = distr_fitted$estimate[1][[1]],
-                    rate = distr_fitted$estimate[2][[1]]))
-  pval_adj <- p.adjust(pval, method=adj.method)
+
+  } 
+  mincorrs <- as.vector(unique(subset(traces$trace_annotation,
+                                      select=c("protein_id","mincorr")))$mincorr)
+  environment(fitDist) <- environment()
+  distr_fitted <- fitDist(traces, plot=plot, PDF=PDF, distr=distr,...)
+  # previously we use pgamma directly in the function for our gamma distr 
+  # example while we are using a general way to enable utilization of 
+  # all ditributions, i.e. "p + distr abbr."
+  distrfun <- get(paste("p", distr, sep=""))
+  pval <- 1-(distrfun(1 - mincorrs, distr_fitted$estimate[1][[1]],
+                   distr_fitted$estimate[2][[1]]))
+  pval_adj <- p.adjust(pval, adj.method)
+  prot_ids <- unique(traces$trace_annotation$protein_id)
+  pval_df <- data.table(prot_ids,pval)
+  colnames(pval_df) <- c("protein_id","proteoform_pval")
+  pval_adj_df <- data.table(prot_ids,pval_adj)
+  colnames(pval_adj_df) <- c("protein_id","proteoform_pval_adj")
+  
+
   if (plot == TRUE) {
     if (PDF) {
       pdf(paste0(name,".pdf"),width=3,height=3)
@@ -330,6 +348,7 @@ estimateProteoformPval.traces <- function(traces,
                 geom_histogram(bins=50) +
                 theme_classic()
     plot(p)
+    
     q <- ggplot(data.table(adj_p_value=pval_adj),
                 aes(x=adj_p_value)) +
                 geom_histogram(bins=50) +
@@ -341,15 +360,17 @@ estimateProteoformPval.traces <- function(traces,
       dev.off()
     }
   }
-  traces$trace_annotation[, proteoform_pval := pval]
-  traces$trace_annotation[, proteoform_pval_adj := pval_adj]
+
+  traces$trace_annotation <- merge(traces$trace_annotation, pval_df, by="protein_id", sort=F)
+  traces$trace_annotation <- merge(traces$trace_annotation, pval_adj_df, by="protein_id", sort=F)
+
   return(traces)
 }
 
 #' @describeIn estimateProteoformPval Estimate p-values of whether a
 #' gene is likely to have >1 proteoforms
 #' @export
-estimateProteoformPval.tracesList <- function(tracesList,
+estimateProteoformPval.tracesList <- function(tracesList, distr = "gamma",
                           prot_names = NULL, adj.method = "fdr",
                           plot = FALSE, PDF=FALSE, name="SplicePval", ...) {
 
@@ -416,75 +437,51 @@ clusterPeptides.traces <- function(traces,
 
   genePeptideList <- getGenePepList(traces)
   idx <- seq_along(genePeptideList)
-  if (pvclust==FALSE) {
-    clustMatricesMethod <- lapply(idx, function(i){
-      gene <- genePeptideList[[i]]
-      gene_name <- names(genePeptideList)[[i]]
-      genecorr <- cor(gene)
-      if (is.null(clusterH)) {
-        if (is.null(clusterN)) {
-          if (is.null(nFactorAnalysis)){
-            nbClust_res <- NbClust(data=genecorr, diss=as.dist(1-genecorr),
-                                   distance = NULL, min.nc=2,
-                                   max.nc=min(4,nrow(genecorr)-1)[1],method = method, index = index)
-            # clusterN <- nbClust_res$Best.nc[1]
-            clusterN <- length(unique(nbClust_res$Best.partition))
-          }else{
-            ev <- eigen(genecorr) # get eigenvalues
-            ap <- parallel(subject=nrow(gene),var=ncol(gene),
-                           rep=100,cent=.05)
-            if(length(ev$values) > 2) {
-              nS <- nScree(x=ev$values, aparallel=ap$eigen$qevpea)
-              #pdf(paste0(gene_name,"nFactors.pdf"))
-              #  plotnScree(nS)
-              #dev.off()
-              clusterN <- nS$Components$nparallel
-            } else {
-              clusterN <- 1
-            }
+
+  clustMatricesMethod <- lapply(idx, function(i){
+    gene <- genePeptideList[[i]]
+    gene_name <- names(genePeptideList)[[i]]
+    genecorr <- cor(gene)
+    if (is.null(clusterH)) {
+      if (is.null(clusterN)) {
+        if (is.null(nFactorAnalysis)){
+          nbClust_res <- NbClust(data=genecorr, diss=as.dist(1-genecorr),
+          distance = NULL, min.nc=2,
+          max.nc=min(4,nrow(genecorr)-1)[1],method = method, index = index)
+          # clusterN <- nbClust_res$Best.nc[1]
+          clusterN <- length(unique(nbClust_res$Best.partition))
+        }else{
+          ev <- eigen(genecorr) # get eigenvalues
+          ap <- parallel(subject=nrow(gene),var=ncol(gene),
+            rep=100,cent=.05)
+          if(length(ev$values) > 2) {
+            nS <- nScree(x=ev$values, aparallel=ap$eigen$qevpea)
+            #pdf(paste0(gene_name,"nFactors.pdf"))
+            #  plotnScree(nS)
+            #dev.off()
+            clusterN <- nS$Components$nparallel
+          } else {
+            clusterN <- 1
           }
         }
       }
-      cl <- hclust(as.dist(1-genecorr), method)
-      if (plot == TRUE) {
-        #plot(cl, labels = FALSE)
-        #plot(as.dendrogram(cl), ylim = c(0,1), cex=0.5)
-        par(cex=0.3, mar=c(18, 5, 5, 1))
-        plot(as.dendrogram(cl), ylim = c(0,1), xlab="", ylab="", main="", sub="", axes=FALSE)
-        par(cex=1)
-        title(xlab="", ylab="", main=gene_name)
-        axis(2)
-      }
-      groups <- cutree(cl, k = clusterN, h = clusterH)
-      groupsDT <- data.table(id=names(groups),cluster=groups,protein_id=gene_name,
-                             proteoform_id = paste0(gene_name,"_",groups))
-      return(groupsDT)
-    })
-  } else {
-    clustMatricesMethod <- lapply(idx, function(i){
-      gene <- genePeptideList[[i]]
-      gene_name <- names(genePeptideList)[[i]]
-      cl <- pvclust(gene, method.hclust = method,
-                    method.dist = "correlation",
-                    use.cor="pairwise.complete.obs",
-                    r=seq(.5,1,by=.1),
-                    nboot=2000,
-                    iseed=123)
-      if (plot == TRUE) {
-        plot(cl)
-        pvrect(cl, alpha=0.9)
-      }
-      groups <- pvpick(cl, alpha=0.9)$clusters
-      groupsDT <- lapply(seq(1,length(groups),1), function(x){
-        data.table(cluster=x,
-                   id=groups[[x]],
-                   protein_id=gene_name,
-                   proteoform_id = paste0(gene_name,"_",x))
-      })
-      groupsDT <- do.call(rbind,groupsDT)
-      return(groupsDT)
-    })
-  }
+    }
+    cl <- hclust(as.dist(1-genecorr), method)
+    if (plot == TRUE) {
+      # plot(cl, labels = FALSE)
+      # plot(as.dendrogram(cl), ylim = c(0,1), cex=0.5)
+      par(cex=0.3, mar=c(18, 5, 5, 1))
+      plot(as.dendrogram(cl), ylim = c(0,1), xlab="", ylab="", main="", sub="", axes=FALSE)
+      par(cex=1)
+      title(xlab="", ylab="", main=gene_name)
+      axis(2)
+    }
+    groups <- cutree(cl, k = clusterN, h = clusterH)
+    groupsDT <- data.table(id=names(groups),cluster=groups,protein_id=gene_name,
+                          proteoform_id = paste0(gene_name,"_",groups))
+    return(groupsDT)
+  })
+
   if (PDF) {
     dev.off()
   }
