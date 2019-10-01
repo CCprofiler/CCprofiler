@@ -45,9 +45,9 @@ plotSummarizedMScoverage <- function(hypotheses,protTraces,PDF=FALSE, name_suffi
 #' @param PDF logical default = TRUE
 #' @return plots summarizing the MS coverage
 plotProteinMScoveragePie <- function(proteinMScoverageSummary,PDF=FALSE, name_suffix="complexHypotheses"){
-  cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+  cbPalette <- c("gray90","#56B4E9")
   if(PDF){
-    pdf(paste0("proteinMScoveragePie_",name_suffix,".pdf"))
+    pdf(paste0("proteinMScoveragePie_",name_suffix,".pdf"), width = 5, height = 5)
   }
   print(pie(x=proteinMScoverageSummary$count,
             labels=paste0(proteinMScoverageSummary$name,"\n",proteinMScoverageSummary$count),
@@ -66,9 +66,9 @@ plotProteinMScoveragePie <- function(proteinMScoverageSummary,PDF=FALSE, name_su
 #' @param PDF logical default = TRUE
 #' @return plots summarizing the MS coverage
 plotComplexMScoveragePie <- function(complexMScoverageSummary,PDF=TRUE, name_suffix="complexHypotheses"){
-  cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+  cbPalette <- c("gray90", "#56B4E9", "#009E73", "royalblue4", "#0072B2", "#D55E00", "#CC79A7")
   if(PDF){
-    pdf(paste0("complexMScoveragePie_",name_suffix,".pdf"))
+    pdf(paste0("complexMScoveragePie_",name_suffix,".pdf"), width = 5, height = 5)
   }
   print(pie(x=complexMScoverageSummary$count,
             labels=paste0(complexMScoverageSummary$name,"\n",complexMScoverageSummary$count),
@@ -88,7 +88,7 @@ plotComplexMScoveragePie <- function(complexMScoverageSummary,PDF=TRUE, name_suf
 #' @return plots summarizing the MS coverage
 plotComplexMScoverageScatter <- function(complexMScoverage,PDF=FALSE, name_suffix="complexHypotheses"){
   if(PDF){
-    pdf(paste0("complexMScoverageScatter_",name_suffix,".pdf"))
+    pdf(paste0("complexMScoverageScatter_",name_suffix,".pdf"), width = 5, height = 5)
   }
   p <- ggplot(data=complexMScoverage,aes(x=annotated_collapsed,y=detected_collapsed,colour=ms_completeness)) +
     geom_point() +
@@ -110,3 +110,4 @@ plotComplexMScoverageScatter <- function(complexMScoverage,PDF=FALSE, name_suffi
     dev.off()
   }
 }
+

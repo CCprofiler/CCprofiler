@@ -88,7 +88,7 @@ summarizeFeatures <- function(feature_table,
     plottingFeatures[, names(plottingFeatures) := lapply(.SD, as.numeric)]
     plottingFeaturesMelt <- data.table::melt(plottingFeatures,id.vars=c("feature_id"))
     if (PDF) {
-      pdf(gsub("$|\\.pdf$", ".pdf", name))
+      pdf(gsub("$|\\.pdf$", ".pdf", name), width = 5, height = 5)
     }
     p <- ggplot(plottingFeaturesMelt, aes(x=value,fill=variable)) +
       geom_histogram(bins = 50) +
@@ -115,7 +115,8 @@ summarizeFeatures <- function(feature_table,
       assempled_percent = round(100/length(all)*length(assembled),digits=2)
       pie_plot <- pie(c(length(all)-length(assembled),length(assembled)),
                       labels=c(paste0(length(all)-length(assembled),"\n monomeric (",100-assempled_percent,"%)"),paste0(length(assembled),"\n assembled (",assempled_percent,"%)")),
-                      main="Protein detection in assembled vs. only monomeric state")
+                      main="Protein detection in assembled\n vs. only monomeric state",
+                      col = c("gray90","#56B4E9"))
       print(pie_plot)
     }
     print(p)

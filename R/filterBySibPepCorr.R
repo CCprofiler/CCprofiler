@@ -199,7 +199,7 @@ filterBySibPepCorr <- function(traces,
   # PDF/ROC-like plot
   if (decoysContained & !is.null(fdr_cutoff)){
     if (PDF){
-      pdf("SibPepCorrFilter_IDFDRplot.pdf")
+      pdf("SibPepCorrFilter_IDFDRplot.pdf", width=5, height = 5)
     }
     if(plot){
       par(mar=c(5.4,5.4,6.4,5.4))

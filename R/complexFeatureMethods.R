@@ -56,8 +56,8 @@ plotSummarizedComplexes <- function(complexFeatures,hypotheses,protTraces,PDF=FA
                                         )
 
 
-  cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-  if(PDF){pdf(gsub("$|\\.pdf$", ".pdf", name))}
+  cbPalette <- c("gray90", "#56B4E9", "#009E73", "royalblue4", "#0072B2", "#D55E00", "#CC79A7")
+  if(PDF){pdf(gsub("$|\\.pdf$", ".pdf", name), width = 7, height = 6)}
     print(pie(x=complexCompletenessSummary$count,labels=paste0(complexCompletenessSummary$name,"\n",complexCompletenessSummary$count),col=cbPalette[1:nrow(complexCompletenessSummary)]))
   if(PDF){dev.off()}
 }
@@ -86,7 +86,7 @@ plotComplexCompletenessScatter <- function(complexFeatures,PDF=FALSE,name="compl
   targetFeatures <- getBestFeatures(targetFeatures)
   targetFeatures <- targetFeatures[grep("DECOY",targetFeatures$complex_id,invert=TRUE)]
   if(PDF){
-    pdf(gsub("$|\\.pdf$", ".pdf", name))
+    pdf(gsub("$|\\.pdf$", ".pdf", name), width = 5, height = 5)
   }
   p <- ggplot(data=targetFeatures,aes(x=n_subunits_annotated,y=n_subunits_detected,colour=completeness)) +
     geom_point() +

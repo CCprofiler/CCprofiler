@@ -55,12 +55,13 @@ summarizeMassDistribution <- function(traces,
   full_mass <- sum(protTraces_annotated$trace_annotation$sum)
 
   if (PDF) {
-    pdf(gsub("$|\\.pdf$", ".pdf", name))
+    pdf(gsub("$|\\.pdf$", ".pdf", name), width = 5, height = 5)
    }
  pie_plot <- pie(c(monomer_mass,assembled_mass),
                 labels=c(paste0("in monomer range ",round(monomer_mass/full_mass, 2) *100,"%"),
                          paste0("in assembled range ",round(assembled_mass/full_mass, 2) *100,"%")),
-                init.angle = 180, main = "Total MS signal \n(~ protein mass)")
+                init.angle = 180, main = "Total MS signal \n(~ protein mass)",
+                col = c("gray90","#56B4E9"))
   print(pie_plot)
   if (PDF) {
     dev.off()
