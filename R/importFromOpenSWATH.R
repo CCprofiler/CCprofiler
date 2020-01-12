@@ -87,6 +87,10 @@ importFromOpenSWATH <- function(data,
     # the above does not work further downstream because "1/" is removed
     #data$ProteinName <- extractIdsFromFastaHeader(data$ProteinName)
   }
+  else {
+    ## better to raise error than failing
+    stop('No proteotypic peptides present in OSW file')
+  }
 
   ## subset data to some important columns to save RAM
   if (MS1Quant == TRUE) {
@@ -117,10 +121,8 @@ importFromOpenSWATH <- function(data,
   files <- annotation_table$filename
   data_filenames <- data_s$filename
 
-  if (length(files) != length(unique(data_filenames))) {
-      stop("Number of file names in annotation_table does not match data")
-  }
-
+  ## filter filenames to keep only present in annotation
+  data_s <- data_s[grep(files, data_s$filename), ]
 
   for (i in seq_along(files)) {
       idxs <- grep(files[i], data_filenames)
@@ -135,7 +137,8 @@ importFromOpenSWATH <- function(data,
   traces_wide <-
       data.table(dcast(data_s, ProteinName + FullPeptideName ~ fraction_number,
                        value.var="Intensity",
-                       fun.aggregate=sum))
+                       ## averaging across charge states not summing
+                       fun.aggregate=mean))
 
   traces_annotation <- data.table(traces_wide[,c("FullPeptideName", "ProteinName"), with = FALSE])
   setcolorder(traces_annotation, c("FullPeptideName", "ProteinName"))
