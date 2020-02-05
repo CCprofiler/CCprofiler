@@ -2,13 +2,17 @@
 % Please edit documentation in R/imputeMissingValues.R
 \name{imputeTraces}
 \alias{imputeTraces}
+<<<<<<< HEAD
 \alias{imputeTraces.traces}
 \alias{imputeTraces.tracesList}
+=======
+>>>>>>> master
 \title{Plot a summary of the trace imputation}
 \usage{
 imputeTraces(traces, bound_left = 2, bound_right = 2,
   consider_borders = TRUE, method = c("mean", "spline"),
   plot_summary = TRUE, plot_traces = TRUE, max_n_traces = 30)
+<<<<<<< HEAD
 
 \method{imputeTraces}{traces}(traces, bound_left = 2, bound_right = 2,
   consider_borders = TRUE, method = c("mean", "spline"),
@@ -17,6 +21,8 @@ imputeTraces(traces, bound_left = 2, bound_right = 2,
 \method{imputeTraces}{tracesList}(tracesList, bound_left = 2,
   bound_right = 2, consider_borders = TRUE, method = c("mean", "spline"),
   plot_summary = TRUE, plot_traces = TRUE, max_n_traces = 30)
+=======
+>>>>>>> master
 }
 \arguments{
 \item{traces}{Object of class traces with missing values indicated by \code{NA}.}
@@ -41,6 +47,7 @@ Summary plots of the missing value imputation.
 Plot the distribution of missing values per trace as well as
 missing values per fraction and some imputed traces.
 }
+<<<<<<< HEAD
 \section{Methods (by class)}{
 \itemize{
 \item \code{traces}: Find and impute missing values for a single traces object
@@ -48,6 +55,8 @@ missing values per fraction and some imputed traces.
 \item \code{tracesList}: Find and impute missing values for multiple traces objects
 }}
 
+=======
+>>>>>>> master
 \examples{
 tracesMiss <- findMissingValues(examplePeptideTraces)
 tracesImp <- imputeMissingVals(tracesMiss)

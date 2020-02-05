@@ -18,7 +18,7 @@ getMWcalibration <- function(fr_ann){
 }
 
 getEnsemblProteins <- function(traces, geneId = NULL){
-  
+
   if(!is.null(geneId)){
     traces <- subset.traces(traces, geneId, "gene_id")
   }

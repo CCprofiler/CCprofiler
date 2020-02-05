@@ -69,7 +69,7 @@ calculateQvalue <- function(features,lambda=0.5,plot=TRUE,PDF=FALSE,name="q_valu
   qobj <- qvalue(pvalues,lambda=lambda)
   if(plot){
     if(PDF){
-      pdf(paste0(name,".pdf"))
+      pdf(paste0(name,".pdf"), width = 5, height = 5)
     }
     hist(pvalues,nclass=20)
     plot(qobj)
@@ -98,7 +98,7 @@ qvaluePositivesPlot <- function(features,plot=TRUE,PDF=FALSE,name="qvaluePositiv
   stats[,true_positives := unlist(lapply(qvalue_cutoff,function(x){nrow(subset(features,qvalue<=x))*(1-x)}))]
   if(plot){
     if(PDF){
-      pdf(paste0(name,".pdf"))
+      pdf(paste0(name,".pdf"), width = 5, height = 5)
     }
     p <- ggplot(data=stats,aes(x=qvalue_cutoff,y=positives)) +
       geom_point()+
@@ -124,7 +124,7 @@ qvaluePositivesPlot <- function(features,plot=TRUE,PDF=FALSE,name="qvaluePositiv
 #' @export
 plotScoreDistribution <- function(features,PDF=TRUE,name="scoreDistribution"){
   if(PDF){
-    pdf(paste0(name,".pdf"))
+    pdf(paste0(name,".pdf"), width = 5, height = 5)
   }
   features[,decoy:=0]
   if ("complex_id" %in% names(features)) {
@@ -164,18 +164,21 @@ qvaluePositivesPlotGrid <- function(featuresGrid,plot=TRUE,PDF=FALSE,name="qvalu
     stats[,smoothing_length := x$smoothing_length[1]]
     stats[]
   })
+  color_map <- c("#A6CEE3", "#1F78B4", "#B2DF8A", "#33A02C", "#FB9A99", "#E31A1C", "#FDBF6F", "#FF7F00")
   stats_all <- do.call("rbind", stats_list)
   if(plot){
     if(PDF){
-      pdf(paste0(name,".pdf"))
+      pdf(paste0(name,".pdf"), width = 5, height = 5)
     }
     p <- ggplot(data=stats_all,aes(x=qvalue_cutoff,y=positives,colour=factor(get(colour_parameter)))) +
-      scale_colour_hue(guide = guide_legend(title = paste0(eval(colour_parameter),"\n"))) +
+      scale_colour_manual(guide = guide_legend(title = paste0(eval(colour_parameter),"\n")),
+                          values = color_map) +
       geom_point() +
       theme_classic()
     print(p)
     tp <- ggplot(data=stats_all,aes(x=qvalue_cutoff,y=true_positives,colour=factor(get(colour_parameter)))) +
-      scale_colour_hue(guide = guide_legend(title = paste0(eval(colour_parameter),"\n"))) +
+      scale_colour_manual(guide = guide_legend(title = paste0(eval(colour_parameter),"\n")),
+                          values = color_map) +
       geom_point() +
       theme_classic()
     print(tp)
@@ -209,7 +212,7 @@ getBestQvalueParameters <- function(stats,FDR_cutoff=0.05){
 scoreFeatures <- function(features, FDR = 0.05, plot = T, PDF = FALSE, name = "qvalueStats"){
   if(plot==TRUE){
   if(PDF==TRUE){
-    pdf(paste0(name,".pdf"))
+    pdf(paste0(name,".pdf"), width = 5, height = 5)
   }
   featuresScored <- calculateCoelutionScore(features)
   qvalueFeaturesScored <- calculateQvalue(featuresScored, name="qvalueStats", PDF=F)

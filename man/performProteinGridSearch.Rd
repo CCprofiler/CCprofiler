@@ -5,8 +5,8 @@
 \title{Perform Protein feature grid search}
 \usage{
 performProteinGridSearch(traces, corrs = c(0.5, 0.75, 0.9, 0.95),
-  windows = c(8, 10, 12), smoothing = c(7, 9, 11), rt_heights = c(3, 4,
-  5), n_cores = 1)
+  windows = c(8, 10, 12), smoothing = c(7, 9, 11), rt_heights = c(3,
+  4, 5), n_cores = 1)
 }
 \arguments{
 \item{traces}{An object of class traces (type "peptide").}
@@ -30,12 +30,11 @@ Perform Protein feature finding (calls \code{\link{findProteinFeatures}})
 with all possible combinations of the specified parameters (grid search).
 }
 \details{
-The runtime of this function scales with the binomial coefficient of the total 
+The runtime of this function scales with the binomial coefficient of the total
 number of parameters specified, and can therefore take a long time. If many parameter combinations
 are searched the use of multiple cores for parallel computation is strongly recommended.
 }
 \examples{
- 
 
 ## Load example data and subset to reduce runtime
 peptideTraces <- examplePeptideTraces
@@ -51,6 +50,6 @@ gridList <- performProteinGridSearch(traces = peptideTraces,
                                      smoothing = 9,
                                      rt_heights = 5,
                                      n_cores = 2)
- 
+
 lapply(gridList, head, n = 2)
 }

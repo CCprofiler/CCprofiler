@@ -4,8 +4,8 @@
 \alias{performComplexGridSearch}
 \title{Perform complex feature grid search}
 \usage{
-performComplexGridSearch(traces, complex_hypothesis, corrs = c(0.5, 0.75, 0.9,
-  0.95), windows = c(8, 10, 12), smoothing = c(7, 9, 11),
+performComplexGridSearch(traces, complex_hypothesis, corrs = c(0.5, 0.75,
+  0.9, 0.95), windows = c(8, 10, 12), smoothing = c(7, 9, 11),
   rt_heights = c(3, 4, 5), n_cores = 1)
 }
 \arguments{
@@ -30,7 +30,7 @@ Perform complex feature finding (calls \code{\link{findComplexFeatures}})
 with all possible combinations of the specified parameters (grid search).
 }
 \details{
-The runtime of this function scales with the binomial coefficient of the total 
+The runtime of this function scales with the binomial coefficient of the total
 number of parameters specified, and can therefore take a long time. If many parameter combinations
 are searched the use of multiple cores for parallel computation is strongly recommended.
 }
@@ -48,6 +48,6 @@ gridList <- performComplexGridSearch(traces = proteinTraces,
                          smoothing = 7,
                          rt_heights = 4,
                          n_cores = 2)
-                         
+
 lapply(gridList, head, n = 2)
 }

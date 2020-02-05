@@ -36,6 +36,7 @@
 #' #                  select=-protein_id)
 #' # sw.res <- findComplexFeaturesSW(traces, protein.ids, protein.mw.conc)
 
+
 findComplexFeaturesSW <- function(trace.mat,
                                   corr.cutoff,
                                   window.size,
@@ -119,7 +120,7 @@ findComplexFeaturesSW <- function(trace.mat,
     groups.only <- unique(groups.only)
 
     groups.only$is_present <- T
-    groups.only.wide <- cast(groups.only, subgroup ~ sec, length, value='is_present', fill=F)
+    groups.only.wide <- reshape::cast(groups.only, subgroup ~ sec, length, value='is_present', fill=F)
 
     sec.range=ncol(trace.mat)
     subgroup.range=length(unique(groups.only$subgroup))
@@ -144,6 +145,7 @@ findComplexFeaturesSW <- function(trace.mat,
   }
   groups.feats
 }
+
 
 
 #' Detect subgroups within a window. This is a helper function and should

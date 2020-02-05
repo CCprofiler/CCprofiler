@@ -6,8 +6,8 @@
 \usage{
 filterFeatures(feature_table, complex_ids = NULL, protein_ids = NULL,
   min_feature_completeness = NULL, min_hypothesis_completeness = NULL,
-  min_subunits = NULL, min_peak_corr = 0.5,
-  min_monomer_distance_factor = NULL)
+  min_subunits = NULL, min_peak_corr = NULL,
+  min_monomer_distance_factor = 2)
 }
 \arguments{
 \item{feature_table}{data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}}
@@ -27,9 +27,9 @@ of the most complete feature reltive to the tested hypothesis (keeps all feature
 
 \item{min_subunits}{Integer specifying minimum number of subunits in a co-elution feature.}
 
-\item{min_peak_corr}{Numeric value betwee 0 and 1 specifying minimum peak correlation, defaults to 0.5.}
+\item{min_peak_corr}{Numeric value betwee 0 and 1 specifying minimum peak correlation, defaults to \code{NULL}.}
 
-\item{min_monomer_distance_factor}{Numeric value specifying a factor to multiply the largest monomer molecular weight, defaults to \code{NULL}.
+\item{min_monomer_distance_factor}{Numeric value specifying a factor to multiply the largest monomer molecular weight, defaults to 2.
 This filters out features that have their apex at a smaller molecular weight than the resulting min_monomer_distance_factor*max(monomer_mw) value.
 Using this filtering option can, for example, remove complex features that are likely spontaneous co-elutions of the subunits monomers.}
 }

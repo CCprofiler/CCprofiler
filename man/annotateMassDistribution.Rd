@@ -2,6 +2,7 @@
 % Please edit documentation in R/annotateMassDistribution.R
 \name{annotateMassDistribution}
 \alias{annotateMassDistribution}
+<<<<<<< HEAD
 \alias{annotateMassDistribution.traces}
 \alias{annotateMassDistribution.tracesList}
 \title{annotateMassDistribution}
@@ -14,10 +15,19 @@ annotateMassDistribution(traces)
 }
 \arguments{
 \item{traces}{An object of type traces. These should be the raw, unprocessed traces.}
+=======
+\title{annotateMassDistribution}
+\usage{
+annotateMassDistribution(traces)
+}
+\arguments{
+\item{traces}{An object of type traces.}
+>>>>>>> master
 }
 \description{
 Estimates fraction of assembled vs. monomeric mass per id.
 }
+<<<<<<< HEAD
 \section{Methods (by class)}{
 \itemize{
 \item \code{traces}: Estimates fraction of assembled vs. monomeric mass per id.
@@ -25,3 +35,5 @@ Estimates fraction of assembled vs. monomeric mass per id.
 \item \code{tracesList}: Estimates fraction of assembled vs. monomeric mass per id.
 }}
 
+=======
+>>>>>>> master

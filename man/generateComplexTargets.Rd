@@ -4,8 +4,13 @@
 \alias{generateComplexTargets}
 \title{Generate complex target-hypotheses}
 \usage{
+<<<<<<< HEAD
 generateComplexTargets(dist_info, max_distance = 1, redundancy_cutoff = 1,
   parallelized = FALSE, n_cores = 1)
+=======
+generateComplexTargets(dist_info, max_distance = 1,
+  redundancy_cutoff = 1)
+>>>>>>> master
 }
 \arguments{
 \item{dist_info}{data.table with three columns containing all possible combinations of proteins:

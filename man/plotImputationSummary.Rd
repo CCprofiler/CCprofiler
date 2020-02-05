@@ -2,6 +2,7 @@
 % Please edit documentation in R/imputeMissingValues.R
 \name{plotImputationSummary}
 \alias{plotImputationSummary}
+<<<<<<< HEAD
 \alias{plotImputationSummary.traces}
 \alias{plotImputationSummary.tracesList}
 \title{Plot a summary of the trace imputation}
@@ -16,6 +17,13 @@ plotImputationSummary(traces, tracesImp, PDF = TRUE, plot_traces = TRUE,
 \method{plotImputationSummary}{tracesList}(tracesList, tracesImpList,
   PDF = TRUE, plot_traces = TRUE, max_n_traces = 30,
   name = "Missing_value_imputation_summary.pdf")
+=======
+\title{Plot a summary of the trace imputation}
+\usage{
+plotImputationSummary(traces, tracesImp, PDF = FALSE,
+  plot_traces = TRUE, max_n_traces = 30,
+  name = "Missing_value_imputation_summary.pdf")
+>>>>>>> master
 }
 \arguments{
 \item{traces}{Object of class traces with missing values indicated by \code{NA}.}
@@ -23,7 +31,11 @@ plotImputationSummary(traces, tracesImp, PDF = TRUE, plot_traces = TRUE,
 \item{tracesImp}{Object of class traces with imputed missing values.}
 
 \item{PDF}{Logical, whether to plot to PDF. PDF file is saved in working directory.
+<<<<<<< HEAD
 Default is \code{TRUE}.}
+=======
+Default is \code{FALSE}.}
+>>>>>>> master
 
 \item{plot_traces}{Logical, whether to plot some traces, visualizing the imputed values.
 Default is \code{TRUE}.}
@@ -40,6 +52,7 @@ Summary plots of the missing value imputation.
 Plot the distribution of missing values per trace as well as
 missing values per fraction and some imputed traces.
 }
+<<<<<<< HEAD
 \section{Methods (by class)}{
 \itemize{
 \item \code{traces}: Plot the imputation summary for one traces object
@@ -47,6 +60,8 @@ missing values per fraction and some imputed traces.
 \item \code{tracesList}: Plot the imputation summary for multiple traces object
 }}
 
+=======
+>>>>>>> master
 \examples{
 tracesMiss <- findMissingValues(examplePeptideTraces)
 tracesImp <- imputeMissingVals(tracesMiss)

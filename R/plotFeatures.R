@@ -1,4 +1,4 @@
-#' #' Plot the result of the sliding window algorithm.
+#' #' #' Plot the result of the sliding window algorithm.
 #' @description Chomatographic visualization
 #' @import data.table
 #' @import grid
@@ -286,6 +286,12 @@ plotFeatures.traces <- function(feature_table,
   }
   if (!legend) {
     p <- p + theme(legend.position="none")
+  } else {
+    if (length(unique(traces.long$id)) > 25) {
+      p <- p + theme(legend.position="none")
+    } else {
+      p <- p + theme(legend.position="bottom", legend.text=element_text(size = 5), legend.title = element_blank())
+    }
   }
 
   if ("molecular_weight" %in% names(traces$fraction_annotation)) {

@@ -69,7 +69,7 @@ calibrateMW <- function(calibration_table,
   # Visual check -> plot
   if(plot){
     if(PDF){
-      pdf("calibration.pdf")
+      pdf("calibration.pdf", width=5, height=5)
     }
     plot(calibrants$fraction, calibrants$logMW, xlab="Fraction",
          ylab="log10(MW (kDa))", main="calibration")

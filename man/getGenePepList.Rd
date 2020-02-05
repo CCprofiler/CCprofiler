@@ -8,7 +8,11 @@ at least one high correlating sibling peptide}
 getGenePepList(traces)
 }
 \arguments{
+<<<<<<< HEAD
 \item{traces}{Object of class traces or tracesList.}
+=======
+\item{traces}{Object of class traces.}
+>>>>>>> master
 
 \item{cutoff}{Numeric between 0 and 1. Minimum correlation of a peptide
 width any sibling peptide.}

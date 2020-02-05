@@ -4,8 +4,9 @@
 \alias{rocSibPepCorr}
 \title{ROC.SibPepCorr}
 \usage{
-rocSibPepCorr(traces, fdr_type = "protein", FFT = 1, stepsize = 0.001,
-  plot = TRUE, PDF = FALSE, CSV = FALSE, name = "SibPepCorr_ROC")
+rocSibPepCorr(traces, fdr_type = "protein", FFT = 1,
+  stepsize = 0.001, plot = TRUE, PDF = FALSE, CSV = FALSE,
+  name = "SibPepCorr_ROC")
 }
 \arguments{
 \item{traces}{An object of type \code{traces.obj}.}

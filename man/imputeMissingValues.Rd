@@ -16,6 +16,6 @@ cutoff value can be specified as an upper limit for perturbation values.
 This is nescessary for correlation calculation.}
 }
 \description{
-A helper function to compute a value for all missing values 
+A helper function to compute a value for all missing values
 to be able to calculate correlations.
 }

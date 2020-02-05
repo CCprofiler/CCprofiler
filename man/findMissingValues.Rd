@@ -2,13 +2,17 @@
 % Please edit documentation in R/imputeMissingValues.R
 \name{findMissingValues}
 \alias{findMissingValues}
+<<<<<<< HEAD
 \alias{findMissingValues.traces}
 \alias{findMissingValues.tracesList}
+=======
+>>>>>>> master
 \title{Find the position of missing values in a traces object}
 \usage{
 findMissingValues(traces, bound_left = 2, bound_right = 2,
   consider_borders = TRUE)
 
+<<<<<<< HEAD
 \method{findMissingValues}{traces}(traces, bound_left = 2, bound_right = 2,
   consider_borders = TRUE)
 
@@ -17,6 +21,13 @@ findMissingValues(traces, bound_left = 2, bound_right = 2,
 }
 \arguments{
 \item{traces}{Object of class traces or tracesList.}
+=======
+findMissingValues(traces, bound_left = 2, bound_right = 2,
+  consider_borders = TRUE)
+}
+\arguments{
+\item{traces}{Object of class traces.}
+>>>>>>> master
 
 \item{bound_left}{Numeric integer, the minimum number of non-zero values to the
 left of a missing value to be replaced with \code{NA}.}
@@ -40,14 +51,24 @@ The algorithm identifies 0 values on the dataset as missing values if they fulfi
 the rule: \code{(1)*bound_left - 0 - (1)*bound_right} i.e. a zero value has to have at least
 a specified number of non-zero neighbors to be classified as \code{NA}.
 }
+<<<<<<< HEAD
 \section{Methods (by class)}{
 \itemize{
 \item \code{traces}: Find missing values one traces object
 
 \item \code{tracesList}: Find missing values in all traces within a tracesList
+=======
+\section{Functions}{
+\itemize{
+\item \code{findMissingValues}: Find missing values one traces object
+>>>>>>> master
 }}
 
 \examples{
 tracesMiss <- findMissingValues(examplePeptideTraces)
 View(tracesMiss$traces)
 }
+<<<<<<< HEAD
+=======
+\concept{imputation functions}
+>>>>>>> master
