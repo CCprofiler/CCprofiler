@@ -6,8 +6,8 @@
 \alias{annotateRelativePepPos.traces}
 \title{Align peptides to reference proteins to get the relative position}
 \usage{
-annotateRelativePepPos(traces, mappingTable, multimatch = c("first", "skip"),
-  verbose = F)
+annotateRelativePepPos(traces, mappingTable, multimatch = c("first",
+  "skip"), verbose = F)
 
 \method{annotateRelativePepPos}{tracesList}(tracesList, mappingTable,
   multimatch = c("first", "skip"), verbose = F)

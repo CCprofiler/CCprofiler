@@ -211,6 +211,7 @@ plotMassAssemblyChange <- function(assamblyTest, change_cutoff=0.2, name="massAs
   if (PDF) {
     dev.off()
   }
+}
 
 #' summarizeMassDistribution
 #' @description Plots the fraction of assembled vs. monomeric mass

@@ -17,8 +17,8 @@ calculateSibPepCorr(traces, plot = TRUE, PDF = FALSE,
 \method{calculateSibPepCorr}{traces}(traces, plot = TRUE, PDF = FALSE,
   name = "SibPepCorr_densityplot")
 
-\method{calculateSibPepCorr}{tracesList}(traces, plot = TRUE, PDF = FALSE,
-  name = "SibPepCorr_densityplot", ...)
+\method{calculateSibPepCorr}{tracesList}(traces, plot = TRUE,
+  PDF = FALSE, name = "SibPepCorr_densityplot", ...)
 
 \method{filterBySibPepCorr}{traces}(traces, fdr_cutoff = 0.01,
   fdr_type = "protein", FFT = 1, absolute_spcCutoff = NULL,
@@ -28,8 +28,8 @@ calculateSibPepCorr(traces, plot = TRUE, PDF = FALSE,
   fdr_type = "protein", FFT = 1, absolute_spcCutoff = NULL,
   rm_decoys = FALSE, plot = TRUE, PDF = FALSE, CSV = FALSE, ...)
 
-\method{filterConsecutiveIdStretches}{traces}(traces, min_stretch_length = 3,
-  remove_empty = TRUE)
+\method{filterConsecutiveIdStretches}{traces}(traces,
+  min_stretch_length = 3, remove_empty = TRUE)
 
 \method{filterConsecutiveIdStretches}{tracesList}(traces,
   min_stretch_length = 3, remove_empty = TRUE, ...)

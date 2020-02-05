@@ -10,12 +10,12 @@ imputeOutlierFractions(traces, bound_left = 2, bound_right = 2,
   consider_borders = TRUE, method = c("mean", "spline"))
 
 \method{imputeOutlierFractions}{traces}(traces, bound_left = 2,
-  bound_right = 2, consider_borders = TRUE, method = c("mean", "spline"),
-  ...)
+  bound_right = 2, consider_borders = TRUE, method = c("mean",
+  "spline"), ...)
 
 \method{imputeOutlierFractions}{tracesList}(tracesList, bound_left = 2,
-  bound_right = 2, consider_borders = TRUE, method = c("mean", "spline"),
-  ...)
+  bound_right = 2, consider_borders = TRUE, method = c("mean",
+  "spline"), ...)
 }
 \arguments{
 \item{traces}{An object of type traces. These should be the raw, unprocessed traces.}

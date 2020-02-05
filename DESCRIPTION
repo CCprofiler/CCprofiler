@@ -25,26 +25,14 @@ Imports:
     pracma,
     gridExtra,
     Rmpfr,
-<<<<<<< HEAD
     matrixStats,
     fitdistrplus,
-    NbClust
-RoxygenNote: 6.0.1
-Imports:
-    igraph
-Suggests:
-    testthat,
-    knitr,
-    rmarkdown
-=======
-    igraph,
     qvalue,
-    matrixStats
+    ensembldb
 Suggests: knitr,
     rmarkdown,
     devtools,
     roxygen2,
     testthat
->>>>>>> master
 VignetteBuilder: knitr
 RoxygenNote: 6.1.1

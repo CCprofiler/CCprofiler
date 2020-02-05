@@ -6,12 +6,13 @@
 \alias{extractFeatureVals.tracesList}
 \title{Extract intensity, correlation etc. within feature boundaries}
 \usage{
-extractFeatureVals(traces, features, perturb_cutoff = "5\%", verbose = TRUE,
-  extract = "subunits_detected", imputeZero = FALSE, fill = FALSE,
-  minValues = NULL, ...)
-
-\method{extractFeatureVals}{traces}(traces, features, perturb_cutoff = "5\%",
+extractFeatureVals(traces, features, perturb_cutoff = "5\%",
   verbose = TRUE, extract = "subunits_detected", imputeZero = FALSE,
+  fill = FALSE, minValues = NULL, ...)
+
+\method{extractFeatureVals}{traces}(traces, features,
+  perturb_cutoff = "5\%", verbose = TRUE,
+  extract = "subunits_detected", imputeZero = FALSE,
   minValues = NULL, ...)
 
 \method{extractFeatureVals}{tracesList}(traces, features,

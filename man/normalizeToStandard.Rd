@@ -9,8 +9,8 @@
 normalizeToStandard(traces, standard_ids, method = "median",
   filter_complete = TRUE, top_n = NULL)
 
-\method{normalizeToStandard}{traces}(traces, standard_ids, method = "median",
-  filter_complete = TRUE, top_n = NULL, ...)
+\method{normalizeToStandard}{traces}(traces, standard_ids,
+  method = "median", filter_complete = TRUE, top_n = NULL, ...)
 
 \method{normalizeToStandard}{tracesList}(tracesList, standard_ids,
   method = "median", filter_complete = TRUE, top_n = NULL, ...)

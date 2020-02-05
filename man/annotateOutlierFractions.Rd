@@ -12,8 +12,9 @@ annotateOutlierFractions(traces, excludeBoarder = TRUE, plot = TRUE,
 \method{annotateOutlierFractions}{traces}(traces, excludeBoarder = TRUE,
   plot = TRUE, PDF = FALSE, name = "OutlierFractions", ...)
 
-\method{annotateOutlierFractions}{tracesList}(traces, excludeBoarder = TRUE,
-  plot = TRUE, PDF = FALSE, name = "OutlierFractions", ...)
+\method{annotateOutlierFractions}{tracesList}(traces,
+  excludeBoarder = TRUE, plot = TRUE, PDF = FALSE,
+  name = "OutlierFractions", ...)
 }
 \arguments{
 \item{traces}{Object of class traces.}

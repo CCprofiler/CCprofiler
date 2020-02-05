@@ -5,8 +5,8 @@
 \title{Add or average traces objects to generate consensus traces.}
 \usage{
 integrateTraceIntensities(traces, design_matrix = NULL,
-  integrate_within = NULL, min_present = 1, aggr_fun = c("sum", "mean"),
-  aggr_corr_fun = c("mean", "sum"))
+  integrate_within = NULL, min_present = 1, aggr_fun = c("sum",
+  "mean"), aggr_corr_fun = c("mean", "sum"))
 }
 \arguments{
 \item{traces}{object of class tracesList.

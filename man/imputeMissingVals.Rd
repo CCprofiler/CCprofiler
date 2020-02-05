@@ -2,7 +2,6 @@
 % Please edit documentation in R/imputeMissingValues.R
 \name{imputeMissingVals}
 \alias{imputeMissingVals}
-<<<<<<< HEAD
 \alias{imputeMissingVals.traces}
 \alias{imputeMissingVals.tracesList}
 \title{Impute NA values in a traces object}
@@ -16,14 +15,6 @@ imputeMissingVals(traces, method = c("mean", "spline"))
 }
 \arguments{
 \item{traces}{Object of class traces or tracesList.}
-=======
-\title{Impute NA values in a traces object}
-\usage{
-imputeMissingVals(traces, method = c("mean", "spline"))
-}
-\arguments{
-\item{traces}{Object of class traces.}
->>>>>>> master
 
 \item{method}{Character string, which interpolation method to use.}
 }
@@ -38,7 +29,6 @@ Unlike with standard imputation methods, missing values on the borders
 are linearly extrapolated from the neighboring 2 values. Any imputed value below 0
 is set to 0.
 }
-<<<<<<< HEAD
 \section{Methods (by class)}{
 \itemize{
 \item \code{traces}: Impute missing values one traces object
@@ -46,8 +36,6 @@ is set to 0.
 \item \code{tracesList}: Find missing values in all traces within a tracesList
 }}
 
-=======
->>>>>>> master
 \examples{
 tracesMiss <- findMissingValues(examplePeptideTraces)
 tracesImp <- imputeMissingVals(tracesMiss)

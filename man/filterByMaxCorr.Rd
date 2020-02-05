@@ -2,32 +2,14 @@
 % Please edit documentation in R/proteoformAnnotation.R
 \name{filterByMaxCorr}
 \alias{filterByMaxCorr}
-<<<<<<< HEAD
-\alias{filterByMaxCorr.traces}
-\alias{filterByMaxCorr.tracesList}
-=======
->>>>>>> master
 \title{Filter peptides for having
 at least one high correlating sibling peptide}
 \usage{
 filterByMaxCorr(traces, cutoff = 0.85, plot = FALSE, PDF = FALSE,
-<<<<<<< HEAD
-  name = "maxCorrHist")
-
-\method{filterByMaxCorr}{traces}(traces, cutoff = 0.85, plot = FALSE,
-  PDF = FALSE, name = "maxCorrHist", ...)
-
-\method{filterByMaxCorr}{tracesList}(tracesList, cutoff = 0.85,
-  plot = FALSE, PDF = FALSE, name = "maxCorrHist", ...)
-}
-\arguments{
-\item{traces}{Object of class traces or tracesList.}
-=======
   name = "maxCorrHist", ...)
 }
 \arguments{
 \item{traces}{Object of class traces.}
->>>>>>> master
 
 \item{cutoff}{Numeric between 0 and 1. Minimum correlation of a peptide
 width any sibling peptide.}
@@ -40,13 +22,10 @@ Deafult is \code{FALSE}.}
 
 \item{name}{Character string with name of the plot, only used if
 '\code{PDF=TRUE}.PDF file is saved under name.pdf. Default is "maxCorrHist".}
-<<<<<<< HEAD
-=======
 
 \item{acrossConditions}{logical, if traces across replicates and conditions
 should be integrated for filtering to ensure minimal data loss.
 Deafult is \code{TRUE}.}
->>>>>>> master
 }
 \value{
 Object of class traces filtered for peptide correlation.
@@ -55,15 +34,3 @@ Object of class traces filtered for peptide correlation.
 Filter peptides for having
 at least one high correlating sibling peptide
 }
-<<<<<<< HEAD
-\section{Methods (by class)}{
-\itemize{
-\item \code{traces}: Filter peptides for having
-at least one high correlating sibling peptide
-
-\item \code{tracesList}: Filter peptides for having
-at least one high correlating sibling peptide
-}}
-
-=======
->>>>>>> master
