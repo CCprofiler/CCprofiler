@@ -212,7 +212,7 @@ plot.traces <- function(traces,
                         highlight_col=NULL,
                         colorMap=NULL,
                         monomer_MW=TRUE) {
-  
+
   .tracesTest(traces)
   traces.long <- toLongFormat(traces$traces)
   traces.long <- merge(traces.long,traces$fraction_annotation,by.x="fraction",by.y="id")
@@ -220,7 +220,7 @@ plot.traces <- function(traces,
     traces.long$outlier <- gsub("\\(.*?\\)","",traces.long$id) %in% gsub("\\(.*?\\)","",highlight)
     if(!any(traces.long$outlier)) highlight <- NULL
   }
-  
+
   if(colour_by!="id") {
     if(!colour_by %in% names(traces$trace_annotation)){
       stop("colour_by is not availbale in trace_annotation.")
@@ -229,7 +229,7 @@ plot.traces <- function(traces,
     traces.long <- merge(traces.long,isoform_annotation, by.x="id",by.y="id")
     traces.long[,line:=paste0(get(colour_by),id)]
   }
-  
+
   ## Create a reproducible coloring for the peptides plotted
   if(!is.null(colorMap)){
     if(!all(unique(traces.long$id) %in% names(colorMap))){
@@ -245,16 +245,16 @@ plot.traces <- function(traces,
       colorMap <- createGGplotColMap(unique(traces.long$id))
     }
   }
-  
+
   if(colour_by == "id") {
-    p <- ggplot(traces.long) + 
+    p <- ggplot(traces.long) +
       geom_line(aes_string(x='fraction', y='intensity', colour='id', group='id'))
   } else {
-    
+
     p <- ggplot(traces.long) +
       geom_line(aes_string(x='fraction', y='intensity', colour=colour_by, group='line'))
   }
-  
+
   p <- p + xlab('fraction') +
     ylab('intensity') +
     theme_bw() +
@@ -269,7 +269,7 @@ plot.traces <- function(traces,
   if (!legend) {
     p <- p + theme(legend.position="none")
   }
-  
+
   if(!is.null(highlight)){
     legend_peps <- unique(traces.long[outlier == TRUE, id])
     if(is.null(highlight_col)){
@@ -294,7 +294,7 @@ plot.traces <- function(traces,
       # geom_line(aes_string(x='fraction', y='intensity', color='id'))
     }
   }
-  
+
   if ("molecular_weight" %in% names(traces$fraction_annotation)) {
     fraction_ann <- traces$fraction_annotation
     tr <- lm(log(fraction_ann$molecular_weight) ~ fraction_ann$id)
@@ -337,7 +337,7 @@ plot.traces <- function(traces,
                                 labels=seq(min(traces$fraction_annotation$id),
                                            max(traces$fraction_annotation$id),10))
   }
-  
+
   if(PDF){
     pdf(paste0(name,".pdf"))
   }
@@ -375,6 +375,7 @@ plot.traces <- function(traces,
 plot.tracesList <- function(traces,
                             design_matrix = NULL,
                             collapse_conditions = FALSE,
+                            aggregateReplicates=FALSE,
                             log=FALSE,
                             legend = TRUE,
                             PDF=FALSE,
@@ -431,7 +432,7 @@ plot.tracesList <- function(traces,
       stop("Invalid colorMap specified. Not all traces to be plotted are contained in the colorMap")
     }
   }else{
-    cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7","#999999")
+    cbPalette <- c("#56B4E9","#E69F00", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7","#999999")
     ids <- sort(unique(traces_long[[colour_by]]))
     if (length(ids) <= length(cbPalette)) {
       colorMap <- cbPalette[1:length(unique(traces_long[[colour_by]]))]
@@ -441,6 +442,14 @@ plot.tracesList <- function(traces,
     }
   }
 
+  if (aggregateReplicates){
+    traces_long[,meanIntensity := mean(intensity), by=c("Condition","fraction","id")]
+    traces_long[,sdIntensity := sd(intensity), by=c("Condition","fraction","id")]
+    traces_long <- unique(subset(traces_long,select=c("id","fraction","Condition","molecular_weight","meanIntensity","sdIntensity")))
+    traces_long[,Replicate := "average"]
+    setnames(traces_long, "meanIntensity", "intensity")
+  }
+
   p <- ggplot(traces_long) +
     xlab('fraction') +
     ylab('intensity') +
@@ -448,35 +457,53 @@ plot.tracesList <- function(traces,
     theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
     theme(plot.margin = unit(c(1,.5,.5,.5),"cm")) +
     ggtitle(name) +
-    scale_color_manual(values=colorMap) +
-    theme(plot.title = element_text(vjust=19,size=10))
+    scale_color_manual(values=colorMap) #+
+    #theme(plot.title = element_text(vjust=19,size=10))
 
   if(collapse_conditions){
     if(colour_by == "id") {
       p <- p + facet_grid(~ Replicate) +
         geom_line(aes_string(x='fraction', y='intensity', color='id', lty = 'Condition'))
+      if (aggregateReplicates){
+        p <- p + geom_errorbar(aes(x=fraction,ymin=ifelse(intensity-sdIntensity < 0, 0, intensity-sdIntensity), ymax=intensity+sdIntensity, color=id, lty = Condition), width=0.2, size=0.3, position=position_dodge(0.05))
+      }
     } else {
       message("Collapsing of conditions is not jet compatible with colouring by your selected id type.
       Plot conditions separately instead.")
       p <- p + facet_grid(Condition ~ Replicate) +
         geom_line(aes_string(x='fraction', y='intensity', color=colour_by, group='line'))
+      if (aggregateReplicates){
+        p <- p + geom_errorbar(aes(x=fraction,ymin=ifelse(intensity-sdIntensity < 0, 0, intensity-sdIntensity), ymax=intensity+sdIntensity, color=colour_by), width=0.2, size=0.3, position=position_dodge(0.05))
+      }
     }
   }else{
     if (length(unique(traces_long$Replicate)) > 1) {
       if(colour_by == "id") {
         p <- p + facet_grid(Condition ~ Replicate) +
           geom_line(aes_string(x='fraction', y='intensity', color='id'))
+        if (aggregateReplicates){
+          p <- p + geom_errorbar(aes(x=fraction,ymin=ifelse(intensity-sdIntensity < 0, 0, intensity-sdIntensity), ymax=intensity+sdIntensity, color=id), width=0.2, size=0.3, position=position_dodge(0.05))
+        }
       } else {
         p <- p + facet_grid(Condition ~ Replicate) +
           geom_line(aes_string(x='fraction', y='intensity', color=colour_by, group='line'))
+      }
+      if (aggregateReplicates){
+        p <- p + geom_errorbar(aes(x=fraction,ymin=ifelse(intensity-sdIntensity < 0, 0, intensity-sdIntensity), ymax=intensity+sdIntensity, color=colour_by), width=0.2, size=0.3, position=position_dodge(0.05))
       }
     } else {
       if(colour_by == "id") {
         p <- p + facet_grid(Condition ~ .) +
           geom_line(aes_string(x='fraction', y='intensity', color='id'))
+        if (aggregateReplicates){
+          p <- p + geom_errorbar(aes(x=fraction,ymin=ifelse(intensity-sdIntensity < 0, 0, intensity-sdIntensity), ymax=intensity+sdIntensity, color=id), width=0.2, size=0.3, position=position_dodge(0.05))
+        }
       } else {
         p <- p + facet_grid(Condition ~ .) +
           geom_line(aes_string(x='fraction', y='intensity', color=colour_by, group='line'))
+        if (aggregateReplicates){
+          p <- p + geom_errorbar(aes(x=fraction,ymin=ifelse(intensity-sdIntensity < 0, 0, intensity-sdIntensity), ymax=intensity+sdIntensity, color=colour_by), width=0.2, size=0.3, position=position_dodge(0.05))
+        }
       }
     }
   }
@@ -808,4 +835,3 @@ updateTraces.tracesList <- function(traces) {
   .tracesListTest(traces)
   return(traces)
 }
-

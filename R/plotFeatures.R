@@ -70,6 +70,7 @@ plotFeatures <- function(feature_table,
                                 log=FALSE,
                                 legend = TRUE,
                                 PDF=FALSE,
+                                aggregateReplicates=FALSE,
                                 name = "Traces",
                                 colorMap=NULL) {
   UseMethod("plotFeatures", traces)
@@ -166,12 +167,12 @@ plotFeatures.traces <- function(feature_table,
     traces.long <- merge(traces.long,isoform_annotation, by.x="id",by.y="id")
     traces.long[,line:=paste0(get(colour_by),id)]
   }
-  
+
   ## Get traces to highlight
   if(!is.null(highlight)){
     traces.long$outlier <- gsub("\\(.*?\\)","",traces.long$id) %in% gsub("\\(.*?\\)","",highlight)
   }
-  
+
   if (annotation_label %in% names(traces$trace_annotation)) {
     traces.long <- merge(traces.long,traces$trace_annotation,by=intersect(names(traces.long),names(traces$trace_annotation)),all.x=TRUE,all.y=FALSE)
     if (traces$trace_type == "protein") {
@@ -209,14 +210,14 @@ plotFeatures.traces <- function(feature_table,
       monomer_MW <- FALSE
     }
   }
-  
+
   ## Create a reproducible coloring for the peptides plotted
   if(!is.null(colorMap)){
     if(!all(unique(traces_long$id) %in% names(colorMap))){
       stop("Invalid colorMap specified. Not all traces to be plotted are contained in the colorMap")
     }
   }else{
-    cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7","#999999")
+    cbPalette <- c("#56B4E9", "#E69F00", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7","#999999")
     ids <- sort(unique(traces.long[[colour_by]]))
     if (length(ids) <= length(cbPalette)) {
       colorMap <- cbPalette[1:length(unique(traces.long[[colour_by]]))]
@@ -225,7 +226,7 @@ plotFeatures.traces <- function(feature_table,
       colorMap <- createGGplotColMap(ids)
     }
   }
-  
+
   p <- ggplot(traces.long) +
     #geom_line(aes_string(x='fraction', y='intensity', color='id')) +
     xlab('fraction') +
@@ -237,14 +238,14 @@ plotFeatures.traces <- function(feature_table,
     theme(plot.title = element_text(vjust=19,size=10, face="bold")) +
     guides(fill=FALSE) +
     scale_color_manual(values=colorMap)
-  
+
   if(colour_by == "id") {
     p <- p + geom_line(aes_string(x='fraction', y='intensity', color='id'))
   } else {
     p <- p + geom_line(aes_string(x='fraction', y='intensity', color=colour_by, group='line'))
   }
-  
-  
+
+
   if(!is.null(highlight)){
     legend_peps <- unique(traces.long[outlier == TRUE, id])
     if(is.null(highlight_col)){
@@ -257,7 +258,7 @@ plotFeatures.traces <- function(feature_table,
       # scale_color_discrete(breaks = legend_peps)
     }
   }
-  
+
   if (log) {
     p <- p + scale_y_log10('log(intensity)')
   }
@@ -286,7 +287,7 @@ plotFeatures.traces <- function(feature_table,
   if (!legend) {
     p <- p + theme(legend.position="none")
   }
-  
+
   if ("molecular_weight" %in% names(traces$fraction_annotation)) {
     fraction_ann <- traces$fraction_annotation
     tr <- lm(log(fraction_ann$molecular_weight) ~ fraction_ann$id)
@@ -314,7 +315,7 @@ plotFeatures.traces <- function(feature_table,
                                 labels=seq(min(traces$fraction_annotation$id),
                                            max(traces$fraction_annotation$id),10))
   }
-  
+
   if(PDF){
     pdf(paste0(name,".pdf"))
   }
@@ -322,7 +323,7 @@ plotFeatures.traces <- function(feature_table,
   if(PDF){
     dev.off()
   }
-  
+
 }
 
 #' plotFeatures.tracesList
@@ -361,6 +362,7 @@ plotFeatures.tracesList <- function(feature_table,
                                log=FALSE,
                                legend = TRUE,
                                PDF=FALSE,
+                               aggregateReplicates=FALSE,
                                name = "Traces",
                                colorMap=NULL) {
   ## .tracesListTest(traces)
@@ -515,7 +517,7 @@ plotFeatures.tracesList <- function(feature_table,
       stop("Invalid colorMap specified. Not all traces to be plotted are contained in the colorMap")
     }
   }else{
-    cbPalette <- c("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7","#999999")
+    cbPalette <- c("#56B4E9", "#E69F00", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7","#999999")
     ids <- sort(unique(traces_long[[colour_by]]))
     if (length(ids) <= length(cbPalette)) {
       colorMap <- cbPalette[1:length(unique(traces_long[[colour_by]]))]
@@ -538,12 +540,27 @@ plotFeatures.tracesList <- function(feature_table,
 
   ## Split the plot with design matrix
   if (length(unique(traces_long$Replicate)) > 1) {
-    if(colour_by == "id") {
-      p <- p + facet_grid(Condition ~ Replicate) +
-      geom_line(aes_string(x='fraction', y='intensity', color='id'))
+    if (aggregateReplicates) {
+      traces_long[,meanIntensity := mean(intensity), by=c("Condition","fraction","id")]
+      traces_long[,sdIntensity := sd(intensity), by=c("Condition","fraction","id")]
+      traces_long <- unique(subset(traces_long,select=c("id","fraction","Condition","molecular_weight",eval(annotation_label),"meanIntensity","sdIntensity")))
+      if(colour_by == "id") {
+        p <- p + facet_grid(Condition ~ .) +
+        geom_line(aes_string(x='fraction', y='meanIntensity', color='id')) +
+        geom_errorbar(aes(x=fraction,ymin=ifelse(meanIntensity-sdIntensity < 0, 0, meanIntensity-sdIntensity), ymax=meanIntensity+sdIntensity, color=id), width=0.2, size=0.3, position=position_dodge(0.05))
+      } else {
+        p <- p + facet_grid(Condition ~ .) +
+        geom_line(aes_string(x='fraction', y='meanIntensity', color=colour_by, group='line')) +
+        geom_errorbar(aes(x=fraction,ymin=ifelse(meanIntensity-sdIntensity < 0, 0, meanIntensity-sdIntensity), ymax=meanIntensity+sdIntensity, color=id), width=0.2, size=0.3, position=position_dodge(0.05))
+      }
     } else {
-      p <- p + facet_grid(Condition ~ Replicate) +
-      geom_line(aes_string(x='fraction', y='intensity', color=colour_by, group='line'))
+      if(colour_by == "id") {
+        p <- p + facet_grid(Condition ~ Replicate) +
+        geom_line(aes_string(x='fraction', y='intensity', color='id'))
+      } else {
+        p <- p + facet_grid(Condition ~ Replicate) +
+        geom_line(aes_string(x='fraction', y='intensity', color=colour_by, group='line'))
+      }
     }
   } else {
     if(colour_by == "id") {
@@ -639,7 +656,11 @@ plotFeatures.tracesList <- function(feature_table,
   }
 
   if(PDF){
-    pdf(paste0(name,".pdf"),width=5,height=4)
+    if(aggregateReplicates){
+      pdf(paste0(name,"_aggregated.pdf"),width=5,height=6)
+    } else {
+      pdf(paste0(name,".pdf"),width=5,height=4)
+    }
   }
   plot(p)
   if(PDF){
