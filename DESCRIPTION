@@ -30,7 +30,8 @@ Imports:
     qvalue,
     ensembldb,
     evobiR,
-    limma
+    limma,
+    preprocessCore
 Suggests: knitr,
     rmarkdown,
     devtools,
