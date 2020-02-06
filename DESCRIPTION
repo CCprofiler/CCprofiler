@@ -28,7 +28,9 @@ Imports:
     matrixStats,
     fitdistrplus,
     qvalue,
-    ensembldb
+    ensembldb,
+    evobiR,
+    limma
 Suggests: knitr,
     rmarkdown,
     devtools,
