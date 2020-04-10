@@ -75,3 +75,49 @@ summarizeAlternativePeptideSequences.tracesList <- function(tracesList,topN=1,
   .tracesListTest(res)
   return(res)
 }
+
+
+#' Annotate peptides with sequence information
+#' @description Annotate peptides with sequence information.
+#' @param traces An object of type traces, trace_type must be peptide.
+#' @param fasta_file path to a fasta file.
+#' @return An object of type traces, trace_type is peptide.
+#' @export
+annotatePeptideSequences <- function(traces,fasta_file){
+  UseMethod("annotatePeptideSequences", traces)
+}
+
+#' @describeIn annotatePeptideSequences Annotate peptides with sequence information
+#' @export
+annotatePeptideSequences.traces <- function(traces,fasta_file){
+  # Depends on:
+  # library("seqinr")
+  # library("Biostrings")
+  fasta <- readAAStringSet(fasta_file)
+  names(fasta) = gsub(".*\\|(.*?)\\|.*", "\\1", names(fasta))
+  print("Following proteins are not in the provided fasta:")
+  traces$trace_annotation[,PeptidePositionStart := getPepStartSite(id, protein_id, fasta), by=c("id","protein_id")]
+  traces$trace_annotation[,PeptidePositionEnd := PeptidePositionStart+nchar(gsub("\\(UniMod:[0-9]+\\)","",id))-1, by=c("id","protein_id")]
+  return(traces)
+}
+  
+#' @describeIn annotatePeptideSequences Annotate peptides with sequence information
+#' @export
+annotatePeptideSequences.tracesList <- function(traces,fasta_file){
+  .tracesListTest(traces, type = "peptide")
+  res <- lapply(traces, annotatePeptideSequences.traces,
+                     fasta_file=fasta_file)
+  class(res) <- "tracesList"
+  .tracesListTest(res)
+  return(res)
+}
+
+# helper function
+getPepStartSite <- function(pep, prot, fasta){
+  if (prot %in% names(fasta)){
+    return(words.pos(gsub("\\(UniMod:[0-9]+\\)","",pep), toString(fasta[prot]))[1])
+  } else {
+    print(prot)
+    return(NA)
+  }
+}

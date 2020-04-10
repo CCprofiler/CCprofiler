@@ -288,7 +288,7 @@ fitDist <- function(traces, prot_names = NULL,
 
 #' Estimate p-values of whether a gene is likely to have >1 proteoforms
 #' @param traces Object of class traces or tracesList.
-#' @param distr Character string which distribution to fit. Default "gamma".
+#' @param distr Character string which distribution to fit. Default "beta".
 #' @param prot_names Vactor with protein names to use for fitting. Default NULL.
 #' @param adj.method Character string which p-value adjustment to use.
 #' Default "fdr".
@@ -300,25 +300,27 @@ fitDist <- function(traces, prot_names = NULL,
 #' '\code{PDF=TRUE}.PDF file is saved under name.pdf. Default is "DistrFitted".
 #' @return Fitted appropriate distribution. Default is gamma distribution.
 #' @export
-estimateProteoformPval <- function(traces, distr = "gamma",
+estimateProteoformPval <- function(traces, distr = "beta",
                           prot_names = NULL, adj.method = "fdr",
-                          plot = FALSE, PDF=FALSE, name="SplicePval", ...){
+                          plot = FALSE, PDF=FALSE, name="SplicePval", 
+                          design_matrix = NULL, min_sig=2, FDR_cutoff=0.05, ...){
   UseMethod("estimateProteoformPval", traces)
 }
 
 #' @describeIn estimateProteoformPval Estimate p-values of whether a
 #' gene is likely to have >1 proteoforms
 #' @export
-estimateProteoformPval.traces <- function(traces, distr = "gamma",
+estimateProteoformPval.traces <- function(traces, distr = "beta",
                           prot_names = NULL, adj.method = "fdr",
-                          plot = FALSE, PDF=FALSE, name="SplicePval", ...) {
+                          plot = FALSE, PDF=FALSE, name="SplicePval", 
+                          design_matrix = NULL, min_sig=2, FDR_cutoff=0.05, ...) {
   if (!is.null(prot_names)){
     traces <- subset(traces, trace_subset_ids=prot_names,
       trace_subset_type="protein_id")
   }
   if(! "mincorr" %in% names(traces$trace_annotation)){
     message("no mincorr available: calculating mincorr...")
-    traces <- calculateMinCorr(traces, plot = F, PDF=F)
+    traces <- calculateMinCorr(traces, plot = plot, PDF=PDF, name=paste0(name, "_minCorr"))
 
   } 
   mincorrs <- as.vector(unique(subset(traces$trace_annotation,
@@ -370,152 +372,188 @@ estimateProteoformPval.traces <- function(traces, distr = "gamma",
 #' @describeIn estimateProteoformPval Estimate p-values of whether a
 #' gene is likely to have >1 proteoforms
 #' @export
-estimateProteoformPval.tracesList <- function(tracesList, distr = "gamma",
+estimateProteoformPval.tracesList <- function(tracesList, distr = "beta",
                           prot_names = NULL, adj.method = "fdr",
-                          plot = FALSE, PDF=FALSE, name="SplicePval", ...) {
+                          plot = FALSE, PDF=FALSE, name="SplicePval", 
+                          design_matrix = NULL, min_sig=2, FDR_cutoff=0.05, ...) {
 
   .tracesListTest(tracesList)
-  if (PDF) {pdf(paste0(name,".pdf"))}
-  res <- lapply(tracesList, estimateProteoformPval.traces,
-                prot_names = prot_names, adj.method = adj.method,
-                plot = plot, PDF=F, name=name, ...)
-  if (PDF) {dev.off()}
-  class(res) <- "tracesList"
-  .tracesListTest(res)
-  return(res)
+  if (is.null(design_matrix)) {
+    stop("Please specifiy a design_matrix.")
+  }
+  
+  proteoform_ann <- data.table("protein_id"=character(),"mincorr"=numeric(),"proteoform_pval"=numeric(),"proteoform_pval_adj"=numeric())
+  
+  for (r in unique(design_matrix$Replicate)) {
+    traces <- tracesList[paste0(unique(design_matrix$Condition),r)]
+    class(traces) <- "tracesList"
+    traces_combined <- combineTracesMutiCond(traces)
+    traces_combined <- filterSinglePeptideHits(traces_combined)
+    
+    traces_combined_minCorr <- calculateMinCorr(traces_combined,
+                                                plot = plot, PDF=PDF,
+                                                name=paste0(name, "_minCorr",r))
+    
+    traces_combined_minCorr_pval <- estimateProteoformPval.traces(traces_combined_minCorr,
+                                                                 distr = distr,
+                                                                 plot = plot, PDF=PDF,
+                                                                 name=paste0(name, "_SplicePval",r))
+    
+    proteoform_ann <- rbind(proteoform_ann,
+                            unique(subset(traces_combined_minCorr_pval$trace_annotation, 
+                                          select=c("protein_id","mincorr","proteoform_pval","proteoform_pval_adj"))))
+  }
+  
+  proteoform_ann[, n_prot := .N, by="protein_id"]
+  proteoform_ann[, sig := ifelse(proteoform_pval_adj <= FDR_cutoff,1,0)]
+  proteoform_ann[, n_sig := sum(sig), by="protein_id"]
+  
+  proteoform_ann[, medianMinCorr := median(mincorr), by="protein_id"]
+  proteoform_ann[, medianPval := median(proteoform_pval), by="protein_id"]
+  proteoform_ann[, medianPvaladj := median(proteoform_pval_adj), by="protein_id"]
+  
+  proteoform_ann[, medianPvaladj := ifelse(n_sig < min_sig, 1, medianPvaladj)]
+  
+  proteoform_annotation <- unique(subset(proteoform_ann, select=c("protein_id","medianMinCorr","medianPval","medianPvaladj")))
+  setnames(proteoform_annotation,c("medianMinCorr","medianPval","medianPvaladj"),c("mincorr","proteoform_pval","proteoform_pval_adj"))
+  
+  pepTracesList_minCorr_pval <- lapply(tracesList, function(x){
+    x$trace_annotation <- merge(x$trace_annotation,
+                                proteoform_annotation,by=c("protein_id"),sort=F,all.x=T,all.y=F)
+    x
+  })
+  class(pepTracesList_minCorr_pval) <- "tracesList"
+
+  .tracesListTest(pepTracesList_minCorr_pval)
+  return(pepTracesList_minCorr_pval)
 }
 
 #' Cluster peptides of gene to unique proteoforms
 #' @param traces Object of class traces or tracesList.
 #' @param method Character string defining method for clustering
 #' Default is "complete".
-#' @param clusterH Numeric Cluster hight for cutree. Default is 0.5.
-#' @param clusterN Integer Number of clusters. Default is NULL.
-#' @param index Character string for method of cluster number estimation
-#' Default is "silhouette".
 #' @param plot logical,wether to print SibPepCorr density plot to R console.
 #' Deafult is \code{FALSE}.
 #' @param PDF logical, wether to print SibPepCorr density plot to a PDF file.
 #' Deafult is \code{FALSE}.
 #' @param name Character string with name of the plot, only used if
 #' '\code{PDF=TRUE}.PDF file is saved under name.pdf. Default is "hclust".
-#' @return Object of class traces with proteoform annotation
+#' @return List including hclust objects for each protein.
 #' @export
 clusterPeptides <- function(traces,
-                    method = c("complete","single"), clusterH = 0.5,
-                    clusterN = NULL, index = "silhouette",
-                    nFactorAnalysis = NULL, pvclust=FALSE,
-                    plot = FALSE, PDF=FALSE, name="hclust", ...) {
+                            method = c("complete","single","average"), 
+                            plot = FALSE, PDF=FALSE, name="hclust", ...) {
   UseMethod("clusterPeptides", traces)
 }
 
 #' @describeIn clusterPeptides Cluster peptides of gene to unique proteoforms
 #' @export
 clusterPeptides.traces <- function(traces,
-                                   method = c("complete","single"), clusterH = 0.5,
-                                   clusterN = NULL, index = "silhouette",
-                                   nFactorAnalysis = NULL, pvclust=FALSE,
+                                   method = c("complete","single","average"), 
                                    plot = FALSE, PDF=FALSE, name="hclust", ...) {
   method <- match.arg(method)
   if (PDF) {
-    if(pvclust==FALSE) {
-      pdf(paste0(name,".pdf"),width=3,height=3)
-    } else {
-      pdf(paste0(name,".pdf"))
-    }
+    pdf(paste0(name,".pdf"), width=3, height=3)
   }
-
-  #tracesMatrix <- getIntensityMatrix(traces)
-  #trace_mat_imputed <- imputeMissingValues(tracesMatrix,"5%")
-  #trace_mat_imputed_DT <- as.data.table(trace_mat_imputed, keep.rownames="id",sorted=F)
-  #setcolorder(trace_mat_imputed_DT, c(setdiff(names(trace_mat_imputed_DT), "id"),"id"))
-
-  #traces_imputed <- copy(traces)
-  #traces_imputed$traces <- trace_mat_imputed_DT
-
-  #genePeptideList <- getGenePepList(traces_imputed)
-
+  
   genePeptideList <- getGenePepList(traces)
   idx <- seq_along(genePeptideList)
-
-  clustMatricesMethod <- lapply(idx, function(i){
+  
+  clustering <- lapply(idx, function(i){
     gene <- genePeptideList[[i]]
     gene_name <- names(genePeptideList)[[i]]
     genecorr <- cor(gene)
-    if (is.null(clusterH)) {
-      if (is.null(clusterN)) {
-        if (is.null(nFactorAnalysis)){
-          nbClust_res <- NbClust(data=genecorr, diss=as.dist(1-genecorr),
-          distance = NULL, min.nc=2,
-          max.nc=min(4,nrow(genecorr)-1)[1],method = method, index = index)
-          # clusterN <- nbClust_res$Best.nc[1]
-          clusterN <- length(unique(nbClust_res$Best.partition))
-        }else{
-          ev <- eigen(genecorr) # get eigenvalues
-          ap <- parallel(subject=nrow(gene),var=ncol(gene),
-            rep=100,cent=.05)
-          if(length(ev$values) > 2) {
-            nS <- nScree(x=ev$values, aparallel=ap$eigen$qevpea)
-            #pdf(paste0(gene_name,"nFactors.pdf"))
-            #  plotnScree(nS)
-            #dev.off()
-            clusterN <- nS$Components$nparallel
-          } else {
-            clusterN <- 1
-          }
-        }
-      }
-    }
+    
     cl <- hclust(as.dist(1-genecorr), method)
     if (plot == TRUE) {
-      # plot(cl, labels = FALSE)
-      # plot(as.dendrogram(cl), ylim = c(0,1), cex=0.5)
       par(cex=0.3, mar=c(18, 5, 5, 1))
       plot(as.dendrogram(cl), ylim = c(0,1), xlab="", ylab="", main="", sub="", axes=FALSE)
       par(cex=1)
       title(xlab="", ylab="", main=gene_name)
       axis(2)
     }
-    groups <- cutree(cl, k = clusterN, h = clusterH)
-    groupsDT <- data.table(id=names(groups),cluster=groups,protein_id=gene_name,
-                          proteoform_id = paste0(gene_name,"_",groups))
-    return(groupsDT)
+    return(cl)
   })
-
+  
   if (PDF) {
     dev.off()
   }
-  #return(clustMatricesMethod)
-  clustMatrices <- do.call(rbind, clustMatricesMethod)
-  traces$trace_annotation <- merge(traces$trace_annotation,
-                                   clustMatrices,by=c("id","protein_id"),sort=F,all.x=T,all.y=F)
-  traces$trace_annotation[,proteoform_id:=ifelse(is.na(proteoform_id),0,proteoform_id)]
-  return(traces)
+  
+  names(clustering) = names(genePeptideList)
+  
+  return(clustering)
 }
 
 #' @describeIn clusterPeptides Cluster peptides of gene to unique proteoforms
 #' @param traces Object of class traces or tracesList.
 #' @return Object of class traces with proteoform annotation
 #' @export
-clusterPeptides.tracesList <- function(tracesList,
-                    method = c("complete","single"), clusterH = 0.5,
-                    clusterN = NULL, index = "silhouette",
-                    nFactorAnalysis = NULL, pvclust=FALSE,
-                    plot = FALSE, PDF=FALSE, name="hclust", ...) {
-
-  .tracesListTest(tracesList)
-  if (PDF) {pdf(paste0(name,".pdf"),width=3,height=3)}
-  res <- lapply(tracesList, clusterPeptides.traces,
-                        method = method, clusterH = clusterH,
-                        clusterN = clusterN, index = index,
-                        nFactorAnalysis = nFactorAnalysis, pvclust=pvclust,
-                        plot = plot, PDF=F, name=name, ...)
-  if (PDF) {dev.off()}
-  class(res) <- "tracesList"
-  .tracesListTest(res)
-  return(res)
+clusterPeptides.tracesList <- function(traces,
+                                   method = c("complete","single","average"), 
+                                   plot = FALSE, PDF=FALSE, name="hclust", ...) {
+  method <- match.arg(method)
+  pepTracesList_combi <- combineTracesMutiCond(traces)
+  clustering <- clusterPeptides(pepTracesList_combi, method = method,
+                                plot = plot, PDF=PDF, 
+                                name=name)
+  return(clustering)
 }
 
+#' Cut clusters from clusterPeptides at a specified hight cutoff.
+#' @param clusterList List of hclust objects generated by clusterPeptides.
+#' @param clusterH Cluster hight cutoff.
+#' @return data.table with information of assigned clusters for each protein and peptide.
+#' @export
+cutClusters <- function(clusterList, clusterH = 0.5){
+  clust <- lapply(seq_along(clusterList), function(idx){
+    clusters <- clusterList[[idx]]
+    gene_name <- names(clusterList)[[idx]]
+    groups <- cutree(clusters, h = clusterH)
+    groupsDT <- data.table(id=names(groups),cluster=groups,protein_id=gene_name,
+                           proteoform_id = paste0(gene_name,"_",groups))
+    return(groupsDT)
+  })
+  
+  clustDT <- do.call(rbind, clust)
+  
+  return(clustDT)
+}
+
+#' Annotate traces with cluster information
+#' @param traces Object of class traces or tracesList.
+#' @param cluster_annotation data.table generated by cutClusters.
+#' @param FDR_cutoff FDR cutoff for proteoform significance.Numeric between 0 and 1. 
+#' Default is 0.05 (5%).
+#' @return Traces with annotated proteoform clusters.
+#' @export
+annotateTracesWithProteoformClusters <- function(traces, cluster_annotation, FDR_cutoff = 0.05){
+  UseMethod("annotateTracesWithProteoformClusters", traces)
+}
+
+#' @describeIn annotateTracesWithProteoformClusters Annotate traces with cluster information
+#' @export
+annotateTracesWithProteoformClusters.traces <- function(traces, cluster_annotation, FDR_cutoff = 0.05){
+  traces$trace_annotation <- merge(traces$trace_annotation,cluster_annotation,by=c("id","protein_id"),sort=F,all.x=T,all.y=F)
+  traces$trace_annotation[,proteoform_id:=ifelse(is.na(proteoform_id),0,proteoform_id)]
+  traces$trace_annotation[,proteoform_id := ifelse(proteoform_pval_adj > FDR_cutoff, protein_id, proteoform_id)]
+  traces$trace_annotation[,n_proteoforms:=length(unique(proteoform_id)),by="protein_id"]
+  traces$trace_annotation[,n_proteoforms:=ifelse(length(grep("_0",unique(proteoform_id))) == 0, n_proteoforms, n_proteoforms-1),by="protein_id"]
+  .tracesTest(traces)
+  return(traces)
+}
+
+#' @describeIn annotateTracesWithProteoformClusters Annotate traces with cluster information
+#' @export
+annotateTracesWithProteoformClusters.tracesList <- function(traces, cluster_annotation, FDR_cutoff = 0.05){
+  .tracesListTest(traces)
+  traces_ann <- lapply(traces, function(x){
+    annotateTracesWithProteoformClusters.traces(x,
+                                                cluster_annotation=cluster_annotation,
+                                                FDR_cutoff=FDR_cutoff)})
+  class(traces_ann) <- "tracesList"
+  .tracesListTest(traces_ann)
+  return(traces_ann)
+}
 
 #' Remove proteins with single peptides
 #' @param traces Object of class traces or tracesList.
