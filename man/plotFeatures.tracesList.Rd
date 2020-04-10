@@ -4,13 +4,29 @@
 \alias{plotFeatures.tracesList}
 \title{plotFeatures.tracesList}
 \usage{
-\method{plotFeatures}{tracesList}(feature_table, traces, feature_id,
-  design_matrix = NULL, calibration = NULL,
-  annotation_label = "protein_id", onlyBest = TRUE, apex = TRUE,
-  peak_area = FALSE, sliding_window_area = FALSE,
-  estimated_complex_MW = FALSE, highlight = NULL, highlight_col = NULL,
-  colour_by = "id", monomer_MW = FALSE, log = FALSE, legend = TRUE,
-  PDF = FALSE, name = "Traces", colorMap = NULL)
+\method{plotFeatures}{tracesList}(
+  feature_table,
+  traces,
+  feature_id,
+  design_matrix = NULL,
+  calibration = NULL,
+  annotation_label = "protein_id",
+  onlyBest = TRUE,
+  apex = TRUE,
+  peak_area = FALSE,
+  sliding_window_area = FALSE,
+  estimated_complex_MW = FALSE,
+  highlight = NULL,
+  highlight_col = NULL,
+  colour_by = "id",
+  monomer_MW = FALSE,
+  log = FALSE,
+  legend = TRUE,
+  PDF = FALSE,
+  aggregateReplicates = FALSE,
+  name = "Traces",
+  colorMap = NULL
+)
 }
 \arguments{
 \item{feature_table}{data.table}
@@ -29,7 +45,7 @@
 
 \item{apex}{logical true or false}
 
-\item{peak_area}{Logical if selected peak area should be highlighted.}
+\item{peak_area}{logical true or false}
 
 \item{sliding_window_area}{Logical if original sliding_window area should be highlighted}
 
@@ -41,8 +57,6 @@
 
 \item{colorMap}{named character vector containing valid color specifications for plotting.
 The names of the vector must correspond to the ids of the peptides to be plotted.}
-
-\item{peak_area}{logical true or false}
 }
 \description{
 plotFeatures.tracesList

@@ -22,7 +22,7 @@ best in terms of identifications while staying within a specified FDR cutoff.
 \examples{
 
 ## NOT RUN
-gridStats # see function \\code{\\link{estimateGridSearchDecoyFDR}} to see how to generate this object.
+gridStats # see function \code{\link{estimateGridSearchDecoyFDR}} to see how to generate this object.
 
 ## Pick best parameter set
 getBestParameterStats(gridStats)

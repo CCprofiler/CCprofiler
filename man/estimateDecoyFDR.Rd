@@ -4,8 +4,7 @@
 \alias{estimateDecoyFDR}
 \title{Estimate decoy based featureFinding FDR.}
 \usage{
-estimateDecoyFDR(features, FFT = 1, grid_search_params = NULL,
-  verbose = TRUE)
+estimateDecoyFDR(features, FFT = 1, grid_search_params = NULL, verbose = TRUE)
 }
 \arguments{
 \item{features}{data.table containing filtered complex feature results.}

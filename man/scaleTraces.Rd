@@ -4,8 +4,13 @@
 \alias{scaleTraces}
 \title{Normalize tracesList intensities to a common scale}
 \usage{
-scaleTraces(traces, design_matrix, common_scale_within = "Condition",
-  scaling_method = c("max", "median", "mean"), verbose = TRUE)
+scaleTraces(
+  traces,
+  design_matrix,
+  common_scale_within = "Condition",
+  scaling_method = c("max", "median", "mean"),
+  verbose = TRUE
+)
 }
 \arguments{
 \item{traces}{Object of class tracesList.}

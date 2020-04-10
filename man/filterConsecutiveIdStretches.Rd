@@ -4,8 +4,12 @@
 \alias{filterConsecutiveIdStretches}
 \title{Filter Consecutive Id Stretches in Chromatograms}
 \usage{
-filterConsecutiveIdStretches(traces, min_stretch_length = 3,
-  remove_empty = TRUE, ...)
+filterConsecutiveIdStretches(
+  traces,
+  min_stretch_length = 3,
+  remove_empty = TRUE,
+  ...
+)
 }
 \arguments{
 \item{traces}{An object of class traces.}

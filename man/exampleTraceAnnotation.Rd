@@ -4,7 +4,9 @@
 \name{exampleTraceAnnotation}
 \alias{exampleTraceAnnotation}
 \title{Examplary trace annotation table mapping ids in the proteomic data to Uniprot annotations}
-\format{An object of class \code{data.table} (inherits from \code{data.frame}) with 20114 rows and 8 columns.}
+\format{
+An object of class \code{data.table} (inherits from \code{data.frame}) with 20114 rows and 8 columns.
+}
 \usage{
 exampleTraceAnnotation
 }

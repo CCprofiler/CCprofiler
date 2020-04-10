@@ -4,7 +4,9 @@
 \name{examplePeptideTracesUnannotated}
 \alias{examplePeptideTracesUnannotated}
 \title{Examplary raw peptide level traces object before any annootation}
-\format{An object of class \code{traces} of length 4.}
+\format{
+An object of class \code{traces} of length 4.
+}
 \usage{
 examplePeptideTracesUnannotated
 }

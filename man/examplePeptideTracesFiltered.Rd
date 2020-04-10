@@ -4,7 +4,9 @@
 \name{examplePeptideTracesFiltered}
 \alias{examplePeptideTracesFiltered}
 \title{Examplary peptide level traces object after filtering}
-\format{An object of class \code{traces} of length 4.}
+\format{
+An object of class \code{traces} of length 4.
+}
 \usage{
 examplePeptideTracesFiltered
 }

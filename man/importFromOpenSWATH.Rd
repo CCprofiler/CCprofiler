@@ -4,9 +4,17 @@
 \alias{importFromOpenSWATH}
 \title{Import peptide profiles from an OpenSWATH experiment.}
 \usage{
-importFromOpenSWATH(data, annotation_table, rm_requantified = TRUE,
-  rm_decoys = FALSE, rm_nonProteotypic = TRUE, MS1Quant = FALSE,
-  proteogenomicsWF = FALSE, uniprot = TRUE, verbose = TRUE)
+importFromOpenSWATH(
+  data,
+  annotation_table,
+  rm_requantified = TRUE,
+  rm_decoys = FALSE,
+  rm_nonProteotypic = TRUE,
+  MS1Quant = FALSE,
+  proteogenomicsWF = FALSE,
+  uniprot = TRUE,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{data}{Quantitative MS data in form of OpenSWATH result file or R data.table.}

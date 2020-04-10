@@ -6,14 +6,31 @@
 \alias{normalizeToStandard.tracesList}
 \title{Normalize trace intensities to reference traces}
 \usage{
-normalizeToStandard(traces, standard_ids, method = "median",
-  filter_complete = TRUE, top_n = NULL)
+normalizeToStandard(
+  traces,
+  standard_ids,
+  method = "median",
+  filter_complete = TRUE,
+  top_n = NULL
+)
 
-\method{normalizeToStandard}{traces}(traces, standard_ids, method = "median",
-  filter_complete = TRUE, top_n = NULL, ...)
+\method{normalizeToStandard}{traces}(
+  traces,
+  standard_ids,
+  method = "median",
+  filter_complete = TRUE,
+  top_n = NULL,
+  ...
+)
 
-\method{normalizeToStandard}{tracesList}(tracesList, standard_ids,
-  method = "median", filter_complete = TRUE, top_n = NULL, ...)
+\method{normalizeToStandard}{tracesList}(
+  tracesList,
+  standard_ids,
+  method = "median",
+  filter_complete = TRUE,
+  top_n = NULL,
+  ...
+)
 }
 \arguments{
 \item{traces}{Object of class traces or tracesList.}

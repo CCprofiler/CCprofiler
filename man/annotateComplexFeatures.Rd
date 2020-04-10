@@ -5,8 +5,11 @@
 \title{A helper function to extend a list of complex features with additional
 information.}
 \usage{
-annotateComplexFeatures(traces.obj, complexFeatureStoichiometries,
-  complex.annotation)
+annotateComplexFeatures(
+  traces.obj,
+  complexFeatureStoichiometries,
+  complex.annotation
+)
 }
 \arguments{
 \item{traces.obj}{An object of type \code{traces.obj}.}

@@ -6,14 +6,26 @@
 \alias{findMissingValues.tracesList}
 \title{Find the position of missing values in a traces object}
 \usage{
-findMissingValues(traces, bound_left = 2, bound_right = 2,
-  consider_borders = TRUE)
+findMissingValues(
+  traces,
+  bound_left = 2,
+  bound_right = 2,
+  consider_borders = TRUE
+)
 
-\method{findMissingValues}{traces}(traces, bound_left = 2, bound_right = 2,
-  consider_borders = TRUE)
+\method{findMissingValues}{traces}(
+  traces,
+  bound_left = 2,
+  bound_right = 2,
+  consider_borders = TRUE
+)
 
-\method{findMissingValues}{tracesList}(tracesList, bound_left = 2,
-  bound_right = 2, consider_borders = TRUE)
+\method{findMissingValues}{tracesList}(
+  tracesList,
+  bound_left = 2,
+  bound_right = 2,
+  consider_borders = TRUE
+)
 }
 \arguments{
 \item{traces}{Object of class traces or tracesList.}
@@ -51,3 +63,4 @@ a specified number of non-zero neighbors to be classified as \code{NA}.
 tracesMiss <- findMissingValues(examplePeptideTraces)
 View(tracesMiss$traces)
 }
+\concept{imputation functions}

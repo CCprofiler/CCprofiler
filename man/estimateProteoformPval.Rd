@@ -6,19 +6,52 @@
 \alias{estimateProteoformPval.tracesList}
 \title{Estimate p-values of whether a gene is likely to have >1 proteoforms}
 \usage{
-estimateProteoformPval(traces, prot_names = NULL, adj.method = "fdr",
-  plot = FALSE, PDF = FALSE, name = "SplicePval", ...)
+estimateProteoformPval(
+  traces,
+  distr = "beta",
+  prot_names = NULL,
+  adj.method = "fdr",
+  plot = FALSE,
+  PDF = FALSE,
+  name = "SplicePval",
+  design_matrix = NULL,
+  min_sig = 2,
+  FDR_cutoff = 0.05,
+  ...
+)
 
-\method{estimateProteoformPval}{traces}(traces, prot_names = NULL,
-  adj.method = "fdr", plot = FALSE, PDF = FALSE, name = "SplicePval",
-  ...)
+\method{estimateProteoformPval}{traces}(
+  traces,
+  distr = "beta",
+  prot_names = NULL,
+  adj.method = "fdr",
+  plot = FALSE,
+  PDF = FALSE,
+  name = "SplicePval",
+  design_matrix = NULL,
+  min_sig = 2,
+  FDR_cutoff = 0.05,
+  ...
+)
 
-\method{estimateProteoformPval}{tracesList}(tracesList, prot_names = NULL,
-  adj.method = "fdr", plot = FALSE, PDF = FALSE, name = "SplicePval",
-  ...)
+\method{estimateProteoformPval}{tracesList}(
+  tracesList,
+  distr = "beta",
+  prot_names = NULL,
+  adj.method = "fdr",
+  plot = FALSE,
+  PDF = FALSE,
+  name = "SplicePval",
+  design_matrix = NULL,
+  min_sig = 2,
+  FDR_cutoff = 0.05,
+  ...
+)
 }
 \arguments{
 \item{traces}{Object of class traces or tracesList.}
+
+\item{distr}{Character string which distribution to fit. Default "beta".}
 
 \item{prot_names}{Vactor with protein names to use for fitting. Default NULL.}
 
@@ -32,10 +65,10 @@ Deafult is \code{FALSE}.}
 Deafult is \code{FALSE}.}
 
 \item{name}{Character string with name of the plot, only used if
-'\code{PDF=TRUE}.PDF file is saved under name.pdf. Default is "GammaFitted".}
+'\code{PDF=TRUE}.PDF file is saved under name.pdf. Default is "DistrFitted".}
 }
 \value{
-Fitted gamma distribution
+Fitted appropriate distribution. Default is gamma distribution.
 }
 \description{
 Estimate p-values of whether a gene is likely to have >1 proteoforms

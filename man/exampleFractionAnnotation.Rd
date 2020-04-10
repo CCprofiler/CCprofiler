@@ -4,7 +4,9 @@
 \name{exampleFractionAnnotation}
 \alias{exampleFractionAnnotation}
 \title{Examplary annotation table that maps filenames to chromatographic fractions}
-\format{An object of class \code{data.table} (inherits from \code{data.frame}) with 81 rows and 2 columns.}
+\format{
+An object of class \code{data.table} (inherits from \code{data.frame}) with 81 rows and 2 columns.
+}
 \usage{
 exampleFractionAnnotation
 }

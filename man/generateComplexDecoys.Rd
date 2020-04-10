@@ -4,9 +4,16 @@
 \alias{generateComplexDecoys}
 \title{Generate comlpex decoy-hypotheses}
 \usage{
-generateComplexDecoys(target_hypotheses, dist_info, min_distance = 2,
-  append = FALSE, seed = 123, parallelized = FALSE, n_cores = 1,
-  n_tries = 3)
+generateComplexDecoys(
+  target_hypotheses,
+  dist_info,
+  min_distance = 2,
+  append = FALSE,
+  seed = 123,
+  parallelized = FALSE,
+  n_cores = 1,
+  n_tries = 3
+)
 }
 \arguments{
 \item{target_hypotheses}{data.table in the format of complex hypotheses

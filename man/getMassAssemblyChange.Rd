@@ -4,13 +4,27 @@
 \alias{getMassAssemblyChange}
 \title{getMassAssemblyChange}
 \usage{
-getMassAssemblyChange(tracesList, design_matrix, quantLevel = "protein_id")
+getMassAssemblyChange(
+  tracesList,
+  design_matrix,
+  compare_between = "Condition",
+  quantLevel = "protein_id",
+  plot = FALSE,
+  PDF = FALSE,
+  name = "beta_pvalue_histogram"
+)
 }
 \arguments{
 \item{tracesList}{An object of type traces.list including assembled mass
 annotation as produced by \code{annotateMassDistribution}.}
 
 \item{design_matrix}{data.table, design matrix describing the architecture of the tracesList object.}
+
+\item{plot}{logical if plot should be created, default is FALSE.}
+
+\item{PDF}{logical if PDF should be created, default is FALSE.}
+
+\item{name}{character string specifying the name of output if PDF=TRUE, default is "beta_pvalue_histogram".}
 }
 \description{
 Estimates change of assembled vs. monomeric mass per id.

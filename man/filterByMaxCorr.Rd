@@ -7,14 +7,33 @@
 \title{Filter peptides for having
 at least one high correlating sibling peptide}
 \usage{
-filterByMaxCorr(traces, cutoff = 0.85, plot = FALSE, PDF = FALSE,
-  name = "maxCorrHist")
+filterByMaxCorr(
+  traces,
+  cutoff = 0.85,
+  plot = FALSE,
+  PDF = FALSE,
+  name = "maxCorrHist",
+  acrossConditions = TRUE
+)
 
-\method{filterByMaxCorr}{traces}(traces, cutoff = 0.85, plot = FALSE,
-  PDF = FALSE, name = "maxCorrHist", ...)
+\method{filterByMaxCorr}{traces}(
+  traces,
+  cutoff = 0.85,
+  plot = FALSE,
+  PDF = FALSE,
+  name = "maxCorrHist",
+  ...
+)
 
-\method{filterByMaxCorr}{tracesList}(tracesList, cutoff = 0.85,
-  plot = FALSE, PDF = FALSE, name = "maxCorrHist", ...)
+\method{filterByMaxCorr}{tracesList}(
+  tracesList,
+  cutoff = 0.85,
+  plot = FALSE,
+  PDF = FALSE,
+  name = "maxCorrHist",
+  acrossConditions = TRUE,
+  ...
+)
 }
 \arguments{
 \item{traces}{Object of class traces or tracesList.}
@@ -30,6 +49,10 @@ Deafult is \code{FALSE}.}
 
 \item{name}{Character string with name of the plot, only used if
 '\code{PDF=TRUE}.PDF file is saved under name.pdf. Default is "maxCorrHist".}
+
+\item{acrossConditions}{logical, if traces across replicates and conditions
+should be integrated for filtering to ensure minimal data loss.
+Deafult is \code{TRUE}.}
 }
 \value{
 Object of class traces filtered for peptide correlation.

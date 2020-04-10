@@ -4,8 +4,15 @@
 \alias{plotVolcano}
 \title{Volcano plot for differential expression of peptides, proteins or complexes between 2 conditions}
 \usage{
-plotVolcano(testResults, highlight = NULL, FC_cutoff = 2,
-  pBHadj_cutoff = 0.01, name = "volcanoPlot", PDF = FALSE)
+plotVolcano(
+  testResults,
+  highlight = NULL,
+  FC_cutoff = 2,
+  pBHadj_cutoff = 0.01,
+  name = "volcanoPlot",
+  PDF = FALSE,
+  level = c("feature", "global")
+)
 }
 \arguments{
 \item{testResults}{data.table, a data.table with test statistics.

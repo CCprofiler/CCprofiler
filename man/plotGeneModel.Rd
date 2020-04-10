@@ -4,8 +4,12 @@
 \alias{plotGeneModel}
 \title{Plot the known transcripts for a gene of interest}
 \usage{
-plotGeneModel(ensdb, geneId, filter = ~gene_id == geneId & tx_biotype ==
-  "protein_coding", highlight = NULL)
+plotGeneModel(
+  ensdb,
+  geneId,
+  filter = ~gene_id == geneId & tx_biotype == "protein_coding",
+  highlight = NULL
+)
 }
 \arguments{
 \item{ensdb}{EnsDb object or path to EnsDb database. If not NULL, all transcripts

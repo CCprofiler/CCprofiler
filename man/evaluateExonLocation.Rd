@@ -4,7 +4,7 @@
 \alias{evaluateExonLocation}
 \title{Evaluate if proteoforms agree with genomic information of exons}
 \usage{
-evaluateExonLocation(traces, adj.method = "fdr")
+evaluateExonLocation(traces, adj.method = "fdr", optional_filter = F)
 }
 \arguments{
 \item{traces}{Object of class traces or tracesList.}

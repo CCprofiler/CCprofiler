@@ -4,12 +4,29 @@
 \alias{plotFeatures}
 \title{#' Plot the result of the sliding window algorithm.}
 \usage{
-plotFeatures(feature_table, traces, feature_id, design_matrix = NULL,
-  calibration = NULL, annotation_label = "protein_id", onlyBest = TRUE,
-  apex = TRUE, peak_area = FALSE, sliding_window_area = FALSE,
-  estimated_complex_MW = FALSE, highlight = NULL, highlight_col = NULL,
-  colour_by = "id", monomer_MW = FALSE, log = FALSE, legend = TRUE,
-  PDF = FALSE, name = "Traces", colorMap = NULL)
+plotFeatures(
+  feature_table,
+  traces,
+  feature_id,
+  design_matrix = NULL,
+  calibration = NULL,
+  annotation_label = "protein_id",
+  onlyBest = TRUE,
+  apex = TRUE,
+  peak_area = FALSE,
+  sliding_window_area = FALSE,
+  estimated_complex_MW = FALSE,
+  highlight = NULL,
+  highlight_col = NULL,
+  colour_by = "id",
+  monomer_MW = FALSE,
+  log = FALSE,
+  legend = TRUE,
+  PDF = FALSE,
+  aggregateReplicates = FALSE,
+  name = "Traces",
+  colorMap = NULL
+)
 }
 \arguments{
 \item{feature_table}{data.table}

@@ -4,10 +4,16 @@
 \alias{plotIdFDRspace}
 \title{Plot FDR gridsearch}
 \usage{
-plotIdFDRspace(grid_search_stats, best_parameters, level = "complex",
-  id_level = "TP", FDR_cutoff = 0.1,
-  colour_parameter = "min_feature_completeness", PDF = TRUE,
-  name = "ID_FDR_plot.pdf")
+plotIdFDRspace(
+  grid_search_stats,
+  best_parameters,
+  level = "complex",
+  id_level = "TP",
+  FDR_cutoff = 0.1,
+  colour_parameter = "min_feature_completeness",
+  PDF = TRUE,
+  name = "ID_FDR_plot.pdf"
+)
 }
 \arguments{
 \item{grid_search_stats}{Table of grid search statistics
@@ -40,7 +46,7 @@ Plot the result of a grid search depending on a specified parameter.
 \examples{
 
 ## NOT RUN
-gridStats # see function \\code{\\link{estimateGridSearchDecoyFDR}} to see how to generate this object.
+gridStats # see function \code{\link{estimateGridSearchDecoyFDR}} to see how to generate this object.
 
 ## Plot the result of the grid search depending on the within feature correlation
 plotIdFDRspace(gridStats, PDF = F, colour_parameter = "min_peak_corr")

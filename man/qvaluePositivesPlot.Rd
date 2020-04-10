@@ -4,8 +4,12 @@
 \alias{qvaluePositivesPlot}
 \title{qvaluePositivesPlot}
 \usage{
-qvaluePositivesPlot(features, plot = TRUE, PDF = FALSE,
-  name = "qvaluePositivesPlot")
+qvaluePositivesPlot(
+  features,
+  plot = TRUE,
+  PDF = FALSE,
+  name = "qvaluePositivesPlot"
+)
 }
 \arguments{
 \item{features}{data.table with complex or protein features including qvalues}

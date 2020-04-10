@@ -2,19 +2,17 @@
 % Please edit documentation in R/proteoformAnnotation.R
 \name{calculateMinCorr}
 \alias{calculateMinCorr}
-\alias{calculateMinCorr.traces}
-\alias{calculateMinCorr.tracesList}
 \title{Calculate minimum correlation of each peptide
 to all of its sibling peptides}
 \usage{
-calculateMinCorr(traces, plot = FALSE, PDF = FALSE, name = "minCorrHist",
-  ...)
-
-\method{calculateMinCorr}{traces}(traces, plot = FALSE, PDF = FALSE,
-  name = "minCorrHist", ...)
-
-\method{calculateMinCorr}{tracesList}(tracesList, plot = FALSE, PDF = FALSE,
-  name = "minCorrHist", ...)
+calculateMinCorr(
+  traces,
+  FeatureFinding = NULL,
+  plot = FALSE,
+  PDF = FALSE,
+  name = "minCorrHist",
+  ...
+)
 }
 \arguments{
 \item{traces}{Object of class traces or tracesList.}
@@ -35,12 +33,3 @@ Object of class traces with calculated minimum.
 Calculate minimum correlation of each peptide
 to all of its sibling peptides
 }
-\section{Methods (by class)}{
-\itemize{
-\item \code{traces}: Calculate minimum correlation of each peptide
-to all of its sibling peptides
-
-\item \code{tracesList}: Calculate minimum correlation of each peptide
-to all of its sibling peptides
-}}
-

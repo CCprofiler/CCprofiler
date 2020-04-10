@@ -4,8 +4,13 @@
 \alias{qvaluePositivesPlotGrid}
 \title{qvaluePositivesPlotGrid}
 \usage{
-qvaluePositivesPlotGrid(featuresGrid, plot = TRUE, PDF = FALSE,
-  name = "qvaluePositivesPlotGrid", colour_parameter = "corr")
+qvaluePositivesPlotGrid(
+  featuresGrid,
+  plot = TRUE,
+  PDF = FALSE,
+  name = "qvaluePositivesPlotGrid",
+  colour_parameter = "corr"
+)
 }
 \arguments{
 \item{featuresGrid}{list of complex or protein feature data.tables including qvalues}

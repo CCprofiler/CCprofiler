@@ -4,9 +4,19 @@
 \alias{plot.traces}
 \title{Plot traces}
 \usage{
-\method{plot}{traces}(traces, log = FALSE, legend = TRUE, PDF = FALSE,
-  name = "Traces", plot = TRUE, highlight = NULL, highlight_col = NULL,
-  colorMap = NULL)
+plot.traces(
+  traces,
+  log = FALSE,
+  legend = TRUE,
+  PDF = FALSE,
+  name = "Traces",
+  plot = TRUE,
+  colour_by = "id",
+  highlight = NULL,
+  highlight_col = NULL,
+  colorMap = NULL,
+  monomer_MW = TRUE
+)
 }
 \arguments{
 \item{traces}{Object of class traces.}
@@ -23,6 +33,8 @@ PDF file is saved under name.pdf. Default is "Traces".}
 
 \item{colorMap}{named character vector containing valid color specifications for plotting.
 The names of the vector must correspond to the ids of the peptides to be plotted.}
+
+\item{monomer_MW}{Logical if monomer MWs should be indicated}
 }
 \description{
 Plot all chromatograms in a traces object. Most generic plotting function.

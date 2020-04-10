@@ -4,12 +4,16 @@
 \alias{plotPeptideCluster}
 \title{Plot peptide clusters by relative sequence position}
 \usage{
-plotPeptideCluster(traces, protein)
+plotPeptideCluster(traces, protein, PDF = FALSE, closeGaps = FALSE)
 }
 \arguments{
 \item{traces}{Object of class traces or tracesList.}
 
 \item{protein}{Character string of protein_id to plot.}
+
+\item{PDF}{logical if PDF should written, default=FALSE.}
+
+\item{closeGaps}{logical position gaps should be ignored, default=FALSE.}
 }
 \value{
 plot

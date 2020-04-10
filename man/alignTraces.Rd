@@ -4,9 +4,16 @@
 \alias{alignTraces}
 \title{Get the alignment shifts in tracesList object}
 \usage{
-alignTraces(tracesList, alignment_order = seq_along(tracesList),
-  plot = TRUE, PDF = FALSE, min_lag = -5, max_lag = 5,
-  name = "AlignmentSummary.pdf", ...)
+alignTraces(
+  tracesList,
+  alignment_order = seq_along(tracesList),
+  plot = TRUE,
+  PDF = FALSE,
+  min_lag = -5,
+  max_lag = 5,
+  name = "AlignmentSummary.pdf",
+  ...
+)
 }
 \arguments{
 \item{tracesList}{Object of class tracesList to align.}

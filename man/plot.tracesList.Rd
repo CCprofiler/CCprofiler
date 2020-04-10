@@ -4,11 +4,23 @@
 \alias{plot.tracesList}
 \title{Plot traces}
 \usage{
-\method{plot}{tracesList}(traces, design_matrix = NULL,
-  collapse_conditions = FALSE, log = FALSE, legend = TRUE, PDF = FALSE,
-  name = "Traces", plot = TRUE, isoformAnnotation = FALSE,
-  colour_by = "id", highlight = NULL, highlight_col = NULL,
-  colorMap = NULL)
+plot.tracesList(
+  traces,
+  design_matrix = NULL,
+  collapse_conditions = FALSE,
+  aggregateReplicates = FALSE,
+  log = FALSE,
+  legend = TRUE,
+  PDF = FALSE,
+  name = "Traces",
+  plot = TRUE,
+  isoformAnnotation = FALSE,
+  colour_by = "id",
+  highlight = NULL,
+  highlight_col = NULL,
+  colorMap = NULL,
+  monomer_MW = TRUE
+)
 }
 \arguments{
 \item{traces}{Object of class traces.}
@@ -38,6 +50,8 @@ Default is \code{NULL}.}
 
 \item{colorMap}{named character vector containing valid color specifications for plotting.
 The names of the vector must correspond to the ids of the peptides to be plotted.}
+
+\item{monomer_MW}{Logical if monomer MWs should be indicated}
 }
 \description{
 Plot all chromatograms in a traces object. Most generic plotting function.

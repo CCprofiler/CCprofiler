@@ -4,11 +4,15 @@
 \alias{getBestParameterStats_constraintFDR}
 \title{getBestParameterStats_constraintFDR}
 \usage{
-getBestParameterStats_constraintFDR(complex_feature_grid_filtered,
-  complex_hypotheses, n_subsets = 3, FDR_cutoff = 0.1,
+getBestParameterStats_constraintFDR(
+  complex_feature_grid_filtered,
+  complex_hypotheses,
+  n_subsets = 3,
+  FDR_cutoff = 0.1,
   grid_search_params = c("corr", "window", "rt_height", "smoothing_length",
-  "min_feature_completeness", "min_hypothesis_completeness", "min_subunits",
-  "min_peak_corr", "min_monomer_distance_factor"))
+    "min_feature_completeness", "min_hypothesis_completeness", "min_subunits",
+    "min_peak_corr", "min_monomer_distance_factor")
+)
 }
 \arguments{
 \item{complex_feature_grid_filtered}{list with all features from grid search.}

@@ -6,20 +6,35 @@
 \alias{annotateTraces.tracesList}
 \title{Annotate traces object}
 \usage{
-annotateTraces(traces, trace_annotation, traces_id_column = "protein_id",
+annotateTraces(
+  traces,
+  trace_annotation,
+  traces_id_column = "protein_id",
   trace_annotation_id_column = "Entry",
-  trace_annotation_mass_column = "Mass", uniprot_mass_format = TRUE,
-  replace_whitespace = TRUE)
+  trace_annotation_mass_column = "Mass",
+  uniprot_mass_format = TRUE,
+  replace_whitespace = TRUE
+)
 
-\method{annotateTraces}{traces}(traces, trace_annotation,
-  traces_id_column = "protein_id", trace_annotation_id_column = "Entry",
-  trace_annotation_mass_column = "Mass", uniprot_mass_format = TRUE,
-  replace_whitespace = TRUE)
+\method{annotateTraces}{traces}(
+  traces,
+  trace_annotation,
+  traces_id_column = "protein_id",
+  trace_annotation_id_column = "Entry",
+  trace_annotation_mass_column = "Mass",
+  uniprot_mass_format = TRUE,
+  replace_whitespace = TRUE
+)
 
-\method{annotateTraces}{tracesList}(traces, trace_annotation,
-  traces_id_column = "protein_id", trace_annotation_id_column = "Entry",
-  trace_annotation_mass_column = "Mass", uniprot_mass_format = TRUE,
-  replace_whitespace = TRUE)
+\method{annotateTraces}{tracesList}(
+  traces,
+  trace_annotation,
+  traces_id_column = "protein_id",
+  trace_annotation_id_column = "Entry",
+  trace_annotation_mass_column = "Mass",
+  uniprot_mass_format = TRUE,
+  replace_whitespace = TRUE
+)
 }
 \arguments{
 \item{traces}{Object of class traces.}

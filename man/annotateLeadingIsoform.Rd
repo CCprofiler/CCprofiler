@@ -6,14 +6,23 @@
 \alias{annotateLeadingIsoform.traces}
 \title{Find the leading Isoform for each peptide}
 \usage{
-annotateLeadingIsoform(traces, isoform_col = "isoform_id",
-  output_col = "LeadingIsoform")
+annotateLeadingIsoform(
+  traces,
+  isoform_col = "isoform_id",
+  output_col = "LeadingIsoform"
+)
 
-\method{annotateLeadingIsoform}{tracesList}(tracesList,
-  isoform_col = "isoform_id", output_col = "LeadingIsoform")
+\method{annotateLeadingIsoform}{tracesList}(
+  tracesList,
+  isoform_col = "isoform_id",
+  output_col = "LeadingIsoform"
+)
 
-\method{annotateLeadingIsoform}{traces}(traces, isoform_col = "isoform_id",
-  output_col = "LeadingIsoform")
+\method{annotateLeadingIsoform}{traces}(
+  traces,
+  isoform_col = "isoform_id",
+  output_col = "LeadingIsoform"
+)
 }
 \arguments{
 \item{traces}{Object of class tracesList}

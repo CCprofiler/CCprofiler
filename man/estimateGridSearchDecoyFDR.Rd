@@ -4,10 +4,12 @@
 \alias{estimateGridSearchDecoyFDR}
 \title{Estimate feature grid search FDR}
 \usage{
-estimateGridSearchDecoyFDR(complex_features_list,
+estimateGridSearchDecoyFDR(
+  complex_features_list,
   grid_search_params = c("corr", "window", "rt_height", "smoothing_length",
-  "min_feature_completeness", "min_hypothesis_completeness", "min_subunits",
-  "min_peak_corr", "min_monomer_distance_factor"))
+    "min_feature_completeness", "min_hypothesis_completeness", "min_subunits",
+    "min_peak_corr", "min_monomer_distance_factor")
+)
 }
 \arguments{
 \item{complex_features_list}{data.table containing filtered complex feature results.}

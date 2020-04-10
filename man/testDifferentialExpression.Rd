@@ -4,9 +4,12 @@
 \alias{testDifferentialExpression}
 \title{Test differential expression of peptides or proteins between 2 conditions}
 \usage{
-testDifferentialExpression(featureVals, compare_between = "Condition",
+testDifferentialExpression(
+  featureVals,
+  compare_between = "Condition",
   level = c("protein", "proteoform", "peptide", "complex"),
-  measuredOnly = TRUE)
+  measuredOnly = TRUE
+)
 }
 \arguments{
 \item{featureVals}{data.table, a long-format table of intensity values within feature boundaries.

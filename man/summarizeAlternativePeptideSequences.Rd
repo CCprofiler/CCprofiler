@@ -6,14 +6,26 @@
 \alias{summarizeAlternativePeptideSequences.tracesList}
 \title{Summary of alternative peptide sequences}
 \usage{
-summarizeAlternativePeptideSequences(traces, topN = 1,
-  position = "PeptidePositionStart", verbose = TRUE)
+summarizeAlternativePeptideSequences(
+  traces,
+  topN = 1,
+  position = "PeptidePositionStart",
+  verbose = TRUE
+)
 
-\method{summarizeAlternativePeptideSequences}{traces}(traces, topN = 1,
-  position = "PeptidePositionStart", verbose = TRUE)
+\method{summarizeAlternativePeptideSequences}{traces}(
+  traces,
+  topN = 1,
+  position = "PeptidePositionStart",
+  verbose = TRUE
+)
 
-\method{summarizeAlternativePeptideSequences}{tracesList}(tracesList,
-  topN = 1, position = "PeptidePositionStart", verbose = TRUE)
+\method{summarizeAlternativePeptideSequences}{tracesList}(
+  tracesList,
+  topN = 1,
+  position = "PeptidePositionStart",
+  verbose = TRUE
+)
 }
 \arguments{
 \item{traces}{An object of type traces, trace_type must be peptide.}

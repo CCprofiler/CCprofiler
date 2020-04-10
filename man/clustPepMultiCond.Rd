@@ -4,10 +4,19 @@
 \alias{clustPepMultiCond}
 \title{Cluster peptides of gene to unique proteoforms across conditions}
 \usage{
-clustPepMultiCond(tracesList, tracesListRaw = NULL, method = c("complete",
-  "single"), clusterH = 0.5, clusterN = NULL, index = "silhouette",
-  nFactorAnalysis = NULL, plot = FALSE, PDF = FALSE,
-  name = "hclustMultiCond", ...)
+clustPepMultiCond(
+  tracesList,
+  tracesListRaw = NULL,
+  method = c("complete", "single"),
+  clusterH = 0.5,
+  clusterN = NULL,
+  index = "silhouette",
+  nFactorAnalysis = NULL,
+  plot = FALSE,
+  PDF = FALSE,
+  name = "hclustMultiCond",
+  ...
+)
 }
 \arguments{
 \item{tracesList}{Object of class tracesList.}

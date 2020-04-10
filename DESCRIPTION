@@ -22,7 +22,7 @@ Depends:
     matrixStats,
     fitdistrplus,
     NbClust
-RoxygenNote: 6.0.1
+RoxygenNote: 7.1.0
 Imports:
     igraph
 Suggests:

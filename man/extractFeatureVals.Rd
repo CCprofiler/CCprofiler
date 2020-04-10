@@ -6,18 +6,41 @@
 \alias{extractFeatureVals.tracesList}
 \title{Extract intensity, correlation etc. within feature boundaries}
 \usage{
-extractFeatureVals(traces, features, perturb_cutoff = "5\%", verbose = TRUE,
-  extract = "subunits_detected", imputeZero = FALSE, fill = FALSE,
-  minValues = NULL, ...)
+extractFeatureVals(
+  traces,
+  features,
+  perturb_cutoff = "5\%",
+  verbose = TRUE,
+  extract = "subunits_detected",
+  imputeZero = FALSE,
+  fill = FALSE,
+  minValues = NULL,
+  ...
+)
 
-\method{extractFeatureVals}{traces}(traces, features, perturb_cutoff = "5\%",
-  verbose = TRUE, extract = "subunits_detected", imputeZero = FALSE,
-  minValues = NULL, ...)
+\method{extractFeatureVals}{traces}(
+  traces,
+  features,
+  perturb_cutoff = "5\%",
+  verbose = TRUE,
+  extract = "subunits_detected",
+  imputeZero = FALSE,
+  minValues = NULL,
+  ...
+)
 
-\method{extractFeatureVals}{tracesList}(traces, features,
-  perturb_cutoff = "5\%", verbose = TRUE, design_matrix = NULL,
-  extract = "subunits_detected", imputeZero = FALSE, fill = FALSE,
-  minValues = NULL, ...)
+\method{extractFeatureVals}{tracesList}(
+  traces,
+  features,
+  perturb_cutoff = "5\%",
+  verbose = TRUE,
+  design_matrix = NULL,
+  extract = "subunits_detected",
+  imputeZero = FALSE,
+  fill = FALSE,
+  minValues = NULL,
+  ...
+)
 }
 \arguments{
 \item{traces}{object of class traces}

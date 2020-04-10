@@ -10,8 +10,7 @@ imputeMissingVals(traces, method = c("mean", "spline"))
 
 \method{imputeMissingVals}{traces}(traces, method = c("mean", "spline"))
 
-\method{imputeMissingVals}{tracesList}(tracesList, method = c("mean",
-  "spline"))
+\method{imputeMissingVals}{tracesList}(tracesList, method = c("mean", "spline"))
 }
 \arguments{
 \item{traces}{Object of class traces or tracesList.}

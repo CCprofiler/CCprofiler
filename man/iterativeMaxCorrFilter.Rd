@@ -6,14 +6,31 @@
 \alias{iterativeMaxCorrFilter.tracesList}
 \title{Filter iteratively by maxCorr until all outliers are removed}
 \usage{
-iterativeMaxCorrFilter(traces, cutoff = 0.85, plot = FALSE, PDF = FALSE,
-  name = "maxCorrHist")
+iterativeMaxCorrFilter(
+  traces,
+  cutoff = 0.85,
+  plot = FALSE,
+  PDF = FALSE,
+  name = "maxCorrHist"
+)
 
-\method{iterativeMaxCorrFilter}{traces}(traces, cutoff = 0.85, plot = FALSE,
-  PDF = FALSE, name = "maxCorrHist", ...)
+\method{iterativeMaxCorrFilter}{traces}(
+  traces,
+  cutoff = 0.85,
+  plot = FALSE,
+  PDF = FALSE,
+  name = "maxCorrHist",
+  ...
+)
 
-\method{iterativeMaxCorrFilter}{tracesList}(traces, cutoff = 0.85,
-  plot = FALSE, PDF = FALSE, name = "maxCorrHist", ...)
+\method{iterativeMaxCorrFilter}{tracesList}(
+  traces,
+  cutoff = 0.85,
+  plot = FALSE,
+  PDF = FALSE,
+  name = "maxCorrHist",
+  ...
+)
 }
 \arguments{
 \item{traces}{Object of class traces or tracesList.}

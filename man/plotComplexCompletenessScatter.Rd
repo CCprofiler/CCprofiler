@@ -4,8 +4,11 @@
 \alias{plotComplexCompletenessScatter}
 \title{Scatter plot of complex completeness}
 \usage{
-plotComplexCompletenessScatter(complexFeatures, PDF = FALSE,
-  name = "complex_completeness_scatter")
+plotComplexCompletenessScatter(
+  complexFeatures,
+  PDF = FALSE,
+  name = "complex_completeness_scatter"
+)
 }
 \arguments{
 \item{complexFeatures}{data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}}

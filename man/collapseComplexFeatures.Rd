@@ -4,8 +4,11 @@
 \alias{collapseComplexFeatures}
 \title{Collapse detected complex fetures by common apex and subunits.}
 \usage{
-collapseComplexFeatures(complexFeature = complexFeaturesPP, rt_height,
-  collapse_method)
+collapseComplexFeatures(
+  complexFeature = complexFeaturesPP,
+  rt_height,
+  collapse_method
+)
 }
 \arguments{
 \item{complexFeature}{Object of class ComplexFeaturePP}

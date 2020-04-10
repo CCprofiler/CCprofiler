@@ -4,7 +4,9 @@
 \name{exampleProteinFeatures}
 \alias{exampleProteinFeatures}
 \title{Examplary output of the \code{findProteinFeatures} function}
-\format{An object of class \code{data.table} (inherits from \code{data.frame}) with 461 rows and 16 columns.}
+\format{
+An object of class \code{data.table} (inherits from \code{data.frame}) with 461 rows and 16 columns.
+}
 \usage{
 exampleProteinFeatures
 }

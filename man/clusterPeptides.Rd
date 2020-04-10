@@ -6,32 +6,38 @@
 \alias{clusterPeptides.tracesList}
 \title{Cluster peptides of gene to unique proteoforms}
 \usage{
-clusterPeptides(traces, method = c("complete", "single"), clusterH = 0.5,
-  clusterN = NULL, index = "silhouette", nFactorAnalysis = NULL,
-  plot = FALSE, PDF = FALSE, name = "hclust", ...)
+clusterPeptides(
+  traces,
+  method = c("complete", "single", "average"),
+  plot = FALSE,
+  PDF = FALSE,
+  name = "hclust",
+  ...
+)
 
-\method{clusterPeptides}{traces}(traces, method = c("complete", "single"),
-  clusterH = 0.5, clusterN = NULL, index = "silhouette",
-  nFactorAnalysis = NULL, plot = FALSE, PDF = FALSE, name = "hclust",
-  ...)
+\method{clusterPeptides}{traces}(
+  traces,
+  method = c("complete", "single", "average"),
+  plot = FALSE,
+  PDF = FALSE,
+  name = "hclust",
+  ...
+)
 
-\method{clusterPeptides}{tracesList}(tracesList, method = c("complete",
-  "single"), clusterH = 0.5, clusterN = NULL, index = "silhouette",
-  nFactorAnalysis = NULL, plot = FALSE, PDF = FALSE, name = "hclust",
-  ...)
+\method{clusterPeptides}{tracesList}(
+  traces,
+  method = c("complete", "single", "average"),
+  plot = FALSE,
+  PDF = FALSE,
+  name = "hclust",
+  ...
+)
 }
 \arguments{
 \item{traces}{Object of class traces or tracesList.}
 
 \item{method}{Character string defining method for clustering
 Default is "complete".}
-
-\item{clusterH}{Numeric Cluster hight for cutree. Default is 0.5.}
-
-\item{clusterN}{Integer Number of clusters. Default is NULL.}
-
-\item{index}{Character string for method of cluster number estimation
-Default is "silhouette".}
 
 \item{plot}{logical,wether to print SibPepCorr density plot to R console.
 Deafult is \code{FALSE}.}
@@ -41,11 +47,9 @@ Deafult is \code{FALSE}.}
 
 \item{name}{Character string with name of the plot, only used if
 '\code{PDF=TRUE}.PDF file is saved under name.pdf. Default is "hclust".}
-
-\item{traces}{Object of class traces or tracesList.}
 }
 \value{
-Object of class traces with proteoform annotation
+List including hclust objects for each protein.
 
 Object of class traces with proteoform annotation
 }

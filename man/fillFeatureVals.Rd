@@ -4,16 +4,15 @@
 \alias{fillFeatureVals}
 \title{Fill traceVals for all Samples}
 \usage{
-fillFeatureVals(featureVals, design_matrix, perturb_cutoff = "5\%")
+fillFeatureVals(featureVals, tracesList, design_matrix)
 }
 \arguments{
 \item{featureVals}{data.table, a long-format table of intensity values within feature boundaries.
 A featureVals table can be produced with \code{extractFeatureVals}.}
 
-\item{design_matrix}{data.table, design matrix describing the architecture of the tracesList object.}
+\item{tracesList}{object of class tracesList}
 
-\item{perturb_cutoff}{Character string or numeric, the quantile of values that noise is sampled from.
-Noise needs to be imputed to calculate the correlations.}
+\item{design_matrix}{data.table, design matrix describing the architecture of the tracesList object.}
 }
 \value{
 Long format table containing filled feature values.

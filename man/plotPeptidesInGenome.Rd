@@ -4,8 +4,15 @@
 \alias{plotPeptidesInGenome}
 \title{Plot peptides in their genomic context}
 \usage{
-plotPeptidesInGenome(traces, geneId, ensdb = NULL, colorMap = NULL,
-  highlight = NULL, highligt_detected_transcripts = TRUE, ...)
+plotPeptidesInGenome(
+  traces,
+  geneId,
+  ensdb = NULL,
+  colorMap = NULL,
+  highlight = NULL,
+  highligt_detected_transcripts = TRUE,
+  ...
+)
 }
 \arguments{
 \item{traces}{Object of class traces with an additional item =genomic_coord=}

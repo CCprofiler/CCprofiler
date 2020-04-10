@@ -6,14 +6,23 @@
 \alias{plotRepPepCorrDensities.tracesList}
 \title{plot RepPepCorrDensities}
 \usage{
-plotRepPepCorrDensities(traces, PDF = FALSE,
-  name = "ReplicatePeptideCorrelationDensity")
+plotRepPepCorrDensities(
+  traces,
+  PDF = FALSE,
+  name = "ReplicatePeptideCorrelationDensity"
+)
 
-\method{plotRepPepCorrDensities}{traces}(traces, PDF = FALSE,
-  name = "ReplicatePeptideCorrelationDensity")
+\method{plotRepPepCorrDensities}{traces}(
+  traces,
+  PDF = FALSE,
+  name = "ReplicatePeptideCorrelationDensity"
+)
 
-\method{plotRepPepCorrDensities}{tracesList}(traces, PDF = FALSE,
-  name = "ReplicatePeptideCorrelationDensity")
+\method{plotRepPepCorrDensities}{tracesList}(
+  traces,
+  PDF = FALSE,
+  name = "ReplicatePeptideCorrelationDensity"
+)
 }
 \arguments{
 \item{traces}{An object of type traces.}

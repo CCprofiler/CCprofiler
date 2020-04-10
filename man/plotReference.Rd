@@ -4,8 +4,16 @@
 \alias{plotReference}
 \title{Plot a comparison of the intensities in different samples}
 \usage{
-plotReference(traces, design_matrix, ref_id = "P00722", log = F,
-  PDF = TRUE, legend = TRUE, average_int = "median", plot = TRUE)
+plotReference(
+  traces,
+  design_matrix,
+  ref_id = "P00722",
+  log = F,
+  PDF = TRUE,
+  legend = TRUE,
+  average_int = "median",
+  plot = TRUE
+)
 }
 \arguments{
 \item{traces}{Object of class tracesList.}

@@ -6,8 +6,13 @@
 sliding a window across the SEC dimension. Within each window proteins
 with traces that correlate well are clustered together.}
 \usage{
-findComplexFeaturesSW(trace.mat, corr.cutoff, window.size, with.plot = F,
-  min.sec = 1)
+findComplexFeaturesSW(
+  trace.mat,
+  corr.cutoff,
+  window.size,
+  with.plot = F,
+  min.sec = 1
+)
 }
 \arguments{
 \item{trace.mat}{A matrix of all traces in a complex hypothesis with small perturbations

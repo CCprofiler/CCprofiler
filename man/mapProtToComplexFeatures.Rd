@@ -4,8 +4,14 @@
 \alias{mapProtToComplexFeatures}
 \title{Map protein features to complex features}
 \usage{
-mapProtToComplexFeatures(proteinFeatures, complexFeatures,
-  prot_id = "protein_id", max_apex_dist = 2, plot = F, PDF = F)
+mapProtToComplexFeatures(
+  proteinFeatures,
+  complexFeatures,
+  prot_id = "protein_id",
+  max_apex_dist = 2,
+  plot = F,
+  PDF = F
+)
 }
 \arguments{
 \item{proteinFeatures}{data.table with protein co-elution features in the

@@ -4,8 +4,13 @@
 \alias{calculateQvalue}
 \title{Calculate q-values from coelution score for all detected features.}
 \usage{
-calculateQvalue(features, lambda = 0.5, plot = TRUE, PDF = FALSE,
-  name = "q_value_stats")
+calculateQvalue(
+  features,
+  lambda = 0.5,
+  plot = TRUE,
+  PDF = FALSE,
+  name = "q_value_stats"
+)
 }
 \arguments{
 \item{features}{data.table with complex or protein features}

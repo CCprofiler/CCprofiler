@@ -4,8 +4,17 @@
 \alias{runSlidingWindow}
 \title{runSlidingWindow function}
 \usage{
-runSlidingWindow(complex.id, complex_hypothesis, traces, traces.imputed,
-  corr_cutoff, window_size, collapse_method, rt_height, smoothing_length)
+runSlidingWindow(
+  complex.id,
+  complex_hypothesis,
+  traces,
+  traces.imputed,
+  corr_cutoff,
+  window_size,
+  collapse_method,
+  rt_height,
+  smoothing_length
+)
 }
 \arguments{
 \item{complex.id}{chracter string}

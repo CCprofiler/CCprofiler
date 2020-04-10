@@ -4,10 +4,15 @@
 \alias{filterGridSearchResults}
 \title{Perform complex feature grid search filter}
 \usage{
-filterGridSearchResults(grid_search_results, peak_corr_cutoffs = c(0.5, 0.75,
-  0.9), feature_completeness_cutoffs = c(0, 0.5, 1),
-  hypothesis_completeness_cutoffs = c(0.5, 1), n_subunits_cutoffs = c(2, 3,
-  4), monomer_distance_cutoffs = c(1, 2), remove_decoys = FALSE)
+filterGridSearchResults(
+  grid_search_results,
+  peak_corr_cutoffs = c(0.5, 0.75, 0.9),
+  feature_completeness_cutoffs = c(0, 0.5, 1),
+  hypothesis_completeness_cutoffs = c(0.5, 1),
+  n_subunits_cutoffs = c(2, 3, 4),
+  monomer_distance_cutoffs = c(1, 2),
+  remove_decoys = FALSE
+)
 }
 \arguments{
 \item{grid_search_results}{List containing result tables from a feature finding grid search.}

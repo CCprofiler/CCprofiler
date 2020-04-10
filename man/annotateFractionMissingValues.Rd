@@ -4,8 +4,12 @@
 \alias{annotateFractionMissingValues}
 \title{Calculates and annotates the number of missing values in every fraction}
 \usage{
-annotateFractionMissingValues(traces, bound_left = 2, bound_right = 2,
-  consider_borders = T)
+annotateFractionMissingValues(
+  traces,
+  bound_left = 2,
+  bound_right = 2,
+  consider_borders = T
+)
 }
 \description{
 Calculates and annotates the number of missing values in every fraction

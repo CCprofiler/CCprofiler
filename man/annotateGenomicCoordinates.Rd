@@ -6,20 +6,26 @@
 \alias{annotateGenomicCoordinates.traces}
 \title{Annotate the genomic position of peptides in traces}
 \usage{
-annotateGenomicCoordinates(traces,
-  db = system.file("extdata/EnsDb.Hsapiens.v86.sqlite", package =
-  "EnsDb.Hsapiens.v86"), proteinIdCol = "LeadingEnsemblProtein",
-  verbose = F)
+annotateGenomicCoordinates(
+  traces,
+  db = system.file("extdata/EnsDb.Hsapiens.v86.sqlite", package = "EnsDb.Hsapiens.v86"),
+  proteinIdCol = "LeadingEnsemblProtein",
+  verbose = F
+)
 
-\method{annotateGenomicCoordinates}{tracesList}(tracesList,
-  db = system.file("extdata/EnsDb.Hsapiens.v86.sqlite", package =
-  "EnsDb.Hsapiens.v86"), proteinIdCol = "LeadingEnsemblProtein",
-  verbose = F)
+\method{annotateGenomicCoordinates}{tracesList}(
+  tracesList,
+  db = system.file("extdata/EnsDb.Hsapiens.v86.sqlite", package = "EnsDb.Hsapiens.v86"),
+  proteinIdCol = "LeadingEnsemblProtein",
+  verbose = F
+)
 
-\method{annotateGenomicCoordinates}{traces}(traces,
-  db = system.file("extdata/EnsDb.Hsapiens.v86.sqlite", package =
-  "EnsDb.Hsapiens.v86"), proteinIdCol = "LeadingEnsemblProtein",
-  verbose = F)
+\method{annotateGenomicCoordinates}{traces}(
+  traces,
+  db = system.file("extdata/EnsDb.Hsapiens.v86.sqlite", package = "EnsDb.Hsapiens.v86"),
+  proteinIdCol = "LeadingEnsemblProtein",
+  verbose = F
+)
 }
 \arguments{
 \item{traces}{Object of class traces with annotated relative peptide positions
