@@ -31,8 +31,10 @@ Imports:
     ensembldb,
     evobiR,
     limma,
-    preprocessCore
-Suggests: 
+    preprocessCore,
+    seqinr,
+    Biostrings
+Suggests:
     knitr,
     rmarkdown,
     devtools,
