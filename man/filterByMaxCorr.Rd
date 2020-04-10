@@ -2,6 +2,7 @@
 % Please edit documentation in R/proteoformAnnotation.R
 \name{filterByMaxCorr}
 \alias{filterByMaxCorr}
+\alias{filterByMaxCorr.tracesList}
 \title{Filter peptides for having
 at least one high correlating sibling peptide}
 \usage{
@@ -11,19 +12,10 @@ filterByMaxCorr(
   plot = FALSE,
   PDF = FALSE,
   name = "maxCorrHist",
-  acrossConditions = TRUE
-)
-
-\method{filterByMaxCorr}{traces}(
-  traces,
-  cutoff = 0.85,
-  plot = FALSE,
-  PDF = FALSE,
-  name = "maxCorrHist",
   ...
 )
 
-\method{filterByMaxCorr}{tracesList}(
+filterByMaxCorr.tracesList(
   tracesList,
   cutoff = 0.85,
   plot = FALSE,
@@ -59,3 +51,9 @@ Object of class traces filtered for peptide correlation.
 Filter peptides for having
 at least one high correlating sibling peptide
 }
+\section{Functions}{
+\itemize{
+\item \code{filterByMaxCorr.tracesList}: Filter peptides for having
+at least one high correlating sibling peptide
+}}
+

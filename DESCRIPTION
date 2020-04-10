@@ -39,4 +39,4 @@ Suggests:
     roxygen2,
     testthat
 VignetteBuilder: knitr
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.0

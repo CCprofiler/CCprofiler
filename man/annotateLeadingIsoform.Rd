@@ -55,3 +55,4 @@ In case of ties one isoform is randomly selected.
 
 \item \code{traces}: Annotate the Leading Isoform in a single traces object
 }}
+

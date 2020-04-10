@@ -4,8 +4,14 @@
 \alias{normalizeByCyclicLoess}
 \title{#' #' Cyclic loess normalization}
 \usage{
-normalizeByCyclicLoess(traces_list, window = 3, step = 1,
-  plot = TRUE, PDF = TRUE, name = "normalizeByCyclicLoess")
+normalizeByCyclicLoess(
+  traces_list,
+  window = 3,
+  step = 1,
+  plot = TRUE,
+  PDF = TRUE,
+  name = "normalizeByCyclicLoess"
+)
 }
 \arguments{
 \item{traces_list}{traces list object of type peptide}

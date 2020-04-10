@@ -54,3 +54,4 @@ Align peptides to reference proteins to get the relative position
 
 \item \code{traces}: Annotate the relative Position of all peptides in a single traces object.
 }}
+

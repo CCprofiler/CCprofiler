@@ -37,7 +37,7 @@ normalizeToStandard(
 
 \item{standard_ids}{Character vector, peptide or protein ids of reference peptides}
 
-\item{method}{Character string, whether to normalize to the median or the mean intensity
+\item{method}{Character string, whether to normalize to the median or the mean intensity 
 of the standard.}
 }
 \value{
@@ -52,3 +52,4 @@ Normalize trace intensities to reference traces
 
 \item \code{tracesList}: Normalize to reference traces in multiple traces objects
 }}
+
