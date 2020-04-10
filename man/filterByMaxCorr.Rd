@@ -2,8 +2,6 @@
 % Please edit documentation in R/proteoformAnnotation.R
 \name{filterByMaxCorr}
 \alias{filterByMaxCorr}
-\alias{filterByMaxCorr.traces}
-\alias{filterByMaxCorr.tracesList}
 \title{Filter peptides for having
 at least one high correlating sibling peptide}
 \usage{
@@ -36,7 +34,7 @@ filterByMaxCorr(
 )
 }
 \arguments{
-\item{traces}{Object of class traces or tracesList.}
+\item{traces}{Object of class traces.}
 
 \item{cutoff}{Numeric between 0 and 1. Minimum correlation of a peptide
 width any sibling peptide.}
@@ -61,12 +59,3 @@ Object of class traces filtered for peptide correlation.
 Filter peptides for having
 at least one high correlating sibling peptide
 }
-\section{Methods (by class)}{
-\itemize{
-\item \code{traces}: Filter peptides for having
-at least one high correlating sibling peptide
-
-\item \code{tracesList}: Filter peptides for having
-at least one high correlating sibling peptide
-}}
-

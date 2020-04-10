@@ -36,7 +36,7 @@ Perform complex feature finding (calls \code{\link{findComplexFeatures}})
 with all possible combinations of the specified parameters (grid search).
 }
 \details{
-The runtime of this function scales with the binomial coefficient of the total 
+The runtime of this function scales with the binomial coefficient of the total
 number of parameters specified, and can therefore take a long time. If many parameter combinations
 are searched the use of multiple cores for parallel computation is strongly recommended.
 }
@@ -54,6 +54,6 @@ gridList <- performComplexGridSearch(traces = proteinTraces,
                          smoothing = 7,
                          rt_heights = 4,
                          n_cores = 2)
-                         
+
 lapply(gridList, head, n = 2)
 }

@@ -22,6 +22,7 @@ install('doSNOW');
 install('foreach');
 install('parallel');
 install('pracma');
+install('evobiR');
 
 library(devtools);
 devtools::install(".")

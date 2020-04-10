@@ -71,4 +71,3 @@ Goes through protein/complex features and extracts metrics from the traces objec
 
 \item \code{tracesList}: Extract values from single traces object.
 }}
-

@@ -4,7 +4,8 @@
 \alias{plotComplexMScoveragePie}
 \title{plotComplexMScoveragePie.}
 \usage{
-plotComplexMScoveragePie(complexMScoverageSummary, PDF = TRUE)
+plotComplexMScoveragePie(complexMScoverageSummary, PDF = TRUE,
+  name_suffix = "complexHypotheses")
 }
 \arguments{
 \item{complexMScoverageSummary}{data.table with summary}

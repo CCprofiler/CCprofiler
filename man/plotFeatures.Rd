@@ -2,7 +2,7 @@
 % Please edit documentation in R/plotFeatures.R
 \name{plotFeatures}
 \alias{plotFeatures}
-\title{#' Plot the result of the sliding window algorithm.}
+\title{#' #' Plot the result of the sliding window algorithm.}
 \usage{
 plotFeatures(
   feature_table,

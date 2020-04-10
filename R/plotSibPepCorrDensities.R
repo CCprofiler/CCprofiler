@@ -38,7 +38,7 @@ plotSibPepCorrDensities <- function(traces, PDF = FALSE){
   dens_targets <- density(na.omit(trace_annotation[grep("^DECOY", trace_annotation$protein_id,invert = TRUE),]$SibPepCorr))
 
   if(PDF == TRUE){
-    pdf("CorrFilter_SibPepCorr_distributions_target_decoy.pdf")
+    pdf("CorrFilter_SibPepCorr_distributions_target_decoy.pdf", width=5, height = 5)
   }
 
   plot(dens_targets$x, dens_targets$y*dens_targets$n, lty = 1, lwd = 3,

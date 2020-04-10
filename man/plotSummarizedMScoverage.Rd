@@ -4,7 +4,8 @@
 \alias{plotSummarizedMScoverage}
 \title{Plot MS coverage of the hypotheses in the PCP data}
 \usage{
-plotSummarizedMScoverage(hypotheses, protTraces, PDF = FALSE)
+plotSummarizedMScoverage(hypotheses, protTraces, PDF = FALSE,
+  name_suffix = "complexHypotheses")
 }
 \arguments{
 \item{hypotheses}{data.table containing complex hypotheses.

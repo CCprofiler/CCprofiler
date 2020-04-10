@@ -24,6 +24,7 @@ annotateMassDistribution.traces <- function(traces){
   max_trace <- max(traces$fraction_annotation$id)
   mw_info[,assembly_boundary := 2*protein_mw]
   mw_info[is.na(assembly_boundary), assembly_boundary := 0]
+
   mw_info[,assembly_boundary_fraction := unlist(lapply(assembly_boundary,function(x){
     if (x <= max(traces$fraction_annotation$molecular_weight)) {
       max(traces$fraction_annotation[molecular_weight>=x]$id)
@@ -91,7 +92,7 @@ getMassAssemblyChange <- function(tracesList, design_matrix,
   })
 
   res <- do.call(rbind, res)
-  
+
   if(length(unique(design_matrix$Replicate)) < 2) {
     if (quantLevel == "protein_id") {
       res_cast <- dcast(res, formula = protein_id ~ Sample, value.var=c("sum_assembled_norm"))
@@ -117,8 +118,8 @@ getMassAssemblyChange <- function(tracesList, design_matrix,
     #res[,sum_assembled_norm := ifelse(sum_assembled_norm<0.001,sum_assembled_norm+0.001,sum_assembled_norm)]
     res[,sum_assembled_norm_t := (sum_assembled_norm * (n - 1) + 0.5)/n, by=c("protein_id")]
     res[,unique_perCondition := length(unique(round(sum_assembled_norm, digits = 3))), by=c("protein_id","Condition")]
-    
-    diff <- res[, { 
+
+    diff <- res[, {
       samples = unique(.SD[,get(compare_between)])
       meanX = .SD[, .(m = mean(sum_assembled_norm)), by = .(get(compare_between))]
       meanDiff = meanX[get==samples[1]]$m - meanX[get==samples[2]]$m
@@ -135,14 +136,14 @@ getMassAssemblyChange <- function(tracesList, design_matrix,
         p = 2
         wilcoxPval = 2
       }
-      .(meanDiff = meanDiff, 
-        meanAMF1 = meanX[get==samples[1]]$m, 
-        meanAMF2 = meanX[get==samples[2]]$m, 
-        betaPval = p, 
+      .(meanDiff = meanDiff,
+        meanAMF1 = meanX[get==samples[1]]$m,
+        meanAMF2 = meanX[get==samples[2]]$m,
+        betaPval = p,
         wilcoxPval = wilcoxPval,
-        testOrder = paste0(samples[1],".vs.",samples[2]))}, 
+        testOrder = paste0(samples[1],".vs.",samples[2]))},
       by = .(get(quantLevel))]
-    
+
     diff[betaPval==2, betaPval := NA ]
     diff[wilcoxPval==2, wilcoxPval := NA ]
     if (length(unique(design_matrix$Replicate)) > 1) {
@@ -158,7 +159,7 @@ getMassAssemblyChange <- function(tracesList, design_matrix,
       #diff[, wilcoxPval_BHadj := 1]
       #diff[, wilcoxQval := 1]
     }
-    
+
     if(plot==TRUE){
       if(PDF){
         pdf(paste0(name,".pdf"))
@@ -171,16 +172,16 @@ getMassAssemblyChange <- function(tracesList, design_matrix,
         dev.off()
       }
     }
-    
+
     setnames(diff, "get(quantLevel)", quantLevel)
     tests <- subset(diff, select = c("protein_id","meanDiff",
                                      "meanAMF1","meanAMF2",
-                                     "betaPval", "betaPval_BHadj", 
+                                     "betaPval", "betaPval_BHadj",
                                      "betaQval","testOrder",
                                      "wilcoxPval"))
-    
+
     return(tests[])
-    
+
   }
 }
 
@@ -210,4 +211,37 @@ plotMassAssemblyChange <- function(assamblyTest, change_cutoff=0.2, name="massAs
   if (PDF) {
     dev.off()
   }
+}
+
+#' summarizeMassDistribution
+#' @description Plots the fraction of assembled vs. monomeric mass
+#' @param traces An object of type traces.
+#' @param PDF Logical, whether to generate a PDF file with the summary plot. Default is \code{FALSE}.
+#' @param name Character string specifying the name of the PDF file of the summary plot.
+#' Only applicable if PDF=\code{TRUE}. Default is "massDistribution_summary".
+#' @export
+summarizeMassDistribution <- function(traces,
+                              PDF=FALSE,
+                              name="massDistribution_summary"){
+  .tracesTest(traces)
+  if(traces$trace_type != "protein") {
+    stop("Traces need to be of type protein for this function.")
+  }
+  protTraces_annotated <- annotateMassDistribution(traces)
+  monomer_mass <- sum(protTraces_annotated$trace_annotation$sum_monomeric)
+  assembled_mass <- sum(protTraces_annotated$trace_annotation$sum_assembled)
+  full_mass <- sum(protTraces_annotated$trace_annotation$sum)
+
+  if (PDF) {
+    pdf(gsub("$|\\.pdf$", ".pdf", name), width = 5, height = 5)
+   }
+ pie_plot <- pie(c(monomer_mass,assembled_mass),
+                labels=c(paste0("in monomer range ",round(monomer_mass/full_mass, 2) *100,"%"),
+                         paste0("in assembled range ",round(assembled_mass/full_mass, 2) *100,"%")),
+                init.angle = 180, main = "Total MS signal \n(~ protein mass)",
+                col = c("gray90","#56B4E9"))
+  print(pie_plot)
+  if (PDF) {
+    dev.off()
+   }
 }

@@ -1,6 +1,6 @@
 #' Filter peptides for having
 #' at least one high correlating sibling peptide
-#' @param traces Object of class traces or tracesList.
+#' @param traces Object of class traces.
 #' @param cutoff Numeric between 0 and 1. Minimum correlation of a peptide
 #' width any sibling peptide.
 #' @param plot logical,wether to print SibPepCorr density plot to R console.
@@ -25,7 +25,7 @@ getGenePepList <- function(traces){
 
 #' Filter peptides for having
 #' at least one high correlating sibling peptide
-#' @param traces Object of class traces or tracesList.
+#' @param traces Object of class traces.
 #' @param cutoff Numeric between 0 and 1. Minimum correlation of a peptide
 #' width any sibling peptide.
 #' @param plot logical,wether to print SibPepCorr density plot to R console.
@@ -38,22 +38,16 @@ getGenePepList <- function(traces){
 #' should be integrated for filtering to ensure minimal data loss.
 #' Deafult is \code{TRUE}.
 #' @return Object of class traces filtered for peptide correlation.
+#' @importFrom matrixStats rowMaxs
 #' @export
-filterByMaxCorr <- function(traces, cutoff = 0.85,
-                            plot = FALSE, PDF=FALSE, name="maxCorrHist", acrossConditions=TRUE){
-  UseMethod("filterByMaxCorr", traces)
-}
 
-#' @describeIn filterByMaxCorr Filter peptides for having
-#' at least one high correlating sibling peptide
-#' @export
-filterByMaxCorr.traces <- function(traces, cutoff = 0.85,
+filterByMaxCorr <- function(traces, cutoff = 0.85,
                             plot = FALSE, PDF=FALSE, name="maxCorrHist", ...) {
   genePeptideList <- getGenePepList(traces)
   maxCorrMatrices <- lapply(genePeptideList, function(gene){
     genecorr <- cor(gene)
     genecorr[genecorr == 1] <- NA
-    maxcorr <- rowMaxs(genecorr, na.rm = T)
+    maxcorr <- matrixStats::rowMaxs(genecorr, na.rm = T)
     names(maxcorr) <- rownames(genecorr)
     return(maxcorr)
   })
@@ -584,7 +578,6 @@ filterSinglePeptideHits.tracesList <- function(tracesList){
   return(res)
 }
 
-
 #' Combine tracesList across conditions to one traces object with all
 #' the traces of all conditions added as additional fractions for
 #' peptide clustering across conditions.
@@ -642,98 +635,4 @@ combineTracesMutiCond <- function(tracesList){
   class(combi_traces) <- "traces"
   .tracesTest(combi_traces)
   return(combi_traces)
-}
-
-#' Cluster peptides of gene to unique proteoforms across conditions
-#' @param tracesList Object of class tracesList.
-#' @param tracesListRaw Object of class tracesList. Default is NULL.
-#' @param method Character string defining method for clustering
-#' Default is "complete".
-#' @param clusterH Numeric Cluster hight for cutree. Default is 0.5.
-#' @param clusterN Integer Number of clusters. Default is NULL.
-#' @param index Character string for method of cluster number estimation
-#' Default is "silhouette".
-#' @param plot logical,wether to print SibPepCorr density plot to R console.
-#' Deafult is \code{FALSE}.
-#' @param PDF logical, wether to print SibPepCorr density plot to a PDF file.
-#' Deafult is \code{FALSE}.
-#' @param name Character string with name of the plot, only used if
-#' '\code{PDF=TRUE}.PDF file is saved under name.pdf.
-#' Default is "hclustMultiCond".
-#' @return Object of class tracesList with proteoform annotation
-#' across conditions
-#' @export
-clustPepMultiCond <- function(tracesList, tracesListRaw=NULL,
-                    method = c("complete","single"), clusterH = 0.5,
-                    clusterN = NULL, index = "silhouette",
-                    nFactorAnalysis = NULL,
-                    plot = FALSE, PDF=FALSE, name="hclustMultiCond", ...) {
-  .tracesListTest(tracesList)
-  method <- match.arg(method)
-  if (!is.null(tracesListRaw)){
-    .tracesListTest(tracesListRaw)
-  } else {
-    tracesListRaw <- tracesList
-  }
-  traces <- combineTracesMutiCond(tracesListRaw)
-  clustered_traces <- clusterPeptides(traces,
-                      method = method, clusterH = clusterH,
-                      clusterN = clusterN, index = index,
-                      nFactorAnalysis = nFactorAnalysis,
-                      plot = plot, PDF=PDF, name=name)
-  clust_info <- subset(clustered_traces$trace_annotation,
-                  select=c("id","protein_id","cluster","proteoform_id"))
-  res <- lapply(tracesList, function(t){
-   t$trace_annotation <- merge(t$trace_annotation,clust_info,
-                          all.x=T,all.y=F,by=c("id","protein_id"))
-   return(t)
-  })
-  class(res) <- "tracesList"
-  .tracesListTest(res)
-  return(res)
-}
-
-#' Annotate tracesList of multiple conditions with proteoforms that were
-#' assigned for a combined traces object.
-#' @param tracesList Object of class tracesList.
-#' @param combinedTraces Object of class traces with annotated proteoforms.
-#' @return Object of class tracesList witha nnotated proteoforms.
-#' @export
-annotateProteoformsAcrossConditions <- function(tracesList,combinedTraces){
-  .tracesListTest(tracesList)
-  .tracesTest(combinedTraces)
-  if (!"proteoform_id" %in% names(combinedTraces$trace_annotation)){
-    stop("CombinedTraces have not been annotated!")
-  }
-  if ("proteoform_id" %in% names(tracesList[[1]]$trace_annotation)) {
-    tracesList <- lapply(tracesList, removeInitialProteoforms)
-  }
-  res <- lapply(tracesList, function(t){
-    cols <- names(t$trace_annotation)[which(names(t$trace_annotation) %in% names(combinedTraces$trace_annotation))]
-    cols <- cols[!cols %in% c("n_peptides","cluster","n_proteoforms",
-                              "proteoform_id","n_proteoforms_beforeReassignment")]
-    t$trace_annotation <- merge(t$trace_annotation,combinedTraces$trace_annotation,
-                                all.x=T,all.y=F,by=cols,sort=F, suffixes = c("", ".total"))
-    return(t)
-  })
-  if ("proteoform_id" %in% names(res[[1]]$trace_annotation)) {
-    res <- lapply(res, removeUnassignedPeptides)
-  }
-  class(res) <- "tracesList"
-  .tracesListTest(res)
-  return(res)
-}
-
-#' helpter function
-removeUnassignedPeptides <- function(traces){
-  proteoforms_assigned <- unique(traces$trace_annotation[!is.na(proteoform_id)]$id)
-  traces_new <- subset(traces, trace_subset_ids = proteoforms_assigned)
-  return(traces_new)
-}
-
-removeInitialProteoforms <- function(traces){
-  traces$trace_annotation[,proteoform_id:=NULL]
-  traces$trace_annotation[,n_proteoforms:=NULL]
-  traces$trace_annotation[,cluster:=NULL]
-  return(traces)
 }

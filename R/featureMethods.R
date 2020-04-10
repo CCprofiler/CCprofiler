@@ -91,7 +91,7 @@ summarizeFeatures <- function(feature_table,
     plottingFeatures[, names(plottingFeatures) := lapply(.SD, as.numeric)]
     plottingFeaturesMelt <- data.table::melt(plottingFeatures,id.vars=c("feature_id"))
     if (PDF) {
-      pdf(gsub("$|\\.pdf$", ".pdf", name))
+      pdf(gsub("$|\\.pdf$", ".pdf", name), width = 5, height = 5)
     }
     p <- ggplot(plottingFeaturesMelt, aes(x=value,fill=variable)) +
       geom_histogram(bins = 50) +
@@ -100,19 +100,29 @@ summarizeFeatures <- function(feature_table,
       theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank()) +
       guides(fill=FALSE) +
       ggtitle(paste0(type," feature summary")) +
-      theme(plot.title = element_text(size=14, face="bold"))
-    print(p)
+      theme(plot.title = element_text(size=14, face="bold")) 
     plottingNsubcomplexes <- data.table(n_subcomplexes=feature_count_max)
     q <- ggplot(plottingNsubcomplexes,aes(x=n_subcomplexes)) +
       stat_bin(binwidth=1) +
       stat_bin(binwidth=1, geom="text", aes(label=..count..), vjust=-0.5) +
-      labs(x="N co-elution features",y="N hypotheses") +
+      labs(x="N co-elution features",y=paste0("N ",type," queries")) +
       theme_classic() +
       theme(panel.grid.major = element_blank(),
             panel.grid.minor = element_blank()) +
       ggtitle(paste0(type," sub-feature summary")) +
       theme(plot.title = element_text(size=14, face="bold"))
     print(q)
+    if (type == "protein") {
+      assembled = unique(features[which(features$in_complex=="TRUE")]$complex_id)
+      all = unique(features$complex_id)
+      assempled_percent = round(100/length(all)*length(assembled),digits=2)
+      pie_plot <- pie(c(length(all)-length(assembled),length(assembled)),
+                      labels=c(paste0(length(all)-length(assembled),"\n monomeric (",100-assempled_percent,"%)"),paste0(length(assembled),"\n assembled (",assempled_percent,"%)")),
+                      main="Protein detection in assembled\n vs. only monomeric state",
+                      col = c("gray90","#56B4E9"))
+      print(pie_plot)
+    }
+    print(p)
     if (PDF) {
       dev.off()
     }
@@ -168,8 +178,8 @@ getBestFeatures <- function(feature_table){
 #' @param min_hypothesis_completeness Numeric between 0 and 1, specifying the required completeness
 #' of the most complete feature reltive to the tested hypothesis (keeps all features if at least one feature is bigger than the cutoff).
 #' @param min_subunits Integer specifying minimum number of subunits in a co-elution feature.
-#' @param min_peak_corr Numeric value betwee 0 and 1 specifying minimum peak correlation, defaults to 0.5.
-#' @param min_monomer_distance_factor Numeric value specifying a factor to multiply the largest monomer molecular weight, defaults to \code{NULL}.
+#' @param min_peak_corr Numeric value betwee 0 and 1 specifying minimum peak correlation, defaults to \code{NULL}.
+#' @param min_monomer_distance_factor Numeric value specifying a factor to multiply the largest monomer molecular weight, defaults to 2.
 #' This filters out features that have their apex at a smaller molecular weight than the resulting min_monomer_distance_factor*max(monomer_mw) value.
 #' Using this filtering option can, for example, remove complex features that are likely spontaneous co-elutions of the subunits monomers.
 #' @return The same feture table as teh input, but filtered according to the provided parameters.
@@ -193,8 +203,8 @@ filterFeatures <- function(feature_table,
                            min_feature_completeness=NULL,
                            min_hypothesis_completeness=NULL,
                            min_subunits=NULL,
-                           min_peak_corr=0.5,
-                           min_monomer_distance_factor=NULL){
+                           min_peak_corr=NULL,
+                           min_monomer_distance_factor=2){
   if("complex_id" %in% names(feature_table)){
     type="complex"
   } else if ("protein_id" %in% names(feature_table)) {

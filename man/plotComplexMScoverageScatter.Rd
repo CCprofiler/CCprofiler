@@ -4,7 +4,8 @@
 \alias{plotComplexMScoverageScatter}
 \title{plotComplexMScoverageScatter.}
 \usage{
-plotComplexMScoverageScatter(complexMScoverage, PDF = FALSE)
+plotComplexMScoverageScatter(complexMScoverage, PDF = FALSE,
+  name_suffix = "complexHypotheses")
 }
 \arguments{
 \item{complexMScoverage}{data.table with summary}
