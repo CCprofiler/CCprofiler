@@ -82,6 +82,9 @@ summarizeAlternativePeptideSequences.tracesList <- function(tracesList,topN=1,
 #' @param traces An object of type traces, trace_type must be peptide.
 #' @param fasta_file path to a fasta file.
 #' @return An object of type traces, trace_type is peptide.
+#' @importFrom seqinr words.pos
+#' @importFrom Biostrings readAAStringSet
+#' @importFrom Biostrings toString
 #' @export
 annotatePeptideSequences <- function(traces,fasta_file){
   UseMethod("annotatePeptideSequences", traces)
