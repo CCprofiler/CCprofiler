@@ -532,6 +532,7 @@ annotateTracesWithProteoformClusters.traces <- function(traces, cluster_annotati
   traces$trace_annotation[,proteoform_id := ifelse(proteoform_pval_adj > FDR_cutoff, protein_id, proteoform_id)]
   traces$trace_annotation[,n_proteoforms:=length(unique(proteoform_id)),by="protein_id"]
   traces$trace_annotation[,n_proteoforms:=ifelse(length(grep("_0",unique(proteoform_id))) == 0, n_proteoforms, n_proteoforms-1),by="protein_id"]
+  traces$trace_annotation[,proteoform_id := ifelse(n_proteoforms == 1, protein_id, proteoform_id)]
   .tracesTest(traces)
   return(traces)
 }
