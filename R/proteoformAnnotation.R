@@ -541,11 +541,19 @@ annotateTracesWithProteoformClusters.traces <- function(traces, cluster_annotati
 #' @export
 annotateTracesWithProteoformClusters.tracesList <- function(traces, cluster_annotation, FDR_cutoff = 0.05){
   .tracesListTest(traces)
+  combi <- integrateTraceIntensities(traces,design_matrix = NULL,integrate_within = NULL,aggr_fun = "sum")
+  combi_ann <- annotateTracesWithProteoformClusters.traces(combi,
+                                                           cluster_annotation=cluster_annotation,
+                                                           FDR_cutoff=FDR_cutoff)
+  
   traces_ann <- lapply(traces, function(x){
-    annotateTracesWithProteoformClusters.traces(x,
-                                                cluster_annotation=cluster_annotation,
-                                                FDR_cutoff=FDR_cutoff)})
+    x$trace_annotation <- subset(x$trace_annotation, select = c("protein_id", "id"))
+    x$trace_annotation <- merge(x$trace_annotation,
+                                combi_ann$trace_annotation,by=c("protein_id", "id"),sort=F,all.x=T,all.y=F)
+    x
+  })
   class(traces_ann) <- "tracesList"
+  
   .tracesListTest(traces_ann)
   return(traces_ann)
 }
