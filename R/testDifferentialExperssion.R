@@ -21,8 +21,8 @@ testDifferentialExpression <- function(featureVals,
     setkeyv(featVals, c("feature_id", "apex", "id", "fraction"))
   }
 
-  message("Excluding peptides only found in one condition...")
   if (measuredOnly) {
+    message("Excluding peptides only found in one condition...")
     featVals <- subset(featVals,imputedFraction==FALSE)
     featureValsBoth <- filterValsByFractionOverlap(featVals, compare_between)
     featureValsBoth[, n_frac := .N, by=c("id", "feature_id", "apex",compare_between)]
@@ -40,7 +40,7 @@ testDifferentialExpression <- function(featureVals,
       setTxtProgressBar(pb, .GRP)
       samples = unique(.SD[,get(compare_between)])
       # qints = .SD[useForQuant == T, .(s = sum(intensity)), by = .(get(compare_between))] # this disables a lot of comparisons
-      qints = .SD[, .(s = sum(intensity)), by = .(get(compare_between), Replicate)] 
+      qints = .SD[, .(s = sum(intensity)), by = .(get(compare_between), Replicate)]
       if (length(unique(design_matrix$Replicate)) > 1) {
         a = t.test(formula = log(qints$s) ~ qints$get , paired = F, var.equal = FALSE)
       } else {
@@ -61,9 +61,9 @@ testDifferentialExpression <- function(featureVals,
       #global_FC_all = log2(global_ints_imp[get==samples[1]]$s/global_ints_imp[get==samples[2]]$s)
       #local_vs_global_FC_all = data.table(fc=c(local_FC_all,global_FC_all),sam=c(rep("local",length(local_FC_all)),rep("global",length(global_FC_all))))
       if (length(unique(design_matrix$Replicate)) > 1) {
-        b = t.test(formula = log(global_ints_imp$s) ~ global_ints_imp$get , paired = F, var.equal = FALSE) 
+        b = t.test(formula = log(global_ints_imp$s) ~ global_ints_imp$get , paired = F, var.equal = FALSE)
         global_pVal = b$p.value
-        #c = t.test(formula = local_vs_global_FC_all$fc ~ local_vs_global_FC_all$sam , paired = F, var.equal = FALSE) 
+        #c = t.test(formula = local_vs_global_FC_all$fc ~ local_vs_global_FC_all$sam , paired = F, var.equal = FALSE)
         #local_vs_global_pVal = c$p.value
         meanDiff=a$estimate[1]-a$estimate[2]
       } else {
@@ -71,9 +71,9 @@ testDifferentialExpression <- function(featureVals,
         #local_vs_global_pVal = 1
         meanDiff=a$estimate
       }
-      
-      .(pVal = a$p.value, 
-        int1 = int1, int2 = int2, 
+
+      .(pVal = a$p.value,
+        int1 = int1, int2 = int2,
         meanDiff = meanDiff,
         qint1 = qint1, qint2 = qint2, log2FC =  log2(qint1/qint2),
         n_replicates = a$parameter + 1,  Tstat = a$statistic, testOrder = paste0(samples[1],".vs.",samples[2]),
@@ -90,7 +90,7 @@ testDifferentialExpression <- function(featureVals,
     tests <- featureValsBoth[, {
       setTxtProgressBar(pb, .GRP)
       samples = unique(.SD[,get(compare_between)])
-      qints = .SD[, .(s = sum(intensity)), by = .(get(compare_between), Replicate)] 
+      qints = .SD[, .(s = sum(intensity)), by = .(get(compare_between), Replicate)]
       if (length(unique(design_matrix$Replicate)) > 1) {
         a = t.test(formula = log(qints$s) ~ qints$get , paired = F, var.equal = FALSE)
       } else {
@@ -111,9 +111,9 @@ testDifferentialExpression <- function(featureVals,
       #global_FC_all = log2(global_ints_imp[get==samples[1]]$s/global_ints_imp[get==samples[2]]$s)
       #local_vs_global_FC_all = data.table(fc=c(local_FC_all,global_FC_all),sam=c(rep("local",length(local_FC_all)),rep("global",length(global_FC_all))))
       if (length(unique(design_matrix$Replicate)) > 1) {
-        b = t.test(formula = log(global_ints_imp$s) ~ global_ints_imp$get , paired = F, var.equal = FALSE) 
+        b = t.test(formula = log(global_ints_imp$s) ~ global_ints_imp$get , paired = F, var.equal = FALSE)
         global_pVal = b$p.value
-        #c = t.test(formula = local_vs_global_FC_all$fc ~ local_vs_global_FC_all$sam , paired = F, var.equal = FALSE) 
+        #c = t.test(formula = local_vs_global_FC_all$fc ~ local_vs_global_FC_all$sam , paired = F, var.equal = FALSE)
         #local_vs_global_pVal = c$p.value
         meanDiff=a$estimate[1]-a$estimate[2]
       } else {
@@ -121,8 +121,8 @@ testDifferentialExpression <- function(featureVals,
         #local_vs_global_pVal = 1
         meanDiff=a$estimate
       }
-      .(pVal = a$p.value, 
-        int1 = int1, int2 = int2, 
+      .(pVal = a$p.value,
+        int1 = int1, int2 = int2,
         meanDiff = meanDiff,
         qint1 = qint1, qint2 = qint2, log2FC =  log2(qint1/qint2),
         n_replicates = a$parameter + 1,  Tstat = a$statistic, testOrder = paste0(samples[1],".vs.",samples[2]),
@@ -458,11 +458,11 @@ normalizeVals <- function(featureVals,
 #' @param PDF logical if PDF should be created, default is FALSE.
 #' @return plot
 #' @export
-plotVolcano <- function(testResults, 
-                        highlight=NULL, 
-                        FC_cutoff=2, 
+plotVolcano <- function(testResults,
+                        highlight=NULL,
+                        FC_cutoff=2,
                         pBHadj_cutoff=0.01,
-                        name="volcanoPlot", 
+                        name="volcanoPlot",
                         PDF=FALSE,
                         level=c("feature","global")) {
   level <- match.arg(level)
@@ -576,4 +576,3 @@ plotVolcano <- function(testResults,
     dev.off()
   }
 }
-
