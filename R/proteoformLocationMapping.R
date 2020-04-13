@@ -64,7 +64,7 @@ evaluateProteoformLocation.traces <- function(traces, adj.method = "fdr", name="
     geom_histogram(bins=40) +
     theme_classic()
   print(q)
-  p <- ggplot(testRandPepStats_prot,aes(x=genomLocation_pval_min)) +
+  p <- ggplot(testRandPepStats,aes(x=genomLocation_pval_min)) +
     geom_histogram(bins=40) +
     theme_classic()
   print(p)
