@@ -27,19 +27,18 @@ evaluateProteoformLocation.traces <- function(traces, adj.method = "fdr", name="
   traces_toTest <- subset(traces, trace_subset_ids=proteins_withProteoforms, trace_subset_type="protein_id")
   testRandPep <- testRandomPeptides(traces_toTest)
   testRandPepStats <- plotRealVsRandom(testRandPep,score="NormalizedSD")
+
+  #testRandPepStats_prot <- unique(subset(testRandPepStats, select=c("protein_id","genomLocation_pval_min")))
   
-  testRandPepStats[, "genomLocation_pval_min" := min(genomLocation_pval), by="protein_id"]
-  testRandPepStats_prot <- unique(subset(testRandPepStats, select=c("protein_id","genomLocation_pval_min")))
+  #testRandPepStats_prot$genomLocation_pval_adj_prot <- p.adjust(testRandPepStats_prot$genomLocation_pval_min, adj.method)
   
-  testRandPepStats_prot$genomLocation_pval_adj_prot <- p.adjust(testRandPepStats_prot$genomLocation_pval_min, adj.method)
+  #pi0_prot <- pi0est(testRandPepStats_prot$genomLocation_pval_min, pi0.method = "bootstrap", na.rm=T)$pi0
+  #testRandPepStats_prot$pi0_prot <- pi0_prot
   
-  pi0_prot <- pi0est(testRandPepStats_prot$genomLocation_pval_min, pi0.method = "bootstrap", na.rm=T)$pi0
-  testRandPepStats_prot$pi0_prot <- pi0_prot
+  #qobj_prot <- qvalue(testRandPepStats_prot$genomLocation_pval_min, pi0=pi0_prot)
+  #testRandPepStats_prot$genomLocation_qval_prot <- qobj_prot$qvalues
   
-  qobj_prot <- qvalue(testRandPepStats_prot$genomLocation_pval_min, pi0=pi0_prot)
-  testRandPepStats_prot$genomLocation_qval_prot <- qobj_prot$qvalues
-  
-  testRandPepStats <- merge(testRandPepStats, testRandPepStats_prot, by=c("protein_id","genomLocation_pval_min"))
+  #testRandPepStats <- merge(testRandPepStats, testRandPepStats_prot, by=c("protein_id","genomLocation_pval_min"))
   
   testRandPepStats$genomLocation_pval_adj <- p.adjust(testRandPepStats$genomLocation_pval, adj.method)
   
@@ -48,31 +47,35 @@ evaluateProteoformLocation.traces <- function(traces, adj.method = "fdr", name="
   testRandPepStats$genomLocation_qval <- qobj$qvalues
   testRandPepStats$pi0 <- qobj$pi0
   
+  testRandPepStats[, "genomLocation_pval_min" := min(genomLocation_pval), by="protein_id"]
+  testRandPepStats[, "genomLocation_pval_adj_min" := min(genomLocation_pval_adj), by="protein_id"]
+  testRandPepStats[, "genomLocation_qval_min" := min(genomLocation_qval), by="protein_id"]
+  
   pdf(paste0(name,".pdf"),width=3,height=3)
   p <- ggplot(testRandPepStats,aes(x=genomLocation_pval)) +
-    geom_histogram(bins=25) +
+    geom_histogram(bins=40) +
     theme_classic()
   print(p)
   a <- ggplot(testRandPepStats,aes(x=genomLocation_pval_adj)) +
-    geom_histogram(bins=25) +
+    geom_histogram(bins=40) +
     theme_classic()
   print(a)
   q <- ggplot(testRandPepStats,aes(x=genomLocation_qval)) +
-    geom_histogram(bins=25) +
+    geom_histogram(bins=40) +
     theme_classic()
   print(q)
   p <- ggplot(testRandPepStats_prot,aes(x=genomLocation_pval_min)) +
-    geom_histogram(bins=25) +
+    geom_histogram(bins=40) +
     theme_classic()
   print(p)
-  a <- ggplot(testRandPepStats_prot,aes(x=genomLocation_pval_adj_prot)) +
-    geom_histogram(bins=25) +
-    theme_classic()
-  print(a)
-  q <- ggplot(testRandPepStats_prot,aes(x=genomLocation_qval_prot)) +
-    geom_histogram(bins=25) +
-    theme_classic()
-  print(q)
+  #a <- ggplot(testRandPepStats_prot,aes(x=genomLocation_pval_adj_prot)) +
+  #  geom_histogram(bins=25) +
+  #  theme_classic()
+  #print(a)
+  #q <- ggplot(testRandPepStats_prot,aes(x=genomLocation_qval_prot)) +
+  #  geom_histogram(bins=25) +
+  #  theme_classic()
+  #print(q)
   dev.off()
   traces$trace_annotation <- merge(traces$trace_annotation, testRandPepStats,
                                    all.x=T,all.y=F,by=c("protein_id","proteoform_id"),sort=F)
@@ -202,7 +205,7 @@ plotRealVsRandomPerProteoform <- function(proteoform,protein,res,score){
   if (is.na(real)){
     p_rand <- 1
   } else {
-    p_rand <- 1/n_rand_total*n_rand_smallerReal
+    p_rand <- (n_rand_smallerReal+1)/(n_rand_total+1)
   }
   dt <- data.table(random=random)
   if (!is.na(real)){
