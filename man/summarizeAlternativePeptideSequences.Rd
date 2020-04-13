@@ -9,21 +9,24 @@
 summarizeAlternativePeptideSequences(
   traces,
   topN = 1,
-  position = "PeptidePositionStart",
+  start = "PeptidePositionStart",
+  end = "PeptidePositionEnd",
   verbose = TRUE
 )
 
 \method{summarizeAlternativePeptideSequences}{traces}(
   traces,
   topN = 1,
-  position = "PeptidePositionStart",
+  start = "PeptidePositionStart",
+  end = "PeptidePositionEnd",
   verbose = TRUE
 )
 
 \method{summarizeAlternativePeptideSequences}{tracesList}(
-  tracesList,
+  traces,
   topN = 1,
-  position = "PeptidePositionStart",
+  start = "PeptidePositionStart",
+  end = "PeptidePositionEnd",
   verbose = TRUE
 )
 }
