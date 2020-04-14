@@ -51,7 +51,6 @@
 #'                      onlyBest = FALSE,
 #'                      legend = FALSE)
 #'
-
 plotFeatures <- function(feature_table,
                                 traces,
                                 feature_id,
@@ -76,6 +75,8 @@ plotFeatures <- function(feature_table,
   UseMethod("plotFeatures", traces)
 }
 
+#' @describeIn plotFeatures Plot features
+#' @export
 plotFeatures.traces <- function(feature_table,
                                 traces,
                                 feature_id,
@@ -332,23 +333,7 @@ plotFeatures.traces <- function(feature_table,
 
 }
 
-#' plotFeatures.tracesList
-#' @param feature_table data.table
-#' @param traces traces object of type peptide or protein.
-#' @param feature_id Character string specifying complex_id
-#' @param design_matrix data.table with design matrix
-#' @param calibration calibration function
-#' @param annotation_label Character string specifying column name in trace annotation to use for trace labeling, default is protein_id (uniprot id).
-#' @param peak_area Logical if selected peak area should be highlighted.
-#' @param onlyBest logical true or false
-#' @param apex logical true or false
-#' @param peak_area logical true or false
-#' @param sliding_window_area Logical if original sliding_window area should be highlighted
-#' @param estimated_complex_MW Logical if estimated complex MW should be indicated
-#' @param monomer_MW Logical if monomer MWs should be indicated
-#' @param log Logical if intensities should be log transformed, default is \code{fFALSE}.
-#' @param colorMap named character vector containing valid color specifications for plotting.
-#' The names of the vector must correspond to the ids of the peptides to be plotted.
+#' @describeIn plotFeatures Plot features
 #' @export
 plotFeatures.tracesList <- function(feature_table,
                                traces,
