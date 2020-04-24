@@ -5,10 +5,11 @@
 ## Install
 Install the dependencies:
 
-```
+```{r}
 cran_deps <- c('proxy', 'doSNOW', 'igraph', 'pracma', 'Rmpfr') 
 install.packages(cran_deps)
-BiocManager::install("qvalue")
+bioc_deps <- c('ensembldb','evobiR','preprocessCore','seqinr','Biostrings', 'qvalue')
+BiocManager::install(bioc_deps)
 
 ```
 
