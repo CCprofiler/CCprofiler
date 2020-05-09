@@ -642,7 +642,7 @@ combineTracesMutiCond <- function(tracesList){
   trace_annotation <- lapply(tracesList, function(t){
     # Use the first element as a template annotation
     cols <- names(tracesList[[1]]$trace_annotation)
-    cols <- cols[which(!cols %in% c("SibPepCorr","RepPepCorr","n_peptides"))]
+    cols <- cols[which(!cols %in% c("SibPepCorr","RepPepCorr","n_peptides", "detectedIn"))]
     res <- subset(t$trace_annotation,select=cols)
     return(res)
     })
