@@ -462,22 +462,28 @@ clusterPeptides <- function(traces,
 #' @describeIn clusterPeptides Cluster peptides of gene to unique proteoforms
 #' @export
 clusterPeptides.traces <- function(traces,
-                                   method = c("complete","single","average"), 
-                                   plot = FALSE, PDF=FALSE, name="hclust", ...) {
+                             method = c("complete","single","average"),
+                             plot = FALSE,
+                             PDF = FALSE,
+                             name = "hclust",
+                             ...){
+
   method <- match.arg(method)
+  # Check if correlations are already computed
+  if(! "geneCorrMatrices" %in% names(traces)){
+    message("no geneCorrMatrices available: calculating ...")
+    traces <- calculateGeneCorrMatrices(traces, ...)
+  }
+  corMatrices <- traces$geneCorrMatrices
+
+  # Hierarchical clustering
   if (PDF) {
     pdf(paste0(name,".pdf"), width=3, height=3)
   }
-  
-  genePeptideList <- getGenePepList(traces)
-  idx <- seq_along(genePeptideList)
-  
-  clustering <- lapply(idx, function(i){
-    gene <- genePeptideList[[i]]
-    gene_name <- names(genePeptideList)[[i]]
-    genecorr <- cor(gene)
-    
-    cl <- hclust(as.dist(1-genecorr), method)
+  cls <- lapply(1:length(corMatrices), function(i){
+    genecorr <- corMatrices[[i]]
+    gene_name <- names(corMatrices)[[i]]
+    cl <- hclust(as.dist(1-genecorr), method = method, ...)
     if (plot == TRUE) {
       par(cex=0.3, mar=c(18, 5, 5, 1))
       plot(as.dendrogram(cl), ylim = c(0,1), xlab="", ylab="", main="", sub="", axes=FALSE)
@@ -487,14 +493,14 @@ clusterPeptides.traces <- function(traces,
     }
     return(cl)
   })
-  
+
   if (PDF) {
     dev.off()
   }
-  
-  names(clustering) = names(genePeptideList)
-  
-  return(clustering)
+
+  names(cls) <- names(corMatrices)
+  traces$peptideClustering <- cls
+  return(traces)
 }
 
 #' @describeIn clusterPeptides Cluster peptides of gene to unique proteoforms
