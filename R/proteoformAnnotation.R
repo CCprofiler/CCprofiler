@@ -23,6 +23,25 @@ getGenePepList <- function(traces){
   return(genePepList)
 }
 
+#' Calculate pairwise correlations of peptides within all genes
+calculateGeneCorrMatrices <- function(traces,
+                                  method = c("pearson", "kendall", "spearman"),
+                                  logtransform = FALSE){
+  genePeptideList <- getGenePepList(traces)
+
+  corrMatrices <- lapply(genePeptideList, function(gene){
+    if(logtransform){
+      gene <- log1p(gene)
+    }
+    genecorr <- cor(gene, method = method)
+    return(genecorr)
+  })
+  names(corrMatrices) <- names(genePeptideList)
+  traces$geneCorrMatrices <- corrMatrices
+  return(traces)
+}
+
+
 #' Filter peptides for having
 #' at least one high correlating sibling peptide
 #' @param traces Object of class traces.
