@@ -68,7 +68,7 @@ integrateReplicates <- function(traces,
       
     }
     
-    traces_res[[condition]] <- sumTraceIntensities(traces = traces[sample_names], aggr_fun = "mean")
+    traces_res[[condition]] <- integrateTraceIntensities(traces = traces[sample_names], aggr_fun = "mean")
   }
   class(traces_res) <- "tracesList"
   .tracesListTest(traces_res)
