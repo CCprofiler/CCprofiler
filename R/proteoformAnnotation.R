@@ -15,6 +15,11 @@ getGenePepList <- function(traces){
 }
 
 #' Calculate pairwise correlations of peptides within all genes
+#' @param traces Object of class traces.
+#' @param method Which correlation metric to use.
+#' @param logtransform Logical, whether to log transform intensities
+#' @return List of matrices with pairwise correllations per protein
+#' @export
 calculateGeneCorrMatrices <- function(traces,
                                   method = c("pearson", "kendall", "spearman"),
                                   logtransform = FALSE){
@@ -54,15 +59,32 @@ calculateGeneCorrMatrices <- function(traces,
 #' @importFrom matrixStats rowMaxs
 #' @export
 
-filterByMaxCorr <- function(traces, cutoff = 0.85,
-                            plot = FALSE, PDF=FALSE, name="maxCorrHist", ...) {
+filterByMaxCorr <- function(traces, cutoff = 0.85, filter_by = c("maxcorr", "minpval"),
+                            logtransform = FALSE, plot = FALSE, PDF=FALSE, name="maxCorrHist", ...) {
+  filter_by <- match.arg(filter_by)
+
   genePeptideList <- getGenePepList(traces)
   maxCorrMatrices <- lapply(genePeptideList, function(gene){
-    genecorr <- cor(gene)
-    genecorr[genecorr == 1] <- NA
+
+    if(logtransform){
+      gene <- log1p(gene)
+      gene[gene == -Inf] <- NA # Exclude 0s from the analysis
+    }
+    genecorr <- cor(gene, use = "pairwise.complete")
+    diag(genecorr) <- NA
     maxcorr <- matrixStats::rowMaxs(genecorr, na.rm = T)
     names(maxcorr) <- rownames(genecorr)
-    return(maxcorr)
+    if(filter_by == "maxcorr"){
+      return(maxcorr)
+    }
+    ## Calculate correlation significance
+    df = colSums(!is.na(gene)) - 2
+    statistic <- sqrt(df) * genecorr/sqrt(1 - genecorr^2)
+    pval = 2 * pmin(pt(statistic, df), pt(statistic, df, lower.tail = FALSE))
+    pval_adj = matrix(p.adjust(pval), nrow = dim(pval)[1], ncol = dim(pval)[2])
+    minp <- matrixStats::rowMins(pval, na.rm = T)
+    names(minp) <- rownames(genecorr)
+    return(minp)
   })
 
   names(maxCorrMatrices) <- names(genePeptideList)
@@ -77,6 +99,7 @@ filterByMaxCorr <- function(traces, cutoff = 0.85,
     p <- ggplot(data.table(maxCorr=allMaxCorrs),
                 aes(x=maxCorr)) +
                 geom_histogram(bins=30) +
+                geom_vline(xintercept = cutoff, color = "red") +
                 theme_classic()
     plot(p)
     if (PDF) {
@@ -84,7 +107,11 @@ filterByMaxCorr <- function(traces, cutoff = 0.85,
     }
   }
 
-  filterpeps <- names(allMaxCorrs)[allMaxCorrs > cutoff]
+  if(filter_by == "minpval"){
+    filterpeps <- names(allMaxCorrs)[allMaxCorrs < cutoff]
+  } else if(filter_by == "maxcorr"){
+    filterpeps <- names(allMaxCorrs)[allMaxCorrs > cutoff]
+  }
 
   traces_filt <- subset(traces, filterpeps, "id")
   return(traces_filt)
