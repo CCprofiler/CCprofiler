@@ -204,6 +204,31 @@ iterativeMaxCorrFilter.tracesList <- function(traces, cutoff = 0.85,
   return(res[[i]])
 }
 
+#' Calculate minimum correlation among all peptides that are in a cluster
+#' with cluster id > 0
+#' @param traces Object of class traces or tracesList.
+#' @param plot logical,wether to print SibPepCorr density plot to R console.
+#' Deafult is \code{FALSE}.
+#' @param PDF logical, wether to print SibPepCorr density plot to a PDF file.
+#' Deafult is \code{FALSE}.
+#' @param name Character string with name of the plot, only used if
+#' '\code{PDF=TRUE}.PDF file is saved under name.pdf. Default is "minCorrHist".
+#' @return Object of class traces with calculated minimum.
+#' @export
+calculateMinCorrClustered.traces <- function(traces, FeatureFinding = NULL,
+                                    plot = FALSE, PDF=FALSE, name="minCorrHist", ...) {
+  cor_mat <- traces$geneCorrMatrices
+  mincorr <- sapply(names(cor_mat), function(prot){
+    ann <- traces$trace_annotation[protein_id == prot, .(id, cluster)]
+    clustered_peps <- ann[cluster != 0, id]
+    mincorr <- min(cor_mat[[prot]][clustered_peps,clustered_peps])
+    mincorr
+  })
+  mincorr[is.infinite(mincorr)] <- NA
+  mincorr[mincorr < 0] <- 0
+  traces$trace_annotation$mincorr <- mincorr[traces$trace_annotation$protein_id]
+  return(traces)
+}
 
 #' Calculate minimum correlation of each peptide
 #' to all of its sibling peptides
