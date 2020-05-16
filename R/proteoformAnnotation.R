@@ -791,7 +791,8 @@ fitDistCensored <- function(x,
   return(fit)
 }
 
-
+#' Fit a censored distribution to the minimum correlation of each gene to estimate
+#' a pvalue of isoforms.
 #' @param traces Object of class traces or tracesList.
 #' @param distribution String, which distribution to use.
 #' @param prot_names Vactor with protein names to use for fitting. Default NULL.
@@ -806,6 +807,16 @@ fitDistCensored <- function(x,
 #' @param name Character string with name of the plot, only used if
 #' '\code{PDF=TRUE}.PDF file is saved under name.pdf. Default is "DistrFitted".
 #' @return Fitted appropriate distribution. Default is gamma distribution.
+#' @export
+estimateProteoformPvalCens <- function(traces, distr = "beta",
+                                   prot_names = NULL, adj.method = "fdr",
+                                   plot = FALSE, PDF=FALSE, name="SplicePval", 
+                                   design_matrix = NULL, min_sig=2, FDR_cutoff=0.05, ...){
+  UseMethod("estimateProteoformPvalCens", traces)
+}
+
+#' @describeIn estimateProteoformPvalCens Estimate p-values of whether a
+#' gene is likely to have >1 proteoforms
 #' @export
 estimateProteoformPvalCens.traces <- function(traces, distribution = c("beta", "gamma"),
                                           prot_names = NULL, adj.method = "fdr",
