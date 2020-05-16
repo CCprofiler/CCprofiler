@@ -1,14 +1,5 @@
-#' Filter peptides for having
-#' at least one high correlating sibling peptide
+#' Extract matrix of trace intensities for every protein id
 #' @param traces Object of class traces.
-#' @param cutoff Numeric between 0 and 1. Minimum correlation of a peptide
-#' width any sibling peptide.
-#' @param plot logical,wether to print SibPepCorr density plot to R console.
-#' Deafult is \code{FALSE}.
-#' @param PDF logical, wether to print SibPepCorr density plot to a PDF file.
-#' Deafult is \code{FALSE}.
-#' @param name Character string with name of the plot, only used if
-#' '\code{PDF=TRUE}.PDF file is saved under name.pdf. Default is "maxCorrHist".
 #' @return Gene peptide list
 #' @export
 getGenePepList <- function(traces){
@@ -47,6 +38,9 @@ calculateGeneCorrMatrices <- function(traces,
 #' @param traces Object of class traces.
 #' @param cutoff Numeric between 0 and 1. Minimum correlation of a peptide
 #' width any sibling peptide.
+#' @param filter_by Filtering criterium, maxcorr (default) filters with a cutoff
+#' on the correlation, minpval filters with a cutoff on the correlation p-value
+#' @param logtransform Logical, whether to log transform intensities
 #' @param plot logical,wether to print SibPepCorr density plot to R console.
 #' Deafult is \code{FALSE}.
 #' @param PDF logical, wether to print SibPepCorr density plot to a PDF file.
