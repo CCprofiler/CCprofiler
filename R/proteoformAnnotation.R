@@ -877,8 +877,20 @@ estimateProteoformPvalCens.traces <- function(traces, distribution = c("beta", "
 }
 
 #' Cut clusters from clusterPeptides into N clusters with more than 1 peptide.
+#' @param traces Object of class traces with a member `peptideClustering` as produced by `clusterPeptides`.
+#' @param clusterN How many clusters to cut the tree into. Default: 2.
+#' @param min_peptides_per_cluster How many peptides per cluster.
+#' @details Cuts the hierarchical tree so that there are N clusters with at least the specified number of peptides.
+#' If there are single peptides above the cutoff height they will get the label 100.
+
 cutClustersInNreal <- function(traces, clusterN = 2, min_peptides_per_cluster = 2){
-  clusterList <- traces$peptideClustering
+
+  if("peptideClustering" %in% names(traces)){
+    clusterList <- traces$peptideClustering
+  }else{
+    stop("No peptide clustering found. Please run clusterPeptides first.")
+  }
+
   clust <- lapply(seq_along(clusterList), function(idx){
     tree <- clusterList[[idx]]
     n_peptides <- length(tree$labels)
@@ -898,8 +910,20 @@ cutClustersInNreal <- function(traces, clusterN = 2, min_peptides_per_cluster = 
         break
       }
     }
+    ## Renumber groups so that they are 1,2,.. 100
+    cn <- max(groups)
+    clf <- as.factor(groups)
+    cll <- levels(clf)
+    hasnoisecl <- any(cll == 100)
+    cln <- length(cll)
+    if(cn != cln){
+      for (i in 1:cln) groups[clf == cll[i]] <- i
+    }
+    if(hasnoisecl) groups[groups == max(groups)] <- 100
+
     return(groups)
   })
+
   names(clust) <- names(clusterList)
   return(clust)
 }
