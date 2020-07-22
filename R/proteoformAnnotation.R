@@ -345,6 +345,12 @@ fitDist <- function(traces, prot_names = NULL,
   return(DistFitted)
 }
 
+#' Calculates a score for proteoforms based on the difference of within cluster distances
+#' and between cluster distances.
+#' @param traces Object of class traces with `geneCorrMatrices` and clustered peptides.
+#' @param summary_fun the function to use for distance aggregation. Default: mean
+#' @return traces object with proteoform_score column in trace_annotation.
+#' @export
 calculateProteoformScore <- function(traces, summary_fun = "mean"){
 
   # Check if correlations are already computed
