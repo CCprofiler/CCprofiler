@@ -345,6 +345,49 @@ fitDist <- function(traces, prot_names = NULL,
   return(DistFitted)
 }
 
+calculateProteoformScore <- function(traces, summary_fun = "mean"){
+
+  # Check if correlations are already computed
+  if(! "geneCorrMatrices" %in% names(traces)){
+    stop("no geneCorrMatrices available. Please compute first...")
+  }
+  # Check if clustering already done
+  if(! "cluster" %in% names(traces$trace_annotation)){
+    stop("No clustering found please call cutClustersInNreal first.")
+  }
+
+  res <- sapply(names(traces$geneCorrMatrices), function(prot){
+    clust <- traces$trace_annotation[protein_id == prot]
+
+    if(any(clust$cluster != 100)){
+      mat <- proteoformClustering$geneCorrMatrices[[prot]]
+      cl <- unique(clust$cluster)
+      cl <- cl[cl != 100]
+      if(length(cl) != 2){
+        stop(paste0("Protein ", prot, " does not have 2 clusters."))
+      }
+      cl1 <- clust[clust$cluster == cl[1]]$id
+      cl2 <- clust[clust$cluster == cl[2]]$id
+      mat <- mat[c(cl1, cl2), c(cl1, cl2)]
+      cross <- mat[cl1,cl2]
+      mat[upper.tri(mat, diag = T)] <- NA
+      ## stat_all <- mean(mat, na.rm = T)
+      within_c1 <- mat[cl1,cl1]
+      within_c2 <- mat[cl2,cl2]
+      stat_within_c1 <- do.call(summary_fun, list(within_c1, na.rm = T))
+      stat_within_c2 <- do.call(summary_fun, list(within_c2, na.rm = T))
+      stat_within <- min(c(stat_within_c2, stat_within_c1))
+      stat_across <- do.call(summary_fun, list(cross, na.rm = T))
+      return((stat_within - stat_across))
+    } else{
+      return(NA)
+    }
+  })
+  ## Add to trace annotation
+  traces$trace_annotation$proteoform_score <- res[traces$trace_annotation$protein_id]
+  return(traces)
+}
+
 #' Estimate p-values of whether a gene is likely to have >1 proteoforms
 #' @param traces Object of class traces or tracesList.
 #' @param distr Character string which distribution to fit. Default "beta".
