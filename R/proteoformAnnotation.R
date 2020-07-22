@@ -931,6 +931,8 @@ estimateProteoformPvalCens.traces <- function(traces, distribution = c("beta", "
 #' @param min_peptides_per_cluster How many peptides per cluster.
 #' @details Cuts the hierarchical tree so that there are N clusters with at least the specified number of peptides.
 #' If there are single peptides above the cutoff height they will get the label 100.
+#' @return traces object with cluster annotations in trace_annotation
+#' @export
 
 cutClustersInNreal <- function(traces, clusterN = 2, min_peptides_per_cluster = 2){
 
