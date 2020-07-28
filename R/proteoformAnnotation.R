@@ -976,7 +976,10 @@ cutClustersInNreal <- function(traces, clusterN = 2, min_peptides_per_cluster = 
   })
 
   names(clust) <- names(clusterList)
-  return(clust)
+  #return(clust)
+  
+  traces$trace_annotation[, cluster := clust[[protein_id]][id], by=c('protein_id','id')]
+  return(traces)
 }
 
 #' Cut clusters from clusterPeptides into N clusters.
