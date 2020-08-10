@@ -5,14 +5,14 @@
 evaluateProteoformLocation <- function(traces, 
                                        adj.method = "fdr", 
                                        name="NormalizedSD", 
-                                       minPepPerProtein = 6, 
-                                       minPepPerProteoform = 3, ...){
+                                       minPepPerProtein = 4, 
+                                       minPepPerProteoform = 2, ...){
   UseMethod("evaluateProteoformLocation", traces)
 }
 
 #' @describeIn evaluateProteoformLocation Evaluate proteoform sequence proximity
 #' @export
-evaluateProteoformLocation.traces <- function(traces, adj.method = "fdr", name="NormalizedSD", minPepPerProtein = 6, minPepPerProteoform = 3){
+evaluateProteoformLocation.traces <- function(traces, adj.method = "fdr", name="NormalizedSD", minPepPerProtein = 4, minPepPerProteoform = 2){
   traces$trace_annotation[, n_proteoforms := length(unique(proteoform_id)), by=c("protein_id")]
   traces$trace_annotation[, n_peptides := length(unique(id)), by=c("protein_id")]
   traces$trace_annotation[, n_peptides_per_proteoform := length(unique(id)), by=c("protein_id","proteoform_id")]
@@ -20,63 +20,17 @@ evaluateProteoformLocation.traces <- function(traces, adj.method = "fdr", name="
     sub = unique(subset(.SD, select = c("proteoform_id","n_peptides_per_proteoform")))
     medianN = median(sub$n_peptides_per_proteoform)
     .(median_peptides_per_proteoform = as.double(medianN))}, by="protein_id"]
-  # proteins_withoutProteoforms <- unique(traces$trace_annotation[n_proteoforms==1]$protein_id)
+  
   proteins_withProteoforms <- unique(traces$trace_annotation[n_proteoforms!=1][n_peptides >= minPepPerProtein]$protein_id)
   proteins_withProteoforms <- proteins_withProteoforms[proteins_withProteoforms %in% medianPerProt[median_peptides_per_proteoform >= minPepPerProteoform]$protein_id]
   
   traces_toTest <- subset(traces, trace_subset_ids=proteins_withProteoforms, trace_subset_type="protein_id")
   testRandPep <- testRandomPeptides(traces_toTest)
   testRandPepStats <- plotRealVsRandom(testRandPep,score="NormalizedSD")
-
-  #testRandPepStats_prot <- unique(subset(testRandPepStats, select=c("protein_id","genomLocation_pval_min")))
-  
-  #testRandPepStats_prot$genomLocation_pval_adj_prot <- p.adjust(testRandPepStats_prot$genomLocation_pval_min, adj.method)
-  
-  #pi0_prot <- pi0est(testRandPepStats_prot$genomLocation_pval_min, pi0.method = "bootstrap", na.rm=T)$pi0
-  #testRandPepStats_prot$pi0_prot <- pi0_prot
-  
-  #qobj_prot <- qvalue(testRandPepStats_prot$genomLocation_pval_min, pi0=pi0_prot)
-  #testRandPepStats_prot$genomLocation_qval_prot <- qobj_prot$qvalues
-  
-  #testRandPepStats <- merge(testRandPepStats, testRandPepStats_prot, by=c("protein_id","genomLocation_pval_min"))
-  
-  testRandPepStats$genomLocation_pval_adj <- p.adjust(testRandPepStats$genomLocation_pval, adj.method)
-  
-  pi0 <- pi0est(testRandPepStats$genomLocation_pval, pi0.method = "bootstrap", na.rm=T)$pi0
-  qobj <- qvalue(testRandPepStats$genomLocation_pval, pi0=pi0)
-  testRandPepStats$genomLocation_qval <- qobj$qvalues
-  testRandPepStats$pi0 <- qobj$pi0
   
   testRandPepStats[, "genomLocation_pval_min" := min(genomLocation_pval), by="protein_id"]
-  testRandPepStats[, "genomLocation_pval_adj_min" := min(genomLocation_pval_adj), by="protein_id"]
-  testRandPepStats[, "genomLocation_qval_min" := min(genomLocation_qval), by="protein_id"]
+  testRandPepStats[, "genomLocation_pval_lim_min" := min(genomLocation_pval_lim), by="protein_id"]
   
-  pdf(paste0(name,".pdf"),width=3,height=3)
-  p <- ggplot(testRandPepStats,aes(x=genomLocation_pval)) +
-    geom_histogram(bins=40) +
-    theme_classic()
-  print(p)
-  a <- ggplot(testRandPepStats,aes(x=genomLocation_pval_adj)) +
-    geom_histogram(bins=40) +
-    theme_classic()
-  print(a)
-  q <- ggplot(testRandPepStats,aes(x=genomLocation_qval)) +
-    geom_histogram(bins=40) +
-    theme_classic()
-  print(q)
-  p <- ggplot(testRandPepStats,aes(x=genomLocation_pval_min)) +
-    geom_histogram(bins=40) +
-    theme_classic()
-  print(p)
-  #a <- ggplot(testRandPepStats_prot,aes(x=genomLocation_pval_adj_prot)) +
-  #  geom_histogram(bins=25) +
-  #  theme_classic()
-  #print(a)
-  #q <- ggplot(testRandPepStats_prot,aes(x=genomLocation_qval_prot)) +
-  #  geom_histogram(bins=25) +
-  #  theme_classic()
-  #print(q)
-  dev.off()
   traces$trace_annotation <- merge(traces$trace_annotation, testRandPepStats,
                                    all.x=T,all.y=F,by=c("protein_id","proteoform_id"),sort=F)
   .tracesTest(traces)
@@ -88,8 +42,8 @@ evaluateProteoformLocation.traces <- function(traces, adj.method = "fdr", name="
 evaluateProteoformLocation.tracesList <- function(traces, 
                                                   adj.method = "fdr", 
                                                   name="NormalizedSD", 
-                                                  minPepPerProtein = 6, 
-                                                  minPepPerProteoform = 3){
+                                                  minPepPerProtein = 4, 
+                                                  minPepPerProteoform = 2){
   .tracesListTest(traces)
   
   traces_int <- integrateTraceIntensities(traces,
@@ -198,14 +152,16 @@ plotRealVsRandomPerProt <- function(protein,res,score){
 plotRealVsRandomPerProteoform <- function(proteoform,protein,res,score){
   real <- res[[protein]][[proteoform]][[score]]$real
   random <- unlist(res[[protein]][[proteoform]][[score]]$random)
-  #zscore <- (real-mean(random))/sd(random)
-  #zcritical <- qnorm(0.05, mean = mean(random), sd = sd(random), lower.tail = TRUE, log.p = FALSE)
+
   n_rand_total <- length(random)
   n_rand_smallerReal <- length(which(random <= real))
+  n_rand_smallerReal_lim <- length(which(random < real))
   if (is.na(real)){
     p_rand <- 1
+    p_rand_lim <- 1
   } else {
     p_rand <- (n_rand_smallerReal+1)/(n_rand_total+1)
+    p_rand_lim <- (n_rand_smallerReal_lim+1)/(n_rand_total+1)
   }
   dt <- data.table(random=random)
   if (!is.na(real)){
@@ -214,12 +170,10 @@ plotRealVsRandomPerProteoform <- function(proteoform,protein,res,score){
       geom_vline(xintercept = real, colour="red") +
       theme_classic() +
       ggtitle(paste0(proteoform,
-                     #"\n z-score = ",zscore,
-                     #"\n z-critical = ",zcritical,
                      "\n p-rand = ",p_rand))
     print(p)
   }
-  out <- data.table(protein_id=protein,proteoform_id=proteoform,genomLocation_pval=p_rand)
+  out <- data.table(protein_id=protein,proteoform_id=proteoform,genomLocation_pval=p_rand, genomLocation_pval_lim=p_rand_lim)
   return(out)
 }
 
