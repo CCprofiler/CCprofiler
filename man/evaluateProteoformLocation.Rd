@@ -10,8 +10,8 @@ evaluateProteoformLocation(
   traces,
   adj.method = "fdr",
   name = "NormalizedSD",
-  minPepPerProtein = 6,
-  minPepPerProteoform = 3,
+  minPepPerProtein = 4,
+  minPepPerProteoform = 2,
   ...
 )
 
@@ -19,16 +19,16 @@ evaluateProteoformLocation(
   traces,
   adj.method = "fdr",
   name = "NormalizedSD",
-  minPepPerProtein = 6,
-  minPepPerProteoform = 3
+  minPepPerProtein = 4,
+  minPepPerProteoform = 2
 )
 
 \method{evaluateProteoformLocation}{tracesList}(
   traces,
   adj.method = "fdr",
   name = "NormalizedSD",
-  minPepPerProtein = 6,
-  minPepPerProteoform = 3
+  minPepPerProtein = 4,
+  minPepPerProteoform = 2
 )
 }
 \arguments{

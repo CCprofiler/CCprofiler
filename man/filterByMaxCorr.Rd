@@ -9,6 +9,8 @@ at least one high correlating sibling peptide}
 filterByMaxCorr(
   traces,
   cutoff = 0.85,
+  filter_by = c("maxcorr", "minpval"),
+  logtransform = FALSE,
   plot = FALSE,
   PDF = FALSE,
   name = "maxCorrHist",
@@ -30,6 +32,11 @@ filterByMaxCorr.tracesList(
 
 \item{cutoff}{Numeric between 0 and 1. Minimum correlation of a peptide
 width any sibling peptide.}
+
+\item{filter_by}{Filtering criterium, maxcorr (default) filters with a cutoff
+on the correlation, minpval filters with a cutoff on the correlation p-value}
+
+\item{logtransform}{Logical, whether to log transform intensities}
 
 \item{plot}{logical,wether to print SibPepCorr density plot to R console.
 Deafult is \code{FALSE}.}
