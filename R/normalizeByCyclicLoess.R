@@ -2,8 +2,6 @@
 #' @description Normalize peptide traces across replicates, conditions and fractions
 #' @import data.table
 #' @import preprocessCore
-#' @import limma
-#' @import evobiR
 #' @import plyr
 #' @param traces_list traces list object of type peptide
 #' @param window integer size of slding window, default = 3
@@ -99,10 +97,10 @@ normalize_sn <- function(X, window, step) {
   id_mapping<-unique(X[,c("filename","fraction_number")])
 
   max_sec <- max(X$fraction_number)
-  windows_sets<-SlidingWindow("data.frame",c(0:max_sec+1), window, step)
+  windows_sets<-evobiR::SlidingWindow("data.frame",c(0:max_sec+1), window, step)
 
-  #lmxn<-lapply(windows_sets,function(X){normalizeMedianValues(mxs[,subset(id_mapping, fraction_number %in% X)$filename])})
-  lmxn<-lapply(windows_sets,function(X){normalizeCyclicLoess(mxs[,subset(id_mapping, fraction_number %in% X)$filename])})
+  #lmxn<-lapply(windows_sets,function(X){limma::normalizeMedianValues(mxs[,subset(id_mapping, fraction_number %in% X)$filename])})
+  lmxn<-lapply(windows_sets,function(X){limma::normalizeCyclicLoess(mxs[,subset(id_mapping, fraction_number %in% X)$filename])})
 
   lln<-do.call("rbind",lapply(lmxn, melt, na.rm=TRUE))
   names(lln)<-c("id", "filename", "intensity")
