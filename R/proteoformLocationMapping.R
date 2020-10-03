@@ -13,7 +13,6 @@ evaluateProteoformLocation <- function(traces,
 #' @describeIn evaluateProteoformLocation Evaluate proteoform sequence proximity
 #' @export
 evaluateProteoformLocation.traces <- function(traces, adj.method = "fdr", name="NormalizedSD", minPepPerProtein = 4, minPepPerProteoform = 2){
-  #traces$trace_annotation[, n_proteoforms := length(unique(proteoform_id)), by=c("protein_id")]
   traces$trace_annotation[, n_peptides := length(unique(id)), by=c("protein_id")]
   traces$trace_annotation[, n_peptides_per_proteoform := length(unique(id)), by=c("protein_id","proteoform_id")]
   medianPerProt <- traces$trace_annotation[, {
