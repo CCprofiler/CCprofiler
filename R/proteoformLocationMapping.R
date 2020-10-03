@@ -2,10 +2,10 @@
 #' @param traces Object of class traces or tracesList.
 #' @return Traces with annotated sequence proximity stats.
 #' @export
-evaluateProteoformLocation <- function(traces, 
-                                       adj.method = "fdr", 
-                                       name="NormalizedSD", 
-                                       minPepPerProtein = 4, 
+evaluateProteoformLocation <- function(traces,
+                                       adj.method = "fdr",
+                                       name="NormalizedSD",
+                                       minPepPerProtein = 4,
                                        minPepPerProteoform = 2, ...){
   UseMethod("evaluateProteoformLocation", traces)
 }
@@ -13,24 +13,24 @@ evaluateProteoformLocation <- function(traces,
 #' @describeIn evaluateProteoformLocation Evaluate proteoform sequence proximity
 #' @export
 evaluateProteoformLocation.traces <- function(traces, adj.method = "fdr", name="NormalizedSD", minPepPerProtein = 4, minPepPerProteoform = 2){
-  traces$trace_annotation[, n_proteoforms := length(unique(proteoform_id)), by=c("protein_id")]
+  #traces$trace_annotation[, n_proteoforms := length(unique(proteoform_id)), by=c("protein_id")]
   traces$trace_annotation[, n_peptides := length(unique(id)), by=c("protein_id")]
   traces$trace_annotation[, n_peptides_per_proteoform := length(unique(id)), by=c("protein_id","proteoform_id")]
-  medianPerProt <- traces$trace_annotation[, { 
+  medianPerProt <- traces$trace_annotation[, {
     sub = unique(subset(.SD, select = c("proteoform_id","n_peptides_per_proteoform")))
     medianN = median(sub$n_peptides_per_proteoform)
     .(median_peptides_per_proteoform = as.double(medianN))}, by="protein_id"]
-  
-  proteins_withProteoforms <- unique(traces$trace_annotation[n_proteoforms!=1][n_peptides >= minPepPerProtein]$protein_id)
+
+  proteins_withProteoforms <- unique(traces$trace_annotation[n_proteoforms!=0][n_peptides >= minPepPerProtein]$protein_id)
   proteins_withProteoforms <- proteins_withProteoforms[proteins_withProteoforms %in% medianPerProt[median_peptides_per_proteoform >= minPepPerProteoform]$protein_id]
-  
+
   traces_toTest <- subset(traces, trace_subset_ids=proteins_withProteoforms, trace_subset_type="protein_id")
   testRandPep <- testRandomPeptides(traces_toTest)
   testRandPepStats <- plotRealVsRandom(testRandPep,score="NormalizedSD")
-  
+
   testRandPepStats[, "genomLocation_pval_min" := min(genomLocation_pval), by="protein_id"]
   testRandPepStats[, "genomLocation_pval_lim_min" := min(genomLocation_pval_lim), by="protein_id"]
-  
+
   traces$trace_annotation <- merge(traces$trace_annotation, testRandPepStats,
                                    all.x=T,all.y=F,by=c("protein_id","proteoform_id"),sort=F)
   .tracesTest(traces)
@@ -39,35 +39,35 @@ evaluateProteoformLocation.traces <- function(traces, adj.method = "fdr", name="
 
 #' @describeIn evaluateProteoformLocation Evaluate proteoform sequence proximity
 #' @export
-evaluateProteoformLocation.tracesList <- function(traces, 
-                                                  adj.method = "fdr", 
-                                                  name="NormalizedSD", 
-                                                  minPepPerProtein = 4, 
+evaluateProteoformLocation.tracesList <- function(traces,
+                                                  adj.method = "fdr",
+                                                  name="NormalizedSD",
+                                                  minPepPerProtein = 4,
                                                   minPepPerProteoform = 2){
   .tracesListTest(traces)
-  
+
   traces_int <- integrateTraceIntensities(traces,
                                           design_matrix = NULL,
                                           integrate_within = NULL,
                                           aggr_fun = "sum")
-  
+
   traces_int_ann <- evaluateProteoformLocation.traces(traces_int,
-                                                      adj.method = adj.method, 
-                                                      name=name, 
-                                                      minPepPerProtein = minPepPerProtein, 
+                                                      adj.method = adj.method,
+                                                      name=name,
+                                                      minPepPerProtein = minPepPerProtein,
                                                       minPepPerProteoform = minPepPerProteoform)
-  
-  annTable = subset(traces_int_ann$trace_annotation, select=c("id","protein_id", 
-                                                              names(traces_int_ann$trace_annotation)[!names(traces_int_ann$trace_annotation) %in% 
+
+  annTable = subset(traces_int_ann$trace_annotation, select=c("id","protein_id",
+                                                              names(traces_int_ann$trace_annotation)[!names(traces_int_ann$trace_annotation) %in%
                                                                                                        names(traces[[1]]$trace_annotation)]))
-  
+
   traces_ann <- lapply(traces, function(x){
     x$trace_annotation <- merge(x$trace_annotation,
                                 annTable,by=c("protein_id","id"),sort=F,all.x=T,all.y=F)
     x
   })
   class(traces_ann) <- "tracesList"
-  
+
   .tracesListTest(traces_ann)
   return(traces_ann)
 }
@@ -216,7 +216,7 @@ plotPeptideCluster <- function(traces,protein, PDF=FALSE, closeGaps=FALSE){
             axis.title= element_blank(),
             axis.line = element_blank()) +
       theme(legend.position="bottom") +
-      scale_fill_manual(values=cbPalette) 
+      scale_fill_manual(values=cbPalette)
     if ("genomic_coord" %in% names(traces)) {
       e <- ggplot(dt,aes(x=PeptidePositionStartRank,
                          y=1,
@@ -228,12 +228,12 @@ plotPeptideCluster <- function(traces,protein, PDF=FALSE, closeGaps=FALSE){
               axis.line = element_blank()) +
         theme(legend.position="top") +
         scale_fill_manual(values = getPalette(length(unique(dt$exon_id))))
-      f <- ggarrange(e, q, 
+      f <- ggarrange(e, q,
                      labels = c("", ""),
                      ncol = 1, nrow = 2)
       print(annotate_figure(f, fig.lab = paste0(protein," : ",unique(dt$Gene_names))))
     } else {
-      print(q + ggtitle(paste0(protein," : ",unique(dt$Gene_names)))) 
+      print(q + ggtitle(paste0(protein," : ",unique(dt$Gene_names))))
     }
   } else {
     q <- ggplot(dt,aes(x=PeptidePositionStart,
@@ -245,7 +245,7 @@ plotPeptideCluster <- function(traces,protein, PDF=FALSE, closeGaps=FALSE){
             axis.title= element_blank(),
             axis.line = element_blank()) +
       theme(legend.position="bottom") +
-      scale_fill_manual(values=cbPalette) 
+      scale_fill_manual(values=cbPalette)
     if ("genomic_coord" %in% names(traces)) {
       e <- ggplot(dt,aes(x=PeptidePositionStart,
                          y=1,
@@ -257,12 +257,12 @@ plotPeptideCluster <- function(traces,protein, PDF=FALSE, closeGaps=FALSE){
               axis.line = element_blank()) +
         theme(legend.position="top") +
         scale_fill_manual(values = getPalette(length(unique(dt$exon_id))))
-      f <- ggarrange(e, q, 
+      f <- ggarrange(e, q,
                      labels = c("", ""),
                      ncol = 1, nrow = 2)
       print(annotate_figure(f, fig.lab = paste0(protein," : ",unique(dt$Gene_names))))
     } else {
-      print(q + ggtitle(paste0(protein," : ",unique(dt$Gene_names)))) 
+      print(q + ggtitle(paste0(protein," : ",unique(dt$Gene_names))))
     }
   }
   if (PDF){
