@@ -301,19 +301,17 @@ plotFeatures.traces <- function(feature_table,
     slope <- as.numeric(tr$coefficients[2])
     mwtransform <- function(x){exp(slope*x + intercept)}
     MWtoFraction <- function(x){round((log(x)-intercept)/(slope), digits = 0)}
-    mw <- round(fraction_ann$molecular_weight, digits = 0)
-    breaks_MW <- mw[seq(1,length(mw), length.out = length(seq(min(traces$fraction_annotation$id),
-                                                              max(traces$fraction_annotation$id),10)))]
+    
+    breaks_frac <- seq(min(fraction_ann$id),max(fraction_ann$id),10)
+    breaks_MW <- round(fraction_ann[id %in% seq(min(fraction_ann$id),max(fraction_ann$id),10)]$molecular_weight)
     p <- p + scale_x_continuous(name="fraction",
-                                breaks=seq(min(traces$fraction_annotation$id),
-                                           max(traces$fraction_annotation$id),10),
-                                labels=seq(min(traces$fraction_annotation$id),
-                                           max(traces$fraction_annotation$id),10),
+                                breaks=breaks_frac,
+                                labels=breaks_frac,
                                 sec.axis = dup_axis(trans = ~.,
-                                                    breaks=seq(min(traces$fraction_annotation$id),
-                                                               max(traces$fraction_annotation$id),10),
+                                                    breaks=breaks_frac,
                                                     labels = breaks_MW,
                                                     name = "MW (kDa)"))
+    
   } else {
     p <- p + scale_x_continuous(name="fraction",
                                 breaks=seq(min(traces$fraction_annotation$id),
@@ -640,17 +638,14 @@ plotFeatures.tracesList <- function(feature_table,
     slope <- as.numeric(tr$coefficients[2])
     mwtransform <- function(x){exp(slope*x + intercept)}
     MWtoFraction <- function(x){round((log(x)-intercept)/(slope), digits = 0)}
-    mw <- round(fraction_ann$molecular_weight, digits = 0)
-    breaks_MW <- mw[seq(1,length(mw), length.out = length(seq(min(traces_frac$id),
-                                                              max(traces_frac$id),10)))]
+    
+    breaks_frac <- seq(min(fraction_ann$id),max(fraction_ann$id),10)
+    breaks_MW <- round(fraction_ann[id %in% seq(min(fraction_ann$id),max(fraction_ann$id),10)]$molecular_weight)
     p <- p + scale_x_continuous(name="fraction",
-                                breaks=seq(min(traces_frac$id),
-                                           max(traces_frac$id),10),
-                                labels=seq(min(traces_frac$id),
-                                           max(traces_frac$id),10),
+                                breaks=breaks_frac,
+                                labels=breaks_frac,
                                 sec.axis = dup_axis(trans = ~.,
-                                                    breaks=seq(min(traces_frac$id),
-                                                               max(traces_frac$id),10),
+                                                    breaks=breaks_frac,
                                                     labels = breaks_MW,
                                                     name = "MW (kDa)"))
   } else {
