@@ -4,10 +4,16 @@
 \alias{filterFeatures}
 \title{Filter co-elution feature table}
 \usage{
-filterFeatures(feature_table, complex_ids = NULL, protein_ids = NULL,
-  min_feature_completeness = NULL, min_hypothesis_completeness = NULL,
-  min_subunits = NULL, min_peak_corr = NULL,
-  min_monomer_distance_factor = 2)
+filterFeatures(
+  feature_table,
+  complex_ids = NULL,
+  protein_ids = NULL,
+  min_feature_completeness = NULL,
+  min_hypothesis_completeness = NULL,
+  min_subunits = NULL,
+  min_peak_corr = NULL,
+  min_monomer_distance_factor = 2
+)
 }
 \arguments{
 \item{feature_table}{data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}}

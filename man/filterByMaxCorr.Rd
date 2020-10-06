@@ -5,8 +5,14 @@
 \title{Filter peptides for having
 at least one high correlating sibling peptide}
 \usage{
-filterByMaxCorr(traces, cutoff = 0.85, plot = FALSE, PDF = FALSE,
-  name = "maxCorrHist", ...)
+filterByMaxCorr(
+  traces,
+  cutoff = 0.85,
+  plot = FALSE,
+  PDF = FALSE,
+  name = "maxCorrHist",
+  ...
+)
 }
 \arguments{
 \item{traces}{Object of class traces.}

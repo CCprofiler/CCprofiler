@@ -7,12 +7,10 @@
 generateRandomPepTraces(traces, append = FALSE, rm_orig_decoys = TRUE)
 }
 \arguments{
-\item{traces}{traces object of type peptide}
+\item{traces}{traces bject of type peptide}
 
 \item{append}{Logical, whether to append the generated decoy traces
 to the original target traces}
-
-\item{traces}{traces bject of type peptide}
 }
 \value{
 traces object of type peptide with random peptides per protein

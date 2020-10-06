@@ -4,12 +4,23 @@
 \alias{plot.tracesList}
 \title{Plot traces}
 \usage{
-\method{plot}{tracesList}(traces, design_matrix = NULL,
-  collapse_conditions = FALSE, aggregateReplicates = FALSE,
-  log = FALSE, legend = TRUE, PDF = FALSE, name = "Traces",
-  plot = TRUE, isoformAnnotation = FALSE, colour_by = "id",
-  highlight = NULL, highlight_col = NULL, colorMap = NULL,
-  monomer_MW = TRUE)
+\method{plot}{tracesList}(
+  traces,
+  design_matrix = NULL,
+  collapse_conditions = FALSE,
+  aggregateReplicates = FALSE,
+  log = FALSE,
+  legend = TRUE,
+  PDF = FALSE,
+  name = "Traces",
+  plot = TRUE,
+  isoformAnnotation = FALSE,
+  colour_by = "id",
+  highlight = NULL,
+  highlight_col = NULL,
+  colorMap = NULL,
+  monomer_MW = TRUE
+)
 }
 \arguments{
 \item{traces}{Object of class traces.}

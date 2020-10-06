@@ -4,9 +4,15 @@
 \alias{getMassAssemblyChange}
 \title{getMassAssemblyChange}
 \usage{
-getMassAssemblyChange(tracesList, design_matrix,
-  compare_between = "Condition", quantLevel = "protein_id",
-  plot = FALSE, PDF = FALSE, name = "beta_pvalue_histogram")
+getMassAssemblyChange(
+  tracesList,
+  design_matrix,
+  compare_between = "Condition",
+  quantLevel = "protein_id",
+  plot = FALSE,
+  PDF = FALSE,
+  name = "beta_pvalue_histogram"
+)
 }
 \arguments{
 \item{tracesList}{An object of type traces.list including assembled mass

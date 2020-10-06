@@ -4,8 +4,12 @@
 \alias{subset.traces}
 \title{Subset traces or fractions in traces object}
 \usage{
-\method{subset}{traces}(traces, trace_subset_ids = NULL,
-  trace_subset_type = "id", fraction_ids = NULL)
+\method{subset}{traces}(
+  traces,
+  trace_subset_ids = NULL,
+  trace_subset_type = "id",
+  fraction_ids = NULL
+)
 }
 \arguments{
 \item{traces}{Object of class traces.}

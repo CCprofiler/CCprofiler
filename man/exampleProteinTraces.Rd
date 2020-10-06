@@ -4,7 +4,9 @@
 \name{exampleProteinTraces}
 \alias{exampleProteinTraces}
 \title{Examplary protein level traces object}
-\format{An object of class \code{traces} of length 4.}
+\format{
+An object of class \code{traces} of length 4.
+}
 \usage{
 exampleProteinTraces
 }

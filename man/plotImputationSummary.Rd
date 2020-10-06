@@ -6,17 +6,32 @@
 \alias{plotImputationSummary.tracesList}
 \title{Plot a summary of the trace imputation}
 \usage{
-plotImputationSummary(traces, tracesImp, PDF = TRUE,
-  plot_traces = TRUE, max_n_traces = 30,
-  name = "Missing_value_imputation_summary.pdf")
+plotImputationSummary(
+  traces,
+  tracesImp,
+  PDF = TRUE,
+  plot_traces = TRUE,
+  max_n_traces = 30,
+  name = "Missing_value_imputation_summary.pdf"
+)
 
-\method{plotImputationSummary}{traces}(traces, tracesImp, PDF = TRUE,
-  plot_traces = TRUE, max_n_traces = 30,
-  name = "Missing_value_imputation_summary.pdf")
+\method{plotImputationSummary}{traces}(
+  traces,
+  tracesImp,
+  PDF = TRUE,
+  plot_traces = TRUE,
+  max_n_traces = 30,
+  name = "Missing_value_imputation_summary.pdf"
+)
 
-\method{plotImputationSummary}{tracesList}(tracesList, tracesImpList,
-  PDF = TRUE, plot_traces = TRUE, max_n_traces = 30,
-  name = "Missing_value_imputation_summary.pdf")
+\method{plotImputationSummary}{tracesList}(
+  tracesList,
+  tracesImpList,
+  PDF = TRUE,
+  plot_traces = TRUE,
+  max_n_traces = 30,
+  name = "Missing_value_imputation_summary.pdf"
+)
 }
 \arguments{
 \item{traces}{Object of class traces with missing values indicated by \code{NA}.}

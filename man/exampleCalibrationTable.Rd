@@ -4,7 +4,9 @@
 \name{exampleCalibrationTable}
 \alias{exampleCalibrationTable}
 \title{Examplary calibration table that maps molecular weights to elution fractions}
-\format{An object of class \code{data.table} (inherits from \code{data.frame}) with 6 rows and 2 columns.}
+\format{
+An object of class \code{data.table} (inherits from \code{data.frame}) with 6 rows and 2 columns.
+}
 \usage{
 exampleCalibrationTable
 }

@@ -4,10 +4,16 @@
 \alias{importMultipleCondiionsFromOpenSWATH}
 \title{Import peptide profiles from an OpenSWATH experiment.}
 \usage{
-importMultipleCondiionsFromOpenSWATH(data, annotation_table,
-  rm_requantified = TRUE, rm_decoys = FALSE,
-  rm_nonProteotypic = TRUE, MS1Quant = FALSE,
-  proteogenomicsWF = FALSE, verbose = TRUE)
+importMultipleCondiionsFromOpenSWATH(
+  data,
+  annotation_table,
+  rm_requantified = TRUE,
+  rm_decoys = FALSE,
+  rm_nonProteotypic = TRUE,
+  MS1Quant = FALSE,
+  proteogenomicsWF = FALSE,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{data}{Quantitative MS data in form of OpenSWATH result file or R data.table.}

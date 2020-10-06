@@ -4,8 +4,13 @@
 \alias{filterByRepPepCorr}
 \title{Filter by sibling peptide correlation}
 \usage{
-filterByRepPepCorr(traces, design_matrix, condition_column = NULL,
-  stepwise_filter = TRUE, repPepCorr_cutoff = 0.5)
+filterByRepPepCorr(
+  traces,
+  design_matrix,
+  condition_column = NULL,
+  stepwise_filter = TRUE,
+  repPepCorr_cutoff = 0.5
+)
 }
 \arguments{
 \item{traces}{object of class tracesList.}

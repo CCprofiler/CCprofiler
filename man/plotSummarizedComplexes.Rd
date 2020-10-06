@@ -4,8 +4,13 @@
 \alias{plotSummarizedComplexes}
 \title{Plot pie chart with complex hypothesis completeness}
 \usage{
-plotSummarizedComplexes(complexFeatures, hypotheses, protTraces,
-  PDF = FALSE, name = "complex_completeness_pie")
+plotSummarizedComplexes(
+  complexFeatures,
+  hypotheses,
+  protTraces,
+  PDF = FALSE,
+  name = "complex_completeness_pie"
+)
 }
 \arguments{
 \item{complexFeatures}{data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}}

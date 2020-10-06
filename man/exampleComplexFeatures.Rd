@@ -4,7 +4,9 @@
 \name{exampleComplexFeatures}
 \alias{exampleComplexFeatures}
 \title{Examplary output of the \code{findComplexFeatures} function}
-\format{An object of class \code{data.table} (inherits from \code{data.frame}) with 35 rows and 27 columns.}
+\format{
+An object of class \code{data.table} (inherits from \code{data.frame}) with 35 rows and 27 columns.
+}
 \usage{
 exampleComplexFeatures
 }

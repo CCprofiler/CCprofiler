@@ -4,7 +4,9 @@
 \name{corumComplexHypothesesRedundant}
 \alias{corumComplexHypothesesRedundant}
 \title{Complex hypotheses from CORUM DB (redundant)}
-\format{An object of class \code{data.table} (inherits from \code{data.frame}) with 8923 rows and 3 columns.}
+\format{
+An object of class \code{data.table} (inherits from \code{data.frame}) with 8923 rows and 3 columns.
+}
 \usage{
 corumComplexHypothesesRedundant
 }

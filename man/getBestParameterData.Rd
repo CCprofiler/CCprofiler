@@ -4,11 +4,13 @@
 \alias{getBestParameterData}
 \title{Get the best performing parameter data}
 \usage{
-getBestParameterData(complex_features_list, best_parameters,
-  grid_search_params = c("corr", "window", "rt_height",
-  "smoothing_length", "min_feature_completeness",
-  "min_hypothesis_completeness", "min_subunits", "min_peak_corr",
-  "min_monomer_distance_factor"))
+getBestParameterData(
+  complex_features_list,
+  best_parameters,
+  grid_search_params = c("corr", "window", "rt_height", "smoothing_length",
+    "min_feature_completeness", "min_hypothesis_completeness", "min_subunits",
+    "min_peak_corr", "min_monomer_distance_factor")
+)
 }
 \arguments{
 \item{complex_features_list}{data.table containing filtered complex feature results.}

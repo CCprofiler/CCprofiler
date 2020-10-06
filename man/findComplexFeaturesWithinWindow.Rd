@@ -5,8 +5,13 @@
 \title{Detect subgroups within a window. This is a helper function and should
 be called by `findComplexFeaturesSW`.}
 \usage{
-findComplexFeaturesWithinWindow(window.trace.mat, protein.names,
-  corr.cutoff, with.plot = F, sec = NULL)
+findComplexFeaturesWithinWindow(
+  window.trace.mat,
+  protein.names,
+  corr.cutoff,
+  with.plot = F,
+  sec = NULL
+)
 }
 \arguments{
 \item{window.trace.mat}{A matrix of intensity values where chromatograms of

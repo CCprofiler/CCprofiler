@@ -4,8 +4,11 @@
 \alias{plotProteinMScoveragePie}
 \title{plotProteinMScoveragePie.}
 \usage{
-plotProteinMScoveragePie(proteinMScoverageSummary, PDF = FALSE,
-  name_suffix = "complexHypotheses")
+plotProteinMScoveragePie(
+  proteinMScoverageSummary,
+  PDF = FALSE,
+  name_suffix = "complexHypotheses"
+)
 }
 \arguments{
 \item{proteinMScoverageSummary}{data.table with summary}

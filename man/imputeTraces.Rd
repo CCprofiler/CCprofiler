@@ -6,18 +6,38 @@
 \alias{imputeTraces.tracesList}
 \title{Plot a summary of the trace imputation}
 \usage{
-imputeTraces(traces, bound_left = 2, bound_right = 2,
-  consider_borders = TRUE, method = c("mean", "spline"),
-  plot_summary = TRUE, plot_traces = TRUE, max_n_traces = 30)
+imputeTraces(
+  traces,
+  bound_left = 2,
+  bound_right = 2,
+  consider_borders = TRUE,
+  method = c("mean", "spline"),
+  plot_summary = TRUE,
+  plot_traces = TRUE,
+  max_n_traces = 30
+)
 
-\method{imputeTraces}{traces}(traces, bound_left = 2, bound_right = 2,
-  consider_borders = TRUE, method = c("mean", "spline"),
-  plot_summary = TRUE, plot_traces = TRUE, max_n_traces = 30)
+\method{imputeTraces}{traces}(
+  traces,
+  bound_left = 2,
+  bound_right = 2,
+  consider_borders = TRUE,
+  method = c("mean", "spline"),
+  plot_summary = TRUE,
+  plot_traces = TRUE,
+  max_n_traces = 30
+)
 
-\method{imputeTraces}{tracesList}(tracesList, bound_left = 2,
-  bound_right = 2, consider_borders = TRUE, method = c("mean",
-  "spline"), plot_summary = TRUE, plot_traces = TRUE,
-  max_n_traces = 30)
+\method{imputeTraces}{tracesList}(
+  tracesList,
+  bound_left = 2,
+  bound_right = 2,
+  consider_borders = TRUE,
+  method = c("mean", "spline"),
+  plot_summary = TRUE,
+  plot_traces = TRUE,
+  max_n_traces = 30
+)
 }
 \arguments{
 \item{traces}{Object of class traces with missing values indicated by \code{NA}.}

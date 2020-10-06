@@ -4,8 +4,11 @@
 \alias{summarizeMassDistribution}
 \title{summarizeMassDistribution}
 \usage{
-summarizeMassDistribution(traces, PDF = FALSE,
-  name = "massDistribution_summary")
+summarizeMassDistribution(
+  traces,
+  PDF = FALSE,
+  name = "massDistribution_summary"
+)
 }
 \arguments{
 \item{traces}{An object of type traces.}

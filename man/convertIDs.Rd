@@ -4,8 +4,7 @@
 \alias{convertIDs}
 \title{Convert any input ids to uniprotkb accession ids.}
 \usage{
-convertIDs(ids = ids, type = "UNIPROTKB",
-  traces.obj = fullProtTracesHEK)
+convertIDs(ids = ids, type = "UNIPROTKB", traces.obj = fullProtTracesHEK)
 }
 \arguments{
 \item{ids}{A character vector containing names or identifiers.}

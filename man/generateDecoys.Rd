@@ -4,8 +4,7 @@
 \alias{generateDecoys}
 \title{Generate one comlpex decoy-hypothesis}
 \usage{
-generateDecoys(size, all_proteins, dist_info, min_distance = 1,
-  n_tries = 3)
+generateDecoys(size, all_proteins, dist_info, min_distance = 1, n_tries = 3)
 }
 \arguments{
 \item{size}{Numeric, number of proteins to generate for complex decoy hypothesis}

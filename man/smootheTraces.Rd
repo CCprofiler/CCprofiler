@@ -6,17 +6,41 @@
 \alias{smootheTraces.tracesList}
 \title{Normalize trace intensities by spline smoothing over the fractions}
 \usage{
-smootheTraces(traces, method = c("mean", "median"), scale = c("none",
-  "log"), span = 0.15, plot = FALSE, PDF = F,
-  name = "Smoothing_summary.pdf", smoothe_on_targets = TRUE, ...)
+smootheTraces(
+  traces,
+  method = c("mean", "median"),
+  scale = c("none", "log"),
+  span = 0.15,
+  plot = FALSE,
+  PDF = F,
+  name = "Smoothing_summary.pdf",
+  smoothe_on_targets = TRUE,
+  ...
+)
 
-\method{smootheTraces}{traces}(traces, method = c("mean", "median"),
-  scale = c("none", "log"), span = 0.15, plot = FALSE, PDF = F,
-  name = "Smoothing_summary.pdf", smoothe_on_targets = TRUE, ...)
+\method{smootheTraces}{traces}(
+  traces,
+  method = c("mean", "median"),
+  scale = c("none", "log"),
+  span = 0.15,
+  plot = FALSE,
+  PDF = F,
+  name = "Smoothing_summary.pdf",
+  smoothe_on_targets = TRUE,
+  ...
+)
 
-\method{smootheTraces}{tracesList}(traces, method = c("mean", "median"),
-  scale = c("none", "log"), span = 0.15, plot = FALSE, PDF = F,
-  name = "Smoothing_summary.pdf", smoothe_on_targets = TRUE, ...)
+\method{smootheTraces}{tracesList}(
+  traces,
+  method = c("mean", "median"),
+  scale = c("none", "log"),
+  span = 0.15,
+  plot = FALSE,
+  PDF = F,
+  name = "Smoothing_summary.pdf",
+  smoothe_on_targets = TRUE,
+  ...
+)
 }
 \arguments{
 \item{method}{Character string, whether to normalize to the median or the mean intensity}

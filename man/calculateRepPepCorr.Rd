@@ -4,9 +4,15 @@
 \alias{calculateRepPepCorr}
 \title{Calculates the correlation of every petide between replicates}
 \usage{
-calculateRepPepCorr(traces, design_matrix, compare_within = NULL,
-  add = T, plot = F, PDF = F,
-  name = "ReplicatePeptideCorrelationDensity")
+calculateRepPepCorr(
+  traces,
+  design_matrix,
+  compare_within = NULL,
+  add = T,
+  plot = F,
+  PDF = F,
+  name = "ReplicatePeptideCorrelationDensity"
+)
 }
 \arguments{
 \item{traces}{Object of class \code{tracesList}.}

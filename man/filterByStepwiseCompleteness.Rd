@@ -4,8 +4,12 @@
 \alias{filterByStepwiseCompleteness}
 \title{Filter co-elution feature table by stepwise completeness cutoffs}
 \usage{
-filterByStepwiseCompleteness(feature_table, min_subunits_annotated = 4,
-  completeness_vector = c(0.75, 0.5), level = "hypothesis")
+filterByStepwiseCompleteness(
+  feature_table,
+  min_subunits_annotated = 4,
+  completeness_vector = c(0.75, 0.5),
+  level = "hypothesis"
+)
 }
 \arguments{
 \item{feature_table}{data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}}

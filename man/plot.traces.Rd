@@ -4,10 +4,19 @@
 \alias{plot.traces}
 \title{Plot traces}
 \usage{
-\method{plot}{traces}(traces, log = FALSE, legend = TRUE,
-  PDF = FALSE, name = "Traces", plot = TRUE, colour_by = "id",
-  highlight = NULL, highlight_col = NULL, colorMap = NULL,
-  monomer_MW = TRUE)
+\method{plot}{traces}(
+  traces,
+  log = FALSE,
+  legend = TRUE,
+  PDF = FALSE,
+  name = "Traces",
+  plot = TRUE,
+  colour_by = "id",
+  highlight = NULL,
+  highlight_col = NULL,
+  colorMap = NULL,
+  monomer_MW = TRUE
+)
 }
 \arguments{
 \item{traces}{Object of class traces.}

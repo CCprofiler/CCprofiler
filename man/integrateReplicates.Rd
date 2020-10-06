@@ -4,8 +4,13 @@
 \alias{integrateReplicates}
 \title{Generate a consensus traces object from multiple replicate traces}
 \usage{
-integrateReplicates(traces, design_matrix, integrate_within = NULL,
-  filter_by_RepPepCorr = TRUE, repPepCorr_cutoff = 0.5)
+integrateReplicates(
+  traces,
+  design_matrix,
+  integrate_within = NULL,
+  filter_by_RepPepCorr = TRUE,
+  repPepCorr_cutoff = 0.5
+)
 }
 \arguments{
 \item{traces}{object of class tracesList.}

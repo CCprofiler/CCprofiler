@@ -4,8 +4,11 @@
 \alias{appendSecondaryComplexFeatures}
 \title{Append secondary features to scored filtered primary feature table}
 \usage{
-appendSecondaryComplexFeatures(scoredPrimaryFeatures, allFeatures,
-  peakCorr_cutoff = 0.5)
+appendSecondaryComplexFeatures(
+  scoredPrimaryFeatures,
+  allFeatures,
+  peakCorr_cutoff = 0.5
+)
 }
 \arguments{
 \item{scoredPrimaryFeatures}{data.table output from scoreFeatures function}

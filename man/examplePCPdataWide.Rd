@@ -4,7 +4,9 @@
 \name{examplePCPdataWide}
 \alias{examplePCPdataWide}
 \title{Examplary peptide level quantitative PCP-MS dataset in wide format}
-\format{An object of class \code{data.table} (inherits from \code{data.frame}) with 1889 rows and 83 columns.}
+\format{
+An object of class \code{data.table} (inherits from \code{data.frame}) with 1889 rows and 83 columns.
+}
 \usage{
 examplePCPdataWide
 }

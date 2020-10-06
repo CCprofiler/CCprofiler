@@ -4,8 +4,13 @@
 \alias{scoreFeatures}
 \title{Score protein or complex features and filter by q-value/FDR}
 \usage{
-scoreFeatures(features, FDR = 0.05, plot = T, PDF = FALSE,
-  name = "qvalueStats")
+scoreFeatures(
+  features,
+  FDR = 0.05,
+  plot = T,
+  PDF = FALSE,
+  name = "qvalueStats"
+)
 }
 \arguments{
 \item{features}{data.table output from findComplexFeatures or findProteinFeatures function}

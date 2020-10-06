@@ -4,10 +4,19 @@
 \alias{findProteinFeatures}
 \title{Protein feature detection}
 \usage{
-findProteinFeatures(traces, corr_cutoff = 0.95, window_size = 12,
-  parallelized = FALSE, n_cores = 1, collapse_method = "apex_only",
-  perturb_cutoff = "5\%", rt_height = 5, smoothing_length = 9,
-  useRandomDecoyModel = TRUE, quantLevel = "protein_id")
+findProteinFeatures(
+  traces,
+  corr_cutoff = 0.95,
+  window_size = 12,
+  parallelized = FALSE,
+  n_cores = 1,
+  collapse_method = "apex_only",
+  perturb_cutoff = "5\%",
+  rt_height = 5,
+  smoothing_length = 9,
+  useRandomDecoyModel = TRUE,
+  quantLevel = "protein_id"
+)
 }
 \arguments{
 \item{traces}{An object of class traces (type "peptide").}

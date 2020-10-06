@@ -4,8 +4,7 @@
 \alias{plotGlobalIntensities}
 \title{Plot a comparison of the intensities in different samples}
 \usage{
-plotGlobalIntensities(traces, plot = T, PDF = F,
-  name = "IntensitySummary.pdf")
+plotGlobalIntensities(traces, plot = T, PDF = F, name = "IntensitySummary.pdf")
 }
 \arguments{
 \item{traces}{Object of class tracesList.}

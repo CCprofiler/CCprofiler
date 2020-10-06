@@ -4,7 +4,9 @@
 \name{corumComplexHypotheses}
 \alias{corumComplexHypotheses}
 \title{Complex hypotheses from CORUM DB}
-\format{An object of class \code{data.table} (inherits from \code{data.frame}) with 7103 rows and 3 columns.}
+\format{
+An object of class \code{data.table} (inherits from \code{data.frame}) with 7103 rows and 3 columns.
+}
 \usage{
 corumComplexHypotheses
 }

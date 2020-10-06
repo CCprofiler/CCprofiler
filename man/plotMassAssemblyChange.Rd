@@ -4,8 +4,12 @@
 \alias{plotMassAssemblyChange}
 \title{plotMassAssemblyChange between 2 conditions}
 \usage{
-plotMassAssemblyChange(assamblyTest, change_cutoff = 0.2,
-  name = "massAssemblyChange", PDF = FALSE)
+plotMassAssemblyChange(
+  assamblyTest,
+  change_cutoff = 0.2,
+  name = "massAssemblyChange",
+  PDF = FALSE
+)
 }
 \arguments{
 \item{assamblyTest}{data.table, a data.table with test statistics.

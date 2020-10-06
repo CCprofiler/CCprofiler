@@ -4,8 +4,13 @@
 \alias{testLocalVsGlobal}
 \title{Test differential association state of peptides or proteins between 2 conditions}
 \usage{
-testLocalVsGlobal(featureVals, compare_between = "Condition",
-  plot = TRUE, PDF = TRUE, name = "local_vs_global_stats")
+testLocalVsGlobal(
+  featureVals,
+  compare_between = "Condition",
+  plot = TRUE,
+  PDF = TRUE,
+  name = "local_vs_global_stats"
+)
 }
 \arguments{
 \item{featureVals}{data.table, a long-format table of intensity values within feature boundaries.

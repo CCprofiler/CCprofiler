@@ -4,7 +4,9 @@
 \name{examplePCPdataLong}
 \alias{examplePCPdataLong}
 \title{Examplary peptide level quantitative PCP-MS dataset in long format.}
-\format{An object of class \code{data.table} (inherits from \code{data.frame}) with 44542 rows and 4 columns.}
+\format{
+An object of class \code{data.table} (inherits from \code{data.frame}) with 44542 rows and 4 columns.
+}
 \usage{
 examplePCPdataLong
 }

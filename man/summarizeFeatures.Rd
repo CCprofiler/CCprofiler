@@ -4,8 +4,12 @@
 \alias{summarizeFeatures}
 \title{Summarize co-elution features}
 \usage{
-summarizeFeatures(feature_table, plot = TRUE, PDF = FALSE,
-  name = "feature_summary")
+summarizeFeatures(
+  feature_table,
+  plot = TRUE,
+  PDF = FALSE,
+  name = "feature_summary"
+)
 }
 \arguments{
 \item{feature_table}{data.table as reported by \code{\link[SECprofiler]{findComplexFeatures}}

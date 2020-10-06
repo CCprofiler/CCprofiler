@@ -4,9 +4,14 @@
 \alias{performProteinGridSearch}
 \title{Perform Protein feature grid search}
 \usage{
-performProteinGridSearch(traces, corrs = c(0.5, 0.75, 0.9, 0.95),
-  windows = c(8, 10, 12), smoothing = c(7, 9, 11), rt_heights = c(3,
-  4, 5), n_cores = 1)
+performProteinGridSearch(
+  traces,
+  corrs = c(0.5, 0.75, 0.9, 0.95),
+  windows = c(8, 10, 12),
+  smoothing = c(7, 9, 11),
+  rt_heights = c(3, 4, 5),
+  n_cores = 1
+)
 }
 \arguments{
 \item{traces}{An object of class traces (type "peptide").}
