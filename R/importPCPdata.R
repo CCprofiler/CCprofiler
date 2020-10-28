@@ -31,7 +31,7 @@
 importPCPdata <- function(input_data,
                           fraction_annotation,
                           rm_decoys = FALSE){
-
+  
   ## test arguments
   if (missing(input_data)){
     stop("Need to specify input_data in form of a filename or R data.table.")
@@ -39,10 +39,10 @@ importPCPdata <- function(input_data,
   if (missing(fraction_annotation)){
     stop("Need to specify fraction_annotation in form of a filename or R data.table.")
   }
-
+  
   ## read input_data & fraction_annotation
   ##################################################
-
+  
   if (class(input_data)[1] == "character") {
     if (file.exists(input_data)) {
       message('reading input_data file ...')
@@ -53,7 +53,7 @@ importPCPdata <- function(input_data,
   } else if (all(class(input_data) != c("data.table","data.frame"))) {
     stop("input_data input is neither filename or data.table")
   }
-
+  
   if (class(fraction_annotation)[1] == "character") {
     if (file.exists(fraction_annotation)) {
       message('reading fraction_annotation file ...')
@@ -64,56 +64,43 @@ importPCPdata <- function(input_data,
   } else if (all(class(fraction_annotation) != c("data.table","input_data.frame"))) {
     stop("fraction_annotation input is neither filename or data.table")
   }
-
+  
   ## Check input for completeness
   if(!("protein_id" %in% names(input_data))) stop("Missing or wrong column names")
-
+  
   if (rm_decoys == TRUE){
     message('removing decoys ...')
     input_data <- input_data[grep("DECOY", input_data$protein_id, invert = T)]
   }
-
+  
   ## Check if table is in long format
   if(any(names(input_data) == "intensity")){
-
-    ## add fraction number column to main dataframe
-    fraction_number <- integer(length=nrow(input_data))
-    files <- fraction_annotation$filename
-    input_dataFilenames <- input_data$filename
-
-    if (length(files) != length(unique(input_dataFilenames))) {
-      stop("Number of filenames in fraction_annotation does not match input_data.")
-    }
-    for (i in seq_along(files)){
-      idxs <- grep(files[i], input_dataFilenames)
-      fraction_number[idxs] <- fraction_annotation$fraction_number[i]
-      # message(paste("PROCESSED", i, "/", length(files), "filenames"))
-    }
-    input_data <- cbind(input_data, fraction_number)
-
+    
+    input_data <- merge(input_data,fraction_annotation, by="filename", all.x=TRUE, sort = FALSE)
+    
     ## Detect if long  quantMatrix is peptide or protein intensities
     if("peptide_id" %in% names(input_data)){
-
+      
       input_dataWide <- data.table(dcast(input_data, protein_id + peptide_id ~ fraction_number,
-                              value.var="intensity",fun.aggregate = sum, fill = 0))
+                                         value.var="intensity", fill = 0))
       ## Make sure fractions are in ascending order
-      setcolorder(input_dataWide, c("peptide_id", "protein_id", sort(unique(fraction_number))))
-
+      setcolorder(input_dataWide, c("peptide_id", "protein_id",sort(unique(fraction_annotation$id))))
+      
     }else{
-
+      
       input_dataWide <- data.table(dcast(input_data, protein_id ~ fraction_number,
-                              value.var="intensity",fun.aggregate = sum, fill = 0))
-      setcolorder(input_dataWide, c("protein_id", sort(unique(fraction_number))))
-
+                                         value.var="intensity", fill = 0))
+      setcolorder(input_dataWide, c("protein_id", sort(unique(fraction_annotation$id))))
+      
     }
-
+    
   }else{
-
+    
     ## if wide data add fraction number as column names
     input_dataFilenames <- names(input_data)[!(names(input_data) %in% c("peptide_id", "protein_id"))]
     fraction_number <- integer(length=length(input_dataFilenames))
     files <- fraction_annotation$filename
-
+    
     if (length(files) != length(unique(input_dataFilenames))) {
       stop("Number of file names in fraction_annotation does not match data")
     }
@@ -125,16 +112,16 @@ importPCPdata <- function(input_data,
     names(input_data)[!(names(input_data) %in% c("peptide_id", "protein_id"))] <- fraction_number
     input_dataWide <- input_data
   }
-
-
+  
+  
   if("peptide_id" %in% names(input_data)){
     ## Check for duplications
     if(any(duplicated(input_dataWide[, .(protein_id, peptide_id)]))){
       stop("The input_data contains duplicated intensity values (maybe from different peptides?).
            Please make sure you provide unique protein_id, peptide_id, filename combinations")
-
+      
     }
-    setcolorder(input_dataWide, c("peptide_id", "protein_id", sort(unique(fraction_number))))
+    setcolorder(input_dataWide, c("peptide_id", "protein_id", sort(unique(fraction_annotation$id))))
     traces_annotation <- data.table(input_dataWide[,c("peptide_id", "protein_id"), with = FALSE])
     setnames(traces_annotation,c("peptide_id", "protein_id"),c("id","protein_id"))
     setkey(traces_annotation, protein_id, id)
@@ -142,15 +129,15 @@ importPCPdata <- function(input_data,
     traces <- subset(input_dataWide, select = -protein_id)
     traces[,id:=peptide_id]
     traces[,peptide_id:=NULL]
-
+    
   }else{
     ## check if there are duplicated protein entries (e.g. from different charge states)
     if(any(duplicated(input_dataWide$protein_id))){
       stop("The input_data contains duplicated protein intensity values (maybe from different peptides?).
            Please make sure you provide unique protein_id, filename combinations")
     }
-
-    setcolorder(input_dataWide, c("protein_id", sort(unique(fraction_number))))
+    
+    setcolorder(input_dataWide, c("protein_id", sort(unique(fraction_annotation$id))))
     traces_annotation <- data.table(input_dataWide[,.(protein_id)])
     setnames(traces_annotation,"protein_id", "id")
     setkey(traces_annotation, id)
@@ -158,15 +145,15 @@ importPCPdata <- function(input_data,
     traces <- input_dataWide
     traces[,id:=protein_id]
     traces[,protein_id:=NULL]
-
+    
   }
-
-
+  
+  
   ## Produce the traces object
-
+  
   fraction_annotation = fraction_annotation
   names(fraction_annotation) <- c("filename", "id")
-
+  
   result <- list("traces" = traces,
                  "trace_type" = traces_type,
                  "trace_annotation" = traces_annotation,
