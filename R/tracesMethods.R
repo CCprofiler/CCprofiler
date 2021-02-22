@@ -763,7 +763,12 @@ print.traces <- function(traces){
     }
   }
   if (! identical(traces$traces$id,traces$trace_annotation$id)) {
-    stop("IDs in traces and trace_annotation are not identical.")
+  	if (type(traces$traces$id) != type(traces$trace_annotation$id)) {
+  	  stop("IDs in traces and trace_annotation have different types")
+  	}
+  	else{
+      stop("IDs in traces and trace_annotation are not identical.")
+    }
   }
   if (! identical(names(traces$traces),c(traces$fraction_annotation$id,"id"))) {
     stop("Fractions in traces and fraction_annotation are not identical.")

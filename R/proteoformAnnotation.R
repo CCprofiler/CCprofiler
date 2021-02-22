@@ -359,8 +359,10 @@ calculateProteoformScore <- function(traces, summary_fun = "mean"){
   }
   # Check if clustering already done
   if(! "cluster" %in% names(traces$trace_annotation)){
-    stop("No clustering found please call cutClustersInNreal first.")
+    stop("No clustering found please call cutClustersDynamic first.")
   }
+
+  n_fractions <- nrow(traces$fraction_annotation)
 
   res <- sapply(names(traces$geneCorrMatrices), function(prot){
     clust <- traces$trace_annotation[protein_id == prot]
@@ -369,30 +371,120 @@ calculateProteoformScore <- function(traces, summary_fun = "mean"){
       mat <- traces$geneCorrMatrices[[prot]]
       cl <- unique(clust$cluster)
       cl <- cl[cl != 100]
-      if(length(cl) != 2){
-        stop(paste0("Protein ", prot, " does not have 2 clusters."))
+      if(length(cl) > 2){
+        message(paste0("Protein ", prot, " has > 2 clusters."))
+        stat_v <- c()
+        for (i in seq(1,length(cl),1)){
+          cl_i <- cl[cl!=cl[i]]
+          cl1 <- clust[clust$cluster == cl_i[1]]$id
+          cl2 <- clust[clust$cluster == cl_i[2]]$id
+          mat_i <- mat[c(cl1, cl2), c(cl1, cl2)]
+          cross <- mat_i[cl1,cl2]
+          mat_i[upper.tri(mat_i, diag = T)] <- NA
+          ## stat_all <- mean(mat_i, na.rm = T)
+          within_c1 <- mat_i[cl1,cl1]
+          within_c2 <- mat_i[cl2,cl2]
+          stat_within_c1 <- do.call(summary_fun, list(within_c1, na.rm = T))
+          stat_within_c2 <- do.call(summary_fun, list(within_c2, na.rm = T))
+          stat_within <- min(c(stat_within_c2, stat_within_c1))
+          stat_across <- do.call(summary_fun, list(cross, na.rm = T))
+          diff_stat <- stat_within - stat_across
+          #
+          z_stat_within <- atanh(stat_within)
+          z_stat_across <- atanh(stat_across)
+          z_diff_stat <- z_stat_within - z_stat_across
+          dz <- z_diff_stat/(sqrt((1/(n_fractions-3)) + (1/(n_fractions-3))))
+          pval <- 2*(1 - pnorm(abs(dz)))
+          #
+          stat_v <- append(stat_v,list(list(diff_stat, z_diff_stat, dz, pval)))
+        }
+        sel_min_diff <- which(unlist(lapply(stat_v, function(l){l[1]})) == min(unlist(lapply(stat_v, function(l){l[1]})), na.rm = T))[1]
+        return(unlist(stat_v[[sel_min_diff]]))
+      } else {
+        cl1 <- clust[clust$cluster == cl[1]]$id
+        cl2 <- clust[clust$cluster == cl[2]]$id
+        mat <- mat[c(cl1, cl2), c(cl1, cl2)]
+        cross <- mat[cl1,cl2]
+        mat[upper.tri(mat, diag = T)] <- NA
+        ## stat_all <- mean(mat, na.rm = T)
+        within_c1 <- mat[cl1,cl1]
+        within_c2 <- mat[cl2,cl2]
+        stat_within_c1 <- do.call(summary_fun, list(within_c1, na.rm = T))
+        stat_within_c2 <- do.call(summary_fun, list(within_c2, na.rm = T))
+        stat_within <- min(c(stat_within_c2, stat_within_c1))
+        stat_across <- do.call(summary_fun, list(cross, na.rm = T))
+        diff_stat <- stat_within - stat_across
+        #
+        z_stat_within <- atanh(stat_within)
+        z_stat_across <- atanh(stat_across)
+        z_diff_stat <- z_stat_within - z_stat_across
+        dz <- z_diff_stat/(sqrt((1/(n_fractions-3)) + (1/(n_fractions-3))))
+        pval <- 2*(1 - pnorm(abs(dz)))
+        #
+        return(list(diff_stat, z_diff_stat, dz, pval))
       }
-      cl1 <- clust[clust$cluster == cl[1]]$id
-      cl2 <- clust[clust$cluster == cl[2]]$id
-      mat <- mat[c(cl1, cl2), c(cl1, cl2)]
-      cross <- mat[cl1,cl2]
-      mat[upper.tri(mat, diag = T)] <- NA
-      ## stat_all <- mean(mat, na.rm = T)
-      within_c1 <- mat[cl1,cl1]
-      within_c2 <- mat[cl2,cl2]
-      stat_within_c1 <- do.call(summary_fun, list(within_c1, na.rm = T))
-      stat_within_c2 <- do.call(summary_fun, list(within_c2, na.rm = T))
-      stat_within <- min(c(stat_within_c2, stat_within_c1))
-      stat_across <- do.call(summary_fun, list(cross, na.rm = T))
-      return((stat_within - stat_across))
     } else{
       return(NA)
     }
   })
   ## Add to trace annotation
-  traces$trace_annotation$proteoform_score <- res[traces$trace_annotation$protein_id]
+  #traces$trace_annotation$proteoform_score <- res[traces$trace_annotation$protein_id]
+  traces$trace_annotation$proteoform_score <- unlist(lapply(res[traces$trace_annotation$protein_id], function(l){l[1]}))
+  traces$trace_annotation$proteoform_score_z <- unlist(lapply(res[traces$trace_annotation$protein_id], function(l){l[2]}))
+  traces$trace_annotation$proteoform_score_dz <- unlist(lapply(res[traces$trace_annotation$protein_id], function(l){l[3]}))
+  traces$trace_annotation$proteoform_score_pval <- unlist(lapply(res[traces$trace_annotation$protein_id], function(l){l[4]}))
+  pval_dt <- unique(traces$trace_annotation[,.(proteoform_score_pval), by=.(protein_id)])
+  pval_dt[, proteoform_score_pval_adj := p.adjust(proteoform_score_pval, method = "BH")]
+  traces$trace_annotation <- merge(traces$trace_annotation, pval_dt, by=c("protein_id", "proteoform_score_pval"), sort = F)
   return(traces)
 }
+
+#' Plots p-value histograms for the proteoform p-values.
+#' @param traces Object of class traces with proteoform scores and p-values.
+#' @param name Name of the generated PDF.
+#' @param PDF logical, wether to print plot to a PDF file.
+#' @return plot
+#' @export
+plotProteoformPvalHist <- function(traces, name="proteoform_pval_histograms", PDF=TRUE){
+  if (PDF){
+    pdf(paste0(name,".pdf"), width=4, height=4)
+  }
+    scores <- unique(traces$trace_annotation[,.(proteoform_score,proteoform_score_pval,proteoform_score_pval_adj), by=.(protein_id)])
+    scores <- scores[!is.na(scores$proteoform_score)]
+    p <- ggplot(scores, aes(x=proteoform_score_pval)) +
+      geom_histogram(bins = 100) +
+      theme_classic()
+    print(p)
+    p <- ggplot(scores, aes(x=proteoform_score_pval_adj)) +
+      geom_histogram(bins = 80) +
+      theme_classic()
+    print(p)
+  if (PDF){
+    dev.off()
+  }
+}
+
+#' Plots pseudo volcano for the proteoform scores and p-values.
+#' @param traces Object of class traces with proteoform scores and p-values.
+#' @param name Name of the generated PDF.
+#' @param PDF logical, wether to print plot to a PDF file.
+#' @return plot
+#' @export
+plotProteoformVolcano <- function(traces, name="proteoform_pseudo_volcano", PDF=TRUE){
+  if (PDF){
+    pdf(paste0(name,".pdf"), width=4, height=4)
+  }
+  scores <- unique(traces$trace_annotation[,.(proteoform_score,proteoform_score_pval,proteoform_score_pval_adj), by=.(protein_id)])
+  scores <- scores[!is.na(scores$proteoform_score)]
+  p <- ggplot(scores, aes(x=proteoform_score, y=-log10(proteoform_score_pval_adj))) +
+    geom_point(colour="#003366", alpha=0.5) +
+    theme_classic()
+  print(p)
+  if (PDF){
+    dev.off()
+  }
+}
+
 
 #' Estimate p-values of whether a gene is likely to have >1 proteoforms
 #' @param traces Object of class traces or tracesList.
@@ -982,6 +1074,39 @@ cutClustersInNreal <- function(traces, clusterN = 2, min_peptides_per_cluster = 
   return(traces)
 }
 
+#' Cut clusters from clusterPeptides dynamically into clusters with more than 1 peptide.
+#' @param traces Object of class traces with a member `peptideClustering` as produced by `clusterPeptides`.
+#' @param min_peptides_per_cluster How many peptides per cluster.
+#' @details Cuts the hierarchical tree so that there are N clusters with at least the specified number of peptides.
+#' The cutreeDynamic function from dynamicTreeCut is applied.
+#' If there are single peptides above the cutoff height they will get the label 100.
+#' @return traces object with cluster annotations in trace_annotation
+#' @export
+
+cutClustersDynamic <- function(traces, min_peptides_per_cluster = 2){
+
+  if("peptideClustering" %in% names(traces)){
+    clusterList <- traces$peptideClustering
+  }else{
+    stop("No peptide clustering found. Please run clusterPeptides first.")
+  }
+
+  clust <- lapply(seq_along(clusterList), function(idx){
+    tree <- clusterList[[idx]]
+    corr <- 1-traces$geneCorrMatrices[[idx]]
+    peptides <- tree$labels
+    groups <- cutreeDynamic(tree, minClusterSize = 2, distM = corr, cutHeight=0.99, minSplitHeight=0.9, deepSplit=0, pamStage = F)
+    names(groups) <- peptides
+    return(groups)
+  })
+
+  names(clust) <- names(clusterList)
+
+  traces$trace_annotation[, cluster := clust[[protein_id]][id], by=c('protein_id','id')]
+  traces$trace_annotation[, cluster := ifelse(cluster==0, 100, cluster)]
+  return(traces)
+}
+
 #' Cut clusters from clusterPeptides into N clusters.
 #' @param clusterList List of hclust objects generated by clusterPeptides.
 #' @param clusterN Number of clusters. Default is 2.
@@ -1167,11 +1292,12 @@ combineTracesMutiCond <- function(tracesList){
 #' Annotate traces with a proteoform_id based on
 #' a selected score cutoff.
 #' @param traces Object of class traces.
-#' @param score_cutoff Proteoform score cutoff. Numeric between 0 and 1. Default is 0.5.
+#' @param score_cutoff Proteoform score cutoff. Numeric between 0 and 1. Default is 0.1.
+#' @param adj_pval_cutoff adjusted p-value cutoff. Numeric between 0 and 1. Default is 0.1.
 #' @return Object of class traces
 #' @export
-annotateTracesWithProteoforms <- function(traces, score_cutoff = 0.5){
-  traces$trace_annotation[,proteoform_id := ifelse(proteoform_score >= score_cutoff, paste(protein_id, cluster, sep='_'), protein_id)]
+annotateTracesWithProteoforms <- function(traces, score_cutoff = 0.1, adj_pval_cutoff = 0.1){
+  traces$trace_annotation[,proteoform_id := ifelse(((proteoform_score >= score_cutoff) & (proteoform_score_pval_adj <= adj_pval_cutoff)), paste(protein_id, cluster, sep='_'), protein_id)]
   traces$trace_annotation[,proteoform_id := ifelse(cluster == 100, paste(protein_id, 0, sep='_'), proteoform_id)]
   traces$trace_annotation[,n_proteoforms:=length(unique(proteoform_id)),by="protein_id"]
   traces$trace_annotation[,n_proteoforms:=ifelse(length(grep("_0",unique(proteoform_id))) == 0, n_proteoforms, n_proteoforms-1),by="protein_id"]
