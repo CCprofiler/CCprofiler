@@ -5,12 +5,18 @@
 \title{Annotate traces with a proteoform_id based on
 a selected score cutoff.}
 \usage{
-annotateTracesWithProteoforms(traces, score_cutoff = 0.5)
+annotateTracesWithProteoforms(
+  traces,
+  score_cutoff = 0.1,
+  adj_pval_cutoff = 0.1
+)
 }
 \arguments{
 \item{traces}{Object of class traces.}
 
-\item{score_cutoff}{Proteoform score cutoff. Numeric between 0 and 1. Default is 0.5.}
+\item{score_cutoff}{Proteoform score cutoff. Numeric between 0 and 1. Default is 0.1.}
+
+\item{adj_pval_cutoff}{adjusted p-value cutoff. Numeric between 0 and 1. Default is 0.1.}
 }
 \value{
 Object of class traces

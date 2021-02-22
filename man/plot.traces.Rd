@@ -4,7 +4,7 @@
 \alias{plot.traces}
 \title{Plot traces}
 \usage{
-plot.traces(
+\method{plot}{traces}(
   traces,
   log = FALSE,
   legend = TRUE,

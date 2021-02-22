@@ -4,7 +4,7 @@
 \alias{plot.tracesList}
 \title{Plot traces}
 \usage{
-plot.tracesList(
+\method{plot}{tracesList}(
   traces,
   design_matrix = NULL,
   collapse_conditions = FALSE,
