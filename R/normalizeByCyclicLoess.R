@@ -23,6 +23,7 @@ normalizeByCyclicLoess <- function(traces_list, window = 3, step = 1, plot = TRU
   combi_table <- unique(combi_table)
 
   combi_table_forPlot <- copy(combi_table)
+  combi_table_forPlot$intensity = as.numeric(combi_table_forPlot$intensity)
   combi_table_forPlot[, total_intensity:=sum(intensity), by=c("filename","sample")]
   combi_table_forPlot <- unique(subset(combi_table_forPlot, select=c("fraction_number","total_intensity","sample")))
   pnormdata<-ggplot(combi_table_forPlot, aes(x=fraction_number, y=total_intensity, group=sample)) +
