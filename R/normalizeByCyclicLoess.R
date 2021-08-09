@@ -85,7 +85,7 @@ dcast_backToTraces <- function(normData){
 }
 
 extractvaluesForNorm <- function(traces){
-  intensities_long <- data.table::melt(traces$traces, var.id = "id", variable.name = "fraction_number", value.name = "intensity")
+  intensities_long <- data.table::melt(traces$traces, id.vars = "id", variable.name = "fraction_number", value.name = "intensity")
   return(intensities_long)
 }
 
