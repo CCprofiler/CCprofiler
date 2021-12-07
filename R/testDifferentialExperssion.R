@@ -264,7 +264,7 @@ getFCadjustedMedian <- function(tests,level){
       #local_vs_global_medianLog2FC_imp = median(local_vs_global_log2FC_imp,na.rm=T),
       #local_vs_global_medianPVal = 1-(local_vs_global_mPval * sign(local_vs_global_mPval))
       )},
-      by = .(feature_id, complex_id, apex)]
+      by = .(feature_id, complex_id, apex, testOrder)]
     } else {
       medianPval <- test[ ,{mPval = median(FCpVal,na.rm=T)
       global_mPval = median(global_FCpVal,na.rm=T)
@@ -281,7 +281,7 @@ getFCadjustedMedian <- function(tests,level){
         #local_vs_global_medianLog2FC_imp = median(local_vs_global_log2FC_imp,na.rm=T),
         #local_vs_global_medianPVal = 1-(local_vs_global_mPval * sign(local_vs_global_mPval))
       )},
-      by = .(feature_id, apex)]
+      by = .(feature_id, apex, testOrder)]
     }
   } else if (level == "complex") {
     test[, FCpVal := (1-pVal) * sign(medianLog2FC)]
@@ -302,7 +302,7 @@ getFCadjustedMedian <- function(tests,level){
      #local_vs_global_medianLog2FC_imp = median(local_vs_global_medianLog2FC_imp,na.rm=T),
      #local_vs_global_medianPVal = 1-(local_vs_global_mPval * sign(local_vs_global_mPval))
      )},
-    by = .(complex_id, apex)]
+    by = .(complex_id, apex, testOrder)]
   } else if (level == "proteoform") {
     test[, FCpVal := (1-pVal) * sign(log2FC)]
     test[, global_FCpVal := (1-global_pVal) * sign(global_log2FC)]
@@ -323,7 +323,7 @@ getFCadjustedMedian <- function(tests,level){
        #local_vs_global_medianLog2FC_imp = median(local_vs_global_log2FC_imp,na.rm=T),
        #local_vs_global_medianPVal = 1-(local_vs_global_mPval * sign(local_vs_global_mPval))
        )},
-      by = .(feature_id, proteoform_id, complex_id, apex)]
+      by = .(feature_id, proteoform_id, complex_id, apex, testOrder)]
     } else {
       medianPval <- test[ ,{mPval = median(FCpVal,na.rm=T)
       global_mPval = median(global_FCpVal,na.rm=T)
@@ -340,7 +340,7 @@ getFCadjustedMedian <- function(tests,level){
        #local_vs_global_medianLog2FC_imp = median(local_vs_global_log2FC_imp,na.rm=T),
        #local_vs_global_medianPVal = 1-(local_vs_global_mPval * sign(local_vs_global_mPval))
        )},
-      by = .(feature_id, proteoform_id, apex)]
+      by = .(feature_id, proteoform_id, apex, testOrder)]
     }
     medianPval <- subset(medianPval,!is.na(proteoform_id))
   } else {
